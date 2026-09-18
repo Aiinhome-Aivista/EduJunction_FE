@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", sans-serif;
+}
+
+body {
+  font-family: 'Nunito', sans-serif !important;
+}
+
+/* Keep links visibly distinct while editing and in published blog content. */
+.jodit-wysiwyg a,
+.jodit-wysiwyg a:visited,
+.prose a,
+.prose a:visited {
+  color: #0d47a1 !important;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.jodit-wysiwyg a:hover,
+.prose a:hover {
+  color: #1d4ed8 !important;
+  text-decoration-thickness: 2px;
+}
+
+/* SCROLL REVEAL ANIMATIONS */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* HIDE SCROLLBAR UTILITY */
+.hide-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PRINT & MULTI-PAGE PDF EXPORT STYLES (A4 Portrait Standard)
+   ───────────────────────────────────────────────────────────── */
+@media print {
+  @page {
+    margin: 10mm 12mm;
+    size: A4 portrait;
+  }
+
+  /* Completely remove all scrollbar tracks & indicators in print output */
+  *,
+  *::before,
+  *::after {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Force 100% full width and block flow on root workspace elements */
+  html,
+  body,
+  #root,
+  #root > div,
+  main,
+  main > div,
+  .flex-1 {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Completely eliminate App Chrome, Headers, Sidebar Column & Interactive Widgets */
+  header,
+  nav,
+  aside,
+  button,
+  .lg\:w-64,
+  .lg\:w-20,
+  .w-64,
+  #mobile-sidebar-toggle,
+  #desktop-sidebar-toggle,
+  #floating-chat-widget,
+  .no-print,
+  .print\:hidden {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: absolute !important;
+    left: -99999px !important;
+  }
+
+  /* Full Width Card Styling */
+  .max-w-5xl,
+  .max-w-6xl,
+  .max-w-7xl,
+  .bg-white.rounded-3xl {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    padding: 14px 18px !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* Individual question cards page-break avoidance */
+  .space-y-4 > div,
+  .space-y-2\.5 > div {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    border-radius: 10px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    margin-bottom: 8px !important;
+  }
+}

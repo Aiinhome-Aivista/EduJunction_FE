@@ -1,0 +1,410 @@
+import axios from 'axios';
+import { GET_APIS, POST_APIS, PUT_APIS, DELETE_APIS } from '../connection';
+import { AuthTokens, ApiError } from '../types/api';
+
+// ─────────────────────────────────────────────
+// Token Storage Utilities
+// ─────────────────────────────────────────────
+const ACCESS_TOKEN_KEY = 'EduJunction_access_token';
+const REFRESH_TOKEN_KEY = 'EduJunction_refresh_token';
+
+export function getStoredTokens(): AuthTokens | null {
+  const accessToken = sessionStorage.getItem(ACCESS_TOKEN_KEY) || localStorage.getItem(ACCESS_TOKEN_KEY) || sessionStorage.getItem('acugrade_access_token') || localStorage.getItem('acugrade_access_token');
+  const refreshToken = sessionStorage.getItem(REFRESH_TOKEN_KEY) || localStorage.getItem(REFRESH_TOKEN_KEY) || sessionStorage.getItem('acugrade_refresh_token') || localStorage.getItem('acugrade_refresh_token');
+  if (
+    !accessToken || !refreshToken ||
+    accessToken === 'undefined' || refreshToken === 'undefined' ||
+    accessToken === 'null' || refreshToken === 'null'
+  ) {
+    return null;
+  }
+  return { accessToken, refreshToken };
+}
+
+export function storeTokens(tokensOrAccessToken: AuthTokens | string, maybeRefreshToken?: string) {
+  let accToken = '';
+  let refToken = '';
+
+  if (typeof tokensOrAccessToken === 'string') {
+    accToken = tokensOrAccessToken;
+    refToken = maybeRefreshToken || '';
+  } else if (tokensOrAccessToken && typeof tokensOrAccessToken === 'object') {
+    accToken = tokensOrAccessToken.accessToken || '';
+    refToken = tokensOrAccessToken.refreshToken || '';
+  }
+
+  if (accToken && accToken !== 'undefined' && accToken !== 'null') {
+    sessionStorage.setItem(ACCESS_TOKEN_KEY, accToken);
+    localStorage.setItem(ACCESS_TOKEN_KEY, accToken);
+  }
+  if (refToken && refToken !== 'undefined' && refToken !== 'null') {
+    sessionStorage.setItem(REFRESH_TOKEN_KEY, refToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refToken);
+  }
+}
+
+export function clearTokens() {
+  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
+export function decodeTokenPayload(token: string): { sub: string; role: string; exp: number } | null {
+  try {
+    const [, payloadB64] = token.split('.');
+    const json = atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Axios Instance & Interceptors
+// ─────────────────────────────────────────────
+const apiClient = axios.create();
+
+let isRefreshing = false;
+let failedQueue: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) prom.reject(error);
+    else prom.resolve(token!);
+  });
+  failedQueue = [];
+};
+
+// Attach Bearer token to every request
+apiClient.interceptors.request.use((config) => {
+  const tokens = getStoredTokens();
+  if (tokens && config.headers && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${tokens.accessToken}`;
+  }
+  return config;
+});
+
+// Handle 401 TOKEN_EXPIRED with auto-refresh
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const isTokenExpired =
+      error.response?.status === 401 &&
+      error.response?.data?.error?.code === 'TOKEN_EXPIRED';
+
+    if (isTokenExpired && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise<string>((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = 'Bearer ' + token;
+          return apiClient(originalRequest);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const tokens = getStoredTokens();
+        if (!tokens) throw new Error('No refresh token');
+        const res = await axios.post(POST_APIS.refreshToken, { refreshToken: tokens.refreshToken });
+        const data = res.data;
+        const newAccessToken = data.data?.accessToken || data.data?.tokens?.accessToken;
+        const newRefreshToken = data.data?.refreshToken || data.data?.tokens?.refreshToken;
+        if (newAccessToken && newRefreshToken) {
+          storeTokens({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          processQueue(null, newAccessToken);
+          return apiClient(originalRequest);
+        }
+        throw new Error('Invalid tokens from refresh');
+      } catch (err) {
+        processQueue(err, null);
+        clearTokens();
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    // Normalize error shape
+    const code = error.response?.data?.error?.code || 'UNKNOWN_ERROR';
+    const message = error.response?.data?.message || error.response?.data?.error?.message || 'Request failed';
+    const customError = new ApiError(code, message, error.response?.status);
+    return Promise.reject(customError);
+  }
+);
+
+// ─────────────────────────────────────────────
+// ApiServices Class
+// ─────────────────────────────────────────────
+class ApiServices {
+  /** Unwraps `response.data.data` just like the old fetch wrapper returned `json.data` */
+  private async get(url: string) {
+    const res = await apiClient.get(url);
+    return res.data.data !== undefined ? res.data.data : res.data;
+  }
+
+  private async post(url: string, body?: any) {
+    const res = await apiClient.post(url, body);
+    return res.data.data !== undefined ? res.data.data : res.data;
+  }
+
+  private async put(url: string, body?: any) {
+    const res = await apiClient.put(url, body);
+    return res.data.data !== undefined ? res.data.data : res.data;
+  }
+
+  private async del(url: string) {
+    const res = await apiClient.delete(url);
+    return res.data.data !== undefined ? res.data.data : res.data;
+  }
+
+  // ── Auth ──────────────────────────────────
+  /** Returns raw axios response so LoginPage can read response.data directly */
+  login(body: any) { return apiClient.post(POST_APIS.login, body); }
+  googleLogin(body: any) { return apiClient.post(POST_APIS.googleLogin, body); }
+  register(body: any) { return this.post(POST_APIS.register, body); }
+  resetPassword(body: { identifier: string; newPassword: string }) { return this.post(POST_APIS.resetPassword, body); }
+  checkUsername(username: string) { return this.get(GET_APIS.checkUsername(username)); }
+  getRoles() { return this.get(GET_APIS.roles); }
+  verifySession() { return this.get(GET_APIS.verifySession); }
+  async getMenuPermissions() {
+    const res = await this.get(GET_APIS.menuPermissions);
+    if (Array.isArray(res)) return res;
+    if (res && Array.isArray(res.pageAccess)) return res.pageAccess;
+    if (res && Array.isArray(res.data)) return res.data;
+    return [];
+  }
+  childLogin(body: any) { return this.post(POST_APIS.childLogin, body); }
+  logout(body: any) { return this.post(POST_APIS.logout, body); }
+
+  // ── Master Data ───────────────────────────
+  getBoardClassDropdown() { return this.get(GET_APIS.boardClassDropdown); }
+
+  // ── Parent ────────────────────────────────
+  getParentDashboard() { return this.get(GET_APIS.parentDashboard); }
+  getMe() { return this.get(GET_APIS.parentMe); }
+  getChildren() { return this.get(GET_APIS.parentChildren); }
+  addChild(body: any) { return this.post(POST_APIS.addChild, body); }
+  updateChild(childId: string | number, body: any) { return this.put(PUT_APIS.updateChild(childId), body); }
+  deleteChild(childId: string | number) { return this.del(DELETE_APIS.deleteChild(childId)); }
+  getChildOverview(childId: string | number) { return this.get(GET_APIS.childOverview(childId)); }
+  getChildLearningPath(childId: string | number) { return this.get(GET_APIS.childLearningPath(childId)); }
+  scheduleExam(body: any) { return this.post(POST_APIS.scheduleExam, body); }
+  getScheduledExams() { return this.get(GET_APIS.scheduledExams); }
+  deleteScheduledExam(id: string) { return this.del(DELETE_APIS.deleteScheduledExam(id)); }
+  getStudentActivityLogs(studentId?: string | number, days: number = 7) { return this.get(GET_APIS.studentActivityLog(studentId, days)); }
+
+  // ── Student ───────────────────────────────
+  getStudentDashboard() { return this.get(GET_APIS.studentDashboard); }
+  getStudentMe() { return this.get(GET_APIS.studentMe); }
+  getStudentLearningPath() { return this.get(GET_APIS.studentLearningPath); }
+  getAssignedExams() { return this.get(GET_APIS.assignedExams); }
+  getMyActivityLogs(days: number = 7) { return this.get(GET_APIS.myActivityLog(days)); }
+
+  // ── Notifications ─────────────────────────
+  getNotifications() { return this.get(GET_APIS.notifications); }
+  markNotificationRead(notificationId: string) { return apiClient.patch(PUT_APIS.markNotificationRead(notificationId)).then(res => res.data.data !== undefined ? res.data.data : res.data); }
+  markAllNotificationsRead() { return this.post(POST_APIS.markAllNotificationsRead); }
+
+
+  // ── Exams ─────────────────────────────────
+  generateExam(body: any) { return this.post(POST_APIS.generateExam, body); }
+  generateQuickTest(paramsOrStudentId: any, limit: number = 10) {
+    if (typeof paramsOrStudentId === 'object' && paramsOrStudentId !== null) {
+      return this.post(POST_APIS.generateQuickTest, paramsOrStudentId);
+    }
+    return this.post(POST_APIS.generateQuickTest, { studentId: paramsOrStudentId, limit });
+  }
+  submitExam(examId: string, body: any) { return this.post(POST_APIS.submitExam(examId), body); }
+
+  // ── Runbooks ──────────────────────────────
+  listRunbooks(filters?: any) {
+    const params = new URLSearchParams(filters).toString();
+    return this.get(`${GET_APIS.runbooks}${params ? `?${params}` : ''}`);
+  }
+  createRunbook(body: any) { return this.post(POST_APIS.createRunbook, body); }
+  updateRunbook(id: string, body: any) { return this.put(PUT_APIS.updateRunbook(id), body); }
+  removeRunbook(id: string) { return this.del(DELETE_APIS.deleteRunbook(id)); }
+
+  // ── Gamification ──────────────────────────
+  listBadges() { return this.get(GET_APIS.badges); }
+  awardXp(body: any) { return this.post(POST_APIS.awardXp, body); }
+  leaderboard(period: string = 'all_time') { return this.get(`${GET_APIS.leaderboard}?period=${period}`); }
+
+  // ── Communication ─────────────────────────
+  listTeachers() { return this.get(GET_APIS.teachers); }
+  listConversations() { return this.get(GET_APIS.conversations); }
+  createConversation(body: any) { return this.post(POST_APIS.createConversation, body); }
+  sendMessage(conversationId: string, body: any) { return this.post(POST_APIS.sendMessage(conversationId), body); }
+  sendChatMessage(body: { messages: { role: string, content: string }[], student_id?: string | number }) { return this.post(POST_APIS.chat, body); }
+  getChatSuggestions() { return this.get(GET_APIS.chatSuggestions); }
+  markMessageRead(messageId: string) { return this.put(PUT_APIS.markMessageRead(messageId)); }
+  createDossier(body: any) { return this.post(POST_APIS.createDossier, body); }
+  listDossiers() { return this.get(GET_APIS.dossiers); }
+  deleteDossier(dossierId: string) { return this.del(DELETE_APIS.deleteDossier(dossierId)); }
+  getDossierPreview(studentId: string | number) { return this.get(GET_APIS.dossierPreview(studentId)); }
+  getPublicDossier(shareToken: string) { return this.get(GET_APIS.publicDossier(shareToken)); }
+  schedulePTM(body: any) { return this.post(POST_APIS.schedulePTM, body); }
+  listPTMSchedules() { return this.get(GET_APIS.ptmSchedules); }
+
+  // ── Admin ─────────────────────────────────
+  adminLogin(body: any) { return apiClient.post(POST_APIS.adminLogin, body); }
+  adminResetPassword(body: any) { return this.post(POST_APIS.adminResetPassword, body); }
+  adminStatistics() { return this.get(GET_APIS.adminStatistics); }
+  adminDashboard() { return this.get(GET_APIS.adminDashboard); }
+  listAdminUsers(filters?: any) {
+    const params = filters ? new URLSearchParams(filters).toString() : '';
+    return this.get(GET_APIS.adminUsers(params));
+  }
+  updateAdminUser(id: string | number, body: any) { return this.put(PUT_APIS.updateAdminUser(id), body); }
+  deleteAdminUser(id: string | number) { return this.del(DELETE_APIS.deleteAdminUser(id)); }
+  adminAuditLogs(filters?: any) {
+    const params = filters ? new URLSearchParams(filters).toString() : '';
+    return this.get(GET_APIS.adminAuditLogs(params));
+  }
+
+  // ── Blogs ─────────────────────────────────
+  listBlogs(filters?: any) {
+    const params = filters ? new URLSearchParams(filters).toString() : '';
+    return this.get(`${GET_APIS.blogs}${params ? `?${params}` : ''}`);
+  }
+  getBlog(id: string | number) { return this.get(GET_APIS.blogById(id)); }
+  createBlog(body: any) { return this.post(POST_APIS.createBlog, body); }
+  uploadBlogImage(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post(POST_APIS.uploadBlogImage, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((res) => res.data.data !== undefined ? res.data.data : res.data);
+  }
+  updateBlog(id: string | number, body: any) { return this.put(PUT_APIS.updateBlog(id), body); }
+  deleteBlog(id: string | number) { return this.del(DELETE_APIS.deleteBlog(id)); }
+  listBlogCategories() { return this.get(GET_APIS.blogCategories); }
+  createBlogCategory(body: any) { return this.post(POST_APIS.createBlogCategory, body); }
+  updateBlogCategory(id: string | number, body: any) { return this.put(PUT_APIS.updateBlogCategory(id), body); }
+  deleteBlogCategory(id: string | number) { return this.del(DELETE_APIS.deleteBlogCategory(id)); }
+  listBlogAuthors() { return this.get(GET_APIS.blogAuthors); }
+  createBlogAuthor(body: any) { return this.post(POST_APIS.createBlogAuthor, body); }
+  shareBlog(id: string | number) { return this.post(POST_APIS.shareBlog(id), {}); }
+
+  // ── Curriculum & Question Bank ────────────
+  getCurriculumTree() { return this.get(GET_APIS.curriculumTree); }
+  listQuestions(filters?: any) {
+    const params = filters ? new URLSearchParams(filters).toString() : '';
+    return this.get(GET_APIS.adminQuestions(params));
+  }
+  createQuestion(body: any) { return this.post(POST_APIS.createQuestion, body); }
+  updateQuestion(id: string | number, body: any) { return this.put(PUT_APIS.updateQuestion(id), body); }
+  deleteQuestion(id: string | number) { return this.del(DELETE_APIS.deleteQuestion(id)); }
+  getQuestionUploadHistory(limit: number = 20) { return this.get(GET_APIS.questionUploadHistory(limit)); }
+
+  bulkUploadQuestions(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post(POST_APIS.bulkUploadQuestions, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((res) => res.data.data !== undefined ? res.data.data : res.data);
+  }
+
+  async bulkUploadQuestionsStream(file: File, onProgress: (data: any) => void): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const tokens = getStoredTokens();
+    const token = tokens?.accessToken || '';
+
+    const response = await fetch(POST_APIS.bulkUploadQuestionsStream, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      let errJson: any = null;
+      try {
+        errJson = await response.json();
+      } catch (e) {
+        // text fallback
+      }
+      throw new Error(errJson?.error?.message || `Upload failed with HTTP ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('ReadableStream not supported by browser environment.');
+    }
+
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+    let finalResult: any = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (parsed.type === 'progress') {
+            onProgress(parsed);
+          } else if (parsed.type === 'complete') {
+            finalResult = parsed;
+          }
+        } catch (e) {
+          console.error('Failed to parse stream chunk:', trimmed, e);
+        }
+      }
+    }
+
+    if (buffer.trim()) {
+      try {
+        const parsed = JSON.parse(buffer.trim());
+        if (parsed.type === 'complete') {
+          finalResult = parsed;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    return finalResult || {
+      inserted: 0,
+      updated: 0,
+      duplicate_skipped: 0,
+      message: 'Upload completed'
+    };
+  }
+
+  // ── AI & RAG Management ───────────────────
+  getRagStatus() { return this.get(GET_APIS.ragStatus); }
+  uploadRagFile(formData: FormData) {
+    return apiClient.post(POST_APIS.uploadRagFile, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((res) => res.data.data !== undefined ? res.data.data : res.data);
+  }
+  deleteRagDocument(documentId: string) { return this.del(DELETE_APIS.deleteRagDocument(documentId)); }
+  generateRagQuestions(payload: { document_id: string; count?: number; type?: string; difficulty?: string; instructions?: string }) {
+    return this.post(POST_APIS.generateRagQuestions, payload);
+  }
+  saveRagQuestions(payload: { topic_id: number; questions: any[] }) {
+    return this.post(POST_APIS.saveRagQuestions, payload);
+  }
+
+  // ── Health ────────────────────────────────
+  checkHealth() { return this.get(GET_APIS.health); }
+}
+
+export default new ApiServices();
