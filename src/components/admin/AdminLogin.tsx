@@ -390,8 +390,7 @@ const BlogFormModal: React.FC<BlogFormModalProps> = ({
     setUploading(true);
     try {
       const result = await ApiServices.uploadBlogImage(file);
-      const url = result.url?.startsWith('http') ? result.url : `${BASE_URL || ''}${result.url}`;
-      return url;
+      return result.url || (result.filename ? `/uploads/blogs/${result.filename}` : '');
     } finally {
       setUploading(false);
     }
@@ -464,6 +463,18 @@ const BlogFormModal: React.FC<BlogFormModalProps> = ({
       return;
     }
 
+    // Ensure payload sends only relative file path (no host URL)
+    const cleanImagePath = (url: string) => {
+      if (!url) return '';
+      if (url.includes('/edujunction/uploads/')) {
+        return url.slice(url.indexOf('/edujunction/uploads/'));
+      }
+      if (url.includes('/uploads/')) {
+        return `/edujunction${url.slice(url.indexOf('/uploads/'))}`;
+      }
+      return url;
+    };
+
     setLoading(true);
     setError(null);
     try {
@@ -471,7 +482,7 @@ const BlogFormModal: React.FC<BlogFormModalProps> = ({
         title: title.trim(),
         introduction: introduction.trim(),
         content: content.trim(),
-        image_url: coverImage,
+        image_url: cleanImagePath(coverImage),
         is_pinned: isPinned,
         tags: tags,
         meta_title: metaTitle.trim() || title.trim(),
@@ -675,7 +686,11 @@ const BlogFormModal: React.FC<BlogFormModalProps> = ({
                 {coverImage ? (
                   <div className="relative rounded-xl overflow-hidden border border-stone-200 group bg-white shadow-2xs">
                     <img
-                      src={coverImage}
+                      src={
+                        coverImage.startsWith('http')
+                          ? coverImage
+                          : `${BASE_URL || ''}${coverImage.startsWith('/') ? '' : '/'}${coverImage}`
+                      }
                       alt="Cover preview"
                       className="w-full h-36 object-cover transition-transform group-hover:scale-105 duration-300"
                     />
