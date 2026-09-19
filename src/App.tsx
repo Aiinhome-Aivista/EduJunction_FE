@@ -77,6 +77,7 @@ import { LoginPage } from './components/LoginPage';
 import { LandingPage } from './components/LandingPage';
 import { PublicDossierView } from './components/PublicDossierView';
 import { ParentExamScheduler } from './components/ParentExamScheduler';
+import { SubscriptionPlans } from './components/SubscriptionPlans';
 import { AppNotification } from './types/api';
 import { calculateStudentMetrics } from './utils/metricsEngine';
 import ApiServices, {
@@ -1373,6 +1374,16 @@ export default function App() {
                 {activeTab === 'admin' && (
                   <SuperAdminPanel
                     parentAccount={parentAccount || { id: '', name: '', email: '', role: 'parent', children: [] }}
+                  />
+                )}
+
+                {(activeTab === 'pricing' || activeTab === 'subscription') && (
+                  <SubscriptionPlans
+                    studentId={activeChild ? Number(activeChild.id) : undefined}
+                    studentName={activeChild?.name || parentAccount?.name}
+                    studentEmail={parentAccount?.email}
+                    defaultBoard={activeChild?.targetBoard || 'CBSE'}
+                    defaultClass={activeChild?.classGrade || 'Class 10'}
                   />
                 )}
 

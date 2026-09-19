@@ -402,6 +402,203 @@ class ApiServices {
   saveRagQuestions(payload: { topic_id: number; questions: any[] }) {
     return this.post(POST_APIS.saveRagQuestions, payload);
   }
+  analyzeBookAndQuestionBank(formData: FormData) {
+    return apiClient.post(POST_APIS.analyzeBook, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((res) => res.data.data !== undefined ? res.data.data : res.data);
+  }
+
+  // ── Mock Tests & Blueprints ──────────────
+  getMockTestBlueprints() { return this.get(GET_APIS.mockTestBlueprints); }
+  updateMockTestBlueprint(id: number | string, payload: any) {
+    return this.put(PUT_APIS.updateMockTestBlueprint(id), payload);
+  }
+  generateAdminMockTest(payload: {
+    board: string;
+    classGrade: string;
+    subject: string;
+    chapterId?: number;
+    chapterName?: string;
+    topicId?: number;
+    topicName?: string;
+    academicYear: string;
+    sessionType?: 'CURRENT' | 'UPCOMING';
+    difficulty?: string;
+    title?: string;
+    isAutoAssign?: boolean;
+    assignToExistingStudents?: boolean;
+  }) {
+    return this.post(POST_APIS.generateAdminMockTest, payload);
+  }
+  getAdminMockTests(params?: { board?: string; classGrade?: string; subject?: string; academicYear?: string }) {
+    const q = new URLSearchParams();
+    if (params?.board) q.append('board', params.board);
+    if (params?.classGrade) q.append('classGrade', params.classGrade);
+    if (params?.subject) q.append('subject', params.subject);
+    if (params?.academicYear) q.append('academicYear', params.academicYear);
+    return this.get(GET_APIS.adminMockTests(q.toString()));
+  }
+  toggleMockTestAutoAssign(id: string) {
+    return this.post(POST_APIS.toggleMockTestAutoAssign(id), {});
+  }
+  bulkAssignMockTest(id: string) {
+    return this.post(POST_APIS.bulkAssignMockTest(id), {});
+  }
+  deleteAdminMockTest(id: string) {
+    return this.del(DELETE_APIS.deleteAdminMockTest(id));
+  }
+
+  generateFreeMockTest(payload: { board: string; classGrade: string; subject: string; studentId?: number }) {
+    return this.post(POST_APIS.generateFreeMockTest, payload);
+  }
+
+  // ── Subject Subscriptions (₹300/Subject / Multi-Set) ──
+  createSubjectSubscriptionOrder(payload: {
+    board: string;
+    classGrade: string;
+    subject: string;
+    studentId?: number;
+    planId?: number;
+    quantity?: number;
+  }) {
+    return this.post(POST_APIS.createSubjectSubscriptionOrder, payload);
+  }
+  verifySubjectSubscriptionPayment(payload: {
+    orderId: string;
+    paymentId?: string;
+    signature?: string;
+    subscriptionId?: string | number;
+    board: string;
+    classGrade: string;
+    subject: string;
+    studentId?: number;
+    quantity?: number;
+  }) {
+    return this.post(POST_APIS.verifySubjectSubscriptionPayment, payload);
+  }
+  getMySubjectSubscriptions() {
+    return this.get(GET_APIS.mySubjectSubscriptions);
+  }
+  async downloadSubjectModelPaper(subscriptionId: number | string, format: 'pdf' | 'docx' = 'pdf', customFilename?: string) {
+    const url = GET_APIS.downloadSubjectModelPaper(subscriptionId, format);
+    const response = await apiClient.get(url, { responseType: 'blob' });
+    const blob = new Blob([response.data], {
+      type: format === 'docx'
+        ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        : 'application/pdf'
+    });
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = customFilename || `Model_Paper_2027_Pass_${subscriptionId}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+    return true;
+  }
+  getActiveSubscriptionPlans() {
+    return this.get(GET_APIS.activeSubscriptionPlans);
+  }
+  getAdminSubscriptionPlans() {
+    return this.get(GET_APIS.adminSubscriptionPlans);
+  }
+  createAdminSubscriptionPlan(payload: {
+    planName: string;
+    planCode?: string;
+    planType?: string;
+    priceInr: number;
+    durationMinutes?: number;
+    totalMarks?: number;
+    boardCode?: string;
+    className?: string;
+    subjectName?: string;
+    description?: string;
+    features?: string[];
+    isActive?: boolean;
+  }) {
+    return this.post(POST_APIS.createAdminSubscriptionPlan, payload);
+  }
+  updateAdminSubscriptionPlan(id: number | string, payload: {
+    planName?: string;
+    priceInr?: number;
+    durationMinutes?: number;
+    totalMarks?: number;
+    boardCode?: string;
+    className?: string;
+    subjectName?: string;
+    description?: string;
+    features?: string[];
+    isActive?: boolean;
+  }) {
+    return this.put(PUT_APIS.updateAdminSubscriptionPlan(id), payload);
+  }
+  deleteAdminSubscriptionPlan(id: number | string) {
+    return this.del(DELETE_APIS.deleteAdminSubscriptionPlan(id));
+  }
+  getAdminSubscriptionHistory(params?: { search?: string; board?: string; classGrade?: string; subject?: string; status?: string; page?: number; limit?: number }) {
+    const q = new URLSearchParams();
+    if (params?.search) q.append('search', params.search);
+    if (params?.board) q.append('board', params.board);
+    if (params?.classGrade) q.append('classGrade', params.classGrade);
+    if (params?.subject) q.append('subject', params.subject);
+    if (params?.status) q.append('status', params.status);
+    if (params?.page) q.append('page', String(params.page));
+    if (params?.limit) q.append('limit', String(params.limit));
+    return this.get(GET_APIS.adminSubscriptionHistory(q.toString()));
+  }
+
+  // ── LLM Configuration ───────────────────
+  getLlmConfigs() {
+    return this.get(GET_APIS.llmConfigs);
+  }
+  getActiveLlmConfig() {
+    return this.get(GET_APIS.activeLlmConfig);
+  }
+  createLlmConfig(payload: {
+    config_name: string;
+    provider: string;
+    base_url?: string;
+    api_key?: string;
+    model_name: string;
+    max_tokens?: number;
+    temperature?: number;
+    timeout_seconds?: number;
+    is_active?: boolean;
+  }) {
+    return this.post(POST_APIS.createLlmConfig, payload);
+  }
+  updateLlmConfig(id: number | string, payload: {
+    config_name?: string;
+    provider?: string;
+    base_url?: string;
+    api_key?: string;
+    model_name?: string;
+    max_tokens?: number;
+    temperature?: number;
+    timeout_seconds?: number;
+    is_active?: boolean;
+  }) {
+    return this.put(PUT_APIS.updateLlmConfig(id), payload);
+  }
+  activateLlmConfig(id: number | string) {
+    return this.post(POST_APIS.activateLlmConfig(id), {});
+  }
+  deleteLlmConfig(id: number | string) {
+    return this.del(DELETE_APIS.deleteLlmConfig(id));
+  }
+  testLlmConfig(payload: {
+    config_id?: number;
+    provider: string;
+    base_url?: string;
+    api_key?: string;
+    model_name: string;
+    temperature?: number;
+    max_tokens?: number;
+    timeout_seconds?: number;
+  }) {
+    return this.post(POST_APIS.testLlmConfig, payload);
+  }
 
   // ── Health ────────────────────────────────
   checkHealth() { return this.get(GET_APIS.health); }

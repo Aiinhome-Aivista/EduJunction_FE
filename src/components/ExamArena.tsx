@@ -194,6 +194,13 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
   const [scratchpadNote, setScratchpadNote] = useState('');
   const [generationStep, setGenerationStep] = useState('');
 
+  // Adaptive Engine State
+  const [timeSpentPerQuestion, setTimeSpentPerQuestion] = useState<Record<string, number>>({});
+  const [adaptiveDifficulty, setAdaptiveDifficulty] = useState<'simple' | 'medium' | 'hard'>('simple');
+  const [consecutiveCorrect, setConsecutiveCorrect] = useState<number>(0);
+  const [consecutiveWrong, setConsecutiveWrong] = useState<number>(0);
+  const [adaptiveNotification, setAdaptiveNotification] = useState<{ type: 'up' | 'down'; message: string } | null>(null);
+
   // Handle preloaded / quick test exam
   useEffect(() => {
     if (initialExam) {
@@ -201,6 +208,11 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
       setCurrentQuestionIdx(0);
       setAnswers({});
       setFlaggedQuestions({});
+      setTimeSpentPerQuestion({});
+      setAdaptiveDifficulty('simple');
+      setConsecutiveCorrect(0);
+      setConsecutiveWrong(0);
+      setAdaptiveNotification(null);
       setTimeRemainingSeconds((initialExam.timeLimitMinutes || 15) * 60);
       if (onClearInitialExam) {
         onClearInitialExam();
@@ -233,6 +245,21 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
     }
     return () => clearInterval(timer);
   }, [activeExam, timeRemainingSeconds, showConfirmSubmit, isSubmitting]);
+
+  // Per-question elapsed time tracking
+  useEffect(() => {
+    let qTimer: any;
+    if (activeExam && !showConfirmSubmit && !isSubmitting && activeExam.questions && activeExam.questions[currentQuestionIdx]) {
+      const qId = activeExam.questions[currentQuestionIdx].id;
+      qTimer = setInterval(() => {
+        setTimeSpentPerQuestion((prev) => ({
+          ...prev,
+          [qId]: (prev[qId] || 0) + 1,
+        }));
+      }, 1000);
+    }
+    return () => clearInterval(qTimer);
+  }, [activeExam, currentQuestionIdx, showConfirmSubmit, isSubmitting]);
 
   const handleStartExam = async (startAssigned: boolean = false) => {
     setIsGenerating(true);
@@ -270,6 +297,11 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
       setCurrentQuestionIdx(0);
       setAnswers({});
       setFlaggedQuestions({});
+      setTimeSpentPerQuestion({});
+      setAdaptiveDifficulty('simple');
+      setConsecutiveCorrect(0);
+      setConsecutiveWrong(0);
+      setAdaptiveNotification(null);
       setTimeRemainingSeconds((exam.timeLimitMinutes || targetDuration || 15) * 60);
     } catch (err) {
       console.error('Error generating exam:', err);
@@ -315,14 +347,11 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
     const scheduledIdToSubmit = (activeExam as any).scheduledExamId || (activeExam as any).scheduled_exam_id || undefined;
 
     try {
-      // Only the exam id + the student's answers are sent — never the full
-      // exam object. The backend already has the questions (and their
-      // correct answers) stored server-side from the /generate call, so
-      // there's nothing left for the client to round-trip or tamper with.
       const { submission } = await ApiServices.submitExam(
         activeExam.id,
         {
           answers,
+          timeSpentPerQuestion,
           timeTakenSeconds: Math.max(10, totalSecondsSpent),
           scheduledExamId: scheduledIdToSubmit,
         }
@@ -415,18 +444,31 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
           <div className="lg:col-span-3">
             <div className="bg-white rounded-xl border border-stone-200 shadow-sm p-4 sm:p-6">
               {/* Question Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-stone-100 mb-4">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between pb-3 border-b border-stone-100 mb-4 gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white">
                     Question {currentQuestionIdx + 1}
                   </span>
-                  <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-yellow-50 text-yellow-700 border border-yellow-200 uppercase">
+                  <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider ${
+                    (currentQ.difficulty || adaptiveDifficulty) === 'hard'
+                      ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                      : (currentQ.difficulty || adaptiveDifficulty) === 'medium'
+                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                  }`}>
+                    Level: {(currentQ.difficulty || adaptiveDifficulty).toUpperCase()}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-stone-100 text-stone-700 border border-stone-200 uppercase">
                     {currentQ.type}
                   </span>
                   <span className="text-xs text-stone-400">•</span>
                   <span className="text-xs text-stone-500 font-medium">Topic: {currentQ.topic}</span>
                 </div>
                 <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold text-stone-700 bg-stone-100 px-2 py-1 rounded-md flex items-center gap-1 border border-stone-200">
+                    <Clock className="w-3.5 h-3.5 text-stone-500" />
+                    {timeSpentPerQuestion[currentQ.id] || 0}s
+                  </span>
                   <span className="text-xs font-semibold text-stone-700 bg-stone-100 px-2 py-1 rounded-md">
                     {currentQ.marks || 1} {(currentQ.marks || 1) > 1 ? 'Marks' : 'Mark'}
                   </span>
@@ -443,6 +485,18 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                   </button>
                 </div>
               </div>
+
+              {/* Adaptive Feedback Banner */}
+              {adaptiveNotification && (
+                <div className={`mb-4 p-3 rounded-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-top-2 duration-300 ${
+                  adaptiveNotification.type === 'up'
+                    ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                    : 'bg-amber-50 border border-amber-200 text-amber-800'
+                }`}>
+                  <Sparkles className="w-4 h-4 shrink-0 text-amber-500" />
+                  <span>{adaptiveNotification.message}</span>
+                </div>
+              )}
 
               {/* Question Statement */}
               <div className="text-stone-900 text-base sm:text-lg font-medium leading-relaxed mb-4 whitespace-pre-line">
@@ -553,7 +607,34 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                 {currentQuestionIdx < totalQuestions - 1 ? (
                   <button
                     id="next-question-btn"
-                    onClick={() => setCurrentQuestionIdx((p) => Math.min(totalQuestions - 1, p + 1))}
+                    onClick={() => {
+                      if (!activeExam) return;
+                      const currentQ = activeExam.questions[currentQuestionIdx];
+                      const userAns = (answers[currentQ.id] || '').trim();
+
+                      if (userAns) {
+                        const nextCorrect = consecutiveCorrect + 1;
+                        if (nextCorrect >= 2) {
+                          if (adaptiveDifficulty === 'simple') {
+                            setAdaptiveDifficulty('medium');
+                            setAdaptiveNotification({
+                              type: 'up',
+                              message: '🚀 2 consecutive answers recorded! Escalating difficulty to MEDIUM level.',
+                            });
+                          } else if (adaptiveDifficulty === 'medium') {
+                            setAdaptiveDifficulty('hard');
+                            setAdaptiveNotification({
+                              type: 'up',
+                              message: '🔥 Great mastery! Escalating difficulty to HARD level.',
+                            });
+                          }
+                          setConsecutiveCorrect(0);
+                        } else {
+                          setConsecutiveCorrect(nextCorrect);
+                        }
+                      }
+                      setCurrentQuestionIdx((p) => Math.min(totalQuestions - 1, p + 1));
+                    }}
                     className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs sm:text-sm font-semibold shadow-xs"
                   >
                     Next

@@ -16,7 +16,16 @@ createRoot(document.getElementById('root')!).render(
     <GoogleOAuthProvider clientId={googleClientId}>
       <BrowserRouter>
         <Routes>
-          <Route path="/*" element={<App />} />
+          {/* Admin Console & Management Routes */}
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/*" element={<AdminLogin />} />
+          <Route path="/manage-blogs" element={<AdminLogin />} />
+          <Route path="/add-blogs" element={<AdminLogin />} />
+          <Route path="/edit-blog/:blogId" element={<AdminLogin />} />
+          <Route path="/category" element={<AdminLogin />} />
+          <Route path="/mock-tests" element={<AdminLogin />} />
+
+          {/* Public & Information Pages */}
           <Route path="/about" element={<InfoPage type="about" />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPage />} />
@@ -24,21 +33,8 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/privacy" element={<LegalPage type="privacy" />} />
           <Route path="/terms" element={<LegalPage type="terms" />} />
           <Route path="/disclaimer" element={<LegalPage type="disclaimer" />} />
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminLogin />} />
-          <Route path="/admin/users" element={<AdminLogin />} />
-          <Route path="/admin/academics" element={<AdminLogin />} />
-          <Route path="/admin/assessments" element={<AdminLogin />} />
-          <Route path="/admin/ai-rag" element={<AdminLogin />} />
-          <Route path="/admin/content" element={<AdminLogin />} />
-          <Route path="/admin/gamification" element={<AdminLogin />} />
-          <Route path="/admin/analytics" element={<AdminLogin />} />
-          <Route path="/admin/settings" element={<AdminLogin />} />
-          <Route path="/manage-blogs" element={<AdminLogin />} />
-          <Route path="/add-blogs" element={<AdminLogin />} />
-          <Route path="/edit-blog/:blogId" element={<AdminLogin />} />
-          <Route path="/category" element={<AdminLogin />} />
+
+          {/* App Root (Parent Portal, Student Portal, Exam Arena, Landing) */}
           <Route path="/*" element={<App />} />
         </Routes>
       </BrowserRouter>

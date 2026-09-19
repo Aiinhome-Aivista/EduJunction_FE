@@ -20,7 +20,8 @@ import {
   Edit3,
   Sliders,
   ChevronRight,
-  BookmarkCheck
+  BookmarkCheck,
+  Loader2
 } from 'lucide-react';
 import ApiServices from '../../services/ApiServices';
 import { Board, ClassGrade, Subject, BOARD_CLASSES_MAP, CLASS_SUBJECTS_MAP } from '../../types';
@@ -75,9 +76,21 @@ interface FlatTopic {
 }
 
 export const AiRagHub: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'ingestion' | 'playground'>('ingestion');
+  const [activeTab, setActiveTab] = useState<'book_analysis' | 'ingestion' | 'playground'>('book_analysis');
   const [ragStatus, setRagStatus] = useState<RagStatusData | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
+
+  // Book & Question Bank LLM Analysis State
+  const [bookUploadFile, setBookUploadFile] = useState<File | null>(null);
+  const [bookBoard, setBookBoard] = useState<string>('CBSE');
+  const [bookClass, setBookClass] = useState<string>('Class 10');
+  const [bookSubject, setBookSubject] = useState<string>('Mathematics');
+  const [bookDocType, setBookDocType] = useState<string>('Textbook');
+  const [bookYear, setBookYear] = useState<string>('2024');
+  const [analyzingBook, setAnalyzingBook] = useState<boolean>(false);
+  const [bookAnalysisResult, setBookAnalysisResult] = useState<any | null>(null);
+  const [bookTargetTopicId, setBookTargetTopicId] = useState<number | null>(null);
+  const [isSavingBookQuestions, setIsSavingBookQuestions] = useState<boolean>(false);
 
   // Master Data Dynamic State (from DB /api/v1/master/board_class_dropdown)
   const [activeBoards, setActiveBoards] = useState<MasterBoard[]>([]);
@@ -293,6 +306,64 @@ export const AiRagHub: React.FC = () => {
     fetchCurriculumTopics();
     fetchMasterDropdowns();
   }, []);
+
+  const handleAnalyzeBook = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bookUploadFile) {
+      showNotify('error', 'Please select a PDF/DOC/DOCX file to analyze.');
+      return;
+    }
+    setAnalyzingBook(true);
+    setBookAnalysisResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', bookUploadFile);
+      formData.append('board', bookBoard);
+      formData.append('classGrade', bookClass);
+      formData.append('subject', bookSubject);
+      formData.append('documentType', bookDocType);
+      formData.append('yearDeclared', bookYear);
+
+      const res = await ApiServices.analyzeBookAndQuestionBank(formData);
+      setBookAnalysisResult(res);
+      showNotify('success', `✨ Successfully analyzed "${bookUploadFile.name}"! Extracted Summary, Relationships & Questions.`);
+      await fetchRagStatus();
+    } catch (err: any) {
+      console.error('Book analysis error:', err);
+      showNotify('error', err?.response?.data?.error?.message || err?.message || 'Failed to analyze book. Please check year & format criteria.');
+    } finally {
+      setAnalyzingBook(false);
+    }
+  };
+
+  const handleSaveBookQuestions = async () => {
+    const targetTopic = bookTargetTopicId || (flatTopics.length > 0 ? flatTopics[0].id : null);
+    if (!targetTopic) {
+      showNotify('error', 'Please select a curriculum Topic to link questions.');
+      return;
+    }
+    const questions = bookAnalysisResult?.important_questions || [];
+    if (questions.length === 0) {
+      showNotify('error', 'No questions to save.');
+      return;
+    }
+
+    setIsSavingBookQuestions(true);
+    try {
+      const res = await ApiServices.saveRagQuestions({
+        topic_id: targetTopic,
+        questions: questions
+      });
+      showNotify('success', res?.message || `Successfully saved ${questions.length} questions to Question Bank!`);
+      fetchRagStatus();
+    } catch (err: any) {
+      console.error('Save questions error:', err);
+      showNotify('error', err?.response?.data?.error?.message || 'Failed to save questions');
+    } finally {
+      setIsSavingBookQuestions(false);
+    }
+  };
 
   const handleUploadPdf = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -548,8 +619,18 @@ export const AiRagHub: React.FC = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center justify-between border-b border-stone-200/80 pb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between border-b border-stone-200/80 pb-2 gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveTab('book_analysis')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'book_analysis'
+              ? 'bg-white text-stone-900 shadow-xs border border-stone-200/80'
+              : 'text-stone-500 hover:text-stone-800'
+              }`}
+          >
+            <BookOpen className="w-4 h-4 text-amber-600" />
+            Book & QB AI Ingestion (Last 10-15 Yrs)
+          </button>
           <button
             onClick={() => setActiveTab('ingestion')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'ingestion'
@@ -558,7 +639,7 @@ export const AiRagHub: React.FC = () => {
               }`}
           >
             <Database className="w-4 h-4 text-yellow-600" />
-            Curriculum & Vector Ingestion
+            Vector Store Ingestion
           </button>
           <button
             onClick={() => setActiveTab('playground')}
@@ -617,6 +698,310 @@ export const AiRagHub: React.FC = () => {
           <p className="text-[11px] text-stone-400 font-medium">Curated Concepts & Formulas</p>
         </div>
       </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          TAB 0: BOOK & QUESTION BANK LLM ANALYSIS (Point 2)
+         ───────────────────────────────────────────────────────────── */}
+      {activeTab === 'book_analysis' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Upload Form Card */}
+          <div className="lg:col-span-4 bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-5">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-200">
+                  CBSE • ICSE • ISC (Class 5–10)
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                  Last 10–15 Yrs (2011–2026)
+                </span>
+              </div>
+              <h2 className="text-base font-black text-stone-900">Upload Book / Question Bank</h2>
+              <p className="text-xs text-stone-400">
+                Upload structured PDF/DOC/DOCX. AI extracts pedagogical summary, concept graph, and high-yield questions.
+              </p>
+            </div>
+
+            <form onSubmit={handleAnalyzeBook} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1">Board</label>
+                <select
+                  value={bookBoard}
+                  onChange={(e) => setBookBoard(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
+                >
+                  <option value="CBSE">CBSE (Central Board)</option>
+                  <option value="ICSE">ICSE (Class 5 to 10)</option>
+                  <option value="ISC">ISC (Curriculum Board)</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 mb-1">Class Grade</label>
+                  <select
+                    value={bookClass}
+                    onChange={(e) => setBookClass(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
+                  >
+                    <option value="Class 5">Class 5</option>
+                    <option value="Class 6">Class 6</option>
+                    <option value="Class 7">Class 7</option>
+                    <option value="Class 8">Class 8</option>
+                    <option value="Class 9">Class 9 (Focus)</option>
+                    <option value="Class 10">Class 10 (Focus)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 mb-1">Subject</label>
+                  <select
+                    value={bookSubject}
+                    onChange={(e) => setBookSubject(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
+                  >
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Science">Science</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Biology">Biology</option>
+                    <option value="English">English</option>
+                    <option value="Social Studies">Social Studies</option>
+                    <option value="Computer Science">Computer Science</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 mb-1">Document Type</label>
+                  <select
+                    value={bookDocType}
+                    onChange={(e) => setBookDocType(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
+                  >
+                    <option value="Textbook">Standard Textbook</option>
+                    <option value="Question Bank">Question Bank</option>
+                    <option value="Previous Years Papers">PYQ (Past 10-15 Yrs)</option>
+                    <option value="Model Paper">Model Test Paper</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 mb-1">Edition / Exam Year</label>
+                  <select
+                    value={bookYear}
+                    onChange={(e) => setBookYear(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
+                  >
+                    {Array.from({ length: 16 }, (_, i) => 2026 - i).map((yr) => (
+                      <option key={yr} value={yr}>
+                        {yr} ({2026 - yr <= 5 ? 'Recent' : `${2026 - yr} yrs ago`})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* File Dropzone */}
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1">Select File (PDF, DOC, DOCX)</label>
+                <div className="relative border-2 border-dashed border-stone-200 hover:border-yellow-400 rounded-2xl p-4 text-center transition-all bg-stone-50/50 hover:bg-yellow-50/20">
+                  <input
+                    type="file"
+                    accept=".pdf,.docx,.doc"
+                    onChange={(e) => setBookUploadFile(e.target.files ? e.target.files[0] : null)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                  {bookUploadFile ? (
+                    <div className="flex items-center justify-center gap-2 text-xs font-bold text-stone-900">
+                      <FileText className="w-4 h-4 text-amber-600" />
+                      <span className="truncate max-w-[200px]">{bookUploadFile.name}</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <BookOpen className="w-6 h-6 text-stone-400 mx-auto" />
+                      <p className="text-xs font-bold text-stone-700">Choose or Drag Book File</p>
+                      <p className="text-[10px] text-stone-400">PDF, DOC, DOCX (Max 50MB)</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={analyzingBook || !bookUploadFile}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {analyzingBook ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Analyzing with LLM Engine...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-white" />
+                    <span>Upload & Run LLM Analysis</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Right Column: Live Analysis Results */}
+          <div className="lg:col-span-8 space-y-5">
+            {bookAnalysisResult ? (
+              <div className="space-y-5 animate-in fade-in duration-300">
+                {/* Result Header */}
+                <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                      ✓ LLM Analysis Complete
+                    </span>
+                    <h3 className="text-base font-black text-stone-900 mt-1">
+                      {bookAnalysisResult.filename}
+                    </h3>
+                    <p className="text-xs text-stone-500">
+                      {bookAnalysisResult.board} • {bookAnalysisResult.class_grade} • {bookAnalysisResult.subject} ({bookAnalysisResult.document_type})
+                    </p>
+                  </div>
+
+                  {/* Save to Question Bank Action */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <select
+                      value={bookTargetTopicId || (flatTopics[0]?.id || '')}
+                      onChange={(e) => setBookTargetTopicId(Number(e.target.value))}
+                      className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 max-w-[200px]"
+                    >
+                      {flatTopics.map(t => (
+                        <option key={t.id} value={t.id}>
+                          {t.name} ({t.chapterName})
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleSaveBookQuestions}
+                      disabled={isSavingBookQuestions || (bookAnalysisResult?.important_questions || []).length === 0}
+                      className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50"
+                    >
+                      {isSavingBookQuestions ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-yellow-400" />
+                          <span>Save to Question Bank ({bookAnalysisResult?.questions_count || 0})</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Summary Section */}
+                <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-amber-600" />
+                    <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
+                      Pedagogical Summary & Chapter Blueprint
+                    </h4>
+                  </div>
+                  <div className="text-xs sm:text-sm text-stone-700 leading-relaxed bg-amber-50/40 p-4 rounded-2xl border border-amber-100 whitespace-pre-line font-normal">
+                    {bookAnalysisResult.summary}
+                  </div>
+                </div>
+
+                {/* Relationships Section */}
+                <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-blue-600" />
+                    <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
+                      Detected Conceptual Relationships & Dependencies
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {(bookAnalysisResult.relationships || []).map((rel: any, rIdx: number) => (
+                      <div key={rIdx} className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200/70 space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-bold text-stone-900">{rel.source_concept}</span>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 uppercase">
+                            {rel.relationship_type || 'RELATION'}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-amber-800 font-semibold flex items-center gap-1">
+                          ➔ {rel.target_concept}
+                        </div>
+                        <p className="text-xs text-stone-600">{rel.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Important Questions Section */}
+                <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-yellow-600" />
+                      <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
+                        Extracted Important Examination Questions ({bookAnalysisResult.questions_count || 0})
+                      </h4>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {(bookAnalysisResult.important_questions || []).map((q: any, qIdx: number) => (
+                      <div key={qIdx} className="p-4 bg-stone-50/60 rounded-2xl border border-stone-200 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-stone-900">Question {qIdx + 1}</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${q.difficulty === 'hard'
+                                ? 'bg-rose-100 text-rose-800'
+                                : q.difficulty === 'medium'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-emerald-100 text-emerald-800'
+                              }`}>
+                              {q.difficulty}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-stone-200 text-stone-700">
+                              {q.type} ({q.marks}M)
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-xs sm:text-sm font-semibold text-stone-800">{q.question}</p>
+                        {q.options && q.options.length > 0 && (
+                          <div className="grid grid-cols-2 gap-1.5 pt-1">
+                            {q.options.map((opt: string, oIdx: number) => (
+                              <div key={oIdx} className="px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-xs text-stone-700">
+                                {opt}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div className="pt-2 text-xs text-emerald-800 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
+                          <strong>Correct Answer:</strong> {q.correct_answer}
+                          <p className="text-[11px] text-stone-600 font-normal mt-1"><strong>Explanation:</strong> {q.explanation}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white p-12 rounded-3xl border border-stone-200/80 shadow-xs text-center space-y-3">
+                <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-2xl">
+                  📚
+                </div>
+                <h3 className="text-sm sm:text-base font-black text-stone-900">
+                  Ready for Book & Question Bank Analysis
+                </h3>
+                <p className="text-xs text-stone-400 max-w-md mx-auto">
+                  Select a book from CBSE, ICSE, or ISC (Class 5–10, 2011–2026) on the left to extract chapter summaries, concept graphs, and exam questions.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
           TAB 1: PDF INGESTION & DOCUMENT REPOSITORY

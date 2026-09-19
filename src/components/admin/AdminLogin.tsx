@@ -41,6 +41,9 @@ import {
   Pin,
   Filter,
   Image as ImageIcon,
+  Zap,
+  Cpu,
+  CreditCard,
 } from 'lucide-react';
 import ApiServices, {
   storeTokens,
@@ -51,11 +54,13 @@ import ApiServices, {
 import { BASE_URL } from '../../connection';
 import { BOARD_CLASSES_MAP, CLASS_SUBJECTS_MAP } from '../../types';
 import {
-  ResponsiveContainer,
+  AreaChart,
+  Area,
   BarChart,
   Bar,
   XAxis,
   YAxis,
+  ResponsiveContainer,
   Tooltip,
   CartesianGrid,
   Legend,
@@ -64,6 +69,9 @@ import 'jodit/es2021/jodit.min.css';
 import { lazy, Suspense } from 'react';
 import { AcademicsHub } from './AcademicsHub';
 import { AiRagHub } from './AiRagHub';
+import { MockTestHub } from './MockTestHub';
+import { LlmConfigManager } from './LlmConfigManager';
+import { SubscriptionAdminManager } from './SubscriptionAdminManager';
 
 const JoditEditor = lazy(() => import('jodit-react'));
 
@@ -4573,18 +4581,54 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, user }) => {
       case 'TrendingUp': return <TrendingUp className="w-5 h-5" />;
       case 'Settings': return <Settings className="w-5 h-5" />;
       case 'LayoutDashboard': return <LayoutDashboard className="w-5 h-5" />;
+      case 'Zap': return <Zap className="w-5 h-5" />;
+      case 'Cpu': return <Cpu className="w-5 h-5" />;
+      case 'CreditCard': return <CreditCard className="w-5 h-5" />;
       default: return <LayoutDashboard className="w-5 h-5" />;
     }
   };
 
-
-  const navItems = pageAccess.map(page => ({
+  const dynamicNavItems = pageAccess.map(page => ({
     id: page.pageRoute?.split('/').pop() || 'dashboard',
     route: page.pageRoute || '/admin/dashboard',
     icon: getIcon(page.icon),
     label: page.pageName,
     navId: `admin-nav-${page.pageRoute?.split('/').pop() || 'dashboard'}`
   }));
+
+  // Ensure Mock Tests, LLM Configuration & Subscriptions are available in admin navigation
+  const hasMockTestNav = dynamicNavItems.some(item => item.id === 'mock-tests' || item.id === 'mocktests');
+  const hasLlmConfigNav = dynamicNavItems.some(item => item.id === 'llm-config' || item.id === 'llm-configs');
+  const hasSubNav = dynamicNavItems.some(item => item.id === 'subscriptions' || item.id === 'subscription' || item.id === 'subscription-plans');
+
+  let navItems = [...dynamicNavItems];
+  if (!hasMockTestNav) {
+    navItems.push({
+      id: 'mock-tests',
+      route: '/mock-tests',
+      icon: <FileText className="w-5 h-5" />,
+      label: 'Mock Tests',
+      navId: 'admin-nav-mock-tests'
+    });
+  }
+  if (!hasLlmConfigNav) {
+    navItems.push({
+      id: 'llm-config',
+      route: '/admin/llm-config',
+      icon: <Cpu className="w-5 h-5" />,
+      label: 'LLM Configuration',
+      navId: 'admin-nav-llm-config'
+    });
+  }
+  if (!hasSubNav) {
+    navItems.push({
+      id: 'subscriptions',
+      route: '/admin/subscriptions',
+      icon: <CreditCard className="w-5 h-5" />,
+      label: 'Subscriptions & Payments',
+      navId: 'admin-nav-subscriptions'
+    });
+  }
 
   const handleNav = (item: { id: string; route: string }) => {
     navigate(item.route);
@@ -4772,8 +4816,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, user }) => {
               users: <UsersView />,
               academics: <AcademicsHub />,
               courses: <AcademicsHub />,
+              'mock-tests': <MockTestHub />,
+              mocktests: <MockTestHub />,
+              mocktest: <MockTestHub />,
               'ai-rag': <AiRagHub />,
               airag: <AiRagHub />,
+              'llm-config': <LlmConfigManager />,
+              'llm-configs': <LlmConfigManager />,
+              llmconfig: <LlmConfigManager />,
+              subscriptions: <SubscriptionAdminManager />,
+              subscription: <SubscriptionAdminManager />,
+              'subscription-plans': <SubscriptionAdminManager />,
+              'subscription-history': <SubscriptionAdminManager />,
               analytics: <ReportsView />,
               reports: <ReportsView />,
               blogs: <ManageBlogsView setActiveView={(v) => navigate('/' + v)} />,

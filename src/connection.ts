@@ -62,6 +62,15 @@ export const GET_APIS = {
   questionUploadHistory: (limit: number = 20) => `${API_V1}/admin/questions/upload-history?limit=${limit}`,
   ragStatus: `${API_V1}/admin/rag/status`,
   health: `${API_V1}/health`,
+  mockTestBlueprints: `${API_V1}/admin/mock-tests/blueprints`,
+  adminMockTests: (params?: string) => `${API_V1}/admin/mock-tests${params ? `?${params}` : ''}`,
+  mySubjectSubscriptions: `${API_V1}/subscriptions/subject/my-subscriptions`,
+  activeSubscriptionPlans: `${API_V1}/subscription-plans/active`,
+  adminSubscriptionPlans: `${API_V1}/admin/subscription-plans`,
+  adminSubscriptionHistory: (params?: string) => `${API_V1}/admin/subscription-history${params ? `?${params}` : ''}`,
+  llmConfigs: `${API_V1}/admin/llm-config`,
+  activeLlmConfig: `${API_V1}/admin/llm-config/active`,
+  downloadSubjectModelPaper: (subId: number | string, format: string = 'pdf') => `${API_V1}/subscriptions/subject/${subId}/download-paper?format=${format}`,
 };
 
 export const POST_APIS = {
@@ -115,8 +124,19 @@ export const POST_APIS = {
   uploadRagFile: `${API_V1}/files/upload`,
   generateRagQuestions: `${API_V1}/admin/rag/generate-questions`,
   saveRagQuestions: `${API_V1}/admin/rag/save-questions`,
+  analyzeBook: `${API_V1}/admin/rag/analyze-book`,
+  generateAdminMockTest: `${API_V1}/admin/mock-tests/generate`,
+  generateFreeMockTest: `${API_V1}/mock-tests/free/generate`,
+  createSubjectSubscriptionOrder: `${API_V1}/subscriptions/subject/create-order`,
+  verifySubjectSubscriptionPayment: `${API_V1}/subscriptions/subject/verify`,
+  toggleMockTestAutoAssign: (id: string) => `${API_V1}/admin/mock-tests/${id}/toggle-auto-assign`,
+  bulkAssignMockTest: (id: string) => `${API_V1}/admin/mock-tests/${id}/assign-bulk`,
   adminLogin: `${API_V1}/admin/login`,
   adminResetPassword: `${API_V1}/admin/reset-password`,
+  createLlmConfig: `${API_V1}/admin/llm-config`,
+  testLlmConfig: `${API_V1}/admin/llm-config/test`,
+  activateLlmConfig: (id: string | number) => `${API_V1}/admin/llm-config/${id}/activate`,
+  createAdminSubscriptionPlan: `${API_V1}/admin/subscription-plans`,
 };
 
 export const PUT_APIS = {
@@ -128,6 +148,9 @@ export const PUT_APIS = {
   updateBlogCategory: (id: string | number) => `${API_V1}/blogs/categories/${id}`,
   markMessageRead: (id: string) => `${API_V1}/messages/${id}/read`,
   updateQuestion: (id: string | number) => `${API_V1}/admin/questions/${id}`,
+  updateMockTestBlueprint: (id: number | string) => `${API_V1}/admin/mock-tests/blueprints/${id}`,
+  updateLlmConfig: (id: string | number) => `${API_V1}/admin/llm-config/${id}`,
+  updateAdminSubscriptionPlan: (id: number | string) => `${API_V1}/admin/subscription-plans/${id}`,
 };
 
 export const DELETE_APIS = {
@@ -140,4 +163,7 @@ export const DELETE_APIS = {
   deleteBlogCategory: (id: string | number) => `${API_V1}/blogs/categories/${id}`,
   deleteQuestion: (id: string | number) => `${API_V1}/admin/questions/${id}`,
   deleteRagDocument: (id: string) => `${API_V1}/admin/rag/documents/${id}`,
+  deleteAdminMockTest: (id: string) => `${API_V1}/admin/mock-tests/${id}`,
+  deleteLlmConfig: (id: string | number) => `${API_V1}/admin/llm-config/${id}`,
+  deleteAdminSubscriptionPlan: (id: number | string) => `${API_V1}/admin/subscription-plans/${id}`,
 };

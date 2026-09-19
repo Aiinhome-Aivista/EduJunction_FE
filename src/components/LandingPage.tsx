@@ -25,6 +25,10 @@ import {
   Lock,
   Zap,
   TrendingUp,
+  Loader2,
+  Calendar,
+  ShieldCheck,
+  Flame,
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
 
@@ -115,6 +119,42 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [activeRole, setActiveRole] = useState<Role>('student');
   const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
+  const [freeMockBoard, setFreeMockBoard] = useState<string>('CBSE');
+  const [freeMockClass, setFreeMockClass] = useState<string>('Class 10');
+  const [freeMockSubject, setFreeMockSubject] = useState<string>('Mathematics');
+  const [isGeneratingMock, setIsGeneratingMock] = useState<boolean>(false);
+  const [mockSuccessMsg, setMockSuccessMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    ApiServices.checkHealth()
+      .then(() => setIsBackendOnline(true))
+      .catch(() => setIsBackendOnline(false));
+  }, []);
+
+  const handleStartFreeMock = async () => {
+    try {
+      setIsGeneratingMock(true);
+      setMockSuccessMsg(null);
+      const res = await ApiServices.generateFreeMockTest({
+        board: freeMockBoard,
+        classGrade: freeMockClass,
+        subject: freeMockSubject,
+      });
+      if (res?.exam) {
+        localStorage.setItem('pending_free_exam', JSON.stringify(res.exam));
+        setMockSuccessMsg(
+          `🎉 Free 10-Mark Mock Test generated for ${freeMockBoard} ${freeMockClass} ${freeMockSubject}!`
+        );
+        setTimeout(() => {
+          openAuth('login');
+        }, 1000);
+      }
+    } catch (err: any) {
+      openAuth('login');
+    } finally {
+      setIsGeneratingMock(false);
+    }
+  };
 
   // Scroll Reveal Animation Logic
   useEffect(() => {
@@ -574,6 +614,111 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
       </section>
+
+      {/* 🌟 COMING SOON: MODEL TEST PAPERS 2027 & FREE MOCK TEST BANNER */}
+      <section id="model-papers-2027" className="py-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden">
+        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
+          
+          {/* 1. Coming Soon: Model Test Papers 2027 Announcement Banner */}
+          <div className="rounded-3xl bg-white border border-amber-300/80 p-6 sm:p-8 shadow-lg shadow-amber-500/5 relative overflow-hidden">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+              <div className="space-y-3 max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-black uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  Upcoming Curriculum Feature
+                </div>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-tight">
+                  2027 Model Question Papers —{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-yellow-600">
+                    CBSE, ICSE & ISC
+                  </span>
+                </h2>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
+                  Full-length authentic specimen model papers tailored to each board: <b>CBSE (3 Hours • 80 Marks)</b>, <b>ICSE (2.5 Hours • 80 Marks)</b>, and <b>ISC (3 Hours • 70/80 Marks)</b>, designed with 10–15 years past question patterns, step-by-step marking schemes, and competency-based questions.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {[
+                    '⏱️ CBSE: 3 Hours (80 Marks)',
+                    '⏱️ ICSE: 2.5 Hours (80 Marks)',
+                    '⏱️ ISC: 3 Hours (70/80 Marks)',
+                    '📄 PDF & Word Downloads',
+                    '10–15 Yrs Past Trends (2011–2026)',
+                  ].map((tag) => (
+                    <span key={tag} className="px-2.5 py-1 rounded-lg bg-stone-100 border border-stone-200 text-stone-700 text-[11px] font-bold">
+                      ✓ {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="shrink-0 bg-gradient-to-br from-amber-500 to-yellow-500 text-white p-6 rounded-2xl shadow-md text-center space-y-2 w-full lg:w-64">
+                <span className="text-3xl">📝</span>
+                <h3 className="font-black text-lg">2027 Model Series</h3>
+                <p className="text-xs text-amber-100 font-bold">CBSE • ICSE • ISC</p>
+                <div className="pt-2">
+                  <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-[11px] font-black uppercase">
+                    Full Specimen Series
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Free 10-Mark Diagnostic Mock Test: Parent & Child Registration Card */}
+          <div className="rounded-3xl bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 text-white p-6 sm:p-10 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="grid lg:grid-cols-12 gap-8 items-center">
+              <div className="lg:col-span-8 space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400 text-stone-950 text-xs font-black">
+                  <Zap className="w-3.5 h-3.5 fill-current" /> 100% Free For Parents & Students
+                </div>
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+                  Start Your Child’s Free 10-Mark Diagnostic Test
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+                  Understand your child’s learning level and conceptual strengths in just 15 minutes. <b>Create a free Parent Account</b>, add your child’s Board (CBSE, ICSE, ISC) and Class (5 to 10), and unlock subject-wise practice tests with step-by-step solutions and a detailed performance report delivered straight to your email.
+                </p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+                  <div className="p-3.5 rounded-2xl bg-stone-800/90 border border-stone-700/80">
+                    <p className="text-xs font-bold text-yellow-400">📝 10-Mark Test</p>
+                    <p className="text-[11px] text-stone-400 mt-0.5">15-Minute timed assessment</p>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-stone-800/90 border border-stone-700/80">
+                    <p className="text-xs font-bold text-yellow-400">📊 Diagnostic Insights</p>
+                    <p className="text-[11px] text-stone-400 mt-0.5">Concept & error analysis</p>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-stone-800/90 border border-stone-700/80 col-span-2 sm:col-span-1">
+                    <p className="text-xs font-bold text-yellow-400">📧 Emailed Report</p>
+                    <p className="text-[11px] text-stone-400 mt-0.5">Sent directly to parent's inbox</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="lg:col-span-4 flex flex-col gap-3 justify-center">
+                <button
+                  onClick={() => openAuth('register')}
+                  className="w-full py-4 px-6 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-black text-sm shadow-xl shadow-yellow-400/20 flex items-center justify-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-95"
+                >
+                  <Users className="w-4 h-4" /> Create Free Parent Account <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => openAuth('login')}
+                  className="w-full py-3 px-6 rounded-2xl bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs border border-stone-700 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  Already Registered? Sign In
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       {/* KNOW THE TIME */}
       <section className="py-8 bg-gradient-to-br from-yellow-50 via-amber-50/50 to-white border-y border-yellow-200 overflow-hidden relative">
         <style>{`
