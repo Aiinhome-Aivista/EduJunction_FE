@@ -80,15 +80,17 @@ export const AiRagHub: React.FC = () => {
   const [ragStatus, setRagStatus] = useState<RagStatusData | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
 
-  // Book & Question Bank LLM Analysis State
-  const [bookUploadFile, setBookUploadFile] = useState<File | null>(null);
+  // Book & Question Bank LLM Analysis State (Multi-File / Batch Support)
+  const [bookUploadFiles, setBookUploadFiles] = useState<File[]>([]);
   const [bookBoard, setBookBoard] = useState<string>('CBSE');
   const [bookClass, setBookClass] = useState<string>('Class 10');
   const [bookSubject, setBookSubject] = useState<string>('Mathematics');
   const [bookDocType, setBookDocType] = useState<string>('Textbook');
   const [bookYear, setBookYear] = useState<string>('2024');
   const [analyzingBook, setAnalyzingBook] = useState<boolean>(false);
-  const [bookAnalysisResult, setBookAnalysisResult] = useState<any | null>(null);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; filename: string } | null>(null);
+  const [batchAnalysisResults, setBatchAnalysisResults] = useState<any[]>([]);
+  const [selectedResultIndex, setSelectedResultIndex] = useState<number>(0);
   const [bookTargetTopicId, setBookTargetTopicId] = useState<number | null>(null);
   const [isSavingBookQuestions, setIsSavingBookQuestions] = useState<boolean>(false);
 
@@ -307,18 +309,82 @@ export const AiRagHub: React.FC = () => {
     fetchMasterDropdowns();
   }, []);
 
+  const handleAddFiles = (newFiles: FileList | File[] | null) => {
+    if (!newFiles) return;
+    const incoming = Array.from(newFiles);
+    setBookUploadFiles((prev) => {
+      const existingNames = new Set(prev.map(f => f.name));
+      const filtered = incoming.filter(f => !existingNames.has(f.name));
+      return [...prev, ...filtered];
+    });
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setBookUploadFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleClearAllFiles = () => {
+    setBookUploadFiles([]);
+  };
+
+  const [analysisStep, setAnalysisStep] = useState<number>(1);
+  const [analysisProgressPercent, setAnalysisProgressPercent] = useState<number>(15);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  const [analyzedBatchCount, setAnalyzedBatchCount] = useState<number>(0);
+  const [fileProcessingStatus, setFileProcessingStatus] = useState<Record<string, 'pending' | 'processing' | 'completed'>>({});
+
   const handleAnalyzeBook = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bookUploadFile) {
-      showNotify('error', 'Please select a PDF/DOC/DOCX file to analyze.');
+    if (bookUploadFiles.length === 0) {
+      showNotify('error', 'Please select at least one PDF/DOC/DOCX file to analyze.');
       return;
     }
     setAnalyzingBook(true);
-    setBookAnalysisResult(null);
+    setAnalysisStep(1);
+    setAnalysisProgressPercent(15);
+    setElapsedSeconds(0);
+    setBatchAnalysisResults([]);
+    setSelectedResultIndex(0);
+
+    // Initial status for all files: file 0 is processing, rest pending
+    const initialStatus: Record<string, 'pending' | 'processing' | 'completed'> = {};
+    bookUploadFiles.forEach((file, idx) => {
+      initialStatus[file.name] = idx === 0 ? 'processing' : 'pending';
+    });
+    setFileProcessingStatus(initialStatus);
+
+    // Live elapsed seconds ticker
+    const timerInterval = setInterval(() => {
+      setElapsedSeconds((prev) => prev + 1);
+    }, 1000);
+
+    // Realistic staged progress curve that caps at 90% until backend response arrives
+    const stepInterval = setInterval(() => {
+      setAnalysisProgressPercent((prev) => {
+        if (prev < 35) {
+          setAnalysisStep(2);
+          return prev + 10;
+        } else if (prev < 65) {
+          setAnalysisStep(2);
+          return prev + 8;
+        } else if (prev < 80) {
+          setAnalysisStep(3);
+          return prev + 5;
+        } else if (prev < 90) {
+          setAnalysisStep(4);
+          return prev + 2;
+        }
+        setAnalysisStep(4);
+        return 90; // Never hit 100% until response is received!
+      });
+    }, 2000);
 
     try {
       const formData = new FormData();
-      formData.append('file', bookUploadFile);
+      const filesCount = bookUploadFiles.length;
+      bookUploadFiles.forEach((file) => {
+        formData.append('files', file);
+      });
       formData.append('board', bookBoard);
       formData.append('classGrade', bookClass);
       formData.append('subject', bookSubject);
@@ -326,25 +392,57 @@ export const AiRagHub: React.FC = () => {
       formData.append('yearDeclared', bookYear);
 
       const res = await ApiServices.analyzeBookAndQuestionBank(formData);
-      setBookAnalysisResult(res);
-      showNotify('success', `✨ Successfully analyzed "${bookUploadFile.name}"! Extracted Summary, Relationships & Questions.`);
+      clearInterval(stepInterval);
+      clearInterval(timerInterval);
+
+      // Now set 100% completion!
+      setAnalysisProgressPercent(100);
+      setAnalysisStep(5);
+
+      // Mark all files as 100% completed
+      const allCompleted: Record<string, 'pending' | 'processing' | 'completed'> = {};
+      bookUploadFiles.forEach((file) => {
+        allCompleted[file.name] = 'completed';
+      });
+      setFileProcessingStatus(allCompleted);
+
+      const chaptersList = res.chapters && res.chapters.length > 0 ? res.chapters : [res];
+      setBatchAnalysisResults(chaptersList);
+      setAnalyzedBatchCount(filesCount);
+
+      showNotify(
+        'success',
+        `✨ Successfully analyzed ${filesCount} chapters in unified batch! Full knowledge graph mapped into ArangoDB.`
+      );
       await fetchRagStatus();
     } catch (err: any) {
-      console.error('Book analysis error:', err);
-      showNotify('error', err?.response?.data?.error?.message || err?.message || 'Failed to analyze book. Please check year & format criteria.');
+      clearInterval(stepInterval);
+      clearInterval(timerInterval);
+      console.error('Batch book analysis error:', err);
+      showNotify('error', err?.response?.data?.error?.message || err?.message || 'Failed to analyze book batch. Please check year & format criteria.');
     } finally {
+      clearInterval(stepInterval);
+      clearInterval(timerInterval);
       setAnalyzingBook(false);
     }
   };
 
-  const handleSaveBookQuestions = async () => {
+  const handleSaveBookQuestions = async (saveAll = false) => {
     const targetTopic = bookTargetTopicId || (flatTopics.length > 0 ? flatTopics[0].id : null);
     if (!targetTopic) {
       showNotify('error', 'Please select a curriculum Topic to link questions.');
       return;
     }
-    const questions = bookAnalysisResult?.important_questions || [];
-    if (questions.length === 0) {
+
+    let questionsToSave: any[] = [];
+    if (saveAll) {
+      questionsToSave = batchAnalysisResults.flatMap(r => r?.important_questions || []);
+    } else {
+      const activeRes = batchAnalysisResults[selectedResultIndex];
+      questionsToSave = activeRes?.important_questions || [];
+    }
+
+    if (questionsToSave.length === 0) {
       showNotify('error', 'No questions to save.');
       return;
     }
@@ -353,9 +451,9 @@ export const AiRagHub: React.FC = () => {
     try {
       const res = await ApiServices.saveRagQuestions({
         topic_id: targetTopic,
-        questions: questions
+        questions: questionsToSave
       });
-      showNotify('success', res?.message || `Successfully saved ${questions.length} questions to Question Bank!`);
+      showNotify('success', res?.message || `Successfully saved ${questionsToSave.length} questions to Question Bank!`);
       fetchRagStatus();
     } catch (err: any) {
       console.error('Save questions error:', err);
@@ -802,75 +900,245 @@ export const AiRagHub: React.FC = () => {
                 </div>
               </div>
 
-              {/* File Dropzone */}
+              {/* Multi-File Dropzone */}
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">Select File (PDF, DOC, DOCX)</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-stone-700">
+                    Select Chapter Files (Batch PDF/DOCX)
+                  </label>
+                  {bookUploadFiles.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAllFiles}
+                      className="text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline"
+                    >
+                      Clear All ({bookUploadFiles.length})
+                    </button>
+                  )}
+                </div>
+                
                 <div className="relative border-2 border-dashed border-stone-200 hover:border-yellow-400 rounded-2xl p-4 text-center transition-all bg-stone-50/50 hover:bg-yellow-50/20">
                   <input
                     type="file"
+                    multiple
                     accept=".pdf,.docx,.doc"
-                    onChange={(e) => setBookUploadFile(e.target.files ? e.target.files[0] : null)}
+                    onChange={(e) => handleAddFiles(e.target.files)}
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   />
-                  {bookUploadFile ? (
-                    <div className="flex items-center justify-center gap-2 text-xs font-bold text-stone-900">
-                      <FileText className="w-4 h-4 text-amber-600" />
-                      <span className="truncate max-w-[200px]">{bookUploadFile.name}</span>
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <BookOpen className="w-6 h-6 text-stone-400 mx-auto" />
-                      <p className="text-xs font-bold text-stone-700">Choose or Drag Book File</p>
-                      <p className="text-[10px] text-stone-400">PDF, DOC, DOCX (Max 50MB)</p>
-                    </div>
-                  )}
+                  <div className="space-y-1">
+                    <BookOpen className="w-6 h-6 text-amber-500 mx-auto" />
+                    <p className="text-xs font-bold text-stone-700">Choose or Drag Single/Multiple PDF Files</p>
+                    <p className="text-[10px] text-stone-400">Select all chapter PDFs together (Max 50MB each)</p>
+                  </div>
                 </div>
+
+                {/* Selected Files List with Live Per-File Status Badges */}
+                {bookUploadFiles.length > 0 && (
+                  <div className="mt-2.5 space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                    {bookUploadFiles.map((file, fIdx) => {
+                      const status = fileProcessingStatus[file.name];
+                      return (
+                        <div
+                          key={fIdx}
+                          className={`flex items-center justify-between p-2 rounded-xl border text-xs transition-all ${
+                            status === 'completed'
+                              ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
+                              : status === 'processing'
+                              ? 'bg-amber-50/90 border-amber-300 text-amber-950 shadow-2xs'
+                              : 'bg-stone-50 hover:bg-amber-50/50 border-stone-200/80 text-stone-800'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate pr-2">
+                            <FileText
+                              className={`w-3.5 h-3.5 shrink-0 ${
+                                status === 'completed'
+                                  ? 'text-emerald-600'
+                                  : status === 'processing'
+                                  ? 'text-amber-600'
+                                  : 'text-stone-500'
+                              }`}
+                            />
+                            <span className="truncate font-semibold text-[11px]">{file.name}</span>
+                            <span className="text-[10px] text-stone-400 shrink-0">
+                              ({(file.size / (1024 * 1024)).toFixed(1)} MB)
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            {status === 'completed' && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 shadow-2xs animate-in fade-in">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                <span>Done</span>
+                              </span>
+                            )}
+
+                            {status === 'processing' && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs animate-pulse">
+                                <Loader2 className="w-3 h-3 text-amber-600 animate-spin" />
+                                <span>Ingesting...</span>
+                              </span>
+                            )}
+
+                            {status === 'pending' && analyzingBook && (
+                              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-stone-100 text-stone-500 border border-stone-200">
+                                Queued
+                              </span>
+                            )}
+
+                            {!analyzingBook && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveFile(fIdx)}
+                                className="text-stone-400 hover:text-rose-600 p-0.5 rounded-md transition-colors"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Previously processed badge */}
+                {analyzedBatchCount > 0 && bookUploadFiles.length === 0 && !analyzingBook && (
+                  <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center justify-between text-xs text-emerald-800">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span className="font-bold">Previous batch of {analyzedBatchCount} files processed & synced!</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-100 px-2 py-0.5 rounded-full font-bold">Ready for Next Batch</span>
+                  </div>
+                )}
               </div>
+
+              {/* Multi-Stage Live Processing Progress Card */}
+              {analyzingBook && (
+                <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50/60 rounded-2xl border border-amber-200/90 shadow-sm space-y-3 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
+                      <span className="text-xs font-black text-amber-950">AI Processing Engine Active</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full">
+                        ⏱️ {elapsedSeconds}s
+                      </span>
+                      <span className="text-[11px] font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200">
+                        Step {Math.min(analysisStep, 4)} of 4 ({analysisProgressPercent}%)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Progress Line */}
+                  <div className="w-full bg-amber-200/70 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-amber-500 to-yellow-500 h-2 rounded-full transition-all duration-700 ease-out"
+                      style={{ width: `${analysisProgressPercent}%` }}
+                    />
+                  </div>
+
+                  {/* Step-by-Step Status Checklist */}
+                  <div className="space-y-1.5 pt-1 text-[11px]">
+                    <div className={`flex items-center gap-2 transition-colors ${analysisStep >= 1 ? 'text-amber-950 font-bold' : 'text-stone-400'}`}>
+                      {analysisStep > 1 ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      ) : (
+                        <div className="w-3.5 h-3.5 rounded-full border-2 border-amber-600 border-t-transparent animate-spin shrink-0" />
+                      )}
+                      <span>1. Persisting {bookUploadFiles.length} files to server storage (uploads/books/)</span>
+                    </div>
+
+                    <div className={`flex items-center gap-2 transition-colors ${analysisStep >= 2 ? 'text-amber-950 font-bold' : 'text-stone-400'}`}>
+                      {analysisStep > 2 ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      ) : analysisStep === 2 ? (
+                        <div className="w-3.5 h-3.5 rounded-full border-2 border-amber-600 border-t-transparent animate-spin shrink-0" />
+                      ) : (
+                        <div className="w-3.5 h-3.5 rounded-full border border-stone-300 shrink-0" />
+                      )}
+                      <span>2. Fast PyMuPDF & Gemini Vision OCR Engine (extracting equations & tables)</span>
+                    </div>
+
+                    <div className={`flex items-center gap-2 transition-colors ${analysisStep >= 3 ? 'text-amber-950 font-bold' : 'text-stone-400'}`}>
+                      {analysisStep > 3 ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      ) : analysisStep === 3 ? (
+                        <div className="w-3.5 h-3.5 rounded-full border-2 border-amber-600 border-t-transparent animate-spin shrink-0" />
+                      ) : (
+                        <div className="w-3.5 h-3.5 rounded-full border border-stone-300 shrink-0" />
+                      )}
+                      <span>3. Pedagogical Summary & Concept Prerequisite Synthesis</span>
+                    </div>
+
+                    <div className={`flex items-center gap-2 transition-colors ${analysisStep >= 4 ? 'text-amber-950 font-bold' : 'text-stone-400'}`}>
+                      {analysisStep >= 5 ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      ) : analysisStep === 4 ? (
+                        <div className="w-3.5 h-3.5 rounded-full border-2 border-amber-600 border-t-transparent animate-spin shrink-0" />
+                      ) : (
+                        <div className="w-3.5 h-3.5 rounded-full border border-stone-300 shrink-0" />
+                      )}
+                      <span>
+                        4. Syncing Knowledge Graph to ArangoDB & Generating Questions {analysisProgressPercent >= 85 && analysisStep < 5 ? '(In Progress...)' : ''}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <button
                 type="submit"
-                disabled={analyzingBook || !bookUploadFile}
-                className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                disabled={analyzingBook || bookUploadFiles.length === 0}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {analyzingBook ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Analyzing with LLM Engine...</span>
+                    <span>Analyzing {bookUploadFiles.length} Chapters with Vision AI & LLM Engine...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 text-white" />
-                    <span>Upload & Run LLM Analysis</span>
+                    <span>
+                      Upload & Run LLM Analysis {bookUploadFiles.length > 0 ? `(${bookUploadFiles.length} Chapters)` : ''}
+                    </span>
                   </>
                 )}
               </button>
             </form>
           </div>
 
-          {/* Right Column: Live Analysis Results */}
+          {/* Right Column: Live Analysis Results (Batch & Chapter Wise) */}
           <div className="lg:col-span-8 space-y-5">
-            {bookAnalysisResult ? (
+            {batchAnalysisResults.length > 0 ? (
               <div className="space-y-5 animate-in fade-in duration-300">
-                {/* Result Header */}
+                {/* Result Header & Batch Summary */}
                 <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                      ✓ LLM Analysis Complete
-                    </span>
-                    <h3 className="text-base font-black text-stone-900 mt-1">
-                      {bookAnalysisResult.filename}
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                        ✓ {batchAnalysisResults.length} Files Analyzed & Stored
+                      </span>
+                      <span className="text-[10px] font-bold text-blue-800 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
+                        {batchAnalysisResults.reduce((acc, r) => acc + (r.relationships?.length || 0), 0)} Concepts Mapped to ArangoDB
+                      </span>
+                    </div>
+                    <h3 className="text-base font-black text-stone-900">
+                      {bookSubject} • {bookClass} ({bookBoard})
                     </h3>
                     <p className="text-xs text-stone-500">
-                      {bookAnalysisResult.board} • {bookAnalysisResult.class_grade} • {bookAnalysisResult.subject} ({bookAnalysisResult.document_type})
+                      Total {batchAnalysisResults.reduce((acc, r) => acc + (r.questions_count || 0), 0)} high-yield questions extracted across all chapters
                     </p>
                   </div>
 
-                  {/* Save to Question Bank Action */}
-                  <div className="flex items-center gap-2 shrink-0">
+                  {/* Save to Question Bank Actions */}
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
                     <select
                       value={bookTargetTopicId || (flatTopics[0]?.id || '')}
                       onChange={(e) => setBookTargetTopicId(Number(e.target.value))}
-                      className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 max-w-[200px]"
+                      className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 max-w-[190px]"
                     >
                       {flatTopics.map(t => (
                         <option key={t.id} value={t.id}>
@@ -878,113 +1146,161 @@ export const AiRagHub: React.FC = () => {
                         </option>
                       ))}
                     </select>
+
                     <button
-                      onClick={handleSaveBookQuestions}
-                      disabled={isSavingBookQuestions || (bookAnalysisResult?.important_questions || []).length === 0}
+                      onClick={() => handleSaveBookQuestions(false)}
+                      disabled={isSavingBookQuestions || (batchAnalysisResults[selectedResultIndex]?.important_questions || []).length === 0}
+                      className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50"
+                      title="Save questions from currently selected chapter tab"
+                    >
+                      <Check className="w-3.5 h-3.5 text-stone-600" />
+                      <span>Save Current ({batchAnalysisResults[selectedResultIndex]?.questions_count || 0})</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleSaveBookQuestions(true)}
+                      disabled={isSavingBookQuestions || batchAnalysisResults.every(r => (r.important_questions || []).length === 0)}
                       className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50"
+                      title="Save all questions across all chapters at once"
                     >
                       {isSavingBookQuestions ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Saving...</span>
+                          <span>Saving All...</span>
                         </>
                       ) : (
                         <>
-                          <Check className="w-3.5 h-3.5 text-yellow-400" />
-                          <span>Save to Question Bank ({bookAnalysisResult?.questions_count || 0})</span>
+                          <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                          <span>Save ALL ({batchAnalysisResults.reduce((acc, r) => acc + (r.questions_count || 0), 0)})</span>
                         </>
                       )}
                     </button>
                   </div>
                 </div>
 
-                {/* Summary Section */}
-                <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-amber-600" />
-                    <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
-                      Pedagogical Summary & Chapter Blueprint
-                    </h4>
-                  </div>
-                  <div className="text-xs sm:text-sm text-stone-700 leading-relaxed bg-amber-50/40 p-4 rounded-2xl border border-amber-100 whitespace-pre-line font-normal">
-                    {bookAnalysisResult.summary}
-                  </div>
-                </div>
-
-                {/* Relationships Section */}
-                <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-blue-600" />
-                    <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
-                      Detected Conceptual Relationships & Dependencies
-                    </h4>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {(bookAnalysisResult.relationships || []).map((rel: any, rIdx: number) => (
-                      <div key={rIdx} className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200/70 space-y-1.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-stone-900">{rel.source_concept}</span>
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 uppercase">
-                            {rel.relationship_type || 'RELATION'}
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-amber-800 font-semibold flex items-center gap-1">
-                          ➔ {rel.target_concept}
-                        </div>
-                        <p className="text-xs text-stone-600">{rel.description}</p>
-                      </div>
+                {/* Chapter Switcher Tabs */}
+                {batchAnalysisResults.length > 1 && (
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                    {batchAnalysisResults.map((res, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedResultIndex(idx)}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 ${
+                          selectedResultIndex === idx
+                            ? 'bg-stone-900 text-white shadow-xs'
+                            : 'bg-white hover:bg-stone-50 text-stone-600 border border-stone-200'
+                        }`}
+                      >
+                        <FileText className={`w-3.5 h-3.5 ${selectedResultIndex === idx ? 'text-amber-400' : 'text-stone-400'}`} />
+                        <span className="truncate max-w-[150px]">{res.filename}</span>
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                          selectedResultIndex === idx ? 'bg-stone-800 text-amber-300' : 'bg-stone-100 text-stone-600'
+                        }`}>
+                          {res.questions_count || 0} Qs
+                        </span>
+                      </button>
                     ))}
                   </div>
-                </div>
+                )}
 
-                {/* Important Questions Section */}
-                <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-yellow-600" />
-                      <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
-                        Extracted Important Examination Questions ({bookAnalysisResult.questions_count || 0})
-                      </h4>
+                {/* Active Chapter Details */}
+                {batchAnalysisResults[selectedResultIndex] && (
+                  <>
+                    {/* Summary Section */}
+                    <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="w-4 h-4 text-amber-600" />
+                          <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
+                            Pedagogical Summary: {batchAnalysisResults[selectedResultIndex].filename}
+                          </h4>
+                        </div>
+                        <span className="text-[11px] font-semibold text-stone-500">
+                          {batchAnalysisResults[selectedResultIndex].board} • {batchAnalysisResults[selectedResultIndex].class_grade}
+                        </span>
+                      </div>
+                      <div className="text-xs sm:text-sm text-stone-700 leading-relaxed bg-amber-50/40 p-4 rounded-2xl border border-amber-100 whitespace-pre-line font-normal">
+                        {batchAnalysisResults[selectedResultIndex].summary}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-3">
-                    {(bookAnalysisResult.important_questions || []).map((q: any, qIdx: number) => (
-                      <div key={qIdx} className="p-4 bg-stone-50/60 rounded-2xl border border-stone-200 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-stone-900">Question {qIdx + 1}</span>
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${q.difficulty === 'hard'
-                                ? 'bg-rose-100 text-rose-800'
-                                : q.difficulty === 'medium'
-                                  ? 'bg-amber-100 text-amber-800'
-                                  : 'bg-emerald-100 text-emerald-800'
-                              }`}>
-                              {q.difficulty}
-                            </span>
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-stone-200 text-stone-700">
-                              {q.type} ({q.marks}M)
-                            </span>
+                    {/* Relationships Section */}
+                    <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-blue-600" />
+                        <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
+                          Detected Concept Relationships (Synced to ArangoDB Knowledge Graph)
+                        </h4>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {(batchAnalysisResults[selectedResultIndex].relationships || []).map((rel: any, rIdx: number) => (
+                          <div key={rIdx} className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200/70 space-y-1.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-bold text-stone-900">{rel.source_concept}</span>
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 uppercase">
+                                {rel.relationship_type || 'RELATION'}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-amber-800 font-semibold flex items-center gap-1">
+                              ➔ {rel.target_concept}
+                            </div>
+                            <p className="text-xs text-stone-600">{rel.description}</p>
                           </div>
-                        </div>
-                        <p className="text-xs sm:text-sm font-semibold text-stone-800">{q.question}</p>
-                        {q.options && q.options.length > 0 && (
-                          <div className="grid grid-cols-2 gap-1.5 pt-1">
-                            {q.options.map((opt: string, oIdx: number) => (
-                              <div key={oIdx} className="px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-xs text-stone-700">
-                                {opt}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        <div className="pt-2 text-xs text-emerald-800 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
-                          <strong>Correct Answer:</strong> {q.correct_answer}
-                          <p className="text-[11px] text-stone-600 font-normal mt-1"><strong>Explanation:</strong> {q.explanation}</p>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Important Questions Section */}
+                    <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-yellow-600" />
+                          <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
+                            Extracted Questions ({batchAnalysisResults[selectedResultIndex].questions_count || 0})
+                          </h4>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
+
+                      <div className="space-y-3">
+                        {(batchAnalysisResults[selectedResultIndex].important_questions || []).map((q: any, qIdx: number) => (
+                          <div key={qIdx} className="p-4 bg-stone-50/60 rounded-2xl border border-stone-200 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-stone-900">Question {qIdx + 1}</span>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${q.difficulty === 'hard'
+                                    ? 'bg-rose-100 text-rose-800'
+                                    : q.difficulty === 'medium'
+                                      ? 'bg-amber-100 text-amber-800'
+                                      : 'bg-emerald-100 text-emerald-800'
+                                  }`}>
+                                  {q.difficulty}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-stone-200 text-stone-700">
+                                  {q.type} ({q.marks}M)
+                                </span>
+                              </div>
+                            </div>
+                            <p className="text-xs sm:text-sm font-semibold text-stone-800">{q.question}</p>
+                            {q.options && q.options.length > 0 && (
+                              <div className="grid grid-cols-2 gap-1.5 pt-1">
+                                {q.options.map((opt: string, oIdx: number) => (
+                                  <div key={oIdx} className="px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-xs text-stone-700">
+                                    {opt}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            <div className="pt-2 text-xs text-emerald-800 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
+                              <strong>Correct Answer:</strong> {q.correct_answer}
+                              <p className="text-[11px] text-stone-600 font-normal mt-1"><strong>Explanation:</strong> {q.explanation}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               <div className="bg-white p-12 rounded-3xl border border-stone-200/80 shadow-xs text-center space-y-3">
@@ -992,10 +1308,10 @@ export const AiRagHub: React.FC = () => {
                   📚
                 </div>
                 <h3 className="text-sm sm:text-base font-black text-stone-900">
-                  Ready for Book & Question Bank Analysis
+                  Ready for Multi-Chapter Book & Question Bank Analysis
                 </h3>
                 <p className="text-xs text-stone-400 max-w-md mx-auto">
-                  Select a book from CBSE, ICSE, or ISC (Class 5–10, 2011–2026) on the left to extract chapter summaries, concept graphs, and exam questions.
+                  Select single or multiple chapter PDFs for CBSE, ICSE, or ISC (Class 5–10, 2011–2026) on the left. AI will sequentially analyze each chapter, build the full subject knowledge graph in ArangoDB, and synthesize questions.
                 </p>
               </div>
             )}

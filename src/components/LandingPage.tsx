@@ -621,7 +621,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
-          
+
           {/* 1. Coming Soon: Model Test Papers 2027 Announcement Banner */}
           <div className="rounded-3xl bg-white border border-amber-300/80 p-6 sm:p-8 shadow-lg shadow-amber-500/5 relative overflow-hidden">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
@@ -670,7 +670,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* 2. Free 10-Mark Diagnostic Mock Test: Parent & Child Registration Card */}
           <div className="rounded-3xl bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 text-white p-6 sm:p-10 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-            
+
             <div className="grid lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-8 space-y-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400 text-stone-950 text-xs font-black">
