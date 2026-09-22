@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   GraduationCap,
   UserCheck,
@@ -64,12 +65,13 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
-          <div
+          <Link
+            to="/landing"
             id="brand-logo"
-            className="flex items-center gap-3 cursor-pointer select-none"
-            onClick={() => setCurrentView(isParentActive ? 'parent-dashboard' : 'exam-arena')}
+            className="flex items-center gap-3 cursor-pointer select-none hover:opacity-85 transition-opacity"
+            title="Go to EduJunction Landing Page"
           >
-            <div className="w-10 h-10 rounded-xl bg-yellow-400 flex items-center justify-center text-white shadow-sm ring-2 ring-yellow-100">
+            <div className="w-10 h-10 rounded-xl bg-yellow-400 flex items-center justify-center text-stone-900 shadow-sm ring-2 ring-yellow-100">
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
@@ -81,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <p className="text-[11px] text-stone-500 hidden sm:block">Class 5–12 Adaptive Board Prep (10-Mark Diagnostic)</p>
             </div>
-          </div>
+          </Link>
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-1 lg:gap-1.5">

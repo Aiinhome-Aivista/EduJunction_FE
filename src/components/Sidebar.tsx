@@ -48,12 +48,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Header / Brand */}
       <div className={`h-16 w-full flex items-center justify-between ${isSidebarCollapsed ? 'lg:justify-center px-4' : 'px-6'} border-b border-stone-100 flex-shrink-0 transition-all`}>
-        <div className="flex items-center gap-2">
-          <Icons.GraduationCap className="w-6 h-6 text-yellow-500 flex-shrink-0" />
+        <NavLink
+          to="/landing"
+          onClick={() => {
+            setMobileSidebarOpen?.(false);
+            onNavigate?.();
+          }}
+          className="flex items-center gap-2 cursor-pointer hover:opacity-85 transition-opacity group"
+          title="Go to EduJunction Landing Page"
+        >
+          <Icons.GraduationCap className="w-6 h-6 text-yellow-500 flex-shrink-0 group-hover:scale-105 transition-transform" />
           <span className={`text-lg font-black tracking-tight transition-all ${isSidebarCollapsed ? 'lg:hidden' : ''}`}>
             <span className="text-stone-900">Edu</span><span className="text-yellow-500">Junction</span>
           </span>
-        </div>
+        </NavLink>
 
         {onToggleSidebar && (
           <button
