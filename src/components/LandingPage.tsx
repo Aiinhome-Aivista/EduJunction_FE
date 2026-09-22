@@ -380,7 +380,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     loadWord(currentWordIndex);
   };
 
-  const supportComposeUrl = 'https://mail.google.com/mail/u/0/?fs=1&to=25punamgode@gmail.com&tf=cm';
+  const supportComposeUrl = 'https://mail.google.com/mail/u/0/?fs=1&to=Support@edujunction.co.in&tf=cm';
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 overflow-x-hidden">
       <style>{`
@@ -1619,7 +1619,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             Get Support <ArrowRight className="w-5 h-5" />
           </a>
           <div className="mt-3 leading-tight">
-            <a href={supportComposeUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-yellow-400 hover:text-yellow-300 hover:underline">Support@EduJunction.com</a>
+            <a href={supportComposeUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-yellow-400 hover:text-yellow-300 hover:underline">Support@edujunction.co.in</a>
           </div>
         </div>
       </section>

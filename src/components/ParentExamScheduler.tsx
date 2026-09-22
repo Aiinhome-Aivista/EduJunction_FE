@@ -104,11 +104,7 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
     };
   }, [activeChild?.id, activeChild?.classGrade, activeChild?.targetBoard]);
 
-  const availableSubjects: string[] = dbSubjects.length > 0
-    ? dbSubjects.map(s => s.name)
-    : (activeChild?.classGrade && CLASS_SUBJECTS_MAP[activeChild.classGrade])
-      ? CLASS_SUBJECTS_MAP[activeChild.classGrade]
-      : ['Mathematics', 'Science', 'English', 'Social Studies', 'Computer Science', 'Logical Reasoning'];
+  const availableSubjects: string[] = dbSubjects.map(s => s.name);
 
   const [subject, setSubject] = useState<string>(presetSubject || '');
   const [chapterTopic, setChapterTopic] = useState<string>(presetTopic || '');
