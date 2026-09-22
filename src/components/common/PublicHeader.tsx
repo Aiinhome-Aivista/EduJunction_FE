@@ -27,6 +27,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
           </div>
         </Link>
 
+
         {/* Desktop nav */}
         <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-stone-600">
           <Link to="/" className="hover:text-yellow-600 transition-colors">Home</Link>

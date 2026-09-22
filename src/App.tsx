@@ -224,8 +224,33 @@ export default function App() {
   const totalChildrenCount = parentAccount?.children.length || 0;
 
   // ------------------------------------------------------------
-  // Data loading — replaces the old mock-data useState initializers.
+  // Data loading — 2-Phase approach for fast workspace display.
+  // Phase 1 (Bootstrap): Minimal profile only → workspace shows immediately.
+  // Phase 2 (Background): Full dashboard data loads quietly in background.
   // ------------------------------------------------------------
+
+  // Phase 1: Fast minimal parent profile load (just enough to show workspace)
+  const loadParentProfileOnly = useCallback(async () => {
+    const [meData, permsData] = await Promise.all([
+      ApiServices.getMe(),
+      ApiServices.getMenuPermissions(),
+    ]);
+    const profile = meData?.profile || meData;
+    const pageAccess = Array.isArray(permsData) ? permsData : (permsData?.permissions || []);
+    // Set minimal parentAccount so workspace renders immediately
+    setParentAccount({
+      id: profile.id,
+      name: profile.name,
+      email: profile.email,
+      role: 'parent',
+      children: [],
+      createdAt: profile.createdAt,
+    });
+    setPageAccess(pageAccess);
+    return pageAccess;
+  }, []);
+
+  // Phase 2: Full parent dashboard data in background (non-blocking)
   const loadParentAndChildren = useCallback(async () => {
     const dashboardData = await ApiServices.getParentDashboard();
     const { profile, children: enrichedChildren, recentExams, pageAccess } = dashboardData;
@@ -244,6 +269,33 @@ export default function App() {
     return pageAccess;
   }, []);
 
+  // Phase 1: Fast minimal student profile load (just enough to show workspace)
+  const loadStudentProfileOnly = useCallback(async () => {
+    const [meData, permsData] = await Promise.all([
+      ApiServices.getStudentMe(),
+      ApiServices.getMenuPermissions(),
+    ]);
+    const profile = meData?.profile || meData;
+    const pageAccess = Array.isArray(permsData) ? permsData : (permsData?.permissions || []);
+    const studentChild: ChildAccount = {
+      ...profile,
+      recentExams: [],
+    };
+    setParentAccount({
+      id: `student-parent-${profile.id}`,
+      name: profile.name,
+      email: profile.email || '',
+      role: 'parent',
+      children: [studentChild],
+      createdAt: profile.createdAt || new Date().toISOString(),
+    });
+    setActiveChildId(profile.id);
+    setActivePersona('child');
+    setPageAccess(pageAccess);
+    return pageAccess;
+  }, []);
+
+  // Phase 2: Full student dashboard data in background (non-blocking)
   const loadStudentData = useCallback(async () => {
     const dashboardData = await ApiServices.getStudentDashboard();
     const { profile, recentExams, learningPath, pageAccess } = dashboardData;
@@ -462,7 +514,9 @@ export default function App() {
 
 
 
-  // Full bootstrap once authenticated - ESSENTIAL SESSION ONLY (Zero Over-fetching)
+  // 2-Phase Bootstrap:
+  // Phase 1 — Fast: Load minimal profile only → workspace renders immediately (no more long spinner)
+  // Phase 2 — Background: Load full dashboard data silently after workspace is visible
   useEffect(() => {
     if (!authRole) {
       setIsBootstrapping(false);
@@ -476,23 +530,43 @@ export default function App() {
       try {
         const isRoot = location.pathname === '/' || location.pathname === '';
         if (isAdminSession) {
+          // Admin: just menu perms, no dashboard data needed
           const perms = await ApiServices.getMenuPermissions();
           setPageAccess(perms);
           const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
           if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
         } else if (isTeacherSession) {
+          // Teacher: just menu perms
           const perms = await ApiServices.getMenuPermissions();
           setPageAccess(perms);
           const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
           if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
         } else if (isStudentSession) {
-          const perms = await loadStudentData();
-          const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
-          if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
+          // Phase 1: load minimal profile only → show workspace immediately
+          const perms = await loadStudentProfileOnly();
+          if (!cancelled) {
+            setIsBootstrapping(false); // ← release UI immediately
+            const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
+            if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
+          }
+          // Phase 2: load full data silently in background
+          if (!cancelled) {
+            loadStudentData().catch(() => {}); // non-blocking, errors silently ignored
+          }
+          return; // skip finally setIsBootstrapping(false) — already done above
         } else if (isParentSession) {
-          const perms = await loadParentAndChildren();
-          const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
-          if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
+          // Phase 1: load minimal profile only → show workspace immediately
+          const perms = await loadParentProfileOnly();
+          if (!cancelled) {
+            setIsBootstrapping(false); // ← release UI immediately
+            const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
+            if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
+          }
+          // Phase 2: load full children + exam history in background
+          if (!cancelled) {
+            loadParentAndChildren().catch(() => {}); // non-blocking
+          }
+          return; // skip finally
         } else {
           clearTokens();
           setAuthRole(null);
@@ -508,7 +582,6 @@ export default function App() {
             (typeof err?.message === 'string' && (err.message.includes('401') || err.message.toLowerCase().includes('unauthorized')));
 
           if (isAuthError) {
-            // Cleanly wipe stale session tokens and present the public landing page
             clearTokens();
             setAuthRole(null);
             setBootstrapError(null);
@@ -525,7 +598,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [authRole, isAdminSession, isTeacherSession, isStudentSession, isParentSession, loadParentAndChildren, loadStudentData]);
+  }, [authRole, isAdminSession, isTeacherSession, isStudentSession, isParentSession, loadParentProfileOnly, loadStudentProfileOnly, loadParentAndChildren, loadStudentData]);
 
   // On-demand gamification loading (Only calls API when user navigates to Leaderboard/Gamification)
   useEffect(() => {
