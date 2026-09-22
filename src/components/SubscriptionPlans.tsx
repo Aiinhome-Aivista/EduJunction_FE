@@ -28,7 +28,9 @@ import {
   FileDown,
   Eye,
   PenTool,
-  ExternalLink
+  ExternalLink,
+  Users,
+  GraduationCap
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ApiServices from '../services/ApiServices';
@@ -47,6 +49,8 @@ interface SubscriptionPlansProps {
   studentEmail?: string;
   defaultBoard?: string;
   defaultClass?: string;
+  childrenList?: any[];
+  isParent?: boolean;
   onNavigateToExam?: (board: string, classGrade: string, subject: string) => void;
 }
 
@@ -134,6 +138,8 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   studentEmail = 'student@edujunction.com',
   defaultBoard = 'CBSE',
   defaultClass = 'Class 10',
+  childrenList: propChildrenList,
+  isParent: propIsParent,
   onNavigateToExam,
 }) => {
   const navigate = useNavigate();
@@ -144,6 +150,14 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   const [selectedSubject, setSelectedSubject] = useState<string>('Mathematics');
   const [quantity, setQuantity] = useState<number>(1);
 
+  // Child selector & User Role state
+  const isParent = propIsParent !== undefined
+    ? propIsParent
+    : (localStorage.getItem('user_role') || sessionStorage.getItem('user_role') || 'PARENT').toUpperCase() === 'PARENT';
+  const [childrenList, setChildrenList] = useState<any[]>(isParent ? (propChildrenList || []) : []);
+  const [selectedChildId, setSelectedChildId] = useState<number | undefined>(studentId);
+  const [userRole, setUserRole] = useState<string>(isParent ? 'PARENT' : 'STUDENT');
+
   const [activePlans, setActivePlans] = useState<any[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState<number | undefined>(undefined);
   const [isLoadingOrder, setIsLoadingOrder] = useState<boolean>(false);
@@ -152,6 +166,18 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [downloadingPaperKey, setDownloadingPaperKey] = useState<string | null>(null);
+
+  // Sync propChildrenList if provided
+  useEffect(() => {
+    if (isParent && propChildrenList && propChildrenList.length > 0) {
+      setChildrenList(propChildrenList);
+      if (!selectedChildId) {
+        setSelectedChildId(studentId || (propChildrenList[0]?.id ? Number(propChildrenList[0].id) : undefined));
+      }
+    } else if (!isParent) {
+      setChildrenList([]);
+    }
+  }, [isParent, propChildrenList, studentId]);
 
   // In-App Model Paper Read-Only Viewer State
   const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false);
@@ -172,7 +198,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
     if (!BOARDS.includes(selectedBoard as Board)) {
       setSelectedBoard('CBSE');
     }
-  }, [selectedBoard, defaultBoard]);
+  }, [selectedBoard]);
 
   // Available classes based on selected board
   const availableClasses = useMemo(() => {
@@ -206,7 +232,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
     }
   }, [availableSubjects, selectedSubject]);
 
-  // Load Razorpay SDK Script dynamically & fetch plans and subscriptions
+  // Load Razorpay SDK Script dynamically & fetch plans, subscriptions, and children
   useEffect(() => {
     if (!document.getElementById('razorpay-sdk')) {
       const script = document.createElement('script');
@@ -217,7 +243,36 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
     }
     fetchPlans();
     fetchMySubscriptions();
+    fetchChildrenAndRole();
   }, []);
+
+  const fetchChildrenAndRole = async () => {
+    try {
+      const role = propIsParent !== undefined
+        ? (propIsParent ? 'PARENT' : 'STUDENT')
+        : (localStorage.getItem('user_role') || sessionStorage.getItem('user_role') || 'PARENT').toUpperCase();
+      setUserRole(role);
+
+      if (role === 'PARENT' && (!propChildrenList || propChildrenList.length === 0)) {
+        const res = await ApiServices.getParentDashboard();
+        const children = res?.children || res?.data?.children || [];
+        if (Array.isArray(children) && children.length > 0) {
+          setChildrenList(children);
+          if (!selectedChildId) {
+            const firstChild = children[0];
+            setSelectedChildId(Number(firstChild.id));
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch parent children list', err);
+    }
+  };
+
+  const handleSelectChild = (childId: number) => {
+    setSelectedChildId(childId);
+    setSuccessMessage(null);
+  };
 
   const fetchPlans = async () => {
     try {
@@ -270,11 +325,13 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
       setErrorMessage(null);
       setSuccessMessage(null);
 
+      const effectiveStudentId = selectedChildId || studentId;
+
       const orderData = await ApiServices.createSubjectSubscriptionOrder({
         board: selectedBoard,
         classGrade: selectedClass,
         subject: selectedSubject,
-        studentId: studentId,
+        studentId: effectiveStudentId,
         planId: activePlan?.id,
         quantity: quantity,
       });
@@ -335,6 +392,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
     subscriptionId?: string | number
   ) => {
     try {
+      const effectiveStudentId = selectedChildId || studentId;
       const verifyRes = await ApiServices.verifySubjectSubscriptionPayment({
         orderId,
         paymentId,
@@ -343,12 +401,15 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
         board: selectedBoard,
         classGrade: selectedClass,
         subject: selectedSubject,
-        studentId: studentId,
+        studentId: effectiveStudentId,
         quantity: quantity,
       });
 
+      const assignedChildName = childrenList.find(c => c.id === effectiveStudentId)?.name;
+      const assignText = assignedChildName ? ` for ${assignedChildName}` : '';
+
       setSuccessMessage(
-        verifyRes.message || `🎉 Payment Verified! ${quantity} Full-Length Model Test Paper set${quantity > 1 ? 's' : ''} for ${selectedBoard} ${selectedClass} ${selectedSubject} ${quantity > 1 ? 'are' : 'is'} now UNLOCKED.`
+        verifyRes.message || `🎉 Payment Verified! ${quantity} Full-Length Model Test Paper set${quantity > 1 ? 's' : ''}${assignText} (${selectedBoard} ${selectedClass} ${selectedSubject}) ${quantity > 1 ? 'are' : 'is'} now UNLOCKED.`
       );
       setIsCheckoutModalOpen(false);
       setCheckoutOrderData(null);
@@ -389,7 +450,8 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   };
 
   const handleOpenViewer = (sub: any) => {
-    window.open(`/model-exam/${sub.id}`, '_blank');
+    const modeParam = isParent ? '?mode=view' : '';
+    window.open(`/model-exam/${sub.id}${modeParam}`, '_blank');
   };
 
   const handleDownloadPaper = async (sub: any, format: 'pdf' | 'docx') => {
@@ -467,12 +529,42 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
           <div>
             <h2 className="text-xl font-black text-stone-900 flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-amber-500" />
-              Choose Your Board, Class & Subject
+              Choose Board, Class & Subject
             </h2>
             <p className="text-xs text-stone-500 mt-1">
               Select your Board (CBSE, ICSE, ISC), Class, Subject, and the number of unique 2027 Model Paper Sets you want.
             </p>
           </div>
+
+          {/* Parent Child Selector (Only if logged in as Parent with linked children) */}
+          {isParent && childrenList.length > 0 && (
+            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-black uppercase text-amber-900 tracking-wider flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Select Child to Assign Model Paper</span>
+                </label>
+                <span className="text-[10px] font-bold text-amber-800 bg-amber-200/60 px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-amber-300/50">
+                  <Sparkles className="w-2.5 h-2.5 text-amber-600" />
+                  Flexible Grade & Board
+                </span>
+              </div>
+              <select
+                value={selectedChildId || ''}
+                onChange={(e) => handleSelectChild(Number(e.target.value))}
+                className="w-full p-2.5 rounded-xl border border-amber-300 bg-white text-xs font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer shadow-2xs"
+              >
+                {childrenList.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    👤 {c.name || `Child #${c.id}`} (Currently in {c.classGrade || 'Class'} • {c.targetBoard || 'Board'})
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-amber-800/80 font-medium leading-relaxed">
+                💡 <strong>Parent Tip:</strong> You can choose any Board and Class above or below your child's current grade to help them prepare ahead or revise previous years.
+              </p>
+            </div>
+          )}
 
           {/* 1. Board Selection */}
           <div className="space-y-2">
@@ -490,11 +582,10 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                       setSelectedBoard(board);
                       setSuccessMessage(null);
                     }}
-                    className={`py-3 px-4 rounded-2xl border text-center transition-all ${
-                      isSel
+                    className={`py-3 px-4 rounded-2xl border text-center transition-all ${isSel
                         ? 'border-amber-500 bg-amber-50/70 text-amber-950 font-black shadow-sm ring-2 ring-amber-400/20'
                         : 'border-stone-200 bg-stone-50/40 text-stone-700 hover:border-stone-300 font-bold'
-                    }`}
+                      }`}
                   >
                     <div className="text-sm font-black">{board}</div>
                     <div className="text-[10px] text-stone-500 mt-0.5">
@@ -529,11 +620,10 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                       setSelectedClass(cls);
                       setSuccessMessage(null);
                     }}
-                    className={`py-2 px-3.5 rounded-xl border text-xs font-bold transition-all ${
-                      isSel
+                    className={`py-2 px-3.5 rounded-xl border text-xs font-bold transition-all ${isSel
                         ? 'border-amber-500 bg-amber-50 text-amber-900 font-black ring-2 ring-amber-400/20 shadow-xs'
                         : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
-                    }`}
+                      }`}
                   >
                     {cls}
                   </button>
@@ -565,11 +655,10 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                       setSelectedSubject(sub);
                       setSuccessMessage(null);
                     }}
-                    className={`py-2.5 px-4 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      isSel
+                    className={`py-2.5 px-4 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${isSel
                         ? 'border-amber-500 bg-amber-50 text-amber-950 font-black ring-2 ring-amber-400/20 shadow-xs'
                         : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300'
-                    }`}
+                      }`}
                   >
                     <span>{sub}</span>
                     {hasUnlocked ? (
@@ -583,106 +672,108 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
             </div>
           </div>
 
-          {/* 4. Number of Model Question Paper Sets (Quantity Selector) */}
-          <div className="space-y-2.5 pt-1 border-t border-stone-100">
+          {/* 4. Number of Model Paper Sets */}
+          <div className="space-y-3 pt-1 border-t border-stone-100">
             <div className="flex items-center justify-between">
               <label className="text-xs font-black uppercase text-stone-600 tracking-wider">
                 4. Number of Model Question Sets
               </label>
-              <span className="text-[11px] text-amber-700 font-bold">
-                ₹{unitPrice} per unique set
-              </span>
+              <span className="text-xs font-bold text-amber-700">₹{unitPrice} per unique set</span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Stepper Counter */}
-              <div className="inline-flex items-center border border-amber-300 bg-white rounded-2xl shadow-2xs overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+              {/* Stepper */}
+              <div className="flex items-center justify-between sm:justify-start border border-stone-200 rounded-2xl bg-stone-50 p-1 shrink-0">
                 <button
                   type="button"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   disabled={quantity <= 1}
-                  className="px-3.5 py-2.5 text-stone-600 hover:bg-amber-50 active:bg-amber-100 font-black text-sm disabled:opacity-30 transition-colors cursor-pointer"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="w-8 h-8 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-700 hover:bg-stone-100 disabled:opacity-40 transition-colors shadow-2xs"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
-                <div className="px-4 py-2.5 font-black text-sm text-stone-900 bg-amber-50/40 min-w-[76px] text-center border-x border-amber-200">
+                <span className="w-16 text-center text-xs font-black text-stone-900">
                   {quantity} Set{quantity > 1 ? 's' : ''}
-                </div>
+                </span>
                 <button
                   type="button"
-                  onClick={() => setQuantity((q) => Math.min(10, q + 1))}
                   disabled={quantity >= 10}
-                  className="px-3.5 py-2.5 text-stone-600 hover:bg-amber-50 active:bg-amber-100 font-black text-sm disabled:opacity-30 transition-colors cursor-pointer"
+                  onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+                  className="w-8 h-8 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-700 hover:bg-stone-100 disabled:opacity-40 transition-colors shadow-2xs"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              {/* Quick Chip Selectors */}
-              {[1, 2, 3, 5].map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  onClick={() => setQuantity(q)}
-                  className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
-                    quantity === q
-                      ? 'border-amber-500 bg-amber-100/90 text-amber-950 font-black ring-2 ring-amber-400/20 shadow-2xs'
-                      : 'border-stone-200 bg-stone-50/70 text-stone-600 hover:border-stone-300'
-                  }`}
-                >
-                  {q} Set{q > 1 ? 's' : ''} (₹{unitPrice * q})
-                </button>
-              ))}
+              {/* Quick Set Presets Auto-Arranged */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1">
+                {[1, 2, 3, 5].map((cnt) => (
+                  <button
+                    key={cnt}
+                    type="button"
+                    onClick={() => setQuantity(cnt)}
+                    className={`py-2 px-2 rounded-xl text-xs border text-center transition-all ${
+                      quantity === cnt
+                        ? 'border-amber-500 bg-amber-50 text-amber-950 font-black shadow-2xs ring-1 ring-amber-400/30'
+                        : 'border-stone-200 bg-stone-50/50 text-stone-700 hover:bg-stone-100/70 hover:border-stone-300 font-bold'
+                    }`}
+                  >
+                    <span className="block font-black leading-tight">{cnt} Set{cnt > 1 ? 's' : ''}</span>
+                    <span className={`block text-[10px] mt-0.5 ${quantity === cnt ? 'text-amber-800 font-bold' : 'text-stone-500 font-medium'}`}>
+                      ₹{cnt * unitPrice}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Pricing Action Box */}
-          <div className="p-6 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-4">
+          {/* Checkout Action Card */}
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50/90 via-yellow-50/80 to-amber-100/60 border border-amber-300/80 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-amber-800 uppercase tracking-wide">Selected Model Paper Pass</p>
-                <h3 className="text-lg font-black text-stone-900">
-                  {selectedBoard} {selectedClass} — {selectedSubject}
-                  <span className="text-amber-700 font-bold text-sm ml-2">
-                    ({quantity} Unique Set{quantity > 1 ? 's' : ''})
-                  </span>
-                </h3>
-                <div className="flex items-center gap-2 mt-1 text-xs text-stone-600">
-                  <Clock className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Duration: <strong>{selectedBoardMeta.duration}</strong></span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
+                  Selected Model Paper Pass
+                </span>
+                <div className="text-sm sm:text-base font-black text-stone-900 mt-0.5">
+                  {selectedBoard} {selectedClass} — {selectedSubject}{' '}
+                  <span className="text-amber-700 font-extrabold">({quantity} Unique Set{quantity > 1 ? 's' : ''})</span>
+                </div>
+                {isParent && childrenList.length > 0 && selectedChildId && (
+                  <div className="text-[11px] text-amber-900 font-bold flex items-center gap-1.5 mt-1">
+                    <Users className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Assigning to: <strong>{childrenList.find((c) => c.id === selectedChildId)?.name || `Child #${selectedChildId}`}</strong></span>
+                  </div>
+                )}
+                <div className="text-[11px] text-stone-600 font-medium flex items-center gap-2 mt-1">
+                  <span>⏱️ Duration: <strong>{selectedBoardMeta.durationShort}</strong></span>
                   <span>•</span>
                   <span>Marks: <strong>{selectedBoardMeta.marks}</strong></span>
-                  {unlockedSetsForCurrentSubject.length > 0 && (
-                    <>
-                      <span>•</span>
-                      <span className="text-emerald-700 font-bold">{unlockedSetsForCurrentSubject.length} Already Unlocked</span>
-                    </>
-                  )}
                 </div>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-amber-600">₹{totalPrice}</span>
-                <p className="text-[10px] text-stone-500 font-bold">
-                  {quantity > 1 ? `₹${unitPrice} × ${quantity} Sets` : 'Per Exam Paper'}
-                </p>
+                <div className="text-2xl sm:text-3xl font-black text-amber-950">
+                  ₹{totalPrice}
+                </div>
+                <div className="text-[10px] text-stone-500 font-semibold">Per Exam Paper</div>
               </div>
             </div>
 
             <button
               type="button"
-              onClick={handleSubscribeNow}
               disabled={isLoadingOrder}
+              onClick={handleSubscribeNow}
               id="btn-subscribe-razorpay"
-              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-sm shadow-md shadow-amber-500/20 hover:from-amber-600 hover:to-amber-700 active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-black text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
             >
               {isLoadingOrder ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Preparing Secure Checkout...</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-stone-900" />
+                  <span>Preparing Order...</span>
                 </>
               ) : (
                 <>
-                  <CreditCard className="w-4 h-4" />
+                  <CreditCard className="w-4 h-4 text-stone-950" />
                   <span>
                     Unlock {quantity} Model Paper{quantity > 1 ? 's' : ''} for ₹{totalPrice}
                   </span>
@@ -690,28 +781,28 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               )}
             </button>
 
-            <p className="text-center text-[11px] text-stone-500 flex items-center justify-center gap-1.5 font-medium">
+            <div className="text-[11px] text-stone-500 text-center font-medium flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              100% Secure Checkout powered by Razorpay. Instant activation upon payment.
-            </p>
+              <span>100% Secure Checkout powered by Razorpay. Instant activation upon payment.</span>
+            </div>
           </div>
         </div>
 
-        {/* Right: What You Get & Active Passes */}
+        {/* Right Column: Specimen Overview & Active Passes Card */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Features Card */}
-          <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-7 shadow-sm space-y-5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-black text-stone-900 flex items-center gap-2">
+          {/* Specimen Details Card */}
+          <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-7 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <h3 className="text-sm font-black text-stone-900 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-500" />
                 What You Get ({selectedBoard} 2027 Specimen):
               </h3>
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-amber-100 text-amber-900 rounded-md">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">
                 {selectedBoardMeta.patternName}
               </span>
             </div>
 
-            <ul className="space-y-3.5 text-xs text-stone-600">
+            <ul className="space-y-3 text-xs text-stone-600 font-medium leading-relaxed">
               <li className="flex items-start gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                 <span><strong>Official Marking Blueprint:</strong> {selectedBoardMeta.blueprintSummary}.</span>
@@ -726,7 +817,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               </li>
               <li className="flex items-start gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <span><strong>Interactive In-App Model Paper & Solution Viewer:</strong> View all 38 authentic questions with step-by-step model answers directly in your browser.</span>
+                <span><strong>Interactive In-App Model Paper & Solution Viewer:</strong> View all authentic questions with step-by-step model answers directly in your browser.</span>
               </li>
               <li className="flex items-start gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
@@ -740,7 +831,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="text-sm font-black text-stone-900 flex items-center gap-2">
                 <Layers className="w-4 h-4 text-amber-500" />
-                My Unlocked Model Papers
+                {userRole.toUpperCase() === 'PARENT' ? 'Unlocked Papers for Children' : 'My Unlocked Model Papers'}
               </h3>
               <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
                 {activeSubscriptions.length} Unlocked
@@ -759,7 +850,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 <p className="text-[11px] text-stone-400">Select your board and subject on the left to unlock.</p>
               </div>
             ) : (
-              <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
+              <div className="space-y-3.5 max-h-[420px] overflow-y-auto pr-1">
                 {activeSubscriptions.map((sub, idx) => {
                   const setLabel = sub.modelTestId?.includes('SET_')
                     ? `Set ${sub.modelTestId.split('SET_')[1]}`
@@ -768,20 +859,34 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                   const isDownloadingPdf = downloadingPaperKey === `${sub.id}_pdf`;
                   const isDownloadingDocx = downloadingPaperKey === `${sub.id}_docx`;
 
+                  const isCompleted = sub.examStatus === 'COMPLETED';
+                  const isInProgress = sub.examStatus === 'IN_PROGRESS';
+
                   return (
                     <div
                       key={sub.id || idx}
                       className="p-4 rounded-2xl border border-stone-200/90 bg-gradient-to-b from-stone-50/80 to-amber-50/30 hover:border-amber-300 transition-all shadow-2xs space-y-3"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <div>
+                        <div className="space-y-1">
                           <div className="font-black text-stone-900 text-xs sm:text-sm flex items-center gap-2">
                             <span>{sub.board} {sub.classGrade} — {sub.subject}</span>
                             <span className="px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 text-[10px] font-black border border-amber-200">
                               {setLabel}
                             </span>
                           </div>
-                          <div className="text-[11px] text-stone-500 mt-1 flex flex-wrap items-center gap-2">
+
+                          {/* Child Name Tag (If Parent) */}
+                          {userRole.toUpperCase() === 'PARENT' && (
+                            <div className="text-[11px] font-bold text-stone-700 flex items-center gap-1.5">
+                              <span className="text-amber-800">👤 Assigned to:</span>
+                              <span className="bg-stone-200/70 text-stone-900 px-2 py-0.5 rounded-md">
+                                {sub.studentName || 'Your Child'} ({sub.studentClass || sub.classGrade})
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="text-[11px] text-stone-500 flex flex-wrap items-center gap-2 pt-0.5">
                             <span className="inline-flex items-center gap-1 font-medium text-stone-600">
                               <Clock className="w-3 h-3 text-amber-600" />
                               {subMeta.durationShort}
@@ -794,17 +899,53 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                         </div>
                       </div>
 
-                      {/* View & Practice Action Button */}
+                      {/* Dynamic Status Badges */}
+                      <div className="flex items-center gap-2 pt-1 border-t border-stone-200/60">
+                        {isCompleted ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            Completed • {sub.scoreObtained ?? 0}/{sub.totalMarks || 80} ({sub.accuracyPercentage ?? 0}%)
+                          </span>
+                        ) : isInProgress ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-blue-100 text-blue-800 border border-blue-300 animate-pulse">
+                            <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                            Exam In Progress
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                            <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            Assigned — Not Started
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Actions: View Question Paper for Parent vs Start Exam for Student */}
                       <div className="pt-1 border-t border-stone-200/60">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenViewer(sub)}
-                          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-stone-950 font-black text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-xs"
-                        >
-                          <PenTool className="w-4 h-4 text-stone-900" />
-                          <span>Take Model Exam & Auto-Grade</span>
-                          <ExternalLink className="w-3.5 h-3.5 text-stone-900/80 ml-0.5" />
-                        </button>
+                        {isParent ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenViewer(sub)}
+                            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-black text-xs flex items-center justify-center gap-2 transition-all shadow-xs active:scale-[0.98] cursor-pointer"
+                          >
+                            <Eye className="w-4 h-4 text-stone-950" />
+                            <span>
+                              {isCompleted
+                                ? "View Child's Submission & Scorecard"
+                                : "View Model Question Paper"}
+                            </span>
+                            <ExternalLink className="w-3.5 h-3.5 text-stone-950/80 ml-0.5" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenViewer(sub)}
+                            className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-stone-950 font-black text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-xs"
+                          >
+                            <PenTool className="w-4 h-4 text-stone-900" />
+                            <span>{isCompleted ? 'Review Solution & Scorecard' : 'Start 80-Mark Model Exam'}</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-stone-900/80 ml-0.5" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -868,11 +1009,10 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               <button
                 type="button"
                 onClick={() => setPaymentMethodTab('upi')}
-                className={`py-3 px-2 flex items-center justify-center gap-1.5 transition-colors border-b-2 ${
-                  paymentMethodTab === 'upi'
+                className={`py-3 px-2 flex items-center justify-center gap-1.5 transition-colors border-b-2 ${paymentMethodTab === 'upi'
                     ? 'border-blue-600 text-blue-700 bg-white'
                     : 'border-transparent text-stone-500 hover:text-stone-800'
-                }`}
+                  }`}
               >
                 <Smartphone className="w-3.5 h-3.5" />
                 <span>UPI / QR</span>
@@ -880,11 +1020,10 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               <button
                 type="button"
                 onClick={() => setPaymentMethodTab('card')}
-                className={`py-3 px-2 flex items-center justify-center gap-1.5 transition-colors border-b-2 ${
-                  paymentMethodTab === 'card'
+                className={`py-3 px-2 flex items-center justify-center gap-1.5 transition-colors border-b-2 ${paymentMethodTab === 'card'
                     ? 'border-blue-600 text-blue-700 bg-white'
                     : 'border-transparent text-stone-500 hover:text-stone-800'
-                }`}
+                  }`}
               >
                 <CreditCard className="w-3.5 h-3.5" />
                 <span>Cards</span>
@@ -892,11 +1031,10 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               <button
                 type="button"
                 onClick={() => setPaymentMethodTab('netbanking')}
-                className={`py-3 px-2 flex items-center justify-center gap-1.5 transition-colors border-b-2 ${
-                  paymentMethodTab === 'netbanking'
+                className={`py-3 px-2 flex items-center justify-center gap-1.5 transition-colors border-b-2 ${paymentMethodTab === 'netbanking'
                     ? 'border-blue-600 text-blue-700 bg-white'
                     : 'border-transparent text-stone-500 hover:text-stone-800'
-                }`}
+                  }`}
               >
                 <Building2 className="w-3.5 h-3.5" />
                 <span>NetBanking</span>

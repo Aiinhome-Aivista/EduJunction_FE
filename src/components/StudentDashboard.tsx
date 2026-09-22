@@ -31,6 +31,8 @@ import {
   CalendarClock,
   Activity,
   X,
+  ExternalLink,
+  GraduationCap,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -234,6 +236,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   }, [studentExams, timeframe, defaultTotalMarks]);
 
   const [assignedExams, setAssignedExams] = useState<ScheduledExam[]>([]);
+  const [unlockedModelPapers, setUnlockedModelPapers] = useState<any[]>([]);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [activityLog, setActivityLog] = useState<StudentActivityLogResponse | null>(null);
   const [isLoadingActivity, setIsLoadingActivity] = useState(false);
@@ -256,9 +259,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
     let isMounted = true;
     (async () => {
       try {
-        const [examRes, logRes] = await Promise.allSettled([
+        const [examRes, logRes, subsRes] = await Promise.allSettled([
           ApiServices.getAssignedExams(),
-          ApiServices.getMyActivityLogs()
+          ApiServices.getMyActivityLogs(),
+          ApiServices.getMySubjectSubscriptions(activeChild?.id)
         ]);
         if (isMounted) {
           if (examRes.status === 'fulfilled' && examRes.value?.assignedExams) {
@@ -266,6 +270,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           }
           if (logRes.status === 'fulfilled' && logRes.value) {
             setActivityLog(logRes.value);
+          }
+          if (subsRes.status === 'fulfilled' && subsRes.value?.subscriptions) {
+            setUnlockedModelPapers(subsRes.value.subscriptions);
           }
         }
       } catch (e) {
@@ -335,6 +342,89 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           </div>
         );
       })()}
+
+      {/* ── UNLOCKED 2027 SPECIMEN MODEL PAPERS (80 MARKS) ─────────────────── */}
+      {unlockedModelPapers.length > 0 && (
+        <div className="bg-gradient-to-r from-stone-950 via-stone-900 to-stone-950 border-2 border-amber-400/50 rounded-3xl p-5 sm:p-6 text-white shadow-xl relative overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3.5 border-b border-stone-800/80">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-amber-400/20 border border-amber-400/40 backdrop-blur-md flex items-center justify-center text-2xl shrink-0 shadow-xs">
+                📜
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-base sm:text-lg font-black text-amber-300 tracking-tight">
+                    Unlocked 2027 Specimen Model Papers
+                  </h2>
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black border border-amber-400/30 uppercase tracking-wider">
+                    {unlockedModelPapers.length} {unlockedModelPapers.length === 1 ? 'Paper Set' : 'Paper Sets'} Active
+                  </span>
+                </div>
+                <p className="text-xs text-stone-400 font-medium mt-0.5">
+                  Full 3-Hour (80 Marks) Board Exam Papers unlocked by your parent.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {unlockedModelPapers.map((paper: any) => {
+              const isCompleted = paper.examStatus === 'COMPLETED' || (paper.scoreObtained !== null && paper.scoreObtained !== undefined);
+              const rawSet = paper.modelTestId ? paper.modelTestId.split('_SET_')[1] : null;
+              const setLabel = rawSet ? `Set ${rawSet}` : 'Set 1';
+
+              return (
+                <div
+                  key={paper.id}
+                  className="bg-stone-900/90 border border-stone-800 hover:border-amber-400/70 rounded-2xl p-4 transition-all duration-200 flex flex-col justify-between group shadow-sm hover:shadow-md hover:bg-stone-900"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
+                      <span className="text-[11px] font-black bg-amber-400/20 text-amber-300 px-2.5 py-0.5 rounded-lg border border-amber-400/30">
+                        {setLabel}
+                      </span>
+                      {isCompleted ? (
+                        <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                          ✓ Completed ({paper.scoreObtained}/{paper.totalMarks || 80})
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
+                          ⏳ Assigned — Not Started
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-sm sm:text-base font-black text-white group-hover:text-amber-300 transition-colors">
+                      {paper.board} {paper.classGrade} — {paper.subject}
+                    </h3>
+                    <div className="flex items-center gap-2 text-[11px] text-stone-400 font-medium mt-1 flex-wrap">
+                      <span>⏱️ 3 Hours (180 Mins)</span>
+                      <span>•</span>
+                      <span>🎯 {paper.totalMarks || 80} Marks</span>
+                      <span>•</span>
+                      <span>2027 Specimen</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-stone-800">
+                    <a
+                      href={`/model-exam/${paper.id}`}
+                      className={`w-full py-2.5 px-3.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        isCompleted
+                          ? 'bg-stone-800 hover:bg-stone-700 text-stone-200 hover:text-white border border-stone-700'
+                          : 'bg-amber-400 hover:bg-amber-300 text-stone-950 font-black shadow-md shadow-amber-500/20 hover:scale-[1.02] active:scale-95'
+                      }`}
+                    >
+                      <span>{isCompleted ? '📊 Review Solutions & Score' : '✍️ Start Model Exam'}</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── 4 TOP METRIC CARDS (COMPACT PARENT-DASHBOARD MATCHING SIZE) ───── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -862,6 +952,102 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ── 🌟 MY 2027 BOARD MODEL QUESTION PAPERS SECTION ────────────────── */}
+      {unlockedModelPapers.length > 0 && (
+        <div className="rounded-3xl border border-amber-200/80 bg-gradient-to-br from-amber-50/40 via-white to-stone-50 p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-700">
+                <GraduationCap className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-black text-stone-900 text-base flex items-center gap-2">
+                  <span>🌟 My 2027 Board Specimen Model Papers</span>
+                </h3>
+                <p className="text-xs text-stone-500 font-medium">
+                  80-Mark full-length authentic board specimen papers unlocked for your account
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+              <BookOpen className="w-3.5 h-3.5 text-amber-700" />
+              {unlockedModelPapers.length} {unlockedModelPapers.length === 1 ? 'Paper Available' : 'Papers Available'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+            {unlockedModelPapers.map((sub) => {
+              const setLabel = sub.modelTestId?.includes('SET_')
+                ? `Set ${sub.modelTestId.split('SET_')[1]}`
+                : 'Set 1';
+              const isCompleted = !!sub.submitted_at || sub.score_obtained !== null && sub.score_obtained !== undefined;
+              const isInProgress = sub.status === 'in_progress';
+
+              return (
+                <div
+                  key={sub.id}
+                  className="p-4 rounded-2xl bg-white border border-stone-200/80 hover:border-amber-400 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between gap-3 group"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full bg-stone-900 text-amber-400 text-[10px] font-black uppercase tracking-wider">
+                        {sub.board || 'CBSE'} &bull; {setLabel}
+                      </span>
+                      {sub.assignedByParentId && (
+                        <span className="text-[10px] font-bold text-stone-600 bg-stone-100 px-2 py-0.5 rounded-md">
+                          👨‍👦 Assigned by Parent
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 className="font-black text-stone-900 text-sm group-hover:text-amber-900 transition-colors">
+                        {sub.subject} ({sub.classGrade || 'Class 10'})
+                      </h4>
+                      <p className="text-[11px] text-stone-500 font-medium mt-0.5">
+                        80 Marks • 3 Hours • Authentic 2027 Pattern
+                      </p>
+                    </div>
+
+                    {/* Status Pill */}
+                    <div>
+                      {isCompleted ? (
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>Score: {sub.score_obtained}/{sub.total_marks || 80} ({sub.accuracy_percentage || 0}%)</span>
+                        </div>
+                      ) : isInProgress ? (
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 text-amber-800 border border-amber-300 text-xs font-bold">
+                          <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span>✍️ In Progress</span>
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-stone-100 text-stone-700 border border-stone-200 text-xs font-bold">
+                          <span>⏳ Ready to Attempt</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <button
+                    onClick={() => window.open(`/model-exam/${sub.id}`, '_blank')}
+                    className={`w-full py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-xs ${
+                      isCompleted
+                        ? 'bg-stone-900 hover:bg-stone-800 text-amber-400'
+                        : 'bg-amber-400 hover:bg-amber-300 text-stone-950 shadow-amber-400/20'
+                    }`}
+                  >
+                    <span>{isCompleted ? 'Review Scorecard & Solutions' : isInProgress ? 'Resume 80-Mark Exam' : '🚀 Start 80-Mark Model Exam'}</span>
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── RECENT CHALLENGES SECTION ────────────────────────────────────────── */}
       <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xs space-y-4">
