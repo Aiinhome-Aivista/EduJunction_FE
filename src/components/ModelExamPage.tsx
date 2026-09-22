@@ -135,6 +135,8 @@ export const ModelExamPage: React.FC = () => {
   const [activeCanvasKey, setActiveCanvasKey] = useState<string | null>(null);
   const [isTimeUpModalOpen, setIsTimeUpModalOpen] = useState<boolean>(false);
   const [drawnDiagrams, setDrawnDiagrams] = useState<Record<string, string>>({});
+  const [unlockToast, setUnlockToast] = useState<string | null>(null);
+  const prevUnlockedIndicesRef = React.useRef<Set<number>>(new Set([0]));
 
   // Helper to focus first unanswered question when user chooses to 'Go Back'
   const handleGoBackToFirstUnanswered = () => {
@@ -344,12 +346,72 @@ export const ModelExamPage: React.FC = () => {
     }
   };
 
+  const CHOICE_TARGETS = useMemo(() => [null, 5, 6, 4, 3], []);
+
   const sectionsToRender = useMemo(() => {
+    let baseSections: SectionItem[] = [];
     if (activeMode === 'RESULT' && evaluationResult) {
-      return evaluationResult.sectionBreakdown || [];
+      baseSections = evaluationResult.sectionBreakdown || [];
+    } else {
+      baseSections = paperData?.sections || [];
     }
-    return paperData?.sections || [];
-  }, [activeMode, paperData, evaluationResult]);
+
+    if (!baseSections || baseSections.length === 0) return [];
+
+    return baseSections.map((sec, sIdx) => {
+      const target = CHOICE_TARGETS[sIdx];
+      if (!target) return sec;
+
+      const minQuestionsRequired = target + 2; // Always ensure 2 extra choice questions (e.g. 5 of 7, 6 of 8, 4 of 6, 3 of 5)
+      if (sec.questions && sec.questions.length >= minQuestionsRequired) {
+        return sec;
+      }
+
+      // Synthesize 2 extra choice questions if backend returns fewer
+      const currentQs = sec.questions ? [...sec.questions] : [];
+      const marksPerQ = sIdx === 1 ? 2 : sIdx === 2 ? 3 : sIdx === 3 ? 5 : 4;
+      const subj = paperData?.subject || 'Subject';
+
+      while (currentQs.length < minQuestionsRequired) {
+        const qNum = currentQs.length + 1;
+        if (sIdx === 1 || sIdx === 2) {
+          currentQs.push({
+            key: `s${sIdx}_q${currentQs.length}`,
+            num: qNum,
+            question: `<b>(Optional Choice Question ${qNum})</b> Explain the fundamental working mechanism of ${subj} equilibrium under test conditions and derive its analytical equation.`,
+            marks: marksPerQ,
+            correct_answer: `Fundamental law states that in any ${subj} system under steady state, the rate of change is directly proportional to applied gradient.`,
+            explanation: `Marking Rubric [${marksPerQ} Marks]: Full marks for stating core principle and analytical equation.`
+          });
+        } else if (sIdx === 3) {
+          currentQs.push({
+            key: `s${sIdx}_q${currentQs.length}`,
+            num: qNum,
+            question: `<b>(Optional Choice Question ${qNum})</b> (a) Derive the generalized governing equation for ${subj} oscillations from first principles.<br/>(b) Solve for steady-state resonant value when external load is increased. [3 + 2 = 5 Marks]`,
+            marks: 5,
+            correct_answer: `Part (a): Analytical derivation with SI units. Part (b): Numerical solution at resonant threshold.`,
+            explanation: `Marking Rubric [5 Marks]: 3 Marks for analytical derivation; 2 Marks for numerical justification.`
+          });
+        } else {
+          currentQs.push({
+            key: `s${sIdx}_q${currentQs.length}`,
+            num: qNum,
+            case_title: `Case Study ${qNum} (Optional Choice) — Investigation in ${subj}`,
+            case_text: `A dedicated research facility analyzed the telemetry data of a standard ${subj} test apparatus. Dynamic measurements recorded steady linear correlation before boundary transition.`,
+            question: `(i) Identify independent and dependent variables. [1 Mark]<br/>(ii) State physical significance of transition threshold. [1 Mark]<br/>(iii) Calculate expected variance when load is increased by 20%. [2 Marks]`,
+            marks: 4,
+            correct_answer: `(i) Independent: Input parameters; Dependent: Output telemetry. (ii) Transition threshold marks linearity limit. (iii) Variance calculation = 4.0%.`,
+            explanation: `Marking Rubric [4 Marks]: (i) 1 Mark; (ii) 1 Mark; (iii) 2 Marks.`
+          });
+        }
+      }
+
+      return {
+        ...sec,
+        questions: currentQs
+      };
+    });
+  }, [activeMode, paperData, evaluationResult, CHOICE_TARGETS]);
 
   const filteredSections = useMemo(() => {
     if (!sectionsToRender) return [];
@@ -381,6 +443,65 @@ export const ModelExamPage: React.FC = () => {
     const diagKeys = Object.keys(drawnDiagrams).filter((val) => !!drawnDiagrams[val]);
     return new Set([...textKeys, ...diagKeys]).size;
   }, [answers, drawnDiagrams]);
+
+  // Section progressive unlock thresholds: Sec A needs 5 attempts -> unlocks Sec B -> Sec B needs 2 -> unlocks Sec C -> Sec C needs 2 -> unlocks Sec D -> Sec D needs 1 -> unlocks Sec E
+  const UNLOCK_THRESHOLDS = useMemo(() => [5, 2, 2, 1, 1], []);
+
+  const sectionAttemptCounts = useMemo(() => {
+    if (!sectionsToRender) return [];
+    return sectionsToRender.map((sec, sIdx) => {
+      let count = 0;
+      sec.questions.forEach((q, qIdx) => {
+        const qKey = q.key || `s${sIdx}_q${qIdx}`;
+        if ((answers[qKey] && answers[qKey].trim().length > 0) || !!drawnDiagrams[qKey]) {
+          count++;
+        }
+      });
+      return count;
+    });
+  }, [sectionsToRender, answers, drawnDiagrams]);
+
+  const unlockedSectionIndices = useMemo(() => {
+    const set = new Set<number>();
+    if (activeMode === 'RESULT') {
+      if (sectionsToRender) {
+        sectionsToRender.forEach((_, i) => set.add(i));
+      }
+      return set;
+    }
+
+    // Section A (index 0) is always unlocked by default
+    set.add(0);
+
+    if (!sectionsToRender || sectionsToRender.length === 0) return set;
+
+    for (let i = 0; i < sectionsToRender.length - 1; i++) {
+      if (!set.has(i)) break;
+      const req = UNLOCK_THRESHOLDS[i] !== undefined ? UNLOCK_THRESHOLDS[i] : 1;
+      if ((sectionAttemptCounts[i] || 0) >= req) {
+        set.add(i + 1);
+      } else {
+        break;
+      }
+    }
+
+    return set;
+  }, [activeMode, sectionsToRender, sectionAttemptCounts, UNLOCK_THRESHOLDS]);
+
+  // Toast notification when a section unlocks
+  useEffect(() => {
+    if (activeMode !== 'TEST' || !sectionsToRender) return;
+
+    unlockedSectionIndices.forEach((sIdx) => {
+      if (!prevUnlockedIndicesRef.current.has(sIdx) && sIdx > 0) {
+        const secName = sectionsToRender[sIdx]?.name || `Section ${sIdx + 1}`;
+        setUnlockToast(`🎉 ${secName} is now unlocked! You can now answer its questions.`);
+        setTimeout(() => setUnlockToast(null), 5000);
+      }
+    });
+
+    prevUnlockedIndicesRef.current = new Set(unlockedSectionIndices);
+  }, [unlockedSectionIndices, activeMode, sectionsToRender]);
 
   const formatTimer = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
@@ -483,9 +604,9 @@ export const ModelExamPage: React.FC = () => {
             </div>
 
             {/* Standard Board Rubric */}
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/25">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span className="text-emerald-300 text-[11px] font-bold">Board Rubric</span>
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400/15 border border-amber-400/30">
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="text-amber-300 text-[11px] font-bold">Board Rubric</span>
             </div>
 
             {/* Close / Return Button */}
@@ -524,7 +645,7 @@ export const ModelExamPage: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Evaluation Completed</span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-black text-xs border border-emerald-500/30">
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-black text-xs border border-amber-400/40">
                     {evaluationResult.grade}
                   </span>
                 </div>
@@ -597,19 +718,34 @@ export const ModelExamPage: React.FC = () => {
             {sectionsToRender.map((sec, idx) => {
               const secName = sec.name || `Section ${idx + 1}`;
               const isSelected = selectedSection === secName;
+              const isUnlocked = unlockedSectionIndices.has(idx);
+              const count = sectionAttemptCounts[idx] || 0;
+              const prevSecName = idx > 0 ? (sectionsToRender[idx - 1]?.name || `Section ${idx}`) : '';
+              const minReq = idx > 0 ? (UNLOCK_THRESHOLDS[idx - 1] || 1) : 0;
+
               return (
                 <button
                   key={sec.id || idx}
                   type="button"
-                  onClick={() => setSelectedSection(secName)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
-                    isSelected
-                      ? 'bg-stone-900 text-amber-400 shadow-xs font-black'
-                      : 'bg-stone-50 text-stone-600 hover:bg-stone-200/70 border border-stone-200'
+                  disabled={!isUnlocked}
+                  onClick={() => isUnlocked && setSelectedSection(secName)}
+                  title={
+                    !isUnlocked
+                      ? `Attempt at least ${minReq} question${minReq > 1 ? 's' : ''} in ${prevSecName} to enable`
+                      : undefined
+                  }
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                    !isUnlocked
+                      ? 'opacity-40 cursor-not-allowed bg-stone-100 text-stone-400 border border-stone-200'
+                      : isSelected
+                      ? 'bg-stone-900 text-amber-400 shadow-xs font-black cursor-pointer'
+                      : 'bg-stone-50 text-stone-600 hover:bg-stone-200/70 border border-stone-200 cursor-pointer'
                   }`}
                 >
                   <span>{secName}</span>
-                  <span className="text-[10px] opacity-70">({sec.questions.length})</span>
+                  <span className="text-[10px] opacity-75">
+                    ({count}/{sec.questions.length})
+                  </span>
                 </button>
               );
             })}
@@ -662,18 +798,58 @@ export const ModelExamPage: React.FC = () => {
         ) : (
           filteredSections.map((section, sIdx) => {
             const secTitle = section.title || section.name;
+            const originalIdx = sectionsToRender.findIndex((s) => s.name === section.name || s.id === section.id);
+            const realIdx = originalIdx >= 0 ? originalIdx : sIdx;
+            const isUnlocked = unlockedSectionIndices.has(realIdx);
+
+            const prevSecName = realIdx > 0 ? (sectionsToRender[realIdx - 1]?.name || `Section ${realIdx}`) : '';
+            const minReq = realIdx > 0 ? (UNLOCK_THRESHOLDS[realIdx - 1] || 1) : 0;
+            const prevAttempts = realIdx > 0 ? (sectionAttemptCounts[realIdx - 1] || 0) : 0;
+            const choiceTarget = CHOICE_TARGETS[realIdx];
+
+            if (!isUnlocked) {
+              return (
+                <div key={section.id || sIdx} className="bg-white border-2 border-dashed border-stone-200 rounded-3xl p-8 text-center space-y-3 shadow-xs animate-in fade-in duration-200">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center mx-auto">
+                    <Layers className="w-6 h-6 text-amber-700" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-stone-900">{secTitle} Disabled</h3>
+                    <p className="text-xs text-stone-600 mt-1 max-w-md mx-auto leading-relaxed">
+                      Answer at least <strong className="text-amber-700 font-black">{minReq} question{minReq > 1 ? 's' : ''}</strong> in <span className="font-bold text-stone-900">{prevSecName}</span> to enable and view questions in this section.
+                    </p>
+                  </div>
+                  <div className="max-w-xs mx-auto bg-stone-100 rounded-full h-2.5 overflow-hidden border border-stone-200">
+                    <div
+                      className="bg-amber-400 h-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, (prevAttempts / minReq) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] font-bold text-amber-800">
+                    Current Progress: {prevAttempts} / {minReq} Attempted in {prevSecName}
+                  </p>
+                </div>
+              );
+            }
 
             return (
               <div key={section.id || sIdx} className="space-y-4">
                 {/* Section Title Banner */}
-                <div className="bg-white border border-stone-200 rounded-3xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="bg-white border border-stone-200 rounded-3xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-base font-black text-stone-900 tracking-tight flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                      {secTitle}
-                    </h3>
-                    <p className="text-xs text-stone-500 mt-0.5">
-                      {section.questions.length} Questions • Provide step-by-step derivations and clear reasoning
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <h3 className="text-base font-black text-stone-900 tracking-tight flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        {secTitle}
+                      </h3>
+                      {choiceTarget && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-stone-950 font-black text-[11px] border border-amber-400/50">
+                          Choice: Attempt any {choiceTarget} of {section.questions.length} questions (2 Extra Options)
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-stone-500 mt-1">
+                      {section.questions.length} Total Questions (2 Extra Options Provided) • Attempted: {sectionAttemptCounts[realIdx] || 0} / {choiceTarget || section.questions.length} target
                     </p>
                   </div>
 
@@ -844,12 +1020,74 @@ export const ModelExamPage: React.FC = () => {
                                 )}
                               </div>
                             ) : (
+<<<<<<< HEAD
                               /* ── Student Interactive Test Mode ── */
                               <div>
                                 {isMcq && q.options && q.options.length > 0 ? (
                                   <div className="space-y-2">
                                     <div className="text-xs font-bold text-stone-500 uppercase tracking-wider">
                                       Select your answer:
+=======
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-xs text-stone-500 font-bold">
+                                  <span className="flex items-center gap-1.5">
+                                    <PenTool className="w-3.5 h-3.5 text-amber-500" />
+                                    Type your complete step-by-step answer:
+                                  </span>
+                                  <span>{currentStudentAns.length} characters</span>
+                                </div>
+                                <textarea
+                                  value={currentStudentAns}
+                                  onChange={(e) => handleTextAnswerChange(qKey, e.target.value)}
+                                  placeholder="Write your answer here..."
+                                  rows={4}
+                                  className="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all resize-y shadow-2xs"
+                                />
+
+                                {/* Math Quick Toolbar & Diagram Canvas Scratchpad */}
+                                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                                    <span className="text-stone-400 font-bold mr-1">Quick Symbols:</span>
+                                    {['√', 'π', 'θ', 'Δ', '∫', 'Σ', '²', '±', '≠', '≈', '÷', '×'].map((sym) => (
+                                      <button
+                                        key={sym}
+                                        type="button"
+                                        onClick={() => handleTextAnswerChange(qKey, (currentStudentAns || '') + sym)}
+                                        className="px-2 py-0.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-mono font-bold border border-stone-200 cursor-pointer text-xs"
+                                      >
+                                        {sym}
+                                      </button>
+                                    ))}
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => setActiveCanvasKey(qKey)}
+                                    className="px-3 py-1 rounded-xl bg-stone-900 hover:bg-stone-700 text-amber-300 font-bold text-xs border border-stone-700 flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                                  >
+                                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                                    <span>Draw Diagram / Sketch 🎨</span>
+                                  </button>
+                                </div>
+
+                                {/* Display Attached Drawing Preview if present */}
+                                {drawnDiagrams[qKey] && (
+                                  <div className="p-3.5 bg-stone-50 rounded-2xl border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-2 shadow-2xs">
+                                    <div className="flex items-center gap-3">
+                                      <img
+                                        src={drawnDiagrams[qKey]}
+                                        alt="Attached Diagram"
+                                        className="w-24 h-24 object-contain rounded-xl border border-amber-300 bg-white shadow-xs"
+                                      />
+                                      <div>
+                                        <span className="text-xs font-bold text-stone-950 block">
+                                          🎨 Attached Hand-Drawn Diagram / Sketch
+                                        </span>
+                                        <span className="text-[11px] text-stone-600">
+                                          Your figure will be evaluated with your step-by-step text answer.
+                                        </span>
+                                      </div>
+>>>>>>> dfc08f336200f0ff8bd1616cc10ef50a3b88ed82
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                       {q.options.map((opt, optIdx) => {
@@ -990,13 +1228,13 @@ export const ModelExamPage: React.FC = () => {
                                     <div className="space-y-2">
                                       <p>{evalItem.studentAnswer.split('[🎨 Diagram Drawing:')[0].trim() || <em className="text-stone-400 font-normal">No text typed</em>}</p>
                                       <div className="p-3 bg-white rounded-2xl border border-stone-200 inline-block">
-                                        <span className="text-[10px] font-bold text-purple-800 uppercase block mb-1">
+                                        <span className="text-[10px] font-bold text-stone-900 uppercase block mb-1">
                                           🎨 Submitted Student Sketch / Diagram:
                                         </span>
                                         <img
                                           src={evalItem.studentAnswer.split('[🎨 Diagram Drawing: ')[1]?.split(']')[0]}
                                           alt="Submitted Diagram"
-                                          className="max-h-52 rounded-xl border border-purple-200"
+                                          className="max-h-52 rounded-xl border border-amber-300"
                                         />
                                       </div>
                                     </div>
@@ -1171,15 +1409,15 @@ export const ModelExamPage: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                <div className="p-4 rounded-2xl bg-emerald-50/80 border-2 border-emerald-300 text-left space-y-2">
-                  <div className="flex items-center gap-2 text-emerald-950 font-black text-xs">
-                    <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-left space-y-2">
+                  <div className="flex items-center gap-2 text-amber-950 font-black text-xs">
+                    <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
                     <span>Great Job Completing Your Exam!</span>
                   </div>
                   <p className="text-xs text-stone-800 font-semibold leading-relaxed">
                     Great work! Ready to evaluate your result? Click below to complete your submission and generate your detailed performance scorecard &amp; AI analysis.
                   </p>
-                  <div className="pt-1 flex items-center justify-between text-[11px] text-emerald-900 font-bold border-t border-emerald-200/70">
+                  <div className="pt-1 flex items-center justify-between text-[11px] text-amber-950 font-bold border-t border-amber-200/70">
                     <span>Attempted: {answeredCount}/{totalQuestions} Questions</span>
                     <span>Time Left: {formatTimer(remainingSeconds)}</span>
                   </div>
@@ -1196,7 +1434,7 @@ export const ModelExamPage: React.FC = () => {
                       className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <RotateCcw className="w-4 h-4 text-stone-950" />
-                      <span>Go Back (Last Try)</span>
+                      <span>Go Back </span>
                     </button>
                     <button
                       type="button"
@@ -1225,7 +1463,7 @@ export const ModelExamPage: React.FC = () => {
                       type="button"
                       onClick={handleSubmitTest}
                       disabled={isSubmitting}
-                      className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                     >
                       {isSubmitting ? (
                         <Loader2 className="w-4 h-4 animate-spin text-stone-950" />
@@ -1254,6 +1492,14 @@ export const ModelExamPage: React.FC = () => {
             }));
           }}
         />
+      )}
+
+      {/* Section Unlock Real-time Toast Notification */}
+      {unlockToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-stone-900 text-amber-400 border border-amber-400/50 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300">
+          <Sparkles className="w-5 h-5 text-amber-400 shrink-0 animate-bounce" />
+          <span className="text-xs font-black tracking-wide">{unlockToast}</span>
+        </div>
       )}
     </div>
   );
@@ -1357,7 +1603,7 @@ const DiagramCanvasModal: React.FC<DiagramCanvasModalProps> = ({ isOpen, onClose
       <div className="bg-white rounded-3xl max-w-2xl w-full p-5 shadow-2xl border border-stone-200 space-y-4 animate-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between border-b border-stone-200 pb-3">
           <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 font-bold flex items-center justify-center">🎨</span>
+            <span className="w-8 h-8 rounded-xl bg-stone-900 text-amber-400 font-bold flex items-center justify-center">🎨</span>
             <div>
               <h3 className="text-sm sm:text-base font-black text-stone-900">Interactive Canvas — Draw Diagram / Sketch</h3>
               <p className="text-[11px] text-stone-500">Draw geometry, ray diagrams, circuits, graphs, or calculations</p>
@@ -1407,7 +1653,7 @@ const DiagramCanvasModal: React.FC<DiagramCanvasModalProps> = ({ isOpen, onClose
               type="button"
               onClick={() => setIsEraser(!isEraser)}
               className={`px-3 py-1 rounded-xl font-bold text-xs cursor-pointer border ${
-                isEraser ? 'bg-rose-500 text-white border-rose-600' : 'bg-white text-stone-700 border-stone-200'
+                isEraser ? 'bg-stone-900 text-amber-400 border-amber-500 font-black' : 'bg-white text-stone-700 border-stone-200'
               }`}
             >
               🧹 Eraser
@@ -1423,7 +1669,7 @@ const DiagramCanvasModal: React.FC<DiagramCanvasModalProps> = ({ isOpen, onClose
         </div>
 
         {/* Canvas Element */}
-        <div className="border-2 border-dashed border-purple-200 rounded-2xl overflow-hidden bg-white shadow-inner flex justify-center touch-none">
+        <div className="border-2 border-dashed border-amber-300 rounded-2xl overflow-hidden bg-white shadow-inner flex justify-center touch-none">
           <canvas
             ref={canvasRef}
             width={600}
@@ -1451,7 +1697,7 @@ const DiagramCanvasModal: React.FC<DiagramCanvasModalProps> = ({ isOpen, onClose
           <button
             type="button"
             onClick={handleSave}
-            className="py-2.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-md flex items-center gap-2 cursor-pointer"
+            className="py-2.5 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs shadow-md flex items-center gap-2 cursor-pointer"
           >
             <span>Attach Drawn Diagram to Answer 🎨</span>
           </button>
