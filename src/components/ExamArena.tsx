@@ -400,338 +400,548 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
     const currentQ = activeExam.questions[currentQuestionIdx];
     const totalQuestions = activeExam.questions.length;
     const answeredCount = Object.keys(answers).filter((k) => answers[k]?.trim() !== '').length;
+    const remainingCount = totalQuestions - answeredCount;
+    const progressPct = Math.round((answeredCount / totalQuestions) * 100);
+    const isLowTime = timeRemainingSeconds < 180;
+    const mins = Math.floor(timeRemainingSeconds / 60);
+    const secs = timeRemainingSeconds % 60;
 
     return (
-      <div className="max-w-5xl mx-auto px-4 py-4">
-        {/* Top Sticky Status Bar */}
-        <div className="bg-white rounded-xl border border-stone-200 shadow-sm p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-stone-900 text-sm sm:text-base">{activeExam.title}</span>
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-50 text-yellow-700 border border-yellow-300">
-                {activeExam.totalMarks || 15} Marks Total
-              </span>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30">
+
+        {/* ═══════════════ TOP HEADER BAR ═══════════════ */}
+        <div className={`sticky top-0 z-30 border-b shadow-sm transition-colors duration-500 ${isLowTime ? 'bg-rose-950 border-rose-800' : 'bg-stone-900 border-stone-700'}`}>
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+
+            {/* Left — Exam Title & Candidate */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-white font-bold text-sm sm:text-base truncate">{activeExam.title}</span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-yellow-400 text-stone-900 shrink-0">
+                  {activeExam.totalMarks || 15} Marks
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/10 text-white/80 border border-white/20 shrink-0">
+                  {activeExam.board} • {activeExam.classGrade}
+                </span>
+              </div>
+              <p className="text-white/50 text-xs mt-0.5 truncate">
+                Candidate: <span className="text-white/80 font-medium">{activeChild?.name}</span>
+              </p>
             </div>
-            <p className="text-xs text-stone-500">
-              Candidate: <span className="font-medium text-stone-700">{activeChild?.name}</span> ({activeExam.board} • {activeExam.classGrade})
-            </p>
+
+            {/* Centre — Stats Pills */}
+            <div className="hidden sm:flex items-center gap-2 shrink-0">
+              {/* Answered */}
+              <div className="flex flex-col items-center px-4 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30">
+                <span className="text-emerald-300 font-black text-lg leading-none">{answeredCount}</span>
+                <span className="text-emerald-400/80 text-[10px] font-semibold uppercase tracking-wider">Answered</span>
+              </div>
+              {/* Remaining */}
+              <div className="flex flex-col items-center px-4 py-1.5 rounded-xl bg-white/10 border border-white/10">
+                <span className="text-white/80 font-black text-lg leading-none">{remainingCount}</span>
+                <span className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">Remaining</span>
+              </div>
+              {/* Total */}
+              <div className="flex flex-col items-center px-4 py-1.5 rounded-xl bg-yellow-400/15 border border-yellow-400/30">
+                <span className="text-yellow-300 font-black text-lg leading-none">{totalQuestions}</span>
+                <span className="text-yellow-400/80 text-[10px] font-semibold uppercase tracking-wider">Total Qs</span>
+              </div>
+            </div>
+
+            {/* Right — Timer + Submit */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {/* Timer */}
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border font-mono font-black text-base sm:text-lg transition-all duration-300 ${
+                isLowTime
+                  ? 'bg-rose-500 border-rose-400 text-white animate-pulse shadow-lg shadow-rose-500/30'
+                  : timeRemainingSeconds < 600
+                  ? 'bg-amber-400/20 border-amber-400/40 text-amber-300'
+                  : 'bg-white/10 border-white/20 text-white'
+              }`}>
+                <Clock className={`w-4 h-4 ${isLowTime ? 'text-white' : 'text-white/70'}`} />
+                <span>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                id="finish-exam-btn"
+                onClick={() => setShowConfirmSubmit(true)}
+                className="px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-stone-900 text-xs sm:text-sm font-bold shadow-lg shadow-yellow-400/20 transition-all duration-150"
+              >
+                Submit
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Timer */}
-            <div className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-sm font-mono font-bold ${timeRemainingSeconds < 180
-              ? 'bg-rose-50 border-rose-200 text-rose-600 animate-pulse'
-              : 'bg-stone-50 border-stone-200 text-stone-700'
-              }`}>
-              <Clock className="w-4 h-4" />
-              <span>{formatTime(timeRemainingSeconds)}</span>
-            </div>
-
-            {/* Finish / Submit Button */}
-            <button
-              id="finish-exam-btn"
-              onClick={() => setShowConfirmSubmit(true)}
-              className="px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-xs sm:text-sm font-semibold shadow-xs transition-colors"
-            >
-              Submit Exam
-            </button>
+          {/* Progress Bar */}
+          <div className="h-1 bg-white/10">
+            <div
+              className="h-full bg-gradient-to-r from-yellow-400 to-emerald-400 transition-all duration-500"
+              style={{ width: `${progressPct}%` }}
+            />
           </div>
         </div>
 
-        {/* Main Grid: Question Content + Question Palette */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Question Card (Col 1-3) */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-xl border border-stone-200 shadow-sm p-4 sm:p-6">
-              {/* Question Header */}
-              <div className="flex flex-wrap items-center justify-between pb-3 border-b border-stone-100 mb-4 gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-stone-900 text-white">
-                    Question {currentQuestionIdx + 1}
-                  </span>
-                  <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider ${
-                    (currentQ.difficulty || adaptiveDifficulty) === 'hard'
-                      ? 'bg-rose-100 text-rose-800 border border-rose-200'
-                      : (currentQ.difficulty || adaptiveDifficulty) === 'medium'
-                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                      : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                  }`}>
-                    Level: {(currentQ.difficulty || adaptiveDifficulty).toUpperCase()}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-stone-100 text-stone-700 border border-stone-200 uppercase">
-                    {currentQ.type}
-                  </span>
-                  <span className="text-xs text-stone-400">•</span>
-                  <span className="text-xs text-stone-500 font-medium">Topic: {currentQ.topic}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold text-stone-700 bg-stone-100 px-2 py-1 rounded-md flex items-center gap-1 border border-stone-200">
-                    <Clock className="w-3.5 h-3.5 text-stone-500" />
-                    {timeSpentPerQuestion[currentQ.id] || 0}s
-                  </span>
-                  <span className="text-xs font-semibold text-stone-700 bg-stone-100 px-2 py-1 rounded-md">
-                    {currentQ.marks || 1} {(currentQ.marks || 1) > 1 ? 'Marks' : 'Mark'}
-                  </span>
-                  <button
-                    id="flag-question-btn"
-                    onClick={() => toggleFlagQuestion(currentQ.id)}
-                    className={`p-1.5 rounded-lg border text-xs flex items-center gap-1 transition-colors ${flaggedQuestions[currentQ.id]
-                      ? 'bg-amber-50 border-amber-300 text-amber-700'
-                      : 'border-stone-200 text-stone-400 hover:text-stone-600'
-                      }`}
-                    title="Flag for review"
-                  >
-                    <Flag className={`w-3.5 h-3.5 ${flaggedQuestions[currentQ.id] ? 'fill-amber-500 text-amber-500' : ''}`} />
-                  </button>
-                </div>
-              </div>
+        {/* ═══════════════ BODY ═══════════════ */}
+        <div className="max-w-6xl mx-auto px-4 py-5">
 
-              {/* Adaptive Feedback Banner */}
+          {/* Mobile Stats Row */}
+          <div className="sm:hidden flex items-center gap-2 mb-4">
+            <div className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <span className="text-emerald-700 font-bold text-sm">{answeredCount} Answered</span>
+            </div>
+            <div className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-stone-50 border border-stone-200">
+              <HelpCircle className="w-4 h-4 text-stone-400" />
+              <span className="text-stone-600 font-bold text-sm">{remainingCount} Remaining</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+
+            {/* ═══ LEFT — Question Card (3 cols) ═══ */}
+            <div className="lg:col-span-3 space-y-4">
+
+              {/* Adaptive Banner */}
               {adaptiveNotification && (
-                <div className={`mb-4 p-3 rounded-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-top-2 duration-300 ${
+                <div className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-semibold border shadow-sm animate-in slide-in-from-top-2 duration-300 ${
                   adaptiveNotification.type === 'up'
-                    ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
-                    : 'bg-amber-50 border border-amber-200 text-amber-800'
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    : 'bg-amber-50 border-amber-200 text-amber-800'
                 }`}>
                   <Sparkles className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>{adaptiveNotification.message}</span>
+                  <button onClick={() => setAdaptiveNotification(null)} className="ml-auto text-current opacity-40 hover:opacity-70">✕</button>
                 </div>
               )}
 
-              {/* Question Statement */}
-              <div className="text-stone-900 text-base sm:text-lg font-medium leading-relaxed mb-4 whitespace-pre-line">
-                {currentQ.questionText}
-              </div>
+              {/* Question Card */}
+              <div className="bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
 
-              {/* Response Inputs based on Type */}
-              <div className="space-y-3 pt-2">
-                {/* MCQ / Logical with Options */}
-                {(currentQ.type === 'mcq' || currentQ.type === 'logical') && currentQ.options && currentQ.options.length > 0 && (
-                  <div className="space-y-2.5">
-                    {currentQ.options.map((opt, oIdx) => {
-                      const letter = String.fromCharCode(65 + oIdx);
-                      const cleanText = opt.replace(/^(?:option\s+)?\(?[A-Da-d]\)?[\).\:\-]?\s*/i, '').trim();
-                      const isSelected = answers[currentQ.id]?.toUpperCase() === letter || answers[currentQ.id]?.trim().toLowerCase() === cleanText.toLowerCase() || answers[currentQ.id] === opt;
-                      return (
-                        <label
-                          key={oIdx}
-                          id={`question-${currentQuestionIdx}-opt-${oIdx}`}
-                          onClick={() => handleSelectAnswer(currentQ.id, letter)}
-                          className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${isSelected
-                            ? 'bg-yellow-50/80 border-yellow-400 ring-2 ring-yellow-200 text-yellow-950 font-medium'
-                            : 'bg-white border-stone-200 hover:bg-stone-50 hover:border-stone-300 text-stone-700'
+                {/* Card Top Bar */}
+                <div className="flex items-center justify-between px-5 py-3.5 bg-stone-50 border-b border-stone-100">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Q Number */}
+                    <span className="w-8 h-8 rounded-lg bg-stone-900 text-white text-xs font-black flex items-center justify-center">
+                      {currentQuestionIdx + 1}
+                    </span>
+                    <span className="text-xs text-stone-400 font-medium">of {totalQuestions}</span>
+
+                    {/* Difficulty Badge */}
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${
+                      (currentQ.difficulty || adaptiveDifficulty) === 'hard'
+                        ? 'bg-rose-50 text-rose-700 border-rose-200'
+                        : (currentQ.difficulty || adaptiveDifficulty) === 'medium'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    }`}>
+                      {(currentQ.difficulty || adaptiveDifficulty)}
+                    </span>
+
+                    {/* Type Badge */}
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 uppercase">
+                      {currentQ.type}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Time on Q */}
+                    <span className="text-xs font-mono text-stone-400 bg-stone-100 px-2 py-1 rounded-lg flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {timeSpentPerQuestion[currentQ.id] || 0}s
+                    </span>
+                    {/* Marks */}
+                    <span className="text-xs font-bold text-stone-700 bg-yellow-50 border border-yellow-200 px-2 py-1 rounded-lg">
+                      {currentQ.marks || 1} {(currentQ.marks || 1) > 1 ? 'Marks' : 'Mark'}
+                    </span>
+                    {/* Flag */}
+                    <button
+                      id="flag-question-btn"
+                      onClick={() => toggleFlagQuestion(currentQ.id)}
+                      title="Flag for review"
+                      className={`p-1.5 rounded-lg border transition-colors ${
+                        flaggedQuestions[currentQ.id]
+                          ? 'bg-amber-50 border-amber-300 text-amber-600'
+                          : 'border-stone-200 text-stone-300 hover:text-stone-500 hover:border-stone-300'
+                      }`}
+                    >
+                      <Flag className={`w-4 h-4 ${flaggedQuestions[currentQ.id] ? 'fill-amber-500 text-amber-500' : ''}`} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Topic Row */}
+                {currentQ.topic && (
+                  <div className="px-5 pt-3 pb-0">
+                    <span className="inline-flex items-center gap-1 text-[11px] text-stone-400 font-medium bg-stone-50 border border-stone-100 px-2.5 py-1 rounded-full">
+                      <BookOpen className="w-3 h-3" /> {currentQ.topic}
+                    </span>
+                  </div>
+                )}
+
+                {/* Question Text */}
+                <div className="px-5 pt-4 pb-3">
+                  <p className="text-stone-900 text-base sm:text-lg font-medium leading-relaxed whitespace-pre-line">
+                    {currentQ.questionText}
+                  </p>
+                </div>
+
+                {/* Divider */}
+                <div className="mx-5 border-t border-stone-100" />
+
+                {/* Answer Area */}
+                <div className="px-5 py-4 space-y-3">
+
+                  {/* MCQ */}
+                  {(currentQ.type === 'mcq' || currentQ.type === 'logical') && currentQ.options && currentQ.options.length > 0 && (
+                    <div className="space-y-2.5">
+                      {currentQ.options.map((opt, oIdx) => {
+                        const letter = String.fromCharCode(65 + oIdx);
+                        const cleanText = opt.replace(/^(?:option\s+)?\(?[A-Da-d]\)?[\).\:\-]?\s*/i, '').trim();
+                        const isSelected = answers[currentQ.id]?.toUpperCase() === letter
+                          || answers[currentQ.id]?.trim().toLowerCase() === cleanText.toLowerCase()
+                          || answers[currentQ.id] === opt;
+                        return (
+                          <label
+                            key={oIdx}
+                            id={`question-${currentQuestionIdx}-opt-${oIdx}`}
+                            onClick={() => handleSelectAnswer(currentQ.id, letter)}
+                            className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] ${
+                              isSelected
+                                ? 'bg-yellow-50 border-yellow-400 shadow-sm shadow-yellow-100'
+                                : 'bg-white border-stone-150 hover:border-stone-300 hover:bg-stone-50/50'
                             }`}
-                        >
-                          <div className={`w-5 h-5 rounded-full mt-0.5 border flex items-center justify-center shrink-0 text-xs font-bold transition-colors ${isSelected ? 'bg-yellow-400 border-yellow-400 text-white' : 'border-stone-300 bg-white text-stone-500'
+                          >
+                            <div className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-xs font-bold mt-0.5 transition-colors ${
+                              isSelected ? 'bg-yellow-400 text-stone-900 border-2 border-yellow-400' : 'border-2 border-stone-300 text-stone-400 bg-white'
                             }`}>
-                            {letter}
-                          </div>
-                          <span className="text-sm sm:text-base leading-snug">{cleanText || opt}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
+                              {letter}
+                            </div>
+                            <span className={`text-sm sm:text-base leading-snug ${isSelected ? 'text-stone-900 font-semibold' : 'text-stone-700'}`}>
+                              {cleanText || opt}
+                            </span>
+                            {isSelected && (
+                              <CheckCircle2 className="w-4 h-4 text-yellow-500 ml-auto shrink-0 mt-0.5" />
+                            )}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
 
-                {/* SAQ (Short Answer / Conceptual Question) */}
-                {currentQ.type === 'saq' && (
-                  <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-stone-600">
-                      Write your short answer / step explanation (2 Marks):
-                    </label>
-                    <textarea
-                      id="saq-answer-input"
-                      rows={4}
-                      value={answers[currentQ.id] || ''}
-                      onChange={(e) => handleSelectAnswer(currentQ.id, e.target.value)}
-                      placeholder="Type your explanation, formula, or step-by-step solution here..."
-                      className="w-full px-4 py-3 rounded-xl border border-stone-300 text-stone-900 text-sm sm:text-base focus:ring-2 focus:ring-yellow-500 focus:outline-hidden"
-                    />
-                  </div>
-                )}
+                  {/* SAQ */}
+                  {currentQ.type === 'saq' && (
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                        Your Answer <span className="text-amber-500">(Short Answer — {currentQ.marks || 2} Marks)</span>
+                      </label>
+                      <textarea
+                        id="saq-answer-input"
+                        rows={4}
+                        value={answers[currentQ.id] || ''}
+                        onChange={(e) => handleSelectAnswer(currentQ.id, e.target.value)}
+                        placeholder="Write your explanation, formula or step-by-step solution..."
+                        className="w-full px-4 py-3 rounded-xl border-2 border-stone-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 text-stone-900 text-sm sm:text-base outline-none transition-all resize-none"
+                      />
+                    </div>
+                  )}
 
-                {/* Numerical Input */}
-                {currentQ.type === 'numerical' && (
-                  <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-stone-600">
-                      Enter numerical value (Exact integer or decimal):
-                    </label>
-                    <div className="flex gap-2">
+                  {/* Numerical */}
+                  {currentQ.type === 'numerical' && (
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                        Numerical Answer <span className="text-amber-500">(Exact value)</span>
+                      </label>
+                      <div className="flex gap-2 items-center">
+                        <Calculator className="w-5 h-5 text-stone-300 shrink-0" />
+                        <input
+                          id="numerical-answer-input"
+                          type="text"
+                          value={answers[currentQ.id] || ''}
+                          onChange={(e) => handleSelectAnswer(currentQ.id, e.target.value)}
+                          placeholder="e.g. 6 or -8.5 or 3.14"
+                          className="flex-1 max-w-xs px-4 py-3 rounded-xl border-2 border-stone-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 text-stone-900 font-mono text-base outline-none transition-all"
+                        />
+                      </div>
+                      <p className="text-[11px] text-stone-400 ml-7">Do not include units unless requested.</p>
+                    </div>
+                  )}
+
+                  {/* Objective */}
+                  {currentQ.type === 'objective' && (
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                        Objective Answer <span className="text-amber-500">(Key term / phrase)</span>
+                      </label>
                       <input
-                        id="numerical-answer-input"
+                        id="objective-answer-input"
                         type="text"
                         value={answers[currentQ.id] || ''}
                         onChange={(e) => handleSelectAnswer(currentQ.id, e.target.value)}
-                        placeholder="e.g. 6 or -8 or 3.14"
-                        className="flex-1 max-w-sm px-4 py-3 rounded-xl border border-stone-300 text-stone-900 font-mono text-base focus:ring-2 focus:ring-yellow-500 focus:outline-hidden"
+                        placeholder="e.g. Total Internal Reflection"
+                        className="w-full px-4 py-3 rounded-xl border-2 border-stone-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 text-stone-900 text-sm sm:text-base outline-none transition-all"
                       />
                     </div>
-                    <p className="text-[11px] text-stone-400">Do not include variable units unless requested.</p>
-                  </div>
-                )}
-
-                {/* Objective Short Answer */}
-                {currentQ.type === 'objective' && (
-                  <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-stone-600">
-                      Write your specific objective answer / key term:
-                    </label>
-                    <input
-                      id="objective-answer-input"
-                      type="text"
-                      value={answers[currentQ.id] || ''}
-                      onChange={(e) => handleSelectAnswer(currentQ.id, e.target.value)}
-                      placeholder="e.g. Total Internal Reflection or Pascal"
-                      className="w-full px-4 py-3 rounded-xl border border-stone-300 text-stone-900 text-sm sm:text-base focus:ring-2 focus:ring-yellow-500 focus:outline-hidden"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Navigation Footer Controls */}
-              <div className="flex items-center justify-between mt-8 pt-6 border-t border-stone-100">
-                <button
-                  id="prev-question-btn"
-                  disabled={currentQuestionIdx === 0}
-                  onClick={() => setCurrentQuestionIdx((p) => Math.max(0, p - 1))}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-stone-200 text-xs sm:text-sm font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Previous
-                </button>
-
-                <div className="text-xs text-stone-500 font-medium hidden sm:block">
-                  {answeredCount} of {totalQuestions} Questions Answered
+                  )}
                 </div>
 
-                {currentQuestionIdx < totalQuestions - 1 ? (
+                {/* Navigation Footer */}
+                <div className="flex items-center justify-between px-5 py-4 bg-stone-50 border-t border-stone-100">
                   <button
-                    id="next-question-btn"
-                    onClick={() => {
-                      if (!activeExam) return;
-                      const currentQ = activeExam.questions[currentQuestionIdx];
-                      const userAns = (answers[currentQ.id] || '').trim();
+                    id="prev-question-btn"
+                    disabled={currentQuestionIdx === 0}
+                    onClick={() => setCurrentQuestionIdx((p) => Math.max(0, p - 1))}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border-2 border-stone-200 text-sm font-semibold text-stone-700 hover:bg-white hover:border-stone-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Previous
+                  </button>
 
-                      if (userAns) {
-                        const nextCorrect = consecutiveCorrect + 1;
-                        if (nextCorrect >= 2) {
-                          if (adaptiveDifficulty === 'simple') {
-                            setAdaptiveDifficulty('medium');
-                            setAdaptiveNotification({
-                              type: 'up',
-                              message: '🚀 2 consecutive answers recorded! Escalating difficulty to MEDIUM level.',
-                            });
-                          } else if (adaptiveDifficulty === 'medium') {
-                            setAdaptiveDifficulty('hard');
-                            setAdaptiveNotification({
-                              type: 'up',
-                              message: '🔥 Great mastery! Escalating difficulty to HARD level.',
-                            });
+                  {/* Centre progress text */}
+                  <div className="hidden sm:flex flex-col items-center">
+                    <span className="text-xs text-stone-400 font-medium">
+                      Q {currentQuestionIdx + 1} of {totalQuestions}
+                    </span>
+                    <div className="flex items-center gap-1 mt-1">
+                      {activeExam.questions.map((_, i) => (
+                        <div
+                          key={i}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            i === currentQuestionIdx ? 'w-5 bg-yellow-400' :
+                            answers[activeExam.questions[i].id]?.trim() ? 'w-2.5 bg-emerald-400' :
+                            'w-2.5 bg-stone-200'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {currentQuestionIdx < totalQuestions - 1 ? (
+                    <button
+                      id="next-question-btn"
+                      onClick={() => {
+                        if (!activeExam) return;
+                        const currentQ = activeExam.questions[currentQuestionIdx];
+                        const userAns = (answers[currentQ.id] || '').trim();
+
+                        if (userAns) {
+                          // Answered — track consecutive correct streak; reset wrong streak
+                          const nextCorrect = consecutiveCorrect + 1;
+                          setConsecutiveWrong(0);
+                          if (nextCorrect >= 2) {
+                            if (adaptiveDifficulty === 'simple') {
+                              setAdaptiveDifficulty('medium');
+                              setAdaptiveNotification({
+                                type: 'up',
+                                message: '🚀 2 consecutive correct answers! Escalating difficulty to MEDIUM level.',
+                              });
+                            } else if (adaptiveDifficulty === 'medium') {
+                              setAdaptiveDifficulty('hard');
+                              setAdaptiveNotification({
+                                type: 'up',
+                                message: '🔥 Great mastery! Escalating difficulty to HARD level.',
+                              });
+                            }
+                            setConsecutiveCorrect(0);
+                          } else {
+                            setConsecutiveCorrect(nextCorrect);
                           }
-                          setConsecutiveCorrect(0);
                         } else {
-                          setConsecutiveCorrect(nextCorrect);
+                          // Skipped / unanswered — track consecutive wrong streak; reset correct streak
+                          const nextWrong = consecutiveWrong + 1;
+                          setConsecutiveCorrect(0);
+                          if (nextWrong >= 2) {
+                            if (adaptiveDifficulty === 'hard') {
+                              setAdaptiveDifficulty('medium');
+                              setAdaptiveNotification({
+                                type: 'down',
+                                message: '📉 2 consecutive unanswered questions. Adjusting to MEDIUM difficulty.',
+                              });
+                            } else if (adaptiveDifficulty === 'medium') {
+                              setAdaptiveDifficulty('simple');
+                              setAdaptiveNotification({
+                                type: 'down',
+                                message: '📉 Difficulty adjusted to EASY level. Keep going!',
+                              });
+                            }
+                            setConsecutiveWrong(0);
+                          } else {
+                            setConsecutiveWrong(nextWrong);
+                          }
                         }
-                      }
-                      setCurrentQuestionIdx((p) => Math.min(totalQuestions - 1, p + 1));
-                    }}
-                    className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs sm:text-sm font-semibold shadow-xs"
-                  >
-                    Next
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button
-                    id="submit-final-exam-btn"
-                    onClick={() => setShowConfirmSubmit(true)}
-                    className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-xs sm:text-sm font-semibold shadow-xs"
-                  >
-                    Submit Exam ({activeExam.totalMarks || 15} Marks)
-                    <CheckCircle2 className="w-4 h-4" />
-                  </button>
-                )}
+                        setCurrentQuestionIdx((p) => Math.min(totalQuestions - 1, p + 1));
+                      }}
+                      className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-700 active:scale-95 text-white text-sm font-bold shadow-sm transition-all"
+                    >
+                      Next
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button
+                      id="submit-final-exam-btn"
+                      onClick={() => setShowConfirmSubmit(true)}
+                      className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-300 hover:to-amber-300 active:scale-95 text-stone-900 text-sm font-bold shadow-sm shadow-yellow-200 transition-all"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      Submit ({activeExam.totalMarks || 15}M)
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Right Palette (Col 4) */}
-          <div className="lg:col-span-1 self-start sticky top-4">
-            <div className="bg-white rounded-xl border border-stone-200 shadow-sm p-4">
-              <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider mb-3 flex items-center justify-between">
-                <span>Question Palette</span>
-                <span className="text-[11px] text-yellow-600 font-semibold">{answeredCount}/{totalQuestions}</span>
-              </h3>
+            {/* ═══ RIGHT — Sticky Sidebar (1 col) ═══ */}
+            <div className="lg:col-span-1 space-y-4 self-start sticky top-[73px]">
 
-              {/* 10-Question Grid */}
-              <div className="grid grid-cols-5 gap-2 mb-4">
-                {activeExam.questions.map((q, idx) => {
-                  const isCurrent = idx === currentQuestionIdx;
-                  const isAnswered = !!answers[q.id]?.trim();
-                  const isFlagged = !!flaggedQuestions[q.id];
+              {/* Progress Summary Card */}
+              <div className="bg-white rounded-2xl border border-stone-200/80 shadow-sm p-4">
+                <h3 className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-3">Progress</h3>
 
-                  let btnBg = 'bg-stone-100 text-stone-700 hover:bg-stone-200';
-                  if (isAnswered) btnBg = 'bg-yellow-400 text-stone-900 font-bold';
-                  if (isFlagged) btnBg = 'bg-amber-400 text-amber-950 font-bold';
-                  if (isCurrent) btnBg = 'bg-yellow-400 text-stone-900 ring-2 ring-yellow-300 ring-offset-2 font-bold';
+                {/* Circular-ish progress */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="relative w-14 h-14 shrink-0">
+                    <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
+                      <circle cx="28" cy="28" r="23" fill="none" stroke="#f1f5f9" strokeWidth="5" />
+                      <circle
+                        cx="28" cy="28" r="23" fill="none"
+                        stroke={progressPct === 100 ? '#10b981' : '#fbbf24'}
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                        strokeDasharray={`${2 * Math.PI * 23}`}
+                        strokeDashoffset={`${2 * Math.PI * 23 * (1 - progressPct / 100)}`}
+                        className="transition-all duration-500"
+                      />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-stone-900">{progressPct}%</span>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-black text-stone-900 leading-none">{answeredCount}<span className="text-stone-300 text-base font-semibold">/{totalQuestions}</span></p>
+                    <p className="text-xs text-stone-400 mt-0.5">questions answered</p>
+                  </div>
+                </div>
 
-                  return (
-                    <button
-                      key={q.id}
-                      id={`palette-q-${idx + 1}`}
-                      onClick={() => setCurrentQuestionIdx(idx)}
-                      className={`h-10 rounded-xl text-xs flex items-center justify-center transition-all relative ${btnBg}`}
-                    >
-                      {idx + 1}
-                      {isFlagged && (
-                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500"></span>
-                      )}
-                    </button>
-                  );
-                })}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-1.5 text-emerald-600 font-semibold">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />
+                      Answered
+                    </span>
+                    <span className="font-bold text-stone-900">{answeredCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-1.5 text-stone-400 font-semibold">
+                      <span className="w-2.5 h-2.5 rounded-full bg-stone-200 inline-block" />
+                      Unanswered
+                    </span>
+                    <span className="font-bold text-stone-900">{remainingCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-1.5 text-amber-600 font-semibold">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
+                      Flagged
+                    </span>
+                    <span className="font-bold text-stone-900">{Object.values(flaggedQuestions).filter(Boolean).length}</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Legend */}
-              <div className="space-y-1.5 pt-3 border-t border-stone-100 text-[11px] text-stone-500">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-md bg-yellow-400"></span>
-                  <span>Answered ({answeredCount})</span>
+              {/* Question Palette */}
+              <div className="bg-white rounded-2xl border border-stone-200/80 shadow-sm p-4">
+                <h3 className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-3">Question Palette</h3>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {activeExam.questions.map((q, idx) => {
+                    const isCurrent = idx === currentQuestionIdx;
+                    const isAnswered = !!answers[q.id]?.trim();
+                    const isFlagged = !!flaggedQuestions[q.id];
+
+                    return (
+                      <button
+                        key={q.id}
+                        id={`palette-q-${idx + 1}`}
+                        onClick={() => setCurrentQuestionIdx(idx)}
+                        title={`Question ${idx + 1}${isAnswered ? ' (Answered)' : ''}${isFlagged ? ' (Flagged)' : ''}`}
+                        className={`relative h-9 rounded-xl text-xs font-bold flex items-center justify-center transition-all duration-150 hover:scale-105 active:scale-95 ${
+                          isCurrent
+                            ? 'bg-stone-900 text-white ring-2 ring-stone-900 ring-offset-1 shadow-md'
+                            : isFlagged
+                            ? 'bg-amber-400 text-amber-950 shadow-sm'
+                            : isAnswered
+                            ? 'bg-emerald-400 text-white shadow-sm'
+                            : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                        }`}
+                      >
+                        {idx + 1}
+                        {isFlagged && !isCurrent && (
+                          <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-md bg-stone-200"></span>
-                  <span>Unanswered ({totalQuestions - answeredCount})</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-md bg-amber-400"></span>
-                  <span>Flagged for Review</span>
+
+                {/* Legend */}
+                <div className="mt-3 pt-3 border-t border-stone-100 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] text-stone-500">
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-stone-900 inline-block" />Current</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-400 inline-block" />Answered</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-stone-100 inline-block border border-stone-200" />Pending</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-400 inline-block" />Flagged</span>
                 </div>
               </div>
+
+              {/* Submit Shortcut */}
+              <button
+                onClick={() => setShowConfirmSubmit(true)}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-300 hover:to-amber-300 active:scale-95 text-stone-900 text-sm font-black shadow-md shadow-yellow-200/50 transition-all"
+              >
+                ✅ Submit Exam
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Submit Confirmation Modal */}
+        {/* ═══════════════ CONFIRM SUBMIT MODAL ═══════════════ */}
         {showConfirmSubmit && (
-          <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-stone-100 animate-in fade-in zoom-in-95 duration-150">
-              <div className="w-12 h-12 rounded-xl bg-yellow-50 border border-yellow-200 flex items-center justify-center text-yellow-600 mb-4">
-                <Award className="w-6 h-6" />
+          <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-stone-100 animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-yellow-50 border border-yellow-200 flex items-center justify-center">
+                  <Award className="w-6 h-6 text-yellow-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-stone-900">Submit Exam?</h3>
+                  <p className="text-xs text-stone-400">{activeExam.totalMarks || blueprint.totalMarks} Marks • {activeExam.title}</p>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-stone-900 mb-2">Submit Assessment ({activeExam.totalMarks || blueprint.totalMarks} Marks)?</h3>
-              <p className="text-xs sm:text-sm text-stone-600 mb-4">
-                You have answered <span className="font-semibold text-stone-900">{answeredCount} out of {totalQuestions} questions</span>.
-                {totalQuestions - answeredCount > 0 && (
-                  <span className="text-amber-600 block mt-1 font-medium">
-                    ⚠️ You have {totalQuestions - answeredCount} unanswered question{totalQuestions - answeredCount > 1 ? 's' : ''} that will receive 0 marks.
-                  </span>
-                )}
-              </p>
 
-              <div className="flex items-center justify-end gap-3 pt-2">
+              {/* Stats summary in modal */}
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <div className="text-center p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+                  <p className="text-xl font-black text-emerald-600">{answeredCount}</p>
+                  <p className="text-[10px] text-emerald-500 font-semibold uppercase">Answered</p>
+                </div>
+                <div className="text-center p-3 rounded-xl bg-stone-50 border border-stone-100">
+                  <p className="text-xl font-black text-stone-600">{remainingCount}</p>
+                  <p className="text-[10px] text-stone-400 font-semibold uppercase">Skipped</p>
+                </div>
+                <div className="text-center p-3 rounded-xl bg-yellow-50 border border-yellow-100">
+                  <p className="text-xl font-black text-yellow-600">{totalQuestions}</p>
+                  <p className="text-[10px] text-yellow-500 font-semibold uppercase">Total</p>
+                </div>
+              </div>
+
+              {remainingCount > 0 && (
+                <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 mb-4 text-xs text-amber-800 font-medium">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+                  <span>{remainingCount} unanswered question{remainingCount > 1 ? 's' : ''} will receive 0 marks.</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3">
                 <button
                   id="cancel-submit-modal-btn"
                   disabled={isSubmitting}
                   onClick={() => setShowConfirmSubmit(false)}
-                  className="px-4 py-2 rounded-xl border border-stone-200 text-xs sm:text-sm font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-2.5 rounded-xl border-2 border-stone-200 text-sm font-bold text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-all"
                 >
                   Continue Test
                 </button>
@@ -739,15 +949,12 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                   id="confirm-submit-exam-btn"
                   disabled={isSubmitting}
                   onClick={handleSubmitExam}
-                  className="px-5 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-xs sm:text-sm font-semibold shadow-xs disabled:opacity-75 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="flex-1 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-stone-900 text-sm font-black shadow-sm disabled:opacity-75 flex items-center justify-center gap-2 transition-all"
                 >
                   {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-stone-900" />
-                      <span>Evaluating Answers ...</span>
-                    </>
+                    <><Loader2 className="w-4 h-4 animate-spin" /><span>Evaluating...</span></>
                   ) : (
-                    'Yes, Submit & View Analytics'
+                    'Submit & View Results'
                   )}
                 </button>
               </div>

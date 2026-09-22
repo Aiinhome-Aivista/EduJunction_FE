@@ -70,6 +70,7 @@ export const GET_APIS = {
   adminSubscriptionHistory: (params?: string) => `${API_V1}/admin/subscription-history${params ? `?${params}` : ''}`,
   llmConfigs: `${API_V1}/admin/llm-config`,
   activeLlmConfig: `${API_V1}/admin/llm-config/active`,
+  previewSubjectModelPaper: (subId: number | string) => `${API_V1}/subscriptions/subject/${subId}/preview-paper`,
   downloadSubjectModelPaper: (subId: number | string, format: string = 'pdf') => `${API_V1}/subscriptions/subject/${subId}/download-paper?format=${format}`,
 };
 
@@ -124,6 +125,8 @@ export const POST_APIS = {
   uploadRagFile: `${API_V1}/files/upload`,
   generateRagQuestions: `${API_V1}/admin/rag/generate-questions`,
   saveRagQuestions: `${API_V1}/admin/rag/save-questions`,
+  processDocumentPipeline: `${API_V1}/admin/rag/process-document`,
+  processDocumentsBatch: `${API_V1}/admin/rag/process-documents-batch`,
   analyzeBook: `${API_V1}/admin/rag/analyze-book`,
   generateAdminMockTest: `${API_V1}/admin/mock-tests/generate`,
   generateFreeMockTest: `${API_V1}/mock-tests/free/generate`,
@@ -137,6 +140,7 @@ export const POST_APIS = {
   testLlmConfig: `${API_V1}/admin/llm-config/test`,
   activateLlmConfig: (id: string | number) => `${API_V1}/admin/llm-config/${id}/activate`,
   createAdminSubscriptionPlan: `${API_V1}/admin/subscription-plans`,
+  evaluateSubjectModelPaper: (subId: number | string) => `${API_V1}/subscriptions/subject/${subId}/evaluate-paper`,
 };
 
 export const PUT_APIS = {

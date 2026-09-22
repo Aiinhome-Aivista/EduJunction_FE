@@ -20,8 +20,7 @@ import {
   Edit3,
   Sliders,
   ChevronRight,
-  BookmarkCheck,
-  Loader2
+  BookmarkCheck
 } from 'lucide-react';
 import ApiServices from '../../services/ApiServices';
 import { Board, ClassGrade, Subject, BOARD_CLASSES_MAP, CLASS_SUBJECTS_MAP } from '../../types';
@@ -76,35 +75,47 @@ interface FlatTopic {
 }
 
 export const AiRagHub: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'book_analysis' | 'ingestion' | 'playground'>('book_analysis');
+  const [activeTab, setActiveTab] = useState<'ingestion' | 'playground'>('ingestion');
   const [ragStatus, setRagStatus] = useState<RagStatusData | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
-
-  // Book & Question Bank LLM Analysis State (Multi-File / Batch Support)
-  const [bookUploadFiles, setBookUploadFiles] = useState<File[]>([]);
-  const [bookBoard, setBookBoard] = useState<string>('CBSE');
-  const [bookClass, setBookClass] = useState<string>('Class 10');
-  const [bookSubject, setBookSubject] = useState<string>('Mathematics');
-  const [bookDocType, setBookDocType] = useState<string>('Textbook');
-  const [bookYear, setBookYear] = useState<string>('2024');
-  const [analyzingBook, setAnalyzingBook] = useState<boolean>(false);
-  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; filename: string } | null>(null);
-  const [batchAnalysisResults, setBatchAnalysisResults] = useState<any[]>([]);
-  const [selectedResultIndex, setSelectedResultIndex] = useState<number>(0);
-  const [bookTargetTopicId, setBookTargetTopicId] = useState<number | null>(null);
-  const [isSavingBookQuestions, setIsSavingBookQuestions] = useState<boolean>(false);
 
   // Master Data Dynamic State (from DB /api/v1/master/board_class_dropdown)
   const [activeBoards, setActiveBoards] = useState<MasterBoard[]>([]);
   const [boardClassesMap, setBoardClassesMap] = useState<Record<string, string[]>>(BOARD_CLASSES_MAP);
   const [isLoadingMasters, setIsLoadingMasters] = useState(false);
 
-  // Ingestion Form State
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  // Ingestion Form State (Single & Multi-File Support)
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+  const [documentType, setDocumentType] = useState<'textbook' | 'old_question_paper'>('textbook');
   const [selectedBoard, setSelectedBoard] = useState<string>('CBSE');
   const [selectedGrade, setSelectedGrade] = useState<string>('Class 10');
   const [selectedSubject, setSelectedSubject] = useState<string>('Mathematics');
   const [uploading, setUploading] = useState(false);
+
+  // Multi-File Pipeline Batch Progress State
+  const [batchProgress, setBatchProgress] = useState<{
+    isRunning: boolean;
+    current: number;
+    total: number;
+    filename: string;
+    percent: number;
+    completed: number;
+    remaining: number;
+    currentStepName: string;
+    logs: string[];
+    results: any[];
+  }>({
+    isRunning: false,
+    current: 0,
+    total: 0,
+    filename: '',
+    percent: 0,
+    completed: 0,
+    remaining: 0,
+    currentStepName: '',
+    logs: [],
+    results: []
+  });
 
   // Dynamic allowed classes strictly determined by Board mapping
   const availableClasses: string[] = (boardClassesMap && boardClassesMap[selectedBoard]) || BOARD_CLASSES_MAP[selectedBoard] || [
@@ -118,10 +129,11 @@ export const AiRagHub: React.FC = () => {
     'Science', 'Social Studies', 'English', 'Computer Science', 'Logical Reasoning'
   ];
 
-  // Real-time metadata mismatch detection from filename
+  // Real-time metadata mismatch detection from primary file
+  const primaryFile = uploadFiles[0] || null;
   const detectedMeta = React.useMemo(() => {
-    if (!uploadFile) return null;
-    const fn = uploadFile.name.replace(/[-_.]/g, ' ').toLowerCase();
+    if (!primaryFile) return null;
+    const fn = primaryFile.name.replace(/[-_.]/g, ' ').toLowerCase();
     let board: string | undefined;
     if (/\bcbse\b/.test(fn)) board = 'CBSE';
     else if (/\bicse\b/.test(fn)) board = 'ICSE';
@@ -154,7 +166,7 @@ export const AiRagHub: React.FC = () => {
     else if (/\b(?:computer|coding|python|informatics)\b/.test(fn)) subject = 'Computer Science';
 
     return { board, classGrade, subject };
-  }, [uploadFile]);
+  }, [primaryFile]);
 
   const isBoardMismatch = Boolean(
     detectedMeta?.board &&
@@ -174,7 +186,7 @@ export const AiRagHub: React.FC = () => {
     !(selectedSubject === 'Science' && ['Physics', 'Chemistry', 'Biology'].includes(detectedMeta.subject))
   );
 
-  const hasFilenameMismatch = Boolean(uploadFile && (isBoardMismatch || isClassMismatch || isSubjectMismatch));
+  const hasFilenameMismatch = Boolean(primaryFile && (isBoardMismatch || isClassMismatch || isSubjectMismatch));
 
   const handleBoardChange = (newBoard: string) => {
     setSelectedBoard(newBoard);
@@ -309,197 +321,109 @@ export const AiRagHub: React.FC = () => {
     fetchMasterDropdowns();
   }, []);
 
-  const handleAddFiles = (newFiles: FileList | File[] | null) => {
-    if (!newFiles) return;
-    const incoming = Array.from(newFiles);
-    setBookUploadFiles((prev) => {
-      const existingNames = new Set(prev.map(f => f.name));
-      const filtered = incoming.filter(f => !existingNames.has(f.name));
-      return [...prev, ...filtered];
-    });
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setBookUploadFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleClearAllFiles = () => {
-    setBookUploadFiles([]);
-  };
-
-  const [analysisStep, setAnalysisStep] = useState<number>(1);
-  const [analysisProgressPercent, setAnalysisProgressPercent] = useState<number>(15);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
-  const [analyzedBatchCount, setAnalyzedBatchCount] = useState<number>(0);
-  const [fileProcessingStatus, setFileProcessingStatus] = useState<Record<string, 'pending' | 'processing' | 'completed'>>({});
-
-  const handleAnalyzeBook = async (e: React.FormEvent) => {
+  const handleProcessPipeline = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (bookUploadFiles.length === 0) {
-      showNotify('error', 'Please select at least one PDF/DOC/DOCX file to analyze.');
-      return;
-    }
-    setAnalyzingBook(true);
-    setAnalysisStep(1);
-    setAnalysisProgressPercent(15);
-    setElapsedSeconds(0);
-    setBatchAnalysisResults([]);
-    setSelectedResultIndex(0);
+    if (uploadFiles.length === 0) return;
 
-    // Initial status for all files: file 0 is processing, rest pending
-    const initialStatus: Record<string, 'pending' | 'processing' | 'completed'> = {};
-    bookUploadFiles.forEach((file, idx) => {
-      initialStatus[file.name] = idx === 0 ? 'processing' : 'pending';
-    });
-    setFileProcessingStatus(initialStatus);
-
-    // Live elapsed seconds ticker
-    const timerInterval = setInterval(() => {
-      setElapsedSeconds((prev) => prev + 1);
-    }, 1000);
-
-    // Realistic staged progress curve that caps at 90% until backend response arrives
-    const stepInterval = setInterval(() => {
-      setAnalysisProgressPercent((prev) => {
-        if (prev < 35) {
-          setAnalysisStep(2);
-          return prev + 10;
-        } else if (prev < 65) {
-          setAnalysisStep(2);
-          return prev + 8;
-        } else if (prev < 80) {
-          setAnalysisStep(3);
-          return prev + 5;
-        } else if (prev < 90) {
-          setAnalysisStep(4);
-          return prev + 2;
-        }
-        setAnalysisStep(4);
-        return 90; // Never hit 100% until response is received!
-      });
-    }, 2000);
-
-    try {
-      const formData = new FormData();
-      const filesCount = bookUploadFiles.length;
-      bookUploadFiles.forEach((file) => {
-        formData.append('files', file);
-      });
-      formData.append('board', bookBoard);
-      formData.append('classGrade', bookClass);
-      formData.append('subject', bookSubject);
-      formData.append('documentType', bookDocType);
-      formData.append('yearDeclared', bookYear);
-
-      const res = await ApiServices.analyzeBookAndQuestionBank(formData);
-      clearInterval(stepInterval);
-      clearInterval(timerInterval);
-
-      // Now set 100% completion!
-      setAnalysisProgressPercent(100);
-      setAnalysisStep(5);
-
-      // Mark all files as 100% completed
-      const allCompleted: Record<string, 'pending' | 'processing' | 'completed'> = {};
-      bookUploadFiles.forEach((file) => {
-        allCompleted[file.name] = 'completed';
-      });
-      setFileProcessingStatus(allCompleted);
-
-      const chaptersList = res.chapters && res.chapters.length > 0 ? res.chapters : [res];
-      setBatchAnalysisResults(chaptersList);
-      setAnalyzedBatchCount(filesCount);
-
-      showNotify(
-        'success',
-        `✨ Successfully analyzed ${filesCount} chapters in unified batch! Full knowledge graph mapped into ArangoDB.`
-      );
-      await fetchRagStatus();
-    } catch (err: any) {
-      clearInterval(stepInterval);
-      clearInterval(timerInterval);
-      console.error('Batch book analysis error:', err);
-      showNotify('error', err?.response?.data?.error?.message || err?.message || 'Failed to analyze book batch. Please check year & format criteria.');
-    } finally {
-      clearInterval(stepInterval);
-      clearInterval(timerInterval);
-      setAnalyzingBook(false);
-    }
-  };
-
-  const handleSaveBookQuestions = async (saveAll = false) => {
-    const targetTopic = bookTargetTopicId || (flatTopics.length > 0 ? flatTopics[0].id : null);
-    if (!targetTopic) {
-      showNotify('error', 'Please select a curriculum Topic to link questions.');
-      return;
-    }
-
-    let questionsToSave: any[] = [];
-    if (saveAll) {
-      questionsToSave = batchAnalysisResults.flatMap(r => r?.important_questions || []);
-    } else {
-      const activeRes = batchAnalysisResults[selectedResultIndex];
-      questionsToSave = activeRes?.important_questions || [];
-    }
-
-    if (questionsToSave.length === 0) {
-      showNotify('error', 'No questions to save.');
-      return;
-    }
-
-    setIsSavingBookQuestions(true);
-    try {
-      const res = await ApiServices.saveRagQuestions({
-        topic_id: targetTopic,
-        questions: questionsToSave
-      });
-      showNotify('success', res?.message || `Successfully saved ${questionsToSave.length} questions to Question Bank!`);
-      fetchRagStatus();
-    } catch (err: any) {
-      console.error('Save questions error:', err);
-      showNotify('error', err?.response?.data?.error?.message || 'Failed to save questions');
-    } finally {
-      setIsSavingBookQuestions(false);
-    }
-  };
-
-  const handleUploadPdf = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!uploadFile) return;
     setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', uploadFile);
-      formData.append('board', selectedBoard);
-      formData.append('classGrade', selectedGrade);
-      formData.append('subject', selectedSubject);
+    const totalFiles = uploadFiles.length;
+    const initialProgress = {
+      isRunning: true,
+      current: 1,
+      total: totalFiles,
+      filename: uploadFiles[0].name,
+      percent: 5,
+      completed: 0,
+      remaining: totalFiles,
+      currentStepName: 'Step 1: Reading file & extracting text...',
+      logs: [`[INITIALIZE] Starting batch ingestion of ${totalFiles} file(s)...`],
+      results: []
+    };
+    setBatchProgress(initialProgress);
 
-      const res = await ApiServices.uploadRagFile(formData);
-      showNotify('success', `PDF "${uploadFile.name}" indexed successfully!`);
-      setUploadFile(null);
-      await fetchRagStatus();
+    const resultsArr: any[] = [];
+    let totalAddedQuestions = 0;
 
-      // Automatically offer to generate questions from this newly uploaded document
-      if (res && res.id) {
-        const newDoc: RagDocument = {
-          id: res.id,
-          filename: res.filename || uploadFile.name,
-          content_type: 'application/pdf',
-          board: selectedBoard,
-          classGrade: selectedGrade,
-          subject: selectedSubject,
-          status: 'PROCESSED',
-          chunk_count: 1,
-          created_at: new Date().toISOString()
-        };
-        openQuestionGenerator(newDoc);
+    for (let i = 0; i < totalFiles; i++) {
+      const file = uploadFiles[i];
+      const fileNum = i + 1;
+      const pct = Math.round(((i) / totalFiles) * 100);
+
+      setBatchProgress((prev) => ({
+        ...prev,
+        current: fileNum,
+        filename: file.name,
+        percent: Math.max(pct, 10),
+        completed: i,
+        remaining: totalFiles - i,
+        currentStepName: `[File ${fileNum}/${totalFiles}] Step 1: Extracting text from ${file.name}...`,
+        logs: [...prev.logs, `\n>>> [FILE ${fileNum}/${totalFiles}] Starting pipeline for: ${file.name}`]
+      }));
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('board', selectedBoard);
+        formData.append('classGrade', selectedGrade);
+        formData.append('subject', selectedSubject);
+        formData.append('documentType', documentType);
+        if (selectedTargetTopicId) {
+          formData.append('topicId', String(selectedTargetTopicId));
+        }
+
+        setBatchProgress((prev) => ({
+          ...prev,
+          currentStepName: `[File ${fileNum}/${totalFiles}] Step 2 & 3: Contextual analysis & question extraction...`,
+          logs: [...prev.logs, `  ↳ [Step 1] Text extracted successfully. Running AI contextual analysis...`]
+        }));
+
+        const res = await ApiServices.processDocumentPipeline(formData);
+
+        const extractedCount = res?.total_extracted || res?.questions?.length || 0;
+        const insertedCount = res?.questions_inserted || extractedCount;
+        totalAddedQuestions += insertedCount;
+        resultsArr.push(res);
+
+        setBatchProgress((prev) => ({
+          ...prev,
+          completed: i + 1,
+          remaining: totalFiles - (i + 1),
+          percent: Math.round(((i + 1) / totalFiles) * 100),
+          currentStepName: `[File ${fileNum}/${totalFiles}] Step 5: Database insertion complete! (${insertedCount} questions saved)`,
+          logs: [
+            ...prev.logs,
+            `  ↳ [Step 2] Inferred Title: "${res?.title || file.name}"`,
+            `  ↳ [Step 3 & 4] ${extractedCount} questions extracted and formatted into question_master schema.`,
+            `  ↳ [Step 5] Saved to Database: ${insertedCount} inserted into question_master (Topic ID: ${res?.topic_id || 'Auto'}).`,
+            `✔ [SUCCESS] Completed processing ${file.name}`
+          ],
+          results: [...resultsArr]
+        }));
+
+      } catch (err: any) {
+        console.error(`Error processing file ${file.name}:`, err);
+        const errMsg = err?.message || err?.response?.data?.error?.message || 'Processing failed';
+        setBatchProgress((prev) => ({
+          ...prev,
+          logs: [...prev.logs, `❌ [ERROR] Failed to process ${file.name}: ${errMsg}`]
+        }));
       }
-    } catch (err: any) {
-      console.error('PDF upload error:', err);
-      showNotify('error', err?.message || err?.response?.data?.error?.message || 'Failed to ingest PDF');
-    } finally {
-      setUploading(false);
     }
+
+    setBatchProgress((prev) => ({
+      ...prev,
+      isRunning: false,
+      percent: 100,
+      completed: totalFiles,
+      remaining: 0,
+      currentStepName: `All ${totalFiles} file(s) processed! Total ${totalAddedQuestions} questions added.`,
+      logs: [...prev.logs, `\n🎉 [ALL COMPLETED] Successfully processed ${totalFiles} file(s). Added ${totalAddedQuestions} questions to Question Bank.`]
+    }));
+
+    showNotify('success', `Pipeline completed! Added ${totalAddedQuestions} questions across ${totalFiles} file(s).`);
+    setUploadFiles([]);
+    setUploading(false);
+    await fetchRagStatus();
   };
 
   const handleDeleteDoc = async (id: string) => {
@@ -717,18 +641,8 @@ export const AiRagHub: React.FC = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex flex-wrap items-center justify-between border-b border-stone-200/80 pb-2 gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={() => setActiveTab('book_analysis')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'book_analysis'
-              ? 'bg-white text-stone-900 shadow-xs border border-stone-200/80'
-              : 'text-stone-500 hover:text-stone-800'
-              }`}
-          >
-            <BookOpen className="w-4 h-4 text-amber-600" />
-            Book & QB AI Ingestion (Last 10-15 Yrs)
-          </button>
+      <div className="flex items-center justify-between border-b border-stone-200/80 pb-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveTab('ingestion')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'ingestion'
@@ -737,7 +651,7 @@ export const AiRagHub: React.FC = () => {
               }`}
           >
             <Database className="w-4 h-4 text-yellow-600" />
-            Vector Store Ingestion
+            Curriculum & Vector Ingestion
           </button>
           <button
             onClick={() => setActiveTab('playground')}
@@ -798,544 +712,65 @@ export const AiRagHub: React.FC = () => {
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          TAB 0: BOOK & QUESTION BANK LLM ANALYSIS (Point 2)
-         ───────────────────────────────────────────────────────────── */}
-      {activeTab === 'book_analysis' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Upload Form Card */}
-          <div className="lg:col-span-4 bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-5">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-200">
-                  CBSE • ICSE • ISC (Class 5–10)
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
-                  Last 10–15 Yrs (2011–2026)
-                </span>
-              </div>
-              <h2 className="text-base font-black text-stone-900">Upload Book / Question Bank</h2>
-              <p className="text-xs text-stone-400">
-                Upload structured PDF/DOC/DOCX. AI extracts pedagogical summary, concept graph, and high-yield questions.
-              </p>
-            </div>
-
-            <form onSubmit={handleAnalyzeBook} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">Board</label>
-                <select
-                  value={bookBoard}
-                  onChange={(e) => setBookBoard(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
-                >
-                  <option value="CBSE">CBSE (Central Board)</option>
-                  <option value="ICSE">ICSE (Class 5 to 10)</option>
-                  <option value="ISC">ISC (Curriculum Board)</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">Class Grade</label>
-                  <select
-                    value={bookClass}
-                    onChange={(e) => setBookClass(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
-                  >
-                    <option value="Class 5">Class 5</option>
-                    <option value="Class 6">Class 6</option>
-                    <option value="Class 7">Class 7</option>
-                    <option value="Class 8">Class 8</option>
-                    <option value="Class 9">Class 9 (Focus)</option>
-                    <option value="Class 10">Class 10 (Focus)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">Subject</label>
-                  <select
-                    value={bookSubject}
-                    onChange={(e) => setBookSubject(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
-                  >
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Science">Science</option>
-                    <option value="Physics">Physics</option>
-                    <option value="Chemistry">Chemistry</option>
-                    <option value="Biology">Biology</option>
-                    <option value="English">English</option>
-                    <option value="Social Studies">Social Studies</option>
-                    <option value="Computer Science">Computer Science</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">Document Type</label>
-                  <select
-                    value={bookDocType}
-                    onChange={(e) => setBookDocType(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
-                  >
-                    <option value="Textbook">Standard Textbook</option>
-                    <option value="Question Bank">Question Bank</option>
-                    <option value="Previous Years Papers">PYQ (Past 10-15 Yrs)</option>
-                    <option value="Model Paper">Model Test Paper</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">Edition / Exam Year</label>
-                  <select
-                    value={bookYear}
-                    onChange={(e) => setBookYear(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
-                  >
-                    {Array.from({ length: 16 }, (_, i) => 2026 - i).map((yr) => (
-                      <option key={yr} value={yr}>
-                        {yr} ({2026 - yr <= 5 ? 'Recent' : `${2026 - yr} yrs ago`})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Multi-File Dropzone */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold text-stone-700">
-                    Select Chapter Files (Batch PDF/DOCX)
-                  </label>
-                  {bookUploadFiles.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleClearAllFiles}
-                      className="text-[11px] font-bold text-rose-600 hover:text-rose-700 hover:underline"
-                    >
-                      Clear All ({bookUploadFiles.length})
-                    </button>
-                  )}
-                </div>
-                
-                <div className="relative border-2 border-dashed border-stone-200 hover:border-yellow-400 rounded-2xl p-4 text-center transition-all bg-stone-50/50 hover:bg-yellow-50/20">
-                  <input
-                    type="file"
-                    multiple
-                    accept=".pdf,.docx,.doc"
-                    onChange={(e) => handleAddFiles(e.target.files)}
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  />
-                  <div className="space-y-1">
-                    <BookOpen className="w-6 h-6 text-amber-500 mx-auto" />
-                    <p className="text-xs font-bold text-stone-700">Choose or Drag Single/Multiple PDF Files</p>
-                    <p className="text-[10px] text-stone-400">Select all chapter PDFs together (Max 50MB each)</p>
-                  </div>
-                </div>
-
-                {/* Selected Files List with Live Per-File Status Badges */}
-                {bookUploadFiles.length > 0 && (
-                  <div className="mt-2.5 space-y-1.5 max-h-52 overflow-y-auto pr-1">
-                    {bookUploadFiles.map((file, fIdx) => {
-                      const status = fileProcessingStatus[file.name];
-                      return (
-                        <div
-                          key={fIdx}
-                          className={`flex items-center justify-between p-2 rounded-xl border text-xs transition-all ${
-                            status === 'completed'
-                              ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
-                              : status === 'processing'
-                              ? 'bg-amber-50/90 border-amber-300 text-amber-950 shadow-2xs'
-                              : 'bg-stone-50 hover:bg-amber-50/50 border-stone-200/80 text-stone-800'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 truncate pr-2">
-                            <FileText
-                              className={`w-3.5 h-3.5 shrink-0 ${
-                                status === 'completed'
-                                  ? 'text-emerald-600'
-                                  : status === 'processing'
-                                  ? 'text-amber-600'
-                                  : 'text-stone-500'
-                              }`}
-                            />
-                            <span className="truncate font-semibold text-[11px]">{file.name}</span>
-                            <span className="text-[10px] text-stone-400 shrink-0">
-                              ({(file.size / (1024 * 1024)).toFixed(1)} MB)
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            {status === 'completed' && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 shadow-2xs animate-in fade-in">
-                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                <span>Done</span>
-                              </span>
-                            )}
-
-                            {status === 'processing' && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs animate-pulse">
-                                <Loader2 className="w-3 h-3 text-amber-600 animate-spin" />
-                                <span>Ingesting...</span>
-                              </span>
-                            )}
-
-                            {status === 'pending' && analyzingBook && (
-                              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-stone-100 text-stone-500 border border-stone-200">
-                                Queued
-                              </span>
-                            )}
-
-                            {!analyzingBook && (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveFile(fIdx)}
-                                className="text-stone-400 hover:text-rose-600 p-0.5 rounded-md transition-colors"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Previously processed badge */}
-                {analyzedBatchCount > 0 && bookUploadFiles.length === 0 && !analyzingBook && (
-                  <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 flex items-center justify-between text-xs text-emerald-800">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span className="font-bold">Previous batch of {analyzedBatchCount} files processed & synced!</span>
-                    </div>
-                    <span className="text-[10px] bg-emerald-100 px-2 py-0.5 rounded-full font-bold">Ready for Next Batch</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Multi-Stage Live Processing Progress Card */}
-              {analyzingBook && (
-                <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50/60 rounded-2xl border border-amber-200/90 shadow-sm space-y-3 animate-in fade-in">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
-                      <span className="text-xs font-black text-amber-950">AI Processing Engine Active</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full">
-                        ⏱️ {elapsedSeconds}s
-                      </span>
-                      <span className="text-[11px] font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200">
-                        Step {Math.min(analysisStep, 4)} of 4 ({analysisProgressPercent}%)
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Progress Line */}
-                  <div className="w-full bg-amber-200/70 rounded-full h-2 overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-amber-500 to-yellow-500 h-2 rounded-full transition-all duration-700 ease-out"
-                      style={{ width: `${analysisProgressPercent}%` }}
-                    />
-                  </div>
-
-                  {/* Step-by-Step Status Checklist */}
-                  <div className="space-y-1.5 pt-1 text-[11px]">
-                    <div className={`flex items-center gap-2 transition-colors ${analysisStep >= 1 ? 'text-amber-950 font-bold' : 'text-stone-400'}`}>
-                      {analysisStep > 1 ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      ) : (
-                        <div className="w-3.5 h-3.5 rounded-full border-2 border-amber-600 border-t-transparent animate-spin shrink-0" />
-                      )}
-                      <span>1. Persisting {bookUploadFiles.length} files to server storage (uploads/books/)</span>
-                    </div>
-
-                    <div className={`flex items-center gap-2 transition-colors ${analysisStep >= 2 ? 'text-amber-950 font-bold' : 'text-stone-400'}`}>
-                      {analysisStep > 2 ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      ) : analysisStep === 2 ? (
-                        <div className="w-3.5 h-3.5 rounded-full border-2 border-amber-600 border-t-transparent animate-spin shrink-0" />
-                      ) : (
-                        <div className="w-3.5 h-3.5 rounded-full border border-stone-300 shrink-0" />
-                      )}
-                      <span>2. Fast PyMuPDF & Gemini Vision OCR Engine (extracting equations & tables)</span>
-                    </div>
-
-                    <div className={`flex items-center gap-2 transition-colors ${analysisStep >= 3 ? 'text-amber-950 font-bold' : 'text-stone-400'}`}>
-                      {analysisStep > 3 ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      ) : analysisStep === 3 ? (
-                        <div className="w-3.5 h-3.5 rounded-full border-2 border-amber-600 border-t-transparent animate-spin shrink-0" />
-                      ) : (
-                        <div className="w-3.5 h-3.5 rounded-full border border-stone-300 shrink-0" />
-                      )}
-                      <span>3. Pedagogical Summary & Concept Prerequisite Synthesis</span>
-                    </div>
-
-                    <div className={`flex items-center gap-2 transition-colors ${analysisStep >= 4 ? 'text-amber-950 font-bold' : 'text-stone-400'}`}>
-                      {analysisStep >= 5 ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      ) : analysisStep === 4 ? (
-                        <div className="w-3.5 h-3.5 rounded-full border-2 border-amber-600 border-t-transparent animate-spin shrink-0" />
-                      ) : (
-                        <div className="w-3.5 h-3.5 rounded-full border border-stone-300 shrink-0" />
-                      )}
-                      <span>
-                        4. Syncing Knowledge Graph to ArangoDB & Generating Questions {analysisProgressPercent >= 85 && analysisStep < 5 ? '(In Progress...)' : ''}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={analyzingBook || bookUploadFiles.length === 0}
-                className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {analyzingBook ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Analyzing {bookUploadFiles.length} Chapters with Vision AI & LLM Engine...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 text-white" />
-                    <span>
-                      Upload & Run LLM Analysis {bookUploadFiles.length > 0 ? `(${bookUploadFiles.length} Chapters)` : ''}
-                    </span>
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-
-          {/* Right Column: Live Analysis Results (Batch & Chapter Wise) */}
-          <div className="lg:col-span-8 space-y-5">
-            {batchAnalysisResults.length > 0 ? (
-              <div className="space-y-5 animate-in fade-in duration-300">
-                {/* Result Header & Batch Summary */}
-                <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                        ✓ {batchAnalysisResults.length} Files Analyzed & Stored
-                      </span>
-                      <span className="text-[10px] font-bold text-blue-800 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
-                        {batchAnalysisResults.reduce((acc, r) => acc + (r.relationships?.length || 0), 0)} Concepts Mapped to ArangoDB
-                      </span>
-                    </div>
-                    <h3 className="text-base font-black text-stone-900">
-                      {bookSubject} • {bookClass} ({bookBoard})
-                    </h3>
-                    <p className="text-xs text-stone-500">
-                      Total {batchAnalysisResults.reduce((acc, r) => acc + (r.questions_count || 0), 0)} high-yield questions extracted across all chapters
-                    </p>
-                  </div>
-
-                  {/* Save to Question Bank Actions */}
-                  <div className="flex flex-wrap items-center gap-2 shrink-0">
-                    <select
-                      value={bookTargetTopicId || (flatTopics[0]?.id || '')}
-                      onChange={(e) => setBookTargetTopicId(Number(e.target.value))}
-                      className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 max-w-[190px]"
-                    >
-                      {flatTopics.map(t => (
-                        <option key={t.id} value={t.id}>
-                          {t.name} ({t.chapterName})
-                        </option>
-                      ))}
-                    </select>
-
-                    <button
-                      onClick={() => handleSaveBookQuestions(false)}
-                      disabled={isSavingBookQuestions || (batchAnalysisResults[selectedResultIndex]?.important_questions || []).length === 0}
-                      className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50"
-                      title="Save questions from currently selected chapter tab"
-                    >
-                      <Check className="w-3.5 h-3.5 text-stone-600" />
-                      <span>Save Current ({batchAnalysisResults[selectedResultIndex]?.questions_count || 0})</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleSaveBookQuestions(true)}
-                      disabled={isSavingBookQuestions || batchAnalysisResults.every(r => (r.important_questions || []).length === 0)}
-                      className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50"
-                      title="Save all questions across all chapters at once"
-                    >
-                      {isSavingBookQuestions ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Saving All...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-                          <span>Save ALL ({batchAnalysisResults.reduce((acc, r) => acc + (r.questions_count || 0), 0)})</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Chapter Switcher Tabs */}
-                {batchAnalysisResults.length > 1 && (
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                    {batchAnalysisResults.map((res, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setSelectedResultIndex(idx)}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 ${
-                          selectedResultIndex === idx
-                            ? 'bg-stone-900 text-white shadow-xs'
-                            : 'bg-white hover:bg-stone-50 text-stone-600 border border-stone-200'
-                        }`}
-                      >
-                        <FileText className={`w-3.5 h-3.5 ${selectedResultIndex === idx ? 'text-amber-400' : 'text-stone-400'}`} />
-                        <span className="truncate max-w-[150px]">{res.filename}</span>
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                          selectedResultIndex === idx ? 'bg-stone-800 text-amber-300' : 'bg-stone-100 text-stone-600'
-                        }`}>
-                          {res.questions_count || 0} Qs
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Active Chapter Details */}
-                {batchAnalysisResults[selectedResultIndex] && (
-                  <>
-                    {/* Summary Section */}
-                    <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="w-4 h-4 text-amber-600" />
-                          <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
-                            Pedagogical Summary: {batchAnalysisResults[selectedResultIndex].filename}
-                          </h4>
-                        </div>
-                        <span className="text-[11px] font-semibold text-stone-500">
-                          {batchAnalysisResults[selectedResultIndex].board} • {batchAnalysisResults[selectedResultIndex].class_grade}
-                        </span>
-                      </div>
-                      <div className="text-xs sm:text-sm text-stone-700 leading-relaxed bg-amber-50/40 p-4 rounded-2xl border border-amber-100 whitespace-pre-line font-normal">
-                        {batchAnalysisResults[selectedResultIndex].summary}
-                      </div>
-                    </div>
-
-                    {/* Relationships Section */}
-                    <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-blue-600" />
-                        <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
-                          Detected Concept Relationships (Synced to ArangoDB Knowledge Graph)
-                        </h4>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {(batchAnalysisResults[selectedResultIndex].relationships || []).map((rel: any, rIdx: number) => (
-                          <div key={rIdx} className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200/70 space-y-1.5">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-xs font-bold text-stone-900">{rel.source_concept}</span>
-                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800 uppercase">
-                                {rel.relationship_type || 'RELATION'}
-                              </span>
-                            </div>
-                            <div className="text-[11px] text-amber-800 font-semibold flex items-center gap-1">
-                              ➔ {rel.target_concept}
-                            </div>
-                            <p className="text-xs text-stone-600">{rel.description}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Important Questions Section */}
-                    <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-yellow-600" />
-                          <h4 className="text-xs font-black uppercase tracking-wider text-stone-900">
-                            Extracted Questions ({batchAnalysisResults[selectedResultIndex].questions_count || 0})
-                          </h4>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        {(batchAnalysisResults[selectedResultIndex].important_questions || []).map((q: any, qIdx: number) => (
-                          <div key={qIdx} className="p-4 bg-stone-50/60 rounded-2xl border border-stone-200 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-stone-900">Question {qIdx + 1}</span>
-                              <div className="flex items-center gap-2">
-                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${q.difficulty === 'hard'
-                                    ? 'bg-rose-100 text-rose-800'
-                                    : q.difficulty === 'medium'
-                                      ? 'bg-amber-100 text-amber-800'
-                                      : 'bg-emerald-100 text-emerald-800'
-                                  }`}>
-                                  {q.difficulty}
-                                </span>
-                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-stone-200 text-stone-700">
-                                  {q.type} ({q.marks}M)
-                                </span>
-                              </div>
-                            </div>
-                            <p className="text-xs sm:text-sm font-semibold text-stone-800">{q.question}</p>
-                            {q.options && q.options.length > 0 && (
-                              <div className="grid grid-cols-2 gap-1.5 pt-1">
-                                {q.options.map((opt: string, oIdx: number) => (
-                                  <div key={oIdx} className="px-3 py-1.5 rounded-xl bg-white border border-stone-200 text-xs text-stone-700">
-                                    {opt}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                            <div className="pt-2 text-xs text-emerald-800 font-semibold bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
-                              <strong>Correct Answer:</strong> {q.correct_answer}
-                              <p className="text-[11px] text-stone-600 font-normal mt-1"><strong>Explanation:</strong> {q.explanation}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="bg-white p-12 rounded-3xl border border-stone-200/80 shadow-xs text-center space-y-3">
-                <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-2xl">
-                  📚
-                </div>
-                <h3 className="text-sm sm:text-base font-black text-stone-900">
-                  Ready for Multi-Chapter Book & Question Bank Analysis
-                </h3>
-                <p className="text-xs text-stone-400 max-w-md mx-auto">
-                  Select single or multiple chapter PDFs for CBSE, ICSE, or ISC (Class 5–10, 2011–2026) on the left. AI will sequentially analyze each chapter, build the full subject knowledge graph in ArangoDB, and synthesize questions.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ─────────────────────────────────────────────────────────────
           TAB 1: PDF INGESTION & DOCUMENT REPOSITORY
          ───────────────────────────────────────────────────────────── */}
       {activeTab === 'ingestion' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column: Upload Form */}
+          {/* Left Column: Upload Form & Multi-File Pipeline */}
           <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-5">
             <div>
-              <h2 className="text-base font-black text-stone-900">Ingest Curriculum Materials</h2>
-              <p className="text-xs text-stone-400">Upload textbooks, lesson notes, and curriculum guides to extract chunks, vectorize, and generate examination questions</p>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 mb-2">
+                <Sparkles className="w-3.5 h-3.5" />
+                5-Step AI Extraction Pipeline
+              </div>
+              <h2 className="text-base font-black text-stone-900">Ingest Curriculum & Question Papers</h2>
+              <p className="text-xs text-stone-400">Upload textbooks or old question papers to extract questions, generate answers, and store into Question Bank</p>
             </div>
 
-            <form onSubmit={handleUploadPdf} className="space-y-4">
+            <form onSubmit={handleProcessPipeline} className="space-y-4">
+              {/* Document Type Selection */}
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1.5">Document Mode / Type</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDocumentType('textbook')}
+                    className={`px-3 py-2.5 rounded-xl text-xs font-bold border text-left flex items-center gap-2 transition-all ${
+                      documentType === 'textbook'
+                        ? 'bg-amber-500/10 border-amber-400 text-amber-900 ring-2 ring-amber-400/20'
+                        : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
+                    }`}
+                  >
+                    <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
+                    <div>
+                      <p className="leading-tight">Textbook Chapter</p>
+                      <p className="text-[10px] text-stone-500 font-normal">Concept & rule synthesis</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDocumentType('old_question_paper')}
+                    className={`px-3 py-2.5 rounded-xl text-xs font-bold border text-left flex items-center gap-2 transition-all ${
+                      documentType === 'old_question_paper'
+                        ? 'bg-blue-500/10 border-blue-400 text-blue-900 ring-2 ring-blue-400/20'
+                        : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
+                    }`}
+                  >
+                    <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                    <div>
+                      <p className="leading-tight">Old Question Paper</p>
+                      <p className="text-[10px] text-stone-500 font-normal">PYQ question parsing</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Board Selection */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold text-stone-700">Board</label>
-                  {isLoadingMasters && <span className="text-[10px] text-amber-600 animate-pulse font-medium">Syncing active boards...</span>}
+                  <label className="block text-xs font-bold text-stone-700">Target Board</label>
+                  {isLoadingMasters && <span className="text-[10px] text-amber-600 animate-pulse font-medium">Syncing boards...</span>}
                 </div>
                 <select
                   value={selectedBoard}
@@ -1356,9 +791,10 @@ export const AiRagHub: React.FC = () => {
                 </select>
               </div>
 
+              {/* Class & Subject */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">Class</label>
+                  <label className="block text-xs font-bold text-stone-700 mb-1">Class / Grade</label>
                   <select
                     value={selectedGrade}
                     onChange={(e) => handleGradeChange(e.target.value)}
@@ -1384,53 +820,63 @@ export const AiRagHub: React.FC = () => {
               </div>
 
               {/* Multi-Format Document Dropzone */}
-              <div className="relative border-2 border-dashed border-stone-300 rounded-2xl p-6 text-center hover:border-yellow-400 transition-colors bg-stone-50/50">
-                {uploadFile && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setUploadFile(null);
-                      const input = document.getElementById('curriculum-upload-input') as HTMLInputElement;
-                      if (input) input.value = '';
-                    }}
-                    className="absolute top-3 right-3 text-stone-400 hover:text-rose-500 hover:rotate-90 hover:scale-110 transition-all duration-500 ease-out cursor-pointer z-10 animate-in fade-in duration-300 p-0.5"
-                    title="Remove selected file"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
+              <div className="relative border-2 border-dashed border-stone-300 rounded-2xl p-5 text-center hover:border-yellow-400 transition-colors bg-stone-50/50">
                 <input
                   type="file"
                   id="curriculum-upload-input"
+                  multiple
                   accept=".pdf,.docx,.doc,.rtf,.txt,.csv"
-                  onChange={(e) => e.target.files && setUploadFile(e.target.files[0])}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      const filesArr = Array.from(e.target.files);
+                      setUploadFiles((prev) => [...prev, ...filesArr]);
+                    }
+                  }}
                   className="hidden"
                 />
                 <label htmlFor="curriculum-upload-input" className="cursor-pointer space-y-2 block">
                   <div className="w-10 h-10 mx-auto rounded-2xl bg-amber-100 flex items-center justify-center text-yellow-700">
-                    {uploadFile ? (
-                      uploadFile.name.endsWith('.docx') || uploadFile.name.endsWith('.doc') ? (
-                        <span className="text-xl">📘</span>
-                      ) : uploadFile.name.endsWith('.rtf') ? (
-                        <span className="text-xl">📝</span>
-                      ) : uploadFile.name.endsWith('.txt') ? (
-                        <span className="text-xl">📄</span>
-                      ) : (
-                        <span className="text-xl">📕</span>
-                      )
-                    ) : (
-                      <FileText className="w-6 h-6 text-yellow-600 animate-bounce" />
-                    )}
+                    <Layers className="w-5 h-5 text-yellow-600 animate-bounce" />
                   </div>
-                  <p
-                    className="text-xs font-bold text-stone-800 break-all px-2 max-w-full"
-                    title={uploadFile ? uploadFile.name : undefined}
-                  >
-                    {uploadFile ? uploadFile.name : 'Click to select Textbook or Notes'}
+                  <p className="text-xs font-bold text-stone-800">
+                    Click to browse or Drag & Drop Multiple PDF / DOCX
                   </p>
-                  <p className="text-[10px] text-stone-400 font-medium">Supports PDF, Word (.docx/.doc), RTF, TXT up to 50MB</p>
+                  <p className="text-[10px] text-stone-400 font-medium">Supports multiple PDF, Word (.docx/.doc), RTF, TXT files</p>
                 </label>
+
+                {/* Selected Files List */}
+                {uploadFiles.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-stone-200 text-left space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-stone-700">
+                      <span>{uploadFiles.length} File(s) Selected</span>
+                      <button
+                        type="button"
+                        onClick={() => setUploadFiles([])}
+                        className="text-rose-500 hover:underline cursor-pointer"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                    <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                      {uploadFiles.map((f, idx) => (
+                        <div key={idx} className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs">
+                          <div className="flex items-center gap-2 truncate max-w-[220px]">
+                            <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">#{idx + 1}</span>
+                            <span className="truncate text-stone-800 font-medium">{f.name}</span>
+                            <span className="text-[10px] text-stone-400">({(f.size / 1024).toFixed(0)} KB)</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setUploadFiles((prev) => prev.filter((_, i) => i !== idx))}
+                            className="text-stone-400 hover:text-rose-500"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Filename & Selection Mismatch Alert Banner */}
@@ -1440,30 +886,81 @@ export const AiRagHub: React.FC = () => {
                   <div className="text-xs text-amber-950 space-y-0.5">
                     <p className="font-bold text-amber-900">Curriculum Mismatch Warning</p>
                     <p className="text-[11px] text-amber-800 leading-relaxed">
-                      Selected file indicates: <span className="font-bold underline">{detectedMeta?.board || 'Any'} &bull; {detectedMeta?.classGrade || 'Any'} &bull; {detectedMeta?.subject || 'Any'}</span>
+                      First file suggests: <span className="font-bold underline">{detectedMeta?.board || 'Any'} &bull; {detectedMeta?.classGrade || 'Any'} &bull; {detectedMeta?.subject || 'Any'}</span>
                       , but dropdown is currently set to <span className="font-bold">{selectedBoard} &bull; {selectedGrade} &bull; {selectedSubject}</span>.
                     </p>
-                    <p className="text-[10px] text-amber-700 font-medium">
-                      Please adjust the Board, Class, and Subject dropdowns manually to match your file before uploading.
-                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Multi-File Progress Bar Card */}
+              {(batchProgress.isRunning || batchProgress.results.length > 0) && (
+                <div className="p-4 bg-stone-900 text-white rounded-2xl border border-stone-800 space-y-3 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className={`w-4 h-4 text-amber-400 ${batchProgress.isRunning ? 'animate-spin' : ''}`} />
+                      <span className="text-xs font-bold text-stone-200">
+                        {batchProgress.isRunning
+                          ? `Processing File ${batchProgress.current} of ${batchProgress.total}`
+                          : 'Batch Ingestion Complete'}
+                      </span>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-amber-400">{batchProgress.percent}%</span>
+                  </div>
+
+                  {/* Tailwind Progress Bar */}
+                  <div className="w-full bg-stone-800 h-2.5 rounded-full overflow-hidden border border-stone-700">
+                    <div
+                      className="bg-gradient-to-r from-amber-400 to-emerald-400 h-full transition-all duration-300 ease-out"
+                      style={{ width: `${batchProgress.percent}%` }}
+                    />
+                  </div>
+
+                  {/* Badge Metrics */}
+                  <div className="flex items-center justify-between text-[11px] text-stone-300 pt-1">
+                    <span className="flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      Completed: <strong className="text-white">{batchProgress.completed}</strong>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Sliders className="w-3.5 h-3.5 text-amber-400" />
+                      Remaining: <strong className="text-white">{batchProgress.remaining}</strong>
+                    </span>
+                    <span className="text-stone-400 font-mono text-[10px]">
+                      Total: {batchProgress.total} Files
+                    </span>
+                  </div>
+
+                  {/* Current Active Step */}
+                  <p className="text-[11px] text-amber-300 font-mono truncate bg-stone-800/80 px-2.5 py-1.5 rounded-lg border border-stone-700/60">
+                    {batchProgress.currentStepName}
+                  </p>
+
+                  {/* Live Terminal Log Box */}
+                  <div className="bg-black/60 border border-stone-800 rounded-xl p-2.5 max-h-36 overflow-y-auto font-mono text-[10px] text-stone-300 space-y-1 custom-scrollbar">
+                    {batchProgress.logs.map((log, lIdx) => (
+                      <div key={lIdx} className="leading-tight whitespace-pre-wrap">
+                        {log}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
 
               <button
                 type="submit"
-                disabled={!uploadFile || uploading}
+                disabled={uploadFiles.length === 0 || uploading}
                 className="w-full py-3 rounded-2xl text-xs font-bold bg-yellow-400 text-stone-900 hover:bg-yellow-300 transition-all disabled:opacity-50 shadow-xs cursor-pointer flex items-center justify-center gap-2"
               >
                 {uploading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    Extracting Chunks & Vectorizing...
+                    Processing {uploadFiles.length} File(s) through 5-Step Pipeline...
                   </>
                 ) : (
                   <>
                     <Zap className="w-4 h-4" />
-                    Process & Index
+                    Process & Ingest {uploadFiles.length > 0 ? `(${uploadFiles.length} Files)` : ''}
                   </>
                 )}
               </button>

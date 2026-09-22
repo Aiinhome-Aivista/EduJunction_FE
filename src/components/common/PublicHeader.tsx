@@ -31,6 +31,9 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
         <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-stone-600">
           <Link to="/" className="hover:text-yellow-600 transition-colors">Home</Link>
           <a href="/#features" className="hover:text-yellow-600 transition-colors">Features</a>
+          <a href="/#model-papers-2027" className="hover:text-yellow-600 flex items-center gap-1.5 transition-colors">
+            Model Papers <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">2027</span>
+          </a>
           <a href="/#how-it-works" className="hover:text-yellow-600 transition-colors">How It Works</a>
           <a href="/#roles" className="hover:text-yellow-600 transition-colors">For Everyone</a>
           <a href="/#demo" className="hover:text-yellow-600 flex items-center gap-1.5 transition-colors">
@@ -71,7 +74,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
       {/* Mobile drawer */}
       {mob && (
         <div className="lg:hidden bg-white border-t border-stone-100 px-4 py-4 space-y-2">
-          {[["/#hero", "Home"], ["/#features", "Features"], ["/#how-it-works", "How It Works"], ["/#roles", "For Everyone"], ["/#demo", "Demo"]].map(([href, label]) => (
+          {[["/#hero", "Home"], ["/#features", "Features"], ["/#model-papers-2027", "Model Papers 2027 (Coming Soon)"], ["/#how-it-works", "How It Works"], ["/#roles", "For Everyone"], ["/#demo", "Demo"]].map(([href, label]) => (
             <a key={href} href={href} onClick={() => setMob(false)} className="block py-2.5 text-sm font-semibold text-stone-700 hover:text-yellow-600">{label}</a>
           ))}
           <Link to="/blog" onClick={() => setMob(false)} className={isBlogActive ? "block py-2.5 text-sm font-black text-yellow-600" : "block py-2.5 text-sm font-semibold text-stone-700 hover:text-yellow-600"}>Blogs</Link>

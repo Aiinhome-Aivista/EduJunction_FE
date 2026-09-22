@@ -25,10 +25,15 @@ import {
   Plus,
   Minus,
   Download,
-  FileDown
+  FileDown,
+  Eye,
+  PenTool,
+  ExternalLink
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import ApiServices from '../services/ApiServices';
 import { Board, ClassGrade, Subject } from '../types';
+import { ModelPaperViewerModal } from './ModelPaperViewerModal';
 
 declare global {
   interface Window {
@@ -126,11 +131,12 @@ export const getBoardExamMeta = (board: string, classGrade?: string, subject?: s
 export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   studentId,
   studentName = 'Student',
-  studentEmail = 'student@sahajpath.com',
+  studentEmail = 'student@edujunction.com',
   defaultBoard = 'CBSE',
   defaultClass = 'Class 10',
   onNavigateToExam,
 }) => {
+  const navigate = useNavigate();
   // Strictly validate defaultBoard against allowed boards (CBSE, ICSE, ISC)
   const validInitialBoard = BOARDS.includes(defaultBoard as Board) ? defaultBoard : 'CBSE';
   const [selectedBoard, setSelectedBoard] = useState<string>(validInitialBoard);
@@ -146,6 +152,12 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [downloadingPaperKey, setDownloadingPaperKey] = useState<string | null>(null);
+
+  // In-App Model Paper Read-Only Viewer State
+  const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false);
+  const [viewingSub, setViewingSub] = useState<any | null>(null);
+  const [viewingPaperData, setViewingPaperData] = useState<any | null>(null);
+  const [isLoadingPaper, setIsLoadingPaper] = useState<boolean>(false);
 
   // In-App Razorpay Checkout Modal State
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState<boolean>(false);
@@ -276,7 +288,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
           key: keyId,
           amount: orderData.amount || totalPrice * 100,
           currency: 'INR',
-          name: 'SahajPath (EduJunction)',
+          name: 'EduJunction',
           description: `${selectedBoard} ${selectedClass} ${selectedSubject} - ${quantity} Model Test Set${quantity > 1 ? 's' : ''} (₹${totalPrice})`,
           image: '/favicon.jpg',
           order_id: orderData.orderId,
@@ -374,6 +386,10 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
       setIsProcessingPayment(false);
       setPaymentStepText('');
     }
+  };
+
+  const handleOpenViewer = (sub: any) => {
+    window.open(`/model-exam/${sub.id}`, '_blank');
   };
 
   const handleDownloadPaper = async (sub: any, format: 'pdf' | 'docx') => {
@@ -710,7 +726,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               </li>
               <li className="flex items-start gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <span><strong>Instant PDF & Word (DOCX) Downloads:</strong> Clean printable specimen papers with complete formatting.</span>
+                <span><strong>Interactive In-App Model Paper & Solution Viewer:</strong> View all 38 authentic questions with step-by-step model answers directly in your browser.</span>
               </li>
               <li className="flex items-start gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
@@ -778,44 +794,16 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                         </div>
                       </div>
 
-                      {/* Download Action Buttons */}
-                      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-stone-200/60">
+                      {/* View & Practice Action Button */}
+                      <div className="pt-1 border-t border-stone-200/60">
                         <button
                           type="button"
-                          onClick={() => handleDownloadPaper(sub, 'pdf')}
-                          disabled={!!downloadingPaperKey}
-                          className="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100/80 text-rose-800 border border-rose-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer shadow-2xs"
+                          onClick={() => handleOpenViewer(sub)}
+                          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-stone-950 font-black text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer shadow-xs"
                         >
-                          {isDownloadingPdf ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600" />
-                              <span>Generating...</span>
-                            </>
-                          ) : (
-                            <>
-                              <FileDown className="w-3.5 h-3.5 text-rose-600" />
-                              <span>PDF Paper</span>
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleDownloadPaper(sub, 'docx')}
-                          disabled={!!downloadingPaperKey}
-                          className="py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100/80 text-blue-800 border border-blue-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer shadow-2xs"
-                        >
-                          {isDownloadingDocx ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
-                              <span>Generating...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Download className="w-3.5 h-3.5 text-blue-600" />
-                              <span>Word (DOCX)</span>
-                            </>
-                          )}
+                          <PenTool className="w-4 h-4 text-stone-900" />
+                          <span>Take Model Exam & Auto-Grade</span>
+                          <ExternalLink className="w-3.5 h-3.5 text-stone-900/80 ml-0.5" />
                         </button>
                       </div>
                     </div>
@@ -853,7 +841,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                     Razorpay Trusted Checkout
                   </div>
                   <h3 className="text-lg font-black tracking-tight text-white">
-                    SahajPath (EduJunction)
+                    EduJunction
                   </h3>
                 </div>
               </div>
@@ -1062,6 +1050,15 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
           </div>
         </div>
       )}
+
+      {/* In-App Model Question Paper Read-Only Viewer Modal */}
+      <ModelPaperViewerModal
+        isOpen={isViewerOpen}
+        onClose={() => setIsViewerOpen(false)}
+        subscription={viewingSub}
+        paperData={viewingPaperData}
+        isLoading={isLoadingPaper}
+      />
     </div>
   );
 };

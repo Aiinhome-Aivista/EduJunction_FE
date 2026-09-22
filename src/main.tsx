@@ -6,6 +6,7 @@ import App from './App.tsx';
 import { LegalPage } from './components/LegalPage.tsx';
 import { InfoPage } from './components/InfoPage.tsx';
 import { BlogPage } from './components/BlogPage.tsx';
+import { ModelExamPage } from './components/ModelExamPage.tsx';
 import './index.css';
 import AdminLogin from './components/admin/AdminLogin.tsx';
 
@@ -24,6 +25,9 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/edit-blog/:blogId" element={<AdminLogin />} />
           <Route path="/category" element={<AdminLogin />} />
           <Route path="/mock-tests" element={<AdminLogin />} />
+
+          {/* Dedicated Model Examination Full-Page Route */}
+          <Route path="/model-exam/:subscriptionId" element={<ModelExamPage />} />
 
           {/* Public & Information Pages */}
           <Route path="/about" element={<InfoPage type="about" />} />

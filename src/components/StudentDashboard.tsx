@@ -60,16 +60,14 @@ interface StudentDashboardProps {
 }
 
 const DYNAMIC_PALETTE = [
-  '#f59e0b', // Amber
-  '#3b82f6', // Blue
-  '#10b981', // Emerald
-  '#8b5cf6', // Purple
-  '#ec4899', // Pink
-  '#06b6d4', // Cyan
-  '#f97316', // Orange
-  '#6366f1', // Indigo
-  '#14b8a6', // Teal
-  '#eab308', // Yellow
+  '#f59e0b', // Amber / Gold
+  '#1c1917', // Dark Stone / Black
+  '#eab308', // Warm Yellow
+  '#44403c', // Charcoal
+  '#d97706', // Deep Gold
+  '#78716c', // Warm Grey
+  '#b45309', // Dark Amber
+  '#292524', // Rich Black
 ];
 
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({
@@ -290,30 +288,24 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         const isDueSoon = isDueSet && dueMs !== null && dueMs >= nowMs && (dueMs - nowMs) <= 24 * 60 * 60 * 1000;
 
         return (
-          <div className={`rounded-3xl p-5 sm:p-6 text-white shadow-lg relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300 ${
-            isOverdue 
-              ? 'bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 ring-2 ring-rose-400/50' 
-              : isDueSoon 
-                ? 'bg-gradient-to-r from-amber-600 via-orange-500 to-yellow-600 ring-2 ring-amber-300/40' 
-                : 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600'
-          }`}>
+          <div className="rounded-3xl p-5 sm:p-6 text-white shadow-xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300 bg-gradient-to-r from-stone-950 via-stone-900 to-stone-950 border-2 border-amber-400/40">
             <div className="flex items-start sm:items-center gap-3.5 z-10">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-amber-400/20 border border-amber-400/30 backdrop-blur-md flex items-center justify-center text-2xl shrink-0">
                 {isOverdue ? '⚠️' : '📝'}
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/25 text-[11px] font-bold text-yellow-100 tracking-wide">
-                    <CalendarClock className="w-3.5 h-3.5" />
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 text-[11px] font-bold text-amber-300 tracking-wide">
+                    <CalendarClock className="w-3.5 h-3.5 text-amber-400" />
                     <span>Parent Assigned Challenge ({assignedExams.length} Pending)</span>
                   </div>
                   {isOverdue && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-900/80 text-white text-[11px] font-extrabold border border-red-400/60 animate-pulse">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-stone-950 text-[11px] font-black uppercase tracking-wider animate-pulse">
                       ⚠️ Overdue
                     </span>
                   )}
                   {isDueSoon && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-900/70 text-amber-200 text-[11px] font-bold border border-amber-400/50">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-800 text-amber-300 text-[11px] font-bold border border-amber-400/40">
                       ⏳ Due in 24 Hours
                     </span>
                   )}
@@ -321,7 +313,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 <h3 className="text-lg font-black text-white mt-1">
                   {firstExam.subject} {firstExam.chapterTopic ? `— ${firstExam.chapterTopic}` : ''}
                 </h3>
-                <p className="text-xs text-yellow-100 font-medium mt-0.5">
+                <p className="text-xs text-stone-300 font-medium mt-0.5">
                   {firstExam.questionCount} Questions • {firstExam.timeLimitMinutes} Mins • {firstExam.difficulty.toUpperCase()}
                   {firstExam.dueDate ? ` • Due: ${new Date(firstExam.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}${
                     new Date(firstExam.dueDate).getHours() !== 0 || new Date(firstExam.dueDate).getMinutes() !== 0
@@ -335,11 +327,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
             <button
               onClick={onNavigateToArena}
-              className={`px-6 py-3 rounded-2xl font-black text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer shrink-0 z-10 hover:scale-105 ${
-                isOverdue
-                  ? 'bg-white text-rose-700 hover:bg-rose-50 shadow-rose-900/30'
-                  : 'bg-stone-900 hover:bg-black text-yellow-400'
-              }`}
+              className="px-6 py-3 rounded-2xl font-black text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer shrink-0 z-10 hover:scale-105 bg-amber-400 hover:bg-amber-300 text-stone-950 shadow-amber-500/20 active:scale-95"
             >
               <span>{isOverdue ? 'Complete Overdue Test' : 'Start Assigned Test'}</span>
               <ArrowRight className="w-4 h-4" />
@@ -378,7 +366,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           </div>
         </div>
 
-        {/* Card 2: Streak & Activity Log (Rose/Pink - Plan 1 Ratio Bar) */}
+
+        {/* Card 2: Streak & Activity Log (Yellow/Black/Light Grey Theme) */}
         {(() => {
           const studentTotalExams = activityLog?.summary?.totalExams ?? studentExams.length;
           const studentTotalBreaks = activityLog?.summary?.totalMindBreaks ?? 0;
@@ -394,21 +383,21 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 setIsActivityModalOpen(true);
                 fetchStudentActivityLog();
               }}
-              className="bg-gradient-to-br from-rose-50 to-pink-50 p-4 rounded-2xl border border-rose-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-rose-400 hover:scale-[1.01] transition-all cursor-pointer"
+              className="bg-gradient-to-br from-stone-50 via-white to-amber-50/40 p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-amber-400 hover:scale-[1.01] transition-all cursor-pointer"
             >
-              <div className="absolute -right-4 -top-4 w-20 h-20 bg-rose-400 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              <div className="absolute -right-4 -top-4 w-20 h-20 bg-amber-300 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
               <div className="flex items-center justify-between mb-1 relative z-10">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-xl bg-white shadow-xs flex items-center justify-center">
-                    <Flame className="w-3.5 h-3.5 text-rose-500 fill-current" />
+                  <div className="w-7 h-7 rounded-xl bg-amber-100 shadow-xs flex items-center justify-center">
+                    <Flame className="w-3.5 h-3.5 text-amber-600 fill-current" />
                   </div>
-                  <span className="text-xs font-bold text-rose-900 uppercase tracking-wider">Activity Log</span>
+                  <span className="text-xs font-bold text-stone-900 uppercase tracking-wider">Activity Log</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold bg-rose-200/70 text-rose-900 px-2 py-0.5 rounded-full border border-rose-300/60 shadow-2xs flex items-center gap-1">
+                  <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full border border-amber-200 shadow-2xs flex items-center gap-1">
                     🔥 {studentStreak}d Streak
                   </span>
-                  <ChevronRight className="w-3.5 h-3.5 text-rose-600/60 group-hover:translate-x-0.5 transition-transform" />
+                  <ChevronRight className="w-3.5 h-3.5 text-amber-700 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>
 
@@ -417,17 +406,17 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   {studentTotalActivities} <span className="text-xs font-bold text-stone-500">Activities</span>
                 </p>
 
-                {/* Dual-Color Segmented Ratio Bar: Indigo (Study) vs Amber (Mind-Break) */}
-                <div className="mt-2 w-full h-2 bg-stone-200/70 rounded-full overflow-hidden flex shadow-2xs">
+                {/* Dual-Color Segmented Ratio Bar: Black (Study) vs Amber (Mind-Break) */}
+                <div className="mt-2 w-full h-2 bg-stone-200/80 rounded-full overflow-hidden flex shadow-2xs">
                   {studentTotalActivities > 0 ? (
                     <>
                       <div
-                        className="bg-indigo-600 h-full transition-all duration-500"
+                        className="bg-stone-900 h-full transition-all duration-500"
                         style={{ width: `${studentExamRatio}%` }}
                         title={`${studentTotalExams} Tests (${Math.round(studentExamRatio)}%)`}
                       />
                       <div
-                        className="bg-amber-500 h-full transition-all duration-500"
+                        className="bg-amber-400 h-full transition-all duration-500"
                         style={{ width: `${studentBreakRatio}%` }}
                         title={`${studentTotalBreaks} Breaks (${Math.round(studentBreakRatio)}%)`}
                       />
@@ -438,12 +427,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between text-[10px] font-semibold text-stone-600 mt-1.5">
-                  <span className="text-indigo-800 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 inline-block"></span>
+                  <span className="text-stone-900 flex items-center gap-1 font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-stone-900 inline-block"></span>
                     {studentTotalExams} {studentTotalExams === 1 ? 'Test' : 'Tests'} (~{studentStudyMins}m)
                   </span>
-                  <span className="text-amber-800 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+                  <span className="text-amber-800 flex items-center gap-1 font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"></span>
                     {studentTotalBreaks} {studentTotalBreaks === 1 ? 'Break' : 'Breaks'}
                   </span>
                 </div>
@@ -452,20 +441,20 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           );
         })()}
 
-        {/* Card 3: Overall Readiness / Accuracy (Emerald/Teal) */}
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 rounded-2xl border border-emerald-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-emerald-400 hover:scale-[1.01] transition-all">
-          <div className="absolute -right-4 -top-4 w-20 h-20 bg-emerald-400 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+        {/* Card 3: Overall Readiness / Accuracy (Yellow/Black Theme) */}
+        <div className="bg-gradient-to-br from-stone-50 via-white to-amber-50/30 p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-amber-400 hover:scale-[1.01] transition-all">
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-amber-300 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
           <div className="flex items-center justify-between mb-1 relative z-10">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-white shadow-xs flex items-center justify-center">
-                <Target className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="w-7 h-7 rounded-xl bg-amber-100 shadow-xs flex items-center justify-center">
+                <Target className="w-3.5 h-3.5 text-amber-700" />
               </div>
-              <span className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Accuracy</span>
+              <span className="text-xs font-bold text-stone-900 uppercase tracking-wider">Accuracy</span>
             </div>
           </div>
           <div className="relative z-10 mt-1">
             <p className="text-xl sm:text-2xl font-black text-stone-900">{accuracyPct}%</p>
-            <p className="text-[10px] text-emerald-700 font-semibold mt-1 truncate">
+            <p className="text-[10px] text-stone-500 font-semibold mt-1 truncate">
               {studentExams.length > 0
                 ? `Based on ${studentExams.length} ${studentExams.length === 1 ? 'challenge' : 'challenges'}`
                 : 'No challenges completed yet'}
@@ -473,24 +462,24 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           </div>
         </div>
 
-        {/* Card 4: Badges (Blue/Indigo - Clickable) */}
+        {/* Card 4: Badges (Yellow/Black Theme) */}
         <div
           onClick={onNavigateToGamification}
-          className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-2xl border border-blue-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-blue-400 hover:scale-[1.01] transition-all cursor-pointer"
+          className="bg-gradient-to-br from-amber-50/60 via-stone-50 to-stone-100 p-4 rounded-2xl border border-amber-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-amber-400 hover:scale-[1.01] transition-all cursor-pointer"
         >
-          <div className="absolute -right-4 -top-4 w-20 h-20 bg-blue-400 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+          <div className="absolute -right-4 -top-4 w-20 h-20 bg-amber-400 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
           <div className="flex items-center justify-between mb-1 relative z-10">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-xl bg-white shadow-xs flex items-center justify-center">
-                <Award className="w-3.5 h-3.5 text-blue-600" />
+                <Award className="w-3.5 h-3.5 text-amber-600" />
               </div>
-              <span className="text-xs font-bold text-blue-900 uppercase tracking-wider">Badges</span>
+              <span className="text-xs font-bold text-amber-950 uppercase tracking-wider">Badges</span>
             </div>
-            <ChevronRight className="w-3.5 h-3.5 text-blue-600/60 group-hover:translate-x-0.5 transition-transform" />
+            <ChevronRight className="w-3.5 h-3.5 text-amber-700 group-hover:translate-x-0.5 transition-transform" />
           </div>
           <div className="relative z-10 mt-1">
             <p className="text-xl sm:text-2xl font-black text-stone-900">{unlockedBadgesCount} <span className="text-xs font-bold text-stone-500">Unlocked</span></p>
-            <p className="text-[10px] text-blue-700 font-semibold mt-1 flex items-center gap-1">
+            <p className="text-[10px] text-amber-800 font-bold mt-1 flex items-center gap-1">
               View Trophy Cabinet <ChevronRight className="w-3 h-3" />
             </p>
           </div>
@@ -521,8 +510,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   </p>
                 </div>
               </div>
-              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Ready
+              <span className="px-3 py-1 rounded-full bg-amber-100 text-stone-900 border border-amber-300 text-xs font-bold flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-amber-700" /> Ready
               </span>
             </div>
 
@@ -538,7 +527,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
               <button
                 onClick={onNavigateToArena}
-                className="shrink-0 px-5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-xs font-black transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                className="shrink-0 px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-black transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95"
               >
                 {isKid ? 'Start Adventure Quest' : 'Launch Challenge'} <ArrowRight className="w-4 h-4" />
               </button>
@@ -549,7 +538,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           <div className="flex-1 rounded-3xl border border-stone-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-sky-100 flex items-center justify-center text-sky-700 font-black text-sm">
+                <div className="w-8 h-8 rounded-xl bg-stone-900 text-amber-400 flex items-center justify-center font-black text-sm">
                   🧭
                 </div>
                 <div>
@@ -559,16 +548,16 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
               <button
                 onClick={onNavigateToLearningPath}
-                className="text-xs font-bold text-sky-600 hover:text-sky-800 flex items-center gap-1 cursor-pointer"
+                className="text-xs font-bold text-amber-700 hover:text-amber-900 flex items-center gap-1 cursor-pointer"
               >
                 View Full Path <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {nextRecommendedTopic ? (
-              <div className="flex-1 rounded-2xl border border-sky-100 bg-gradient-to-r from-sky-50/60 via-white to-amber-50/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex-1 rounded-2xl border border-amber-200/80 bg-gradient-to-r from-stone-50 via-white to-amber-50/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 text-[10px] font-black uppercase">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-stone-900 border border-amber-200 text-[10px] font-black uppercase">
                     <span>{nextRecommendedTopic.subject}</span> &bull; <span>Node {nextRecommendedTopic.nodeId}</span>
                   </div>
                   <h4 className="font-black text-stone-900 text-sm sm:text-base">{nextRecommendedTopic.topicName}</h4>
@@ -576,7 +565,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 </div>
                 <button
                   onClick={onNavigateToLearningPath}
-                  className="shrink-0 px-4 py-2 rounded-xl bg-stone-900 text-white hover:bg-stone-800 text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="shrink-0 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 hover:text-stone-950 text-xs font-black transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   Continue Quest <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -768,15 +757,15 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
               {/* Strongest */}
               <div className="space-y-2">
-                <div className="text-[11px] font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+                <div className="text-[11px] font-black text-stone-900 uppercase tracking-wider flex items-center gap-1">
                   <span>⭐</span> Strong Topics ({strongTopics.length})
                 </div>
                 {strongTopics.length > 0 ? (
                   <div className="space-y-1.5">
-                    {strongTopics.map(({ topic, score }) => (
-                      <div key={topic} className="flex items-center justify-between p-2 rounded-xl bg-emerald-50/60 border border-emerald-100 text-xs">
+                    {strongTopics.map(({ topic }) => (
+                      <div key={topic} className="flex items-center justify-between p-2 rounded-xl bg-stone-50 border border-stone-200 text-xs">
                         <span className="font-bold text-stone-800 truncate max-w-[160px]" title={topic}>{topic}</span>
-                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
+                        <span className="text-[10px] font-bold text-stone-950 bg-amber-400 px-2 py-0.5 rounded-full shrink-0 shadow-2xs">
                           🌟 Mastered
                         </span>
                       </div>
@@ -789,7 +778,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
               {/* Needs Attention */}
               <div className="space-y-2 pt-2 border-t border-stone-100">
-                <div className="text-[11px] font-black text-amber-700 uppercase tracking-wider flex items-center justify-between">
+                <div className="text-[11px] font-black text-stone-900 uppercase tracking-wider flex items-center justify-between">
                   <span className="flex items-center gap-1">
                     <span>📌</span> Needs Revision ({weakTopics.length})
                   </span>
@@ -815,14 +804,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         <div
                           key={topic}
                           onClick={() => onNavigateToArena({ subject: inferSubject(topic), topic })}
-                          className="flex items-center justify-between p-2 rounded-xl bg-rose-50/60 hover:bg-rose-100/90 border border-rose-100 hover:border-rose-300 text-xs transition-all cursor-pointer group shadow-2xs hover:shadow-xs"
+                          className="flex items-center justify-between p-2 rounded-xl bg-stone-50 hover:bg-amber-50/80 border border-stone-200 hover:border-amber-300 text-xs transition-all cursor-pointer group shadow-2xs hover:shadow-xs"
                           title={`Click to start targeted remedial sprint on: ${topic}`}
                         >
                           <div className="flex items-center gap-1.5 truncate max-w-[150px]">
-                            <Target className="w-3.5 h-3.5 text-rose-500 shrink-0 group-hover:scale-110 transition-transform" />
+                            <Target className="w-3.5 h-3.5 text-stone-700 shrink-0 group-hover:scale-110 transition-transform" />
                             <span className="font-bold text-stone-800 truncate">{topic}</span>
                           </div>
-                          <span className="text-[10px] font-bold text-rose-700 bg-rose-100/80 border border-rose-200 px-2 py-0.5 rounded-full shrink-0 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                          <span className="text-[10px] font-bold text-amber-950 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full shrink-0 group-hover:bg-amber-400 group-hover:text-stone-950 transition-colors">
                             {score >= 60 ? '📈 Practice' : '🎯 Sprint'}
                           </span>
                         </div>
@@ -830,8 +819,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     })}
                   </div>
                 ) : strongTopics.length > 0 ? (
-                  <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 text-xs text-emerald-800 font-semibold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-stone-900 font-semibold flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                     <span>All tested topics mastered! Keep it up!</span>
                   </div>
                 ) : (
@@ -858,15 +847,15 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   onNavigateToArena();
                 }
               }}
-              className="w-full mt-3 py-3 bg-stone-900 hover:bg-stone-800 text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95 shrink-0"
+              className="w-full mt-3 py-3 bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs sm:text-sm font-black rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95 shrink-0"
             >
               {weakTopics.length > 0 ? (
                 <>
-                  <Target className="w-4 h-4 text-rose-400" /> Improve Weak Areas ({weakTopics[0].topic.slice(0, 18)}...)
+                  <Target className="w-4 h-4 text-stone-950" /> Improve Weak Areas ({weakTopics[0].topic.slice(0, 18)}...)
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 text-yellow-400" /> Practice Next Challenge
+                  <Sparkles className="w-4 h-4 text-stone-950" /> Practice Next Challenge
                 </>
               )}
             </button>
@@ -911,7 +900,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         {dateStr} &bull; {sub.examType || (isKid ? '5-Mark Adventure Quest' : '15-Mark Challenge')}
                       </div>
                     </div>
-                    <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${scorePct >= 75 ? 'bg-emerald-100 text-emerald-800' : scorePct >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'}`}>
+                    <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${scorePct >= 75 ? 'bg-amber-400 text-stone-950 shadow-2xs' : scorePct >= 50 ? 'bg-stone-200 text-stone-900' : 'bg-stone-900 text-amber-300'}`}>
                       {scorePct}%
                     </span>
                   </div>
@@ -949,7 +938,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-stone-100 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-600">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600">
                   <Activity className="w-5 h-5" />
                 </div>
                 <div>
@@ -973,42 +962,42 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             {/* Summary Metrics Chips */}
             {activityLog?.summary && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 my-3 shrink-0">
-                <div className="p-2.5 rounded-2xl bg-rose-50/70 border border-rose-100 text-center">
-                  <p className="text-[10px] font-semibold text-rose-700 uppercase tracking-wider">Active Streak</p>
-                  <p className="text-lg font-black text-rose-950 mt-0.5">
-                    🔥 {activityLog.summary.currentStreakDays} <span className="text-[10px] font-bold text-rose-600">Days</span>
+                <div className="p-2.5 rounded-2xl bg-amber-100 border border-amber-300 text-center">
+                  <p className="text-[10px] font-bold text-stone-900 uppercase tracking-wider">Active Streak</p>
+                  <p className="text-lg font-black text-stone-950 mt-0.5">
+                    🔥 {activityLog.summary.currentStreakDays} <span className="text-[10px] font-bold text-amber-800">Days</span>
                   </p>
                 </div>
-                <div className="p-2.5 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-center">
-                  <p className="text-[10px] font-semibold text-indigo-700 uppercase tracking-wider">Tests Taken</p>
-                  <p className="text-lg font-black text-indigo-950 mt-0.5">
-                    {activityLog.summary.totalExams} <span className="text-[10px] font-bold text-indigo-600">sprints</span>
+                <div className="p-2.5 rounded-2xl bg-stone-100 border border-stone-200 text-center">
+                  <p className="text-[10px] font-bold text-stone-600 uppercase tracking-wider">Tests Taken</p>
+                  <p className="text-lg font-black text-stone-900 mt-0.5">
+                    {activityLog.summary.totalExams} <span className="text-[10px] font-bold text-stone-600">sprints</span>
                   </p>
                 </div>
-                <div className="p-2.5 rounded-2xl bg-amber-50/70 border border-amber-100 text-center">
-                  <p className="text-[10px] font-semibold text-amber-700 uppercase tracking-wider">Mind-Breaks</p>
+                <div className="p-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-center">
+                  <p className="text-[10px] font-bold text-amber-900 uppercase tracking-wider">Mind-Breaks</p>
                   <p className="text-lg font-black text-amber-950 mt-0.5">
-                    {activityLog.summary.totalMindBreaks} <span className="text-[10px] font-bold text-amber-600">played</span>
+                    {activityLog.summary.totalMindBreaks} <span className="text-[10px] font-bold text-amber-700">played</span>
                   </p>
                 </div>
-                <div className="p-2.5 rounded-2xl bg-emerald-50/70 border border-emerald-100 text-center">
-                  <p className="text-[10px] font-semibold text-emerald-700 uppercase tracking-wider">Study Time</p>
-                  <p className="text-lg font-black text-emerald-950 mt-0.5">
-                    ~{activityLog.summary.totalStudyMinutes} <span className="text-[10px] font-bold text-emerald-600">mins</span>
+                <div className="p-2.5 rounded-2xl bg-stone-900 border border-stone-800 text-center text-white">
+                  <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Study Time</p>
+                  <p className="text-lg font-black text-white mt-0.5">
+                    ~{activityLog.summary.totalStudyMinutes} <span className="text-[10px] font-bold text-amber-400">mins</span>
                   </p>
                 </div>
               </div>
             )}
 
             {/* Daily Practice Streak Motivation Pill */}
-            <div className="mb-3 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-rose-50 to-orange-50 border border-rose-200/80 flex items-center justify-between gap-2 shrink-0">
+            <div className="mb-3 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-amber-50 to-stone-50 border border-amber-300/80 flex items-center justify-between gap-2 shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-base">🔥</span>
-                <span className="text-xs text-rose-900 font-semibold">
+                <span className="text-xs text-stone-900 font-semibold">
                   <strong>Daily Practice Streak:</strong> Practice every day to build learning momentum and unlock milestone badges!
                 </span>
               </div>
-              <span className="text-[11px] font-bold text-rose-700 bg-rose-200/60 px-2 py-0.5 rounded-lg shrink-0">
+              <span className="text-[11px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-lg shrink-0">
                 {activityLog?.summary?.currentStreakDays ?? streakDays}d Active
               </span>
             </div>
@@ -1017,12 +1006,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
             <div className="overflow-y-auto hide-scrollbar space-y-3 flex-1 pr-1">
               {isLoadingActivity ? (
                 <div className="py-12 text-center text-stone-400 space-y-2">
-                  <div className="w-8 h-8 border-3 border-rose-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                  <div className="w-8 h-8 border-3 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto" />
                   <p className="text-xs font-medium">Loading your learning timeline...</p>
                 </div>
               ) : !activityLog || activityLog.activities.length === 0 ? (
                 <div className="py-12 px-4 text-center rounded-2xl border border-dashed border-stone-200 bg-stone-50/50 space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 mx-auto flex items-center justify-center text-xl">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 mx-auto flex items-center justify-center text-xl">
                     🚀
                   </div>
                   <div>
@@ -1045,12 +1034,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         {/* Dot Icon on Vertical Line */}
                         <div className={`absolute -left-6 top-3 w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white shadow-xs ${
                           isParentExam
-                            ? 'bg-purple-600 text-white'
+                            ? 'bg-stone-900 text-amber-400'
                             : isExam
-                              ? 'bg-blue-600 text-white'
+                              ? 'bg-amber-500 text-stone-950'
                               : isMindBreak
-                                ? 'bg-amber-500 text-white'
-                                : 'bg-yellow-500 text-stone-900'
+                                ? 'bg-amber-400 text-stone-950'
+                                : 'bg-stone-700 text-amber-300'
                         }`}>
                           {isParentExam ? '🎯' : isExam ? '📝' : isMindBreak ? '🎮' : '🏆'}
                         </div>
@@ -1058,24 +1047,24 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         {/* Card Item */}
                         <div className={`p-3.5 rounded-2xl border transition-all ${
                           isParentExam
-                            ? 'bg-purple-50/40 border-purple-200/80 hover:border-purple-300'
+                            ? 'bg-stone-50 border-stone-300 hover:border-amber-400'
                             : isExam
-                              ? 'bg-blue-50/30 border-blue-200/70 hover:border-blue-300'
+                              ? 'bg-amber-50/40 border-amber-200/70 hover:border-amber-400'
                               : isMindBreak
-                                ? 'bg-amber-50/40 border-amber-200/80 hover:border-amber-300'
-                                : 'bg-yellow-50/40 border-yellow-200/80 hover:border-yellow-300'
+                                ? 'bg-stone-50 border-amber-200/80 hover:border-amber-300'
+                                : 'bg-amber-50/40 border-amber-200/80 hover:border-amber-300'
                         }`}>
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                                   isParentExam
-                                    ? 'bg-purple-200/80 text-purple-900'
+                                    ? 'bg-stone-900 text-amber-300'
                                     : isExam
-                                      ? 'bg-blue-200/80 text-blue-900'
+                                      ? 'bg-amber-400 text-stone-950'
                                       : isMindBreak
-                                        ? 'bg-amber-200/80 text-amber-900'
-                                        : 'bg-yellow-200/80 text-yellow-900'
+                                        ? 'bg-amber-200 text-stone-900'
+                                        : 'bg-stone-200 text-stone-800'
                                 }`}>
                                   {isParentExam
                                     ? 'Parent Assignment'
@@ -1113,10 +1102,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                 {item.scorePct !== undefined && item.scorePct !== null && (
                                   <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
                                     item.scorePct >= 70
-                                      ? 'bg-emerald-100 text-emerald-800'
+                                      ? 'bg-amber-400 text-stone-950 shadow-2xs'
                                       : item.scorePct >= 50
-                                        ? 'bg-amber-100 text-amber-800'
-                                        : 'bg-rose-100 text-rose-800'
+                                        ? 'bg-stone-200 text-stone-900'
+                                        : 'bg-stone-900 text-amber-300'
                                   }`}>
                                     {item.marksObtained !== undefined && item.marksObtained !== null && item.totalMarks
                                       ? `${item.marksObtained}/${item.totalMarks}`

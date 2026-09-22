@@ -402,6 +402,16 @@ class ApiServices {
   saveRagQuestions(payload: { topic_id: number; questions: any[] }) {
     return this.post(POST_APIS.saveRagQuestions, payload);
   }
+  processDocumentPipeline(formData: FormData) {
+    return apiClient.post(POST_APIS.processDocumentPipeline, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((res) => res.data.data !== undefined ? res.data.data : res.data);
+  }
+  processDocumentsBatch(formData: FormData) {
+    return apiClient.post(POST_APIS.processDocumentsBatch, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((res) => res.data.data !== undefined ? res.data.data : res.data);
+  }
   analyzeBookAndQuestionBank(formData: FormData) {
     return apiClient.post(POST_APIS.analyzeBook, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -478,6 +488,12 @@ class ApiServices {
   }
   getMySubjectSubscriptions() {
     return this.get(GET_APIS.mySubjectSubscriptions);
+  }
+  previewSubjectModelPaper(subscriptionId: number | string) {
+    return this.get(GET_APIS.previewSubjectModelPaper(subscriptionId));
+  }
+  evaluateSubjectModelPaper(subscriptionId: number | string, payload: { answers: Record<string, string>; timeSpentSeconds?: number }) {
+    return this.post(POST_APIS.evaluateSubjectModelPaper(subscriptionId), payload);
   }
   async downloadSubjectModelPaper(subscriptionId: number | string, format: 'pdf' | 'docx' = 'pdf', customFilename?: string) {
     const url = GET_APIS.downloadSubjectModelPaper(subscriptionId, format);

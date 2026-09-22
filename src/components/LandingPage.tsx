@@ -622,18 +622,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
 
-          {/* 1. Coming Soon: Model Test Papers 2027 Announcement Banner */}
+          {/* 1. Coming Soon: Model Test Papers – ICSE & CBSE 2027 Announcement Banner */}
           <div className="rounded-3xl bg-white border border-amber-300/80 p-6 sm:p-8 shadow-lg shadow-amber-500/5 relative overflow-hidden">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div className="space-y-3 max-w-2xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-black uppercase tracking-wider">
                   <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                  Upcoming Curriculum Feature
+                  Upcoming Feature
                 </div>
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-tight">
-                  2027 Model Question Papers —{' '}
+                  Coming Soon: Model Test Papers —{' '}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-yellow-600">
-                    CBSE, ICSE & ISC
+                    ICSE & CBSE 2027
                   </span>
                 </h2>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
@@ -656,36 +656,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               <div className="shrink-0 bg-gradient-to-br from-amber-500 to-yellow-500 text-white p-6 rounded-2xl shadow-md text-center space-y-2 w-full lg:w-64">
                 <span className="text-3xl">📝</span>
-                <h3 className="font-black text-lg">2027 Model Series</h3>
-                <p className="text-xs text-amber-100 font-bold">CBSE • ICSE • ISC</p>
+                <h3 className="font-black text-lg">Model Papers 2027</h3>
+                <p className="text-xs text-amber-100 font-bold">ICSE • CBSE • ISC</p>
                 <div className="pt-2">
                   <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-[11px] font-black uppercase">
-                    Full Specimen Series
+                    Coming Soon
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 2. Free 10-Mark Diagnostic Mock Test: Parent & Child Registration Card */}
+          {/* 2. Free Mock Test: Subject-Wise 10-Mark Diagnostic Mock Test Available */}
           <div className="rounded-3xl bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 text-white p-6 sm:p-10 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="grid lg:grid-cols-12 gap-8 items-center">
               <div className="lg:col-span-8 space-y-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400 text-stone-950 text-xs font-black">
-                  <Zap className="w-3.5 h-3.5 fill-current" /> 100% Free For Parents & Students
+                  <Zap className="w-3.5 h-3.5 fill-current" /> Free Mock Test Available
                 </div>
                 <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
-                  Start Your Child’s Free 10-Mark Diagnostic Test
+                  Free Subject-Wise 10-Mark Mock Test
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
-                  Understand your child’s learning level and conceptual strengths in just 15 minutes. <b>Create a free Parent Account</b>, add your child’s Board (CBSE, ICSE, ISC) and Class (5 to 10), and unlock subject-wise practice tests with step-by-step solutions and a detailed performance report delivered straight to your email.
+                  Understand your child’s learning level and conceptual strengths in just 15 minutes. <b>Create a free Parent Account</b>, add your child’s Board (CBSE, ICSE, ISC) and Class (5 to 10), and unlock free subject-wise practice tests with step-by-step solutions and a detailed diagnostic report delivered straight to your email.
                 </p>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                   <div className="p-3.5 rounded-2xl bg-stone-800/90 border border-stone-700/80">
-                    <p className="text-xs font-bold text-yellow-400">📝 10-Mark Test</p>
+                    <p className="text-xs font-bold text-yellow-400">📝 Free 10-Mark Test</p>
                     <p className="text-[11px] text-stone-400 mt-0.5">15-Minute timed assessment</p>
                   </div>
                   <div className="p-3.5 rounded-2xl bg-stone-800/90 border border-stone-700/80">
