@@ -431,7 +431,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
       });
 
       const keyId = orderData.keyId || '';
-      const isRealRazorpayKey = keyId && keyId.startsWith('rzp_test_') && !keyId.includes('demo') && !keyId.includes('mock');
+      const isRealRazorpayKey = keyId && (keyId.startsWith('rzp_test_') || keyId.startsWith('rzp_live_')) && !keyId.includes('demo') && !keyId.includes('mock');
 
       // If Razorpay SDK is available and a live/test key is set, open official popup
       if (typeof window !== 'undefined' && window.Razorpay && isRealRazorpayKey) {
@@ -1333,7 +1333,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 ) : (
                   <>
                     <ShieldCheck className="w-4 h-4 text-emerald-300" />
-                    <span>Pay ₹{totalPrice}.00 (Test / Live)</span>
+                    <span>Pay ₹{totalPrice}.00</span>
                   </>
                 )}
               </button>

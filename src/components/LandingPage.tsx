@@ -400,12 +400,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         id="hero"
         className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-white to-stone-50"
       >
+        {/* ── Marquee Ticker — right below navbar ── */}
+        <div className="w-full overflow-hidden relative py-2.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-sm select-none">
+          <div
+            className="flex items-center whitespace-nowrap w-max"
+            style={{ animation: 'navMarquee 25s linear infinite' }}
+          >
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+              <span key={i} className="flex items-center gap-3 pr-12">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-950 text-amber-300 text-[11px] font-black uppercase tracking-wider shadow-sm">
+                  <span>✨</span> NEW
+                </span>
+                <span className="text-stone-950 font-black text-sm sm:text-base tracking-wide drop-shadow-sm">
+                  Model Test Papers for <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span>, <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span> &amp; <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span>
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
+
         <div className="absolute -top-28 -right-28 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl" />
         <div className="absolute top-40 -left-32 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 sm:pt-20 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-16">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="reveal-on-scroll">
+            <div>
 
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-yellow-200 text-yellow-700 text-xs font-bold shadow-sm">
                 Study Buddy-powered learning for students, teachers & parents
@@ -455,7 +474,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             {/* HERO RIGHT IMAGE */}
-            <div className="relative flex justify-center lg:justify-end reveal-on-scroll">
+            <div className="relative flex justify-center lg:justify-end">
               <style>{`
                 @keyframes float-animation {
                   0% { transform: translateY(0px); }

@@ -573,28 +573,28 @@ class ApiServices {
     return this.get(GET_APIS.activeLlmConfig);
   }
   createLlmConfig(payload: {
-    config_name: string;
-    provider: string;
-    base_url?: string;
-    api_key?: string;
-    model_name: string;
-    max_tokens?: number;
+    displayTitle: string;
+    providerName: string;
+    baseUrl?: string;
+    apiKey?: string;
+    modelName: string;
+    maxTokens?: number;
     temperature?: number;
-    timeout_seconds?: number;
-    is_active?: boolean;
+    timeoutSeconds?: number;
+    isActive?: boolean;
   }) {
     return this.post(POST_APIS.createLlmConfig, payload);
   }
   updateLlmConfig(id: number | string, payload: {
-    config_name?: string;
-    provider?: string;
-    base_url?: string;
-    api_key?: string;
-    model_name?: string;
-    max_tokens?: number;
+    displayTitle?: string;
+    providerName?: string;
+    baseUrl?: string;
+    apiKey?: string;
+    modelName?: string;
+    maxTokens?: number;
     temperature?: number;
-    timeout_seconds?: number;
-    is_active?: boolean;
+    timeoutSeconds?: number;
+    isActive?: boolean;
   }) {
     return this.put(PUT_APIS.updateLlmConfig(id), payload);
   }
@@ -605,16 +605,16 @@ class ApiServices {
     return this.del(DELETE_APIS.deleteLlmConfig(id));
   }
   testLlmConfig(payload: {
-    config_id?: number;
-    provider: string;
+    config_id: number | string;
+    provider?: string;
     base_url?: string;
     api_key?: string;
-    model_name: string;
+    model_name?: string;
     temperature?: number;
     max_tokens?: number;
     timeout_seconds?: number;
   }) {
-    return this.post(POST_APIS.testLlmConfig, payload);
+    return this.post(POST_APIS.testLlmConfig(payload.config_id), payload);
   }
 
   // ── Health ────────────────────────────────

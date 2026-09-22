@@ -170,3 +170,23 @@ body {
     margin-bottom: 8px !important;
   }
 }
+/* ========== Navbar Marquee Ticker Animations ========== */
+@keyframes navMarquee {
+  0%   { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+@keyframes navShimmer {
+  0%   { background-position: -300% center; }
+  100% { background-position:  300% center; }
+}
+
+@keyframes navGlowPulse {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%       { opacity: 0.65; transform: scale(1.08); }
+}
+
+@keyframes navFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-5px); }
+}
