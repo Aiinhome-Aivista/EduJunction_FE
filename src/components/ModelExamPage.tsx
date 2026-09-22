@@ -1020,74 +1020,12 @@ export const ModelExamPage: React.FC = () => {
                                 )}
                               </div>
                             ) : (
-<<<<<<< HEAD
                               /* ── Student Interactive Test Mode ── */
                               <div>
                                 {isMcq && q.options && q.options.length > 0 ? (
                                   <div className="space-y-2">
                                     <div className="text-xs font-bold text-stone-500 uppercase tracking-wider">
                                       Select your answer:
-=======
-                              <div className="space-y-1.5">
-                                <div className="flex items-center justify-between text-xs text-stone-500 font-bold">
-                                  <span className="flex items-center gap-1.5">
-                                    <PenTool className="w-3.5 h-3.5 text-amber-500" />
-                                    Type your complete step-by-step answer:
-                                  </span>
-                                  <span>{currentStudentAns.length} characters</span>
-                                </div>
-                                <textarea
-                                  value={currentStudentAns}
-                                  onChange={(e) => handleTextAnswerChange(qKey, e.target.value)}
-                                  placeholder="Write your answer here..."
-                                  rows={4}
-                                  className="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all resize-y shadow-2xs"
-                                />
-
-                                {/* Math Quick Toolbar & Diagram Canvas Scratchpad */}
-                                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                                    <span className="text-stone-400 font-bold mr-1">Quick Symbols:</span>
-                                    {['√', 'π', 'θ', 'Δ', '∫', 'Σ', '²', '±', '≠', '≈', '÷', '×'].map((sym) => (
-                                      <button
-                                        key={sym}
-                                        type="button"
-                                        onClick={() => handleTextAnswerChange(qKey, (currentStudentAns || '') + sym)}
-                                        className="px-2 py-0.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-mono font-bold border border-stone-200 cursor-pointer text-xs"
-                                      >
-                                        {sym}
-                                      </button>
-                                    ))}
-                                  </div>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => setActiveCanvasKey(qKey)}
-                                    className="px-3 py-1 rounded-xl bg-stone-900 hover:bg-stone-700 text-amber-300 font-bold text-xs border border-stone-700 flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
-                                  >
-                                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                                    <span>Draw Diagram / Sketch 🎨</span>
-                                  </button>
-                                </div>
-
-                                {/* Display Attached Drawing Preview if present */}
-                                {drawnDiagrams[qKey] && (
-                                  <div className="p-3.5 bg-stone-50 rounded-2xl border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-2 shadow-2xs">
-                                    <div className="flex items-center gap-3">
-                                      <img
-                                        src={drawnDiagrams[qKey]}
-                                        alt="Attached Diagram"
-                                        className="w-24 h-24 object-contain rounded-xl border border-amber-300 bg-white shadow-xs"
-                                      />
-                                      <div>
-                                        <span className="text-xs font-bold text-stone-950 block">
-                                          🎨 Attached Hand-Drawn Diagram / Sketch
-                                        </span>
-                                        <span className="text-[11px] text-stone-600">
-                                          Your figure will be evaluated with your step-by-step text answer.
-                                        </span>
-                                      </div>
->>>>>>> dfc08f336200f0ff8bd1616cc10ef50a3b88ed82
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                       {q.options.map((opt, optIdx) => {
