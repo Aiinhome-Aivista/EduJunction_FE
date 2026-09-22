@@ -235,19 +235,49 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
     }
   }, [selectedBoard, availableClasses, selectedClass]);
 
-  // Determine available subjects based on board and class
+  // Dynamic Database Curriculum Options for Model Paper
+  const [dbSubjects, setDbSubjects] = useState<string[]>([]);
+  const [isLoadingCurriculum, setIsLoadingCurriculum] = useState<boolean>(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoadingCurriculum(true);
+    ApiServices.getCurriculumOptions({
+      board: selectedBoard,
+      classGrade: selectedClass,
+    })
+      .then((res: any) => {
+        if (!isMounted) return;
+        const fetched: any[] = res?.subjects || res?.data?.subjects || [];
+        const subjectNames = fetched.map((s: any) => (typeof s === 'string' ? s : s.name)).filter(Boolean);
+        setDbSubjects(subjectNames);
+      })
+      .catch((err) => {
+        console.error('Failed to load database subjects for model paper:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingCurriculum(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedBoard, selectedClass]);
+
+  // Determine available subjects directly from database, falling back to template if DB is loading
   const availableSubjects = useMemo(() => {
+    if (dbSubjects.length > 0) return dbSubjects;
     if (selectedBoard === 'CBSE' && selectedClass === 'Class 10') return SUBJECTS_BY_BOARD_CLASS.CBSE_10;
     if (selectedBoard === 'CBSE' && selectedClass === 'Class 12') return SUBJECTS_BY_BOARD_CLASS.CBSE_12;
     if (selectedBoard === 'ICSE') return SUBJECTS_BY_BOARD_CLASS.ICSE_10;
     if (selectedBoard === 'ISC') return SUBJECTS_BY_BOARD_CLASS.ISC_12;
     return SUBJECTS_BY_BOARD_CLASS.DEFAULT;
-  }, [selectedBoard, selectedClass]);
+  }, [dbSubjects, selectedBoard, selectedClass]);
 
   // Ensure selectedSubject is valid
   useEffect(() => {
-    if (!availableSubjects.includes(selectedSubject)) {
-      setSelectedSubject(availableSubjects[0] || 'Mathematics');
+    if (availableSubjects.length > 0 && !availableSubjects.includes(selectedSubject)) {
+      setSelectedSubject(availableSubjects[0]);
     }
   }, [availableSubjects, selectedSubject]);
 
@@ -753,9 +783,17 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
 
           {/* 3. Subject Selection */}
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase text-stone-600 tracking-wider">
-              3. Select Subject
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-black uppercase text-stone-600 tracking-wider flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-amber-500" />
+                <span>3. Select Subject</span>
+              </label>
+              {isLoadingCurriculum ? (
+                <span className="text-[10px] text-amber-600 font-semibold animate-pulse">Loading DB subjects...</span>
+              ) : (
+                <span className="text-[10px] text-stone-400 font-medium">{selectedBoard} • {selectedClass}</span>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2.5">
               {availableSubjects.map((sub) => {
                 const isSel = selectedSubject === sub;
