@@ -170,6 +170,7 @@ class ApiServices {
   register(body: any) { return this.post(POST_APIS.register, body); }
   sendResetOtp(body: { identifier: string }) { return this.post(POST_APIS.sendResetOtp, body); }
   resetPassword(body: { identifier: string; otp?: string; newPassword: string }) { return this.post(POST_APIS.resetPassword, body); }
+  getCaptcha() { return this.get(GET_APIS.captcha); }
   checkUsername(username: string) { return this.get(GET_APIS.checkUsername(username)); }
   getRoles() { return this.get(GET_APIS.roles); }
   verifySession() { return this.get(GET_APIS.verifySession); }
