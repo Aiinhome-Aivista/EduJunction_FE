@@ -137,6 +137,103 @@ export const ModelExamPage: React.FC = () => {
   const [drawnDiagrams, setDrawnDiagrams] = useState<Record<string, string>>({});
   const [unlockToast, setUnlockToast] = useState<string | null>(null);
   const prevUnlockedIndicesRef = React.useRef<Set<number>>(new Set([0]));
+  const [submissionStep, setSubmissionStep] = useState<number>(0);
+
+  // Cycle evaluation progress stages while AI grading is running
+  useEffect(() => {
+    let interval: any = null;
+    if (isSubmitting) {
+      setSubmissionStep(0);
+      interval = setInterval(() => {
+        setSubmissionStep((prev) => (prev < 3 ? prev + 1 : prev));
+      }, 950);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isSubmitting]);
+
+  // Restore saved draft answers from localStorage if available
+  useEffect(() => {
+    if (!subscriptionId || isViewOnly) return;
+    try {
+      const saved = localStorage.getItem(`edujunction_model_exam_${subscriptionId}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.answers && Object.keys(parsed.answers).length > 0) setAnswers(parsed.answers);
+        if (parsed.drawnDiagrams) setDrawnDiagrams(parsed.drawnDiagrams);
+        if (parsed.elapsedSeconds) setElapsedSeconds(parsed.elapsedSeconds);
+      }
+    } catch (e) {
+      console.warn('Could not restore cached exam progress', e);
+    }
+  }, [subscriptionId, isViewOnly]);
+
+  // Continuously persist answers to localStorage
+  useEffect(() => {
+    if (!subscriptionId || isViewOnly || activeMode !== 'TEST') return;
+    try {
+      localStorage.setItem(
+        `edujunction_model_exam_${subscriptionId}`,
+        JSON.stringify({ answers, drawnDiagrams, elapsedSeconds })
+      );
+    } catch (e) {
+      // Ignore storage errors
+    }
+  }, [subscriptionId, isViewOnly, activeMode, answers, drawnDiagrams, elapsedSeconds]);
+
+  // Emergency auto-submit on page hide/unload if student abruptly closes or navigates away
+  useEffect(() => {
+    if (isViewOnly || activeMode !== 'TEST' || !subscriptionId) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '⚠️ You are currently in an active timed examination! Closing this tab will automatically submit your test.';
+      return e.returnValue;
+    };
+
+    const handlePageHide = () => {
+      // If student actually unloads the page while in active test mode, auto-submit via keepalive fetch/beacon
+      if (activeMode === 'TEST' && !evaluationResult) {
+        const finalPayload: Record<string, string> = { ...answers };
+        Object.keys(drawnDiagrams).forEach((key) => {
+          if (drawnDiagrams[key]) {
+            const textPart = answers[key] || '';
+            finalPayload[key] = `${textPart}\n[🎨 Diagram Drawing: ${drawnDiagrams[key]}]`.trim();
+          }
+        });
+
+        const token = sessionStorage.getItem('EduJunction_access_token') || localStorage.getItem('EduJunction_access_token') || '';
+        const url = `/api/v1/subscriptions/subject/${subscriptionId}/evaluate-paper`;
+
+        try {
+          fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': token ? `Bearer ${token}` : '',
+            },
+            body: JSON.stringify({
+              answers: finalPayload,
+              timeSpentSeconds: elapsedSeconds,
+            }),
+            keepalive: true,
+          });
+          localStorage.removeItem(`edujunction_model_exam_${subscriptionId}`);
+        } catch (e) {
+          console.warn('Emergency submit failed', e);
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, [isViewOnly, activeMode, subscriptionId, answers, drawnDiagrams, elapsedSeconds, evaluationResult]);
 
   // Helper to focus first unanswered question when user chooses to 'Go Back'
   const handleGoBackToFirstUnanswered = () => {
@@ -193,6 +290,11 @@ export const ModelExamPage: React.FC = () => {
             sections: data.sections || rawPaper.sections || [],
           };
           setPaperData(normalized);
+          // Broadcast status change to parent/student dashboards
+          try {
+            window.dispatchEvent(new CustomEvent('edujunction_exam_status_update'));
+            localStorage.setItem('edujunction_last_exam_status_sync', Date.now().toString());
+          } catch (e) {}
         } else {
           setError('Failed to load examination paper');
         }
@@ -312,6 +414,11 @@ export const ModelExamPage: React.FC = () => {
       const data = res?.data !== undefined ? res.data : res;
 
       if (data) {
+        try {
+          localStorage.removeItem(`edujunction_model_exam_${subscriptionId}`);
+          window.dispatchEvent(new CustomEvent('edujunction_exam_status_update'));
+          localStorage.setItem('edujunction_last_exam_status_sync', Date.now().toString());
+        } catch (e) {}
         setEvaluationResult(data);
         setActiveMode('RESULT');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -463,7 +570,7 @@ export const ModelExamPage: React.FC = () => {
 
   const unlockedSectionIndices = useMemo(() => {
     const set = new Set<number>();
-    if (activeMode === 'RESULT') {
+    if (activeMode === 'RESULT' || isViewOnly) {
       if (sectionsToRender) {
         sectionsToRender.forEach((_, i) => set.add(i));
       }
@@ -486,7 +593,7 @@ export const ModelExamPage: React.FC = () => {
     }
 
     return set;
-  }, [activeMode, sectionsToRender, sectionAttemptCounts, UNLOCK_THRESHOLDS]);
+  }, [activeMode, isViewOnly, sectionsToRender, sectionAttemptCounts, UNLOCK_THRESHOLDS]);
 
   // Toast notification when a section unlocks
   useEffect(() => {
@@ -609,15 +716,26 @@ export const ModelExamPage: React.FC = () => {
               <span className="text-amber-300 text-[11px] font-bold">Board Rubric</span>
             </div>
 
-            {/* Close / Return Button */}
-            <button
-              type="button"
-              onClick={handleExit}
-              className="py-1.5 px-3 rounded-xl bg-stone-700 hover:bg-stone-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs border border-stone-600"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span>{isViewOnly ? 'Close View' : 'Exit Exam'}</span>
-            </button>
+            {/* Close / Return Button — Only visible for Parent View or Result mode (No exit for student during active test) */}
+            {isViewOnly ? (
+              <button
+                type="button"
+                onClick={handleExit}
+                className="py-1.5 px-3 rounded-xl bg-stone-700 hover:bg-stone-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs border border-stone-600"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Close View</span>
+              </button>
+            ) : activeMode === 'RESULT' ? (
+              <button
+                type="button"
+                onClick={() => navigate('/pricing')}
+                className="py-1.5 px-3 rounded-xl bg-stone-700 hover:bg-stone-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs border border-stone-600"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Return to Passes</span>
+              </button>
+            ) : null}
 
             {activeMode === 'RESULT' && !isViewOnly && (
               <button
@@ -718,7 +836,7 @@ export const ModelExamPage: React.FC = () => {
             {sectionsToRender.map((sec, idx) => {
               const secName = sec.name || `Section ${idx + 1}`;
               const isSelected = selectedSection === secName;
-              const isUnlocked = unlockedSectionIndices.has(idx);
+              const isUnlocked = isViewOnly || unlockedSectionIndices.has(idx);
               const count = sectionAttemptCounts[idx] || 0;
               const prevSecName = idx > 0 ? (sectionsToRender[idx - 1]?.name || `Section ${idx}`) : '';
               const minReq = idx > 0 ? (UNLOCK_THRESHOLDS[idx - 1] || 1) : 0;
@@ -800,14 +918,14 @@ export const ModelExamPage: React.FC = () => {
             const secTitle = section.title || section.name;
             const originalIdx = sectionsToRender.findIndex((s) => s.name === section.name || s.id === section.id);
             const realIdx = originalIdx >= 0 ? originalIdx : sIdx;
-            const isUnlocked = unlockedSectionIndices.has(realIdx);
+            const isUnlocked = isViewOnly || unlockedSectionIndices.has(realIdx);
 
             const prevSecName = realIdx > 0 ? (sectionsToRender[realIdx - 1]?.name || `Section ${realIdx}`) : '';
             const minReq = realIdx > 0 ? (UNLOCK_THRESHOLDS[realIdx - 1] || 1) : 0;
             const prevAttempts = realIdx > 0 ? (sectionAttemptCounts[realIdx - 1] || 0) : 0;
             const choiceTarget = CHOICE_TARGETS[realIdx];
 
-            if (!isUnlocked) {
+            if (!isUnlocked && !isViewOnly) {
               return (
                 <div key={section.id || sIdx} className="bg-white border-2 border-dashed border-stone-200 rounded-3xl p-8 text-center space-y-3 shadow-xs animate-in fade-in duration-200">
                   <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center mx-auto">
@@ -1416,6 +1534,68 @@ export const ModelExamPage: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* Interactive AI Evaluation Multi-Stage Modal */}
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-stone-900 text-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-amber-500/30 text-center space-y-6 animate-in zoom-in-95 duration-200">
+            <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-amber-400/20 animate-ping opacity-75" />
+              <div className="absolute inset-0 rounded-full border-2 border-amber-400/40 border-t-amber-400 animate-spin" />
+              <div className="w-14 h-14 rounded-2xl bg-amber-400 text-stone-950 flex items-center justify-center shadow-lg relative z-10">
+                <Sparkles className="w-7 h-7 text-stone-950 animate-pulse" />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-black tracking-tight text-white">
+                AI Examiner is Evaluating Your Answers...
+              </h3>
+              <p className="text-xs text-stone-400 font-medium">
+                Evaluating against authentic 2027 {paperData?.board || 'Board'} 80-Mark Marking Scheme
+              </p>
+            </div>
+
+            {/* Dynamic Step Badges */}
+            <div className="space-y-2.5 text-left bg-stone-950/50 p-4 rounded-2xl border border-stone-800 text-xs">
+              {[
+                'Ingesting Section A, B & C Answer Scripts...',
+                'Verifying MCQ options & step-marking criteria...',
+                'Calculating section scores & mastery percentage...',
+                'Generating scorecard & emailing report to Parent...'
+              ].map((stepText, sIdx) => {
+                const isPassed = submissionStep > sIdx;
+                const isCurrent = submissionStep === sIdx;
+                return (
+                  <div
+                    key={sIdx}
+                    className={`flex items-center gap-2.5 transition-all ${
+                      isPassed
+                        ? 'text-emerald-400 font-bold'
+                        : isCurrent
+                        ? 'text-amber-300 font-black animate-pulse'
+                        : 'text-stone-600 font-medium'
+                    }`}
+                  >
+                    {isPassed ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    ) : isCurrent ? (
+                      <Loader2 className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border border-stone-700 shrink-0" />
+                    )}
+                    <span className="text-[11px] leading-tight">{stepText}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="text-[10px] text-stone-500 font-semibold">
+              ⚡ Please do not close or refresh this tab while evaluation is running.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Interactive Drawing Canvas Modal */}
       {activeCanvasKey && (
