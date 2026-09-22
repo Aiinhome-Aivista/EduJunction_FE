@@ -11,6 +11,7 @@ export const GET_APIS = {
 
   // Master Data
   boardClassDropdown: `${API_V1}/master/board_class_dropdown`,
+  curriculumOptions: (params?: string) => `${API_V1}/master/curriculum-options${params ? `?${params}` : ''}`,
 
   // Parent
   parentDashboard: `${API_V1}/parents/dashboard`,
@@ -81,6 +82,7 @@ export const POST_APIS = {
   googleLogin: `${API_V1}/auth/google`,
   register: `${API_V1}/auth/register`,
   childLogin: `${API_V1}/auth/child-login`,
+  sendResetOtp: `${API_V1}/auth/send-reset-otp`,
   resetPassword: `${API_V1}/auth/reset-password`,
   logout: `${API_V1}/auth/logout`,
   refreshToken: `${API_V1}/auth/refresh`,

@@ -634,7 +634,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               Choose Board, Class & Subject
             </h2>
             <p className="text-xs text-stone-500 mt-1">
-              Select your Board (CBSE, ICSE, ISC), Class, Subject, and the number of unique 2027 Model Paper Sets you want.
+              Select Your Board (CBSE, ICSE, ISC), Class, Subject, and The Number of Unique <b>2027 Model Paper Sets</b> You Want.
             </p>
           </div>
 
