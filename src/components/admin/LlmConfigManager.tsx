@@ -29,18 +29,18 @@ import ApiServices from '../../services/ApiServices';
 
 export interface LLMConfigItem {
   id: number;
-  config_name: string;
-  provider: string;
-  base_url?: string | null;
-  api_key?: string | null;
-  has_api_key?: boolean;
-  model_name: string;
-  max_tokens: number;
+  displayTitle: string;
+  providerName: string;
+  baseUrl?: string | null;
+  apiKey?: string | null;
+  hasApiKey?: boolean;
+  modelName: string;
+  maxTokens: number;
   temperature: number;
-  timeout_seconds: number;
-  is_active: boolean;
-  created_at?: string;
-  updated_at?: string;
+  timeoutSeconds: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ProviderPreset {
@@ -73,6 +73,15 @@ const PROVIDER_PRESETS: ProviderPreset[] = [
     description: 'Industry standard GPT-4o and GPT-4o-mini models'
   },
   {
+    name: 'Mistral AI',
+    provider: 'mistral',
+    defaultModel: 'mistral-small-latest',
+    defaultBaseUrl: 'https://api.mistral.ai/v1',
+    requiresKey: true,
+    badgeColor: 'bg-orange-50 text-orange-700 border-orange-200',
+    description: 'Fast and cost-effective Mistral models'
+  },
+  {
     name: 'Anthropic Claude',
     provider: 'claude',
     defaultModel: 'claude-3-5-sonnet-20241022',
@@ -80,42 +89,6 @@ const PROVIDER_PRESETS: ProviderPreset[] = [
     requiresKey: true,
     badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
     description: 'Claude 3.5 Sonnet for top academic analysis'
-  },
-  {
-    name: 'DeepSeek',
-    provider: 'deepseek',
-    defaultModel: 'deepseek-chat',
-    defaultBaseUrl: 'https://api.deepseek.com/v1',
-    requiresKey: true,
-    badgeColor: 'bg-sky-50 text-sky-700 border-sky-200',
-    description: 'DeepSeek V3 / R1 reasoning engine with OpenAI-compatible API'
-  },
-  {
-    name: 'Groq',
-    provider: 'groq',
-    defaultModel: 'llama-3.3-70b-versatile',
-    defaultBaseUrl: 'https://api.groq.com/openai/v1',
-    requiresKey: true,
-    badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
-    description: 'Ultra-low latency inference for Llama 3.3 and Mixtral'
-  },
-  {
-    name: 'Ollama (Local / Self-Hosted)',
-    provider: 'ollama',
-    defaultModel: 'llama3:8b',
-    defaultBaseUrl: 'http://localhost:11434',
-    requiresKey: false,
-    badgeColor: 'bg-stone-100 text-stone-800 border-stone-300',
-    description: 'On-premise zero-cost local LLM execution'
-  },
-  {
-    name: 'Custom / OpenAI-Compatible',
-    provider: 'custom',
-    defaultModel: 'mistral-small-latest',
-    defaultBaseUrl: 'http://localhost:8000/v1',
-    requiresKey: false,
-    badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    description: 'vLLM, LocalAI, Mistral API, or custom AI gateway'
   }
 ];
 
@@ -167,8 +140,23 @@ export const LlmConfigManager: React.FC = () => {
     setLoading(true);
     try {
       const res = await ApiServices.getLlmConfigs();
-      if (res.status === 'success' && Array.isArray(res.data)) {
-        setConfigs(res.data);
+      if (res && Array.isArray(res.configs)) {
+        setConfigs(res.configs);
+        
+        // Auto-populate form with active config if exists
+        const active = res.configs.find((c: any) => c.isActive);
+        if (active) {
+          setEditingConfig(active);
+          setFormConfigName(active.displayTitle);
+          setFormProvider(active.providerName);
+          setFormBaseUrl(active.baseUrl || '');
+          setFormModelName(active.modelName);
+          setFormApiKey(''); 
+          setFormMaxTokens(active.maxTokens || 2048);
+          setFormTemperature(active.temperature ?? 0.7);
+          setFormTimeout(active.timeoutSeconds || 60);
+          setFormIsActive(active.isActive);
+        }
       } else {
         setConfigs([]);
       }
@@ -183,7 +171,7 @@ export const LlmConfigManager: React.FC = () => {
     loadConfigs();
   }, []);
 
-  const activeConfig = useMemo(() => configs.find(c => c.is_active), [configs]);
+  const activeConfig = useMemo(() => configs.find(c => c.isActive), [configs]);
 
   // Open Modal for Add
   const handleOpenAddModal = () => {
@@ -206,15 +194,15 @@ export const LlmConfigManager: React.FC = () => {
   // Open Modal for Edit
   const handleOpenEditModal = (item: LLMConfigItem) => {
     setEditingConfig(item);
-    setFormConfigName(item.config_name);
-    setFormProvider(item.provider);
-    setFormBaseUrl(item.base_url || '');
-    setFormModelName(item.model_name);
+    setFormConfigName(item.displayTitle);
+    setFormProvider(item.providerName);
+    setFormBaseUrl(item.baseUrl || '');
+    setFormModelName(item.modelName);
     setFormApiKey(''); // Keep blank unless updating
-    setFormMaxTokens(item.max_tokens || 2048);
+    setFormMaxTokens(item.maxTokens || 2048);
     setFormTemperature(item.temperature ?? 0.7);
-    setFormTimeout(item.timeout_seconds || 60);
-    setFormIsActive(item.is_active);
+    setFormTimeout(item.timeoutSeconds || 60);
+    setFormIsActive(item.isActive);
     setShowApiKey(false);
     setModalTestResult(null);
     setIsModalOpen(true);
@@ -244,31 +232,31 @@ export const LlmConfigManager: React.FC = () => {
     setSubmitting(true);
     try {
       const payload: any = {
-        config_name: formConfigName.trim(),
-        provider: formProvider,
-        base_url: formBaseUrl.trim() || null,
-        model_name: formModelName.trim(),
-        max_tokens: Number(formMaxTokens),
+        displayTitle: formConfigName.trim(),
+        providerName: formProvider,
+        baseUrl: formBaseUrl.trim() || null,
+        modelName: formModelName.trim(),
+        maxTokens: Number(formMaxTokens),
         temperature: Number(formTemperature),
-        timeout_seconds: Number(formTimeout),
-        is_active: formIsActive
+        timeoutSeconds: Number(formTimeout),
+        isActive: true // Always activate upon saving as requested
       };
 
       if (formApiKey.trim()) {
-        payload.api_key = formApiKey.trim();
+        payload.apiKey = formApiKey.trim();
       }
 
       if (editingConfig) {
         const res = await ApiServices.updateLlmConfig(editingConfig.id, payload);
-        if (res.status === 'success') {
-          showAlert('success', 'LLM Configuration updated successfully');
+        if (res) {
+          showAlert('success', res.message || 'LLM Configuration updated successfully');
           setIsModalOpen(false);
           await loadConfigs();
         }
       } else {
         const res = await ApiServices.createLlmConfig(payload);
-        if (res.status === 'success') {
-          showAlert('success', 'New LLM Configuration created successfully');
+        if (res) {
+          showAlert('success', res.message || 'New LLM Configuration created successfully');
           setIsModalOpen(false);
           await loadConfigs();
         }
@@ -284,7 +272,7 @@ export const LlmConfigManager: React.FC = () => {
   const handleActivate = async (id: number) => {
     try {
       const res = await ApiServices.activateLlmConfig(id);
-      if (res.status === 'success') {
+      if (res) {
         showAlert('success', 'LLM Provider activated successfully for all mock tests and evaluation');
         await loadConfigs();
       }
@@ -299,10 +287,10 @@ export const LlmConfigManager: React.FC = () => {
     try {
       const res = await ApiServices.testLlmConfig({
         config_id: item.id,
-        provider: item.provider,
-        model_name: item.model_name
+        provider: item.providerName,
+        model_name: item.modelName
       });
-      if (res.status === 'success') {
+      if (res) {
         setTestResults(prev => ({
           ...prev,
           [item.id]: {
@@ -350,7 +338,7 @@ export const LlmConfigManager: React.FC = () => {
         timeout_seconds: Number(formTimeout)
       });
 
-      if (res.status === 'success') {
+      if (res) {
         setModalTestResult({
           success: true,
           latency_ms: res.data?.latency_ms,
@@ -379,7 +367,7 @@ export const LlmConfigManager: React.FC = () => {
     setDeleting(true);
     try {
       const res = await ApiServices.deleteLlmConfig(deleteConfirmId);
-      if (res.status === 'success') {
+      if (res) {
         showAlert('success', 'Configuration removed successfully');
         setDeleteConfirmId(null);
         await loadConfigs();
@@ -395,21 +383,21 @@ export const LlmConfigManager: React.FC = () => {
   const filteredConfigs = useMemo(() => {
     return configs.filter(c => {
       const matchesSearch =
-        c.config_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.model_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (c.base_url && c.base_url.toLowerCase().includes(searchQuery.toLowerCase()));
+        (c.displayTitle || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (c.modelName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (c.providerName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (c.baseUrl && c.baseUrl.toLowerCase().includes(searchQuery.toLowerCase()));
 
       const matchesProvider =
         providerFilter === 'ALL' ||
-        c.provider.toLowerCase() === providerFilter.toLowerCase();
+        c.providerName.toLowerCase() === providerFilter.toLowerCase();
 
       return matchesSearch && matchesProvider;
     });
   }, [configs, searchQuery, providerFilter]);
 
   const getProviderBadge = (provider: string) => {
-    const preset = PROVIDER_PRESETS.find(p => p.provider.toLowerCase() === provider.toLowerCase());
+    const preset = PROVIDER_PRESETS.find(p => p.provider.toLowerCase() === (provider || "").toLowerCase());
     return preset ? preset.badgeColor : 'bg-stone-100 text-stone-700 border-stone-200';
   };
 
@@ -471,14 +459,7 @@ export const LlmConfigManager: React.FC = () => {
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-amber-600' : ''}`} />
               <span>Refresh</span>
             </button>
-            <button
-              onClick={handleOpenAddModal}
-              id="admin-btn-add-llm"
-              className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 active:bg-amber-800 rounded-xl shadow-xs transition-all transform hover:-translate-y-0.5"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add LLM Config</span>
-            </button>
+            
           </div>
         </div>
 
@@ -493,18 +474,18 @@ export const LlmConfigManager: React.FC = () => {
               <div>
                 <span className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
                   Currently Active Engine:
-                  <span className="text-amber-700 underline font-extrabold">{activeConfig.config_name}</span>
+                  <span className="text-amber-700 underline font-extrabold">{activeConfig.displayTitle}</span>
                 </span>
                 <div className="flex items-center gap-2 text-xs text-stone-600 mt-0.5">
-                  <span className="capitalize font-semibold">{activeConfig.provider}</span>
+                  <span className="capitalize font-semibold">{activeConfig.providerName}</span>
                   <span>•</span>
                   <code className="bg-white/80 px-1.5 py-0.5 rounded border border-stone-200 text-stone-800 text-[11px] font-mono">
-                    {activeConfig.model_name}
+                    {activeConfig.modelName}
                   </code>
                   <span>•</span>
                   <span>Temp: {activeConfig.temperature}</span>
                   <span>•</span>
-                  <span>Max Tokens: {activeConfig.max_tokens}</span>
+                  <span>Max Tokens: {activeConfig.maxTokens}</span>
                 </div>
               </div>
             </div>
@@ -555,7 +536,7 @@ export const LlmConfigManager: React.FC = () => {
         {/* Provider Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 custom-scrollbar">
           <span className="text-xs font-bold text-stone-500 mr-1 flex-shrink-0">Provider:</span>
-          {['ALL', 'gemini', 'openai', 'claude', 'deepseek', 'groq', 'ollama', 'custom'].map((prov) => (
+          {['ALL', 'gemini', 'mistral', 'openai', 'claude'].map((prov) => (
             <button
               key={prov}
               onClick={() => setProviderFilter(prov)}
@@ -570,6 +551,170 @@ export const LlmConfigManager: React.FC = () => {
           ))}
         </div>
       </div>
+
+      
+      {/* ?? Inline Add / Edit Form ???????????????????????? */}
+      <div className="bg-white rounded-2xl border border-stone-200/80 shadow-xs overflow-hidden mt-4">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-stone-100 bg-stone-50/50">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600">
+            <Cpu className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-stone-900">
+              {editingConfig ? 'Edit LLM Configuration' : 'Add New LLM Provider'}
+            </h3>
+            <p className="text-xs text-stone-500">
+              Configure endpoint credentials for your selected AI engine.
+            </p>
+          </div>
+        </div>
+        <form onSubmit={handleSaveConfig} className="p-6 space-y-5">
+          {/* Provider Selector Cards */}
+          <div>
+            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+              Select Provider Preset
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {PROVIDER_PRESETS.map((preset) => {
+                const isSelected = formProvider === preset.provider;
+                return (
+                  <button
+                    type="button"
+                    key={preset.provider}
+                    onClick={() => handleSelectProvider(preset.provider)}
+                    className={`p-2.5 rounded-xl border text-left transition-all ${
+                      isSelected
+                        ? 'bg-amber-50/80 border-amber-500 ring-2 ring-amber-500/20 text-stone-900 shadow-2xs'
+                        : 'bg-white border-stone-200 hover:border-stone-300 text-stone-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold truncate">{preset.name}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />}
+                    </div>
+                    <p className="text-[10px] text-stone-500 truncate font-mono">{preset.defaultModel}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Config Name */}
+          <div>
+            <label className="block text-xs font-bold text-stone-700 mb-1.5">
+              {PROVIDER_PRESETS.find(p => p.provider === formProvider)?.name || 'LLM'} Configuration Label <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              placeholder={`e.g. Production ${PROVIDER_PRESETS.find(p => p.provider === formProvider)?.name || 'LLM'}`}
+              value={formConfigName}
+              onChange={(e) => setFormConfigName(e.target.value)}
+              className="w-full px-3.5 py-2 text-xs border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-stone-900"
+            />
+          </div>
+
+          {/* Model Identifier & Base URL */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-1.5">
+                {PROVIDER_PRESETS.find(p => p.provider === formProvider)?.name || 'LLM'} Model Name <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder={`e.g. ${PROVIDER_PRESETS.find(p => p.provider === formProvider)?.defaultModel || 'gpt-4o'}`}
+                value={formModelName}
+                onChange={(e) => setFormModelName(e.target.value)}
+                className="w-full px-3.5 py-2 text-xs border border-stone-200 rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-stone-900"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-1.5">
+                API Base URL (Optional / Custom Endpoint)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. https://api.openai.com/v1"
+                value={formBaseUrl}
+                onChange={(e) => setFormBaseUrl(e.target.value)}
+                className="w-full px-3.5 py-2 text-xs border border-stone-200 rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-stone-900"
+              />
+            </div>
+          </div>
+
+          {/* API Key Input */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-stone-700">
+                {PROVIDER_PRESETS.find(p => p.provider === formProvider)?.name || 'LLM'} API Key {editingConfig?.hasApiKey ? '(Leave empty to keep existing key)' : ''}
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="text-[11px] text-stone-500 hover:text-stone-800 flex items-center gap-1"
+              >
+                {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                <span>{showApiKey ? 'Hide' : 'Show'}</span>
+              </button>
+            </div>
+            <div className="relative">
+              <input
+                type={showApiKey ? 'text' : 'password'}
+                placeholder={
+                  editingConfig?.hasApiKey
+                    ? '••••••••••••••••'
+                    : `Enter ${PROVIDER_PRESETS.find(p => p.provider === formProvider)?.name || 'provider'} API secret key...`
+                }
+                value={formApiKey}
+                onChange={(e) => setFormApiKey(e.target.value)}
+                className="w-full px-3.5 py-2 text-xs border border-stone-200 rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-stone-900 pr-10"
+              />
+              <Key className="w-4 h-4 text-stone-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-stone-100">
+            <div className="flex-1 w-full">
+              {alertBanner && (
+                <div className={`flex items-center gap-2 p-2 px-3 rounded-lg text-xs font-semibold animate-fadeIn ${
+                  alertBanner.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                }`}>
+                  {alertBanner.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                  <span>{alertBanner.message}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {editingConfig && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingConfig(null);
+                    setFormConfigName('');
+                    setFormApiKey('');
+                  }}
+                  className="px-4 py-2 text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors"
+                >
+                  Cancel / Add New
+                </button>
+              )}
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 active:bg-amber-800 rounded-xl shadow-xs transition-colors"
+              >
+                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{editingConfig ? 'Update Configuration' : 'Save Configuration'}</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
 
       {/* Configurations Table */}
       <div className="bg-white rounded-2xl border border-stone-200/80 shadow-xs overflow-hidden">
@@ -587,7 +732,7 @@ export const LlmConfigManager: React.FC = () => {
             <p className="text-xs text-stone-500 mt-1 max-w-sm text-center">
               {searchQuery || providerFilter !== 'ALL'
                 ? 'No matching configuration for your search/filter criteria.'
-                : 'Click "Add LLM Config" above to add your Google Gemini, OpenAI, Claude, or local Ollama model.'}
+                : 'Click "Add LLM Config" above to add your Google Gemini, OpenAI, Claude, or Mistral model.'}
             </p>
             {!searchQuery && providerFilter === 'ALL' && (
               <button
@@ -620,7 +765,7 @@ export const LlmConfigManager: React.FC = () => {
                     <tr
                       key={item.id}
                       className={`hover:bg-amber-50/30 transition-colors ${
-                        item.is_active ? 'bg-amber-50/20 font-medium' : ''
+                        item.isActive ? 'bg-amber-50/20 font-medium' : ''
                       }`}
                     >
                       {/* Column 1: Config & Provider */}
@@ -628,15 +773,15 @@ export const LlmConfigManager: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <div
                             className={`w-9 h-9 rounded-xl flex items-center justify-center border font-bold text-xs uppercase ${getProviderBadge(
-                              item.provider
+                              item.providerName || ""
                             )}`}
                           >
-                            {item.provider.substring(0, 2)}
+                            {(item.providerName || "AI").substring(0, 2)}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-stone-900">{item.config_name}</span>
-                              {item.is_active && (
+                              <span className="font-bold text-stone-900">{item.displayTitle}</span>
+                              {item.isActive && (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
                                   <Star className="w-3 h-3 fill-emerald-600 text-emerald-600" />
                                   Active
@@ -644,10 +789,10 @@ export const LlmConfigManager: React.FC = () => {
                               )}
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[11px] text-stone-500 capitalize">{item.provider}</span>
+                              <span className="text-[11px] text-stone-500 capitalize">{item.providerName}</span>
                               <span className="text-stone-300">•</span>
                               <span className="text-[11px] text-stone-400">
-                                {item.has_api_key ? '🔑 API Key Saved' : '🔓 No Key Required'}
+                                {item.hasApiKey ? '🔑 API Key Saved' : '🔓 No Key Required'}
                               </span>
                             </div>
                           </div>
@@ -659,11 +804,11 @@ export const LlmConfigManager: React.FC = () => {
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5">
                             <code className="px-2 py-0.5 bg-stone-100 border border-stone-200 rounded text-stone-800 font-mono text-[11px] font-bold">
-                              {item.model_name}
+                              {item.modelName}
                             </code>
                           </div>
-                          <div className="text-[11px] text-stone-400 font-mono truncate max-w-xs" title={item.base_url || 'Default Cloud URL'}>
-                            {item.base_url || 'Default Cloud API Endpoint'}
+                          <div className="text-[11px] text-stone-400 font-mono truncate max-w-xs" title={item.baseUrl || 'Default Cloud URL'}>
+                            {item.baseUrl || 'Default Cloud API Endpoint'}
                           </div>
                         </div>
                       </td>
@@ -673,20 +818,20 @@ export const LlmConfigManager: React.FC = () => {
                         <div className="text-[11px] text-stone-600 space-y-0.5">
                           <div>
                             <span className="text-stone-400">Max Tokens:</span>{' '}
-                            <span className="font-semibold text-stone-800">{item.max_tokens?.toLocaleString()}</span>
+                            <span className="font-semibold text-stone-800">{item.maxTokens?.toLocaleString()}</span>
                           </div>
                           <div>
                             <span className="text-stone-400">Temp:</span>{' '}
                             <span className="font-semibold text-stone-800">{item.temperature}</span>
                             <span className="text-stone-400 ml-2">Timeout:</span>{' '}
-                            <span className="font-semibold text-stone-800">{item.timeout_seconds}s</span>
+                            <span className="font-semibold text-stone-800">{item.timeoutSeconds}s</span>
                           </div>
                         </div>
                       </td>
 
                       {/* Column 4: Status */}
                       <td className="py-4 px-4">
-                        {item.is_active ? (
+                        {item.isActive ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             Primary Engine
@@ -837,12 +982,12 @@ export const LlmConfigManager: React.FC = () => {
               {/* Config Name */}
               <div>
                 <label className="block text-xs font-bold text-stone-700 mb-1.5">
-                  Configuration Label / Name <span className="text-rose-500">*</span>
+                  {PROVIDER_PRESETS.find(p => p.provider === formProvider)?.name || 'LLM'} Configuration Label <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Production Google Gemini Flash"
+                  placeholder={`e.g. Production ${PROVIDER_PRESETS.find(p => p.provider === formProvider)?.name || 'LLM'}`}
                   value={formConfigName}
                   onChange={(e) => setFormConfigName(e.target.value)}
                   className="w-full px-3.5 py-2 text-xs border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-stone-900"
@@ -853,12 +998,12 @@ export const LlmConfigManager: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-stone-700 mb-1.5">
-                    Model Name / Identifier <span className="text-rose-500">*</span>
+                    {PROVIDER_PRESETS.find(p => p.provider === formProvider)?.name || 'LLM'} Model Name <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. gemini-1.5-flash, gpt-4o, llama3:8b"
+                    placeholder={`e.g. ${PROVIDER_PRESETS.find(p => p.provider === formProvider)?.defaultModel || 'gpt-4o'}`}
                     value={formModelName}
                     onChange={(e) => setFormModelName(e.target.value)}
                     className="w-full px-3.5 py-2 text-xs border border-stone-200 rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-stone-900"
@@ -883,7 +1028,7 @@ export const LlmConfigManager: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-bold text-stone-700">
-                    API Key {editingConfig?.has_api_key ? '(Leave empty to keep existing key)' : ''}
+                    {PROVIDER_PRESETS.find(p => p.provider === formProvider)?.name || 'LLM'} API Key {editingConfig?.hasApiKey ? '(Leave empty to keep existing key)' : ''}
                   </label>
                   <button
                     type="button"
@@ -898,9 +1043,9 @@ export const LlmConfigManager: React.FC = () => {
                   <input
                     type={showApiKey ? 'text' : 'password'}
                     placeholder={
-                      editingConfig?.has_api_key
+                      editingConfig?.hasApiKey
                         ? '••••••••••••••••••••••••••••••••'
-                        : 'Enter provider API secret key...'
+                        : `Enter ${PROVIDER_PRESETS.find(p => p.provider === formProvider)?.name || 'provider'} API secret key...`
                     }
                     value={formApiKey}
                     onChange={(e) => setFormApiKey(e.target.value)}

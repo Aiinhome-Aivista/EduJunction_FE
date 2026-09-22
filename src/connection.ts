@@ -137,7 +137,7 @@ export const POST_APIS = {
   adminLogin: `${API_V1}/admin/login`,
   adminResetPassword: `${API_V1}/admin/reset-password`,
   createLlmConfig: `${API_V1}/admin/llm-config`,
-  testLlmConfig: `${API_V1}/admin/llm-config/test`,
+  testLlmConfig: (id: string | number) => `${API_V1}/admin/llm-config/${id}/test`,
   activateLlmConfig: (id: string | number) => `${API_V1}/admin/llm-config/${id}/activate`,
   createAdminSubscriptionPlan: `${API_V1}/admin/subscription-plans`,
   evaluateSubjectModelPaper: (subId: number | string) => `${API_V1}/subscriptions/subject/${subId}/evaluate-paper`,

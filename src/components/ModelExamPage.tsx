@@ -593,9 +593,9 @@ export const ModelExamPage: React.FC = () => {
             </div>
 
             {/* Standard Board Rubric */}
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400/15 border border-amber-400/30">
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span className="text-amber-300 text-[11px] font-bold">Board Rubric</span>
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/25">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span className="text-emerald-300 text-[11px] font-bold">Board Rubric</span>
             </div>
 
             {activeMode === 'RESULT' && (
@@ -624,7 +624,7 @@ export const ModelExamPage: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Evaluation Completed</span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-black text-xs border border-amber-400/40">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-black text-xs border border-emerald-500/30">
                     {evaluationResult.grade}
                   </span>
                 </div>
@@ -698,7 +698,6 @@ export const ModelExamPage: React.FC = () => {
               const secName = sec.name || `Section ${idx + 1}`;
               const isSelected = selectedSection === secName;
               const isUnlocked = unlockedSectionIndices.has(idx);
-              const count = sectionAttemptCounts[idx] || 0;
               const prevSecName = idx > 0 ? (sectionsToRender[idx - 1]?.name || `Section ${idx}`) : '';
               const minReq = idx > 0 ? (UNLOCK_THRESHOLDS[idx - 1] || 1) : 0;
 
@@ -722,9 +721,7 @@ export const ModelExamPage: React.FC = () => {
                   }`}
                 >
                   <span>{secName}</span>
-                  <span className="text-[10px] opacity-75">
-                    ({count}/{sec.questions.length})
-                  </span>
+                  <span className="text-[10px] opacity-75">({sec.questions.length})</span>
                 </button>
               );
             })}
@@ -977,7 +974,7 @@ export const ModelExamPage: React.FC = () => {
                                 <textarea
                                   value={currentStudentAns}
                                   onChange={(e) => handleTextAnswerChange(qKey, e.target.value)}
-                                  placeholder="Write your answer here..."
+                                  placeholder="Write your definitions, mathematical derivations, calculations, and final answer here..."
                                   rows={4}
                                   className="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all resize-y shadow-2xs"
                                 />
@@ -1071,13 +1068,13 @@ export const ModelExamPage: React.FC = () => {
                                     <div className="space-y-2">
                                       <p>{evalItem.studentAnswer.split('[🎨 Diagram Drawing:')[0].trim() || <em className="text-stone-400 font-normal">No text typed</em>}</p>
                                       <div className="p-3 bg-white rounded-2xl border border-stone-200 inline-block">
-                                        <span className="text-[10px] font-bold text-stone-900 uppercase block mb-1">
+                                        <span className="text-[10px] font-bold text-purple-800 uppercase block mb-1">
                                           🎨 Submitted Student Sketch / Diagram:
                                         </span>
                                         <img
                                           src={evalItem.studentAnswer.split('[🎨 Diagram Drawing: ')[1]?.split(']')[0]}
                                           alt="Submitted Diagram"
-                                          className="max-h-52 rounded-xl border border-amber-300"
+                                          className="max-h-52 rounded-xl border border-purple-200"
                                         />
                                       </div>
                                     </div>
@@ -1238,23 +1235,22 @@ export const ModelExamPage: React.FC = () => {
               {unansweredCount > 0 && hasOver15Mins ? (
                 <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-left space-y-2">
                   <div className="flex items-center gap-2 text-amber-950 font-black text-xs">
-                    <Clock className="w-4 h-4 text-amber-600 shrink-0" />
-                    <span>Plenty of Time Remaining!</span>
+          
                   </div>
                   <p className="text-xs text-stone-800 font-semibold leading-relaxed">
-                    You still have plenty of time left! You have <strong className="text-amber-700 font-black text-sm">{unansweredCount} unanswered question{unansweredCount > 1 ? 's' : ''}</strong>. Would you like to review and give them a last try (Go Back), or submit your paper now?
+                    You have <strong className="text-amber-700 font-black text-sm">{unansweredCount} unanswered question{unansweredCount > 1 ? 's' : ''}</strong>. Would you like to review and give them a last try (Go Back), or submit your paper now?
                   </p>
                 </div>
               ) : (
-                <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-left space-y-2">
-                  <div className="flex items-center gap-2 text-amber-950 font-black text-xs">
-                    <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                <div className="p-4 rounded-2xl bg-emerald-50/80 border-2 border-emerald-300 text-left space-y-2">
+                  <div className="flex items-center gap-2 text-emerald-950 font-black text-xs">
+                    <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Great Job Completing Your Exam!</span>
                   </div>
                   <p className="text-xs text-stone-800 font-semibold leading-relaxed">
                     Great work! Ready to evaluate your result? Click below to complete your submission and generate your detailed performance scorecard &amp; AI analysis.
                   </p>
-                  <div className="pt-1 flex items-center justify-between text-[11px] text-amber-950 font-bold border-t border-amber-200/70">
+                  <div className="pt-1 flex items-center justify-between text-[11px] text-emerald-900 font-bold border-t border-emerald-200/70">
                     <span>Attempted: {answeredCount}/{totalQuestions} Questions</span>
                     <span>Time Left: {formatTimer(remainingSeconds)}</span>
                   </div>
@@ -1271,7 +1267,7 @@ export const ModelExamPage: React.FC = () => {
                       className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <RotateCcw className="w-4 h-4 text-stone-950" />
-                      <span>Go Back </span>
+                      <span>Go Back (Last Try)</span>
                     </button>
                     <button
                       type="button"
@@ -1300,7 +1296,7 @@ export const ModelExamPage: React.FC = () => {
                       type="button"
                       onClick={handleSubmitTest}
                       disabled={isSubmitting}
-                      className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                     >
                       {isSubmitting ? (
                         <Loader2 className="w-4 h-4 animate-spin text-stone-950" />
@@ -1440,7 +1436,7 @@ const DiagramCanvasModal: React.FC<DiagramCanvasModalProps> = ({ isOpen, onClose
       <div className="bg-white rounded-3xl max-w-2xl w-full p-5 shadow-2xl border border-stone-200 space-y-4 animate-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between border-b border-stone-200 pb-3">
           <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-stone-900 text-amber-400 font-bold flex items-center justify-center">🎨</span>
+            <span className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 font-bold flex items-center justify-center">🎨</span>
             <div>
               <h3 className="text-sm sm:text-base font-black text-stone-900">Interactive Canvas — Draw Diagram / Sketch</h3>
               <p className="text-[11px] text-stone-500">Draw geometry, ray diagrams, circuits, graphs, or calculations</p>
@@ -1490,7 +1486,7 @@ const DiagramCanvasModal: React.FC<DiagramCanvasModalProps> = ({ isOpen, onClose
               type="button"
               onClick={() => setIsEraser(!isEraser)}
               className={`px-3 py-1 rounded-xl font-bold text-xs cursor-pointer border ${
-                isEraser ? 'bg-stone-900 text-amber-400 border-amber-500 font-black' : 'bg-white text-stone-700 border-stone-200'
+                isEraser ? 'bg-rose-500 text-white border-rose-600' : 'bg-white text-stone-700 border-stone-200'
               }`}
             >
               🧹 Eraser
@@ -1506,7 +1502,7 @@ const DiagramCanvasModal: React.FC<DiagramCanvasModalProps> = ({ isOpen, onClose
         </div>
 
         {/* Canvas Element */}
-        <div className="border-2 border-dashed border-amber-300 rounded-2xl overflow-hidden bg-white shadow-inner flex justify-center touch-none">
+        <div className="border-2 border-dashed border-purple-200 rounded-2xl overflow-hidden bg-white shadow-inner flex justify-center touch-none">
           <canvas
             ref={canvasRef}
             width={600}
@@ -1534,7 +1530,7 @@ const DiagramCanvasModal: React.FC<DiagramCanvasModalProps> = ({ isOpen, onClose
           <button
             type="button"
             onClick={handleSave}
-            className="py-2.5 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs shadow-md flex items-center gap-2 cursor-pointer"
+            className="py-2.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-md flex items-center gap-2 cursor-pointer"
           >
             <span>Attach Drawn Diagram to Answer 🎨</span>
           </button>

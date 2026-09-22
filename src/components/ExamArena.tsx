@@ -410,75 +410,77 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30">
 
         {/* ═══════════════ TOP HEADER BAR ═══════════════ */}
-        <div className={`sticky top-0 z-30 border-b shadow-sm transition-colors duration-500 ${isLowTime ? 'bg-rose-950 border-rose-800' : 'bg-stone-900 border-stone-700'}`}>
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-
-            {/* Left — Exam Title & Candidate */}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-white font-bold text-sm sm:text-base truncate">{activeExam.title}</span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-yellow-400 text-stone-900 shrink-0">
-                  {activeExam.totalMarks || 15} Marks
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-white/10 text-white/80 border border-white/20 shrink-0">
-                  {activeExam.board} • {activeExam.classGrade}
-                </span>
-              </div>
-              <p className="text-white/50 text-xs mt-0.5 truncate">
-                Candidate: <span className="text-white/80 font-medium">{activeChild?.name}</span>
-              </p>
+        <div className="sticky top-0 z-30 max-w-6xl mx-auto px-4 pt-3 pb-0">
+          <div className={`rounded-3xl overflow-hidden shadow-xl transition-all duration-500 ${
+            isLowTime
+              ? 'bg-gradient-to-r from-rose-600 via-rose-500 to-orange-500'
+              : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500'
+          }`}
+            style={{ boxShadow: isLowTime ? '0 8px 32px rgba(239,68,68,0.30)' : '0 8px 32px rgba(251,191,36,0.30)' }}
+          >
+            {/* Decorative shimmer strip */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-1 left-0 right-0 h-0.5 bg-white/40 rounded-full" />
+              <div className="absolute top-0 -left-32 w-64 h-full bg-white/10 rotate-12 blur-2xl" />
+              <div className="absolute top-0 right-0 w-48 h-full bg-white/5 -rotate-12 blur-2xl" />
             </div>
 
-            {/* Centre — Stats Pills */}
-            <div className="hidden sm:flex items-center gap-2 shrink-0">
-              {/* Answered */}
-              <div className="flex flex-col items-center px-4 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30">
-                <span className="text-emerald-300 font-black text-lg leading-none">{answeredCount}</span>
-                <span className="text-emerald-400/80 text-[10px] font-semibold uppercase tracking-wider">Answered</span>
+            <div className="relative w-full px-5 sm:px-6 py-3 flex items-center justify-between gap-4">
+
+              {/* Left — Exam Title & Badges */}
+              <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+                {/* 1st Line: Title */}
+                <div className="flex items-center">
+                  <span className="text-stone-900 font-black text-sm sm:text-base truncate drop-shadow-sm">
+                    {activeExam.title}
+                  </span>
+                </div>
+                {/* 2nd Line: Badges */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-stone-900/15 text-stone-900 border border-stone-900/20 shrink-0 backdrop-blur-sm">
+                    {activeExam.totalMarks || 15} Marks
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/40 text-stone-800 border border-white/50 shrink-0 backdrop-blur-sm">
+                    {activeExam.board} • {activeExam.classGrade}
+                  </span>
+                </div>
               </div>
-              {/* Remaining */}
-              <div className="flex flex-col items-center px-4 py-1.5 rounded-xl bg-white/10 border border-white/10">
-                <span className="text-white/80 font-black text-lg leading-none">{remainingCount}</span>
-                <span className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">Remaining</span>
-              </div>
-              {/* Total */}
-              <div className="flex flex-col items-center px-4 py-1.5 rounded-xl bg-yellow-400/15 border border-yellow-400/30">
-                <span className="text-yellow-300 font-black text-lg leading-none">{totalQuestions}</span>
-                <span className="text-yellow-400/80 text-[10px] font-semibold uppercase tracking-wider">Total Qs</span>
+
+
+              {/* Right — Timer + Submit */}
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                {/* Timer */}
+                <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border font-mono font-black text-base sm:text-lg transition-all duration-300 ${
+                  isLowTime
+                    ? 'bg-white text-rose-600 border-white animate-pulse shadow-lg'
+                    : timeRemainingSeconds < 600
+                    ? 'bg-amber-600/30 border-amber-700/40 text-stone-900'
+                    : 'bg-white/30 border-white/50 text-stone-900 backdrop-blur-sm'
+                }`}>
+                  <Clock className={`w-4 h-4 ${isLowTime ? 'text-rose-500' : 'text-stone-800'}`} />
+                  <span>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  id="finish-exam-btn"
+                  onClick={() => setShowConfirmSubmit(true)}
+                  className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-yellow-400 text-xs sm:text-sm font-bold shadow-lg shadow-stone-900/30 transition-all duration-150 border border-stone-800"
+                >
+                  Submit
+                </button>
               </div>
             </div>
 
-            {/* Right — Timer + Submit */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              {/* Timer */}
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border font-mono font-black text-base sm:text-lg transition-all duration-300 ${
-                isLowTime
-                  ? 'bg-rose-500 border-rose-400 text-white animate-pulse shadow-lg shadow-rose-500/30'
-                  : timeRemainingSeconds < 600
-                  ? 'bg-amber-400/20 border-amber-400/40 text-amber-300'
-                  : 'bg-white/10 border-white/20 text-white'
-              }`}>
-                <Clock className={`w-4 h-4 ${isLowTime ? 'text-white' : 'text-white/70'}`} />
-                <span>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
+            {/* Progress Bar — aligned with content, narrow pill */}
+            <div className="w-full px-4 pb-3 pt-1 flex justify-center">
+              <div className="w-20 h-1.5 bg-stone-900/20 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-yellow-200 rounded-full transition-all duration-700 shadow-sm"
+                  style={{ width: `${progressPct}%` }}
+                />
               </div>
-
-              {/* Submit Button */}
-              <button
-                id="finish-exam-btn"
-                onClick={() => setShowConfirmSubmit(true)}
-                className="px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-stone-900 text-xs sm:text-sm font-bold shadow-lg shadow-yellow-400/20 transition-all duration-150"
-              >
-                Submit
-              </button>
             </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="h-1 bg-white/10">
-            <div
-              className="h-full bg-gradient-to-r from-yellow-400 to-emerald-400 transition-all duration-500"
-              style={{ width: `${progressPct}%` }}
-            />
           </div>
         </div>
 
@@ -888,13 +890,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                 </div>
               </div>
 
-              {/* Submit Shortcut */}
-              <button
-                onClick={() => setShowConfirmSubmit(true)}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-300 hover:to-amber-300 active:scale-95 text-stone-900 text-sm font-black shadow-md shadow-yellow-200/50 transition-all"
-              >
-                ✅ Submit Exam
-              </button>
+
             </div>
           </div>
         </div>
