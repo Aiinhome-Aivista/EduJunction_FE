@@ -927,14 +927,14 @@ export default function App() {
 
       {/* Main Workspace Area (High Density Theme) */}
       <main className="flex-1 flex flex-col overflow-hidden min-w-0 relative print:w-full print:block print:overflow-visible print:p-0 print:m-0">
-        {(isBootstrapping || !parentAccount) && (
+        {(isBootstrapping || ((!isAdminSession && !isTeacherSession) && !parentAccount)) && (
           <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/40 backdrop-blur-sm">
             <Loader2 className="w-10 h-10 animate-spin text-yellow-500 mb-4" />
             <p className="text-sm font-bold text-stone-700">Loading your workspace...</p>
           </div>
         )}
 
-        <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-500 ${(isBootstrapping || !parentAccount) ? 'blur-sm pointer-events-none opacity-60' : ''} print:w-full print:block print:overflow-visible`}>
+        <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-500 ${(isBootstrapping || ((!isAdminSession && !isTeacherSession) && !parentAccount)) ? 'blur-sm pointer-events-none opacity-60' : ''} print:w-full print:block print:overflow-visible`}>
           {/* Top Header Bar */}
           <header className="h-14 lg:h-16 bg-gradient-to-r from-yellow-50/90 via-white/90 to-orange-50/90 backdrop-blur-xl border-b border-stone-200/50 flex items-center justify-between px-4 sm:px-6 lg:px-8 flex-shrink-0 z-20 sticky top-0 print:hidden">
             <div className="flex items-center gap-3 sm:gap-4 min-w-0">
