@@ -994,6 +994,16 @@ export default function App() {
   }
 
 
+  if (activeTab === 'landing') {
+    return (
+      <div className="relative w-full h-full min-h-screen overflow-x-hidden">
+        <LandingPage
+          onOpenAuth={(mode) => setAuthModalMode(mode || 'login')}
+        />
+      </div>
+    );
+  }
+
   const dummyParentAccount: ParentAccount = {
     id: 'dummy',
     name: 'Loading...',
