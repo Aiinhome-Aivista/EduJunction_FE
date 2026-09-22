@@ -1457,9 +1457,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               {
-                title: 'CBSE & NCERT',
-                level: 'Class 5–12',
-                text: 'School learning and board preparation',
+                title: 'CBSE Board',
+                level: 'Class 10',
+                text: 'Board exam & NCERT practice',
                 color: 'bg-amber-100 text-amber-700 hover:border-amber-300',
                 svg: (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1468,9 +1468,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ),
               },
               {
-                title: 'ICSE & ISC',
-                level: 'Class 5–12',
-                text: 'Structured subject practice',
+                title: 'CBSE & ISC',
+                level: 'Class 12',
+                text: 'Advanced board preparation',
                 color: 'bg-sky-100 text-sky-700 hover:border-sky-300',
                 svg: (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1480,9 +1480,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ),
               },
               {
-                title: 'Cambridge',
-                level: 'IGCSE & A-Level',
-                text: 'International curriculum support',
+                title: 'ICSE Board',
+                level: 'Class 10',
+                text: 'ICSE exam & subject practice',
                 color: 'bg-rose-100 text-rose-700 hover:border-rose-300',
                 svg: (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

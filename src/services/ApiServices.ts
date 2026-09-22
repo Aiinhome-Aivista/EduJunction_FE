@@ -168,7 +168,8 @@ class ApiServices {
   login(body: any) { return apiClient.post(POST_APIS.login, body); }
   googleLogin(body: any) { return apiClient.post(POST_APIS.googleLogin, body); }
   register(body: any) { return this.post(POST_APIS.register, body); }
-  resetPassword(body: { identifier: string; newPassword: string }) { return this.post(POST_APIS.resetPassword, body); }
+  sendResetOtp(body: { identifier: string }) { return this.post(POST_APIS.sendResetOtp, body); }
+  resetPassword(body: { identifier: string; otp?: string; newPassword: string }) { return this.post(POST_APIS.resetPassword, body); }
   checkUsername(username: string) { return this.get(GET_APIS.checkUsername(username)); }
   getRoles() { return this.get(GET_APIS.roles); }
   verifySession() { return this.get(GET_APIS.verifySession); }
@@ -184,6 +185,13 @@ class ApiServices {
 
   // ── Master Data ───────────────────────────
   getBoardClassDropdown() { return this.get(GET_APIS.boardClassDropdown); }
+  getCurriculumOptions(params?: { board?: string; classGrade?: string; studentId?: string | number }) {
+    const q = new URLSearchParams();
+    if (params?.board) q.append('board', params.board);
+    if (params?.classGrade) q.append('classGrade', params.classGrade);
+    if (params?.studentId) q.append('studentId', String(params.studentId));
+    return this.get(GET_APIS.curriculumOptions(q.toString()));
+  }
 
   // ── Parent ────────────────────────────────
   getParentDashboard() { return this.get(GET_APIS.parentDashboard); }

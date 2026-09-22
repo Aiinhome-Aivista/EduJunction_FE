@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChildAccount, BOARD_CLASSES_MAP } from '../types';
 import ApiServices from '../services/ApiServices';
-import { Plus, User, Loader2, ChevronDown, Search } from 'lucide-react';
+import { Plus, User, Loader2, ChevronDown, Search, Eye, EyeOff, X } from 'lucide-react';
 
 interface MasterOption {
   id: number;
@@ -116,6 +116,8 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
   const [schoolEmail, setSchoolEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -127,6 +129,17 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
   // Fetch Master Data directly from Database on Modal Open
   useEffect(() => {
     if (!isOpen) return;
+
+    // Reset form fields on open to ensure no sticky autofill
+    setName('');
+    setUsername('');
+    setSchoolName('');
+    setSchoolEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    setErrors({});
 
     let isMounted = true;
     setIsLoadingMasters(true);
@@ -230,6 +243,8 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
       setSchoolEmail('');
       setPassword('');
       setConfirmPassword('');
+      setShowPassword(false);
+      setShowConfirmPassword(false);
       onClose();
     } catch (err: any) {
       console.error('Failed to add child:', err);
@@ -260,96 +275,148 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-stone-100 animate-in fade-in zoom-in-95 duration-150">
-        <div className="flex items-center justify-between pb-4 border-b border-stone-100 mb-6">
+    <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl border border-stone-100 animate-in fade-in zoom-in-95 duration-150 my-auto">
+        <div className="flex items-center justify-between pb-3.5 border-b border-stone-100 mb-4">
           <div>
-            <h3 className="text-lg font-bold text-stone-900">Create Child Sub-Account</h3>
-            <p className="text-xs text-stone-500">Each child gets their unique username and password to log in and take exams independently</p>
+            <h3 className="text-xl font-bold text-stone-900">Create Child Sub-Account</h3>
+            <p className="text-xs text-stone-500 mt-0.5">Each child gets their unique username and password to log in and take exams independently</p>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-colors cursor-pointer -mr-1"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {errors.general && (
-          <div className="p-3 mb-4 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-600">
+          <div className="p-3 mb-3 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-600">
             {errors.general}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">
-              Child / Student Full Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (errors.name) setErrors({ ...errors, name: '' });
-              }}
-              placeholder="e.g. Aarav Sharma"
-              className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-hidden focus:ring-2 ${errors.name ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-stone-300 focus:ring-yellow-500'}`}
-            />
-            {errors.name && <p className="text-[10px] text-red-500 mt-1 font-medium">{errors.name}</p>}
+        <form onSubmit={handleSubmit} className="space-y-3.5" noValidate autoComplete="off">
+          {/* Prevent browser credential managers from autofilling parent login info */}
+          <input type="text" name="prevent_autofill_username" className="hidden" aria-hidden="true" tabIndex={-1} autoComplete="off" />
+          <input type="password" name="prevent_autofill_password" className="hidden" aria-hidden="true" tabIndex={-1} autoComplete="off" />
+
+          {/* Row 1: Name & Username */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 mb-1">
+                Child / Student Full Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (errors.name) setErrors({ ...errors, name: '' });
+                }}
+                placeholder="e.g. Aarav Sharma"
+                autoComplete="off"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-hidden focus:ring-2 ${errors.name ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-stone-300 focus:ring-yellow-500'}`}
+              />
+              {errors.name && <p className="text-[10px] text-red-500 mt-1 font-medium">{errors.name}</p>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 mb-1">
+                Create Username (for Student Login) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  if (errors.username) setErrors({ ...errors, username: '' });
+                }}
+                placeholder="e.g. Aarav_2026"
+                autoComplete="off"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-hidden focus:ring-2 ${errors.username ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-stone-300 focus:ring-yellow-500'}`}
+              />
+              {errors.username ? (
+                <p className="text-[10px] text-red-500 mt-1 font-medium">{errors.username}</p>
+              ) : (
+                <p className="text-[10px] text-stone-400 mt-1 font-medium">No dots (.), no spaces. Child will use this to log in.</p>
+              )}
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">
-              Create Username (for Student Login) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => {
-                setUsername(e.target.value);
-                if (errors.username) setErrors({ ...errors, username: '' });
-              }}
-              placeholder="e.g. Aarav_2026"
-              className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-hidden focus:ring-2 ${errors.username ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-stone-300 focus:ring-yellow-500'}`}
-            />
-            {errors.username ? (
-              <p className="text-[10px] text-red-500 mt-1 font-medium">{errors.username}</p>
-            ) : (
-              <p className="text-[10px] text-stone-400 mt-1 font-medium">No dots (.), no spaces. Child will use this username to log in.</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+          {/* Row 2: Password & Confirm Password */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="block text-xs font-semibold text-stone-700 mb-1">
                 Create Password <span className="text-red-500">*</span>
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errors.password) setErrors({ ...errors, password: '' });
-                }}
-                placeholder="••••••••"
-                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-hidden focus:ring-2 ${errors.password ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-stone-300 focus:ring-yellow-500'}`}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors({ ...errors, password: '' });
+                  }}
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  className={`w-full pl-3.5 pr-10 py-2.5 rounded-xl border text-sm focus:outline-hidden focus:ring-2 ${errors.password ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-stone-300 focus:ring-yellow-500'}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer p-0.5"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
               {errors.password && <p className="text-[10px] text-red-500 mt-1 font-medium">{errors.password}</p>}
             </div>
+
             <div>
               <label className="block text-xs font-semibold text-stone-700 mb-1">
                 Confirm Password <span className="text-red-500">*</span>
               </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' });
-                }}
-                placeholder="••••••••"
-                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-hidden focus:ring-2 ${errors.confirmPassword ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-stone-300 focus:ring-yellow-500'}`}
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' });
+                  }}
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  className={`w-full pl-3.5 pr-10 py-2.5 rounded-xl border text-sm focus:outline-hidden focus:ring-2 ${errors.confirmPassword ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-stone-300 focus:ring-yellow-500'}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer p-0.5"
+                  tabIndex={-1}
+                  aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
               {errors.confirmPassword && <p className="text-[10px] text-red-500 mt-1 font-medium">{errors.confirmPassword}</p>}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* Row 3: Target Board & Class / Grade */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="block text-xs font-semibold text-stone-700 mb-1">
                 Target Curriculum Board <span className="text-red-500">*</span>
@@ -384,45 +451,54 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">School Name (Optional)</label>
-            <input
-              type="text"
-              value={schoolName}
-              onChange={(e) => setSchoolName(e.target.value)}
-              placeholder="e.g. Delhi Public School"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:ring-2 focus:ring-yellow-500 focus:outline-hidden"
-            />
+          {/* Row 4: School Name & School Email */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 mb-1">School Name (Optional)</label>
+              <input
+                type="text"
+                value={schoolName}
+                onChange={(e) => setSchoolName(e.target.value)}
+                placeholder="e.g. Delhi Public School"
+                autoComplete="off"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:ring-2 focus:ring-yellow-500 focus:outline-hidden"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-stone-700 mb-1">School Email (Optional)</label>
+              <input
+                type="email"
+                value={schoolEmail}
+                onChange={(e) => {
+                  setSchoolEmail(e.target.value);
+                  if (errors.schoolEmail) setErrors({ ...errors, schoolEmail: '' });
+                }}
+                placeholder="e.g. principal@dpsdelhi.edu.in"
+                autoComplete="off"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-yellow-500 focus:outline-hidden ${errors.schoolEmail ? 'border-red-500 bg-red-50' : 'border-stone-300'}`}
+              />
+              {errors.schoolEmail && <p className="text-[10px] text-red-500 mt-1 font-medium">{errors.schoolEmail}</p>}
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">School Email (Optional)</label>
-            <input
-              type="email"
-              value={schoolEmail}
-              onChange={(e) => {
-                setSchoolEmail(e.target.value);
-                if (errors.schoolEmail) setErrors({ ...errors, schoolEmail: '' });
-              }}
-              placeholder="e.g. principal@dpsdelhi.edu.in or school@domain.com"
-              className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-yellow-500 focus:outline-hidden ${errors.schoolEmail ? 'border-red-500 bg-red-50' : 'border-stone-300'}`}
-            />
-            {errors.schoolEmail && <p className="text-[10px] text-red-500 mt-1 font-medium">{errors.schoolEmail}</p>}
-          </div>
-
-          <div className="flex items-center justify-between gap-3 pt-4 border-t border-stone-100">
+          <div className="flex items-center justify-between gap-3 pt-3.5 border-t border-stone-100 flex-shrink-0 mt-2">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 rounded-xl border-2 border-yellow-400 text-xs font-bold text-stone-700 hover:bg-yellow-50 transition-colors disabled:opacity-50"
+              className="px-4 py-2 rounded-xl border-2 border-yellow-400 text-xs font-bold text-stone-700 hover:bg-yellow-50 transition-colors disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 rounded-xl bg-yellow-400 border-2 border-yellow-500 text-stone-900 text-xs font-bold hover:bg-yellow-500 shadow-xs transition-colors disabled:opacity-60 flex items-center gap-2"
+              className="px-5 py-2 rounded-xl bg-yellow-400 border-2 border-yellow-500 text-stone-900 text-xs font-bold hover:bg-yellow-500 shadow-xs transition-colors disabled:opacity-60 flex items-center gap-2 cursor-pointer"
             >
               {isSubmitting ? (
                 <>

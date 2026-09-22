@@ -13,6 +13,9 @@ import {
   User,
   X,
   AlertCircle,
+  KeyRound,
+  RefreshCw,
+  Send,
 } from 'lucide-react';
 import ApiServices, {
   storeTokens,
@@ -49,8 +52,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  // Password Reset State
+  // Password Reset State (OTP Flow)
+  const [resetStep, setResetStep] = useState<'ENTER_IDENTIFIER' | 'VERIFY_OTP'>('ENTER_IDENTIFIER');
   const [resetIdentifier, setResetIdentifier] = useState('');
+  const [resetOtp, setResetOtp] = useState('');
+  const [resetMaskedEmail, setResetMaskedEmail] = useState<string | null>(null);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
   const [resetNewPassword, setResetNewPassword] = useState('');
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
   const [showResetNewPassword, setShowResetNewPassword] = useState(false);
@@ -59,6 +67,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [resetSuccess, setResetSuccess] = useState(false);
   const [resetErrorMessage, setResetErrorMessage] = useState<string | null>(null);
   const [resetFieldErrors, setResetFieldErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+    if (resendCountdown > 0) {
+      timer = setInterval(() => {
+        setResendCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [resendCountdown]);
 
   // Google Registration Username Modal State
   const [googleModal, setGoogleModal] = useState<{
@@ -352,20 +372,56 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
   };
 
+  const handleSendOtp = async (isResend = false) => {
+    setResetErrorMessage(null);
+    setResetFieldErrors({});
+
+    const trimmed = resetIdentifier.trim();
+    if (!trimmed) {
+      setResetFieldErrors({ identifier: 'Please enter your account username.' });
+      return;
+    }
+
+    setIsSendingOtp(true);
+    try {
+      const response = await ApiServices.sendResetOtp({ identifier: trimmed });
+      const data = response.data?.data || response.data || {};
+      setResetMaskedEmail(data.maskedEmail || 'your registered email');
+      setResetStep('VERIFY_OTP');
+      setResendCountdown(60);
+      if (isResend) {
+        setResetOtp('');
+      }
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        err?.message ||
+        'Failed to send OTP. Please verify your username and try again.';
+      setResetErrorMessage(msg);
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
   const handleResetSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setResetErrorMessage(null);
     setResetFieldErrors({});
 
     const errs: Record<string, string> = {};
-    if (!resetIdentifier.trim()) {
-      errs.identifier = 'Please enter your account username.';
+    if (!resetOtp.trim()) {
+      errs.otp = 'Please enter the 6-digit OTP code.';
+    } else if (resetOtp.trim().length !== 6 || !/^\d{6}$/.test(resetOtp.trim())) {
+      errs.otp = 'OTP must be a 6-digit number.';
     }
+
     if (!resetNewPassword) {
       errs.newPassword = 'Please enter a new password.';
     } else if (resetNewPassword.length < 6) {
       errs.newPassword = 'Password must be at least 6 characters.';
     }
+
     if (!resetConfirmPassword) {
       errs.confirmPassword = 'Please confirm your new password.';
     } else if (resetNewPassword !== resetConfirmPassword) {
@@ -381,6 +437,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     try {
       await ApiServices.resetPassword({
         identifier: resetIdentifier.trim(),
+        otp: resetOtp.trim(),
         newPassword: resetNewPassword,
       });
       setResetSuccess(true);
@@ -389,7 +446,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         err?.response?.data?.error?.message ||
         err?.response?.data?.message ||
         err?.message ||
-        'Failed to update password. Please check your username/email and try again.';
+        'Failed to update password. Please verify the OTP and try again.';
       setResetErrorMessage(msg);
     } finally {
       setResetSubmitting(false);
@@ -415,7 +472,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
           <button
             onClick={handleBack}
-            className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-colors -mr-2"
+            className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-colors -mr-2 cursor-pointer"
             aria-label="Close"
           >
             <X size={24} />
@@ -424,11 +481,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
         <div className="mb-4">
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-stone-900 mb-2">
-            {mode === 'forgot-password' ? 'Reset Password' : mode === 'login' ? 'Welcome back' : 'Create an account'}
+            {mode === 'forgot-password'
+              ? resetStep === 'VERIFY_OTP'
+                ? 'Verify OTP'
+                : 'Reset Password'
+              : mode === 'login'
+                ? 'Welcome back'
+                : 'Create an account'}
           </h2>
           <p className="text-stone-500 font-medium text-sm sm:text-base leading-relaxed">
             {mode === 'forgot-password'
-              ? 'Enter your account username to create a new password.'
+              ? resetStep === 'VERIFY_OTP'
+                ? 'Enter the 6-digit verification code and your new password.'
+                : 'Enter your account username to receive a verification OTP.'
               : mode === 'login'
                 ? 'Sign in with your username & password to access your dashboard.'
                 : 'Register as a Parent to track assessments and empower your kids.'}
@@ -468,7 +533,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <div>
                   <h3 className="text-lg font-black text-stone-900">Password Updated!</h3>
                   <p className="text-xs text-stone-500 mt-1 max-w-xs mx-auto">
-                    Your password has been changed successfully. A security confirmation email has been dispatched to the registered email address.
+                    Your password has been changed successfully. You can now sign in using your new password.
                   </p>
                 </div>
                 <button
@@ -484,9 +549,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <ArrowRight size={18} />
                 </button>
               </div>
-            ) : (
-              <form onSubmit={handleResetSubmit} className="space-y-3" noValidate>
-                {/* Identifier Field */}
+            ) : resetStep === 'ENTER_IDENTIFIER' ? (
+              /* Step 1: Enter Username & Send OTP */
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendOtp();
+                }}
+                className="space-y-4"
+                noValidate
+              >
                 <div>
                   <label className="block text-xs font-bold text-stone-700 mb-1 ml-1">
                     Username <span className="text-red-500">*</span>
@@ -504,6 +576,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                         setResetFieldErrors((prev) => ({ ...prev, identifier: undefined }));
                       }}
                       placeholder="e.g. rahul2026"
+                      autoFocus
                       className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${resetFieldErrors.identifier
                         ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
                         : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
@@ -513,9 +586,105 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   {resetFieldErrors.identifier && (
                     <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{resetFieldErrors.identifier}</p>
                   )}
-                  <p className="text-[10px] text-stone-400 mt-1 ml-1">
-                    Security notification will be sent to the linked email address.
+                  <p className="text-[11px] text-stone-500 mt-1.5 ml-1">
+                    An OTP will be dispatched to the email linked to this username.
                   </p>
+                </div>
+
+                {/* Error Banner */}
+                {resetErrorMessage && (
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-600 flex items-start gap-2">
+                    <AlertCircle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+                    <span>{resetErrorMessage}</span>
+                  </div>
+                )}
+
+                {/* Send OTP Button */}
+                <button
+                  type="submit"
+                  disabled={isSendingOtp}
+                  className="w-full h-11 flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 active:scale-[0.98] text-stone-900 text-sm font-bold rounded-xl transition-all shadow-lg shadow-yellow-400/25 disabled:opacity-70 disabled:pointer-events-none cursor-pointer"
+                >
+                  {isSendingOtp ? (
+                    <Loader2 size={18} className="animate-spin text-stone-900" />
+                  ) : (
+                    <>
+                      <span>Send OTP</span>
+                      <Send size={16} />
+                    </>
+                  )}
+                </button>
+
+                {/* Back to Login Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResetErrorMessage(null);
+                    setResetFieldErrors({});
+                    setMode('login');
+                  }}
+                  className="w-full h-10 flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  <ArrowLeft size={16} />
+                  <span>Back to Login</span>
+                </button>
+              </form>
+            ) : (
+              /* Step 2: Verify OTP & Enter New Password */
+              <form onSubmit={handleResetSubmit} className="space-y-3" noValidate>
+                {/* Email Destination Banner */}
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-between text-xs text-amber-900">
+                  <div className="flex items-center gap-2">
+                    <Mail size={16} className="text-amber-600 flex-shrink-0" />
+                    <div>
+                      <span className="text-stone-600">OTP sent to: </span>
+                      <span className="font-bold text-stone-900">{resetMaskedEmail}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetStep('ENTER_IDENTIFIER');
+                      setResetErrorMessage(null);
+                      setResetFieldErrors({});
+                    }}
+                    className="text-[11px] font-bold text-amber-700 hover:text-amber-900 underline ml-2 cursor-pointer"
+                  >
+                    Change
+                  </button>
+                </div>
+
+                {/* OTP Code Field */}
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 mb-1 ml-1">
+                    6-Digit Verification Code (OTP) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative group">
+                    <KeyRound
+                      size={18}
+                      className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${resetFieldErrors.otp ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'}`}
+                    />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={resetOtp}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setResetOtp(val);
+                        setResetFieldErrors((prev) => ({ ...prev, otp: undefined }));
+                      }}
+                      placeholder="• • • • • •"
+                      autoFocus
+                      className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-center font-mono text-base font-bold tracking-widest text-stone-900 outline-none transition-all placeholder:text-stone-300 ${resetFieldErrors.otp
+                        ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                        : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
+                        }`}
+                    />
+                  </div>
+                  {resetFieldErrors.otp && (
+                    <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{resetFieldErrors.otp}</p>
+                  )}
                 </div>
 
                 {/* New Password */}
@@ -592,7 +761,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
                 {/* Error Banner */}
                 {resetErrorMessage && (
-                  <div className="p-3 mt-3 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-600 flex items-start gap-2">
+                  <div className="p-3 mt-2 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-600 flex items-start gap-2">
                     <AlertCircle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
                     <span>{resetErrorMessage}</span>
                   </div>
@@ -602,7 +771,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <button
                   type="submit"
                   disabled={resetSubmitting}
-                  className="w-full h-11 mt-3 flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 active:scale-[0.98] text-stone-900 text-sm font-bold rounded-xl transition-all shadow-lg shadow-yellow-400/25 disabled:opacity-70 disabled:pointer-events-none cursor-pointer"
+                  className="w-full h-11 mt-2 flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 active:scale-[0.98] text-stone-900 text-sm font-bold rounded-xl transition-all shadow-lg shadow-yellow-400/25 disabled:opacity-70 disabled:pointer-events-none cursor-pointer"
                 >
                   {resetSubmitting ? (
                     <Loader2 size={18} className="animate-spin text-stone-900" />
@@ -614,6 +783,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   )}
                 </button>
 
+                {/* Resend Code Action */}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-stone-500">Didn't receive the code?</span>
+                  {resendCountdown > 0 ? (
+                    <span className="text-xs font-semibold text-stone-400">
+                      Resend in {resendCountdown}s
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isSendingOtp}
+                      onClick={() => handleSendOtp(true)}
+                      className="text-xs font-bold text-yellow-600 hover:text-yellow-700 flex items-center gap-1 cursor-pointer"
+                    >
+                      <RefreshCw size={12} className={isSendingOtp ? 'animate-spin' : ''} />
+                      <span>Resend OTP</span>
+                    </button>
+                  )}
+                </div>
+
                 {/* Back to Login Button */}
                 <button
                   type="button"
@@ -622,7 +811,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     setResetFieldErrors({});
                     setMode('login');
                   }}
-                  className="w-full h-10 mt-2 flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900 text-xs font-bold transition-colors cursor-pointer"
+                  className="w-full h-9 mt-1 flex items-center justify-center gap-1.5 text-stone-600 hover:text-stone-900 text-xs font-bold transition-colors cursor-pointer"
                 >
                   <ArrowLeft size={16} />
                   <span>Back to Login</span>
@@ -816,6 +1005,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     type="button"
                     onClick={() => {
                       setResetIdentifier(username);
+                      setResetStep('ENTER_IDENTIFIER');
+                      setResetOtp('');
+                      setResetMaskedEmail(null);
                       setResetSuccess(false);
                       setResetErrorMessage(null);
                       setResetFieldErrors({});

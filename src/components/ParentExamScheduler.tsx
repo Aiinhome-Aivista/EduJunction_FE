@@ -24,6 +24,18 @@ import { ParentAccount, ChildAccount, ExamSubmission, CLASS_SUBJECTS_MAP } from 
 import { ScheduledExam, ScheduleExamPayload } from '../types/api';
 import ApiServices from '../services/ApiServices';
 
+interface DbChapter {
+  id: number;
+  name: string;
+  topics?: { id: number; name: string }[];
+}
+
+interface DbSubject {
+  id: number;
+  name: string;
+  chapters?: DbChapter[];
+}
+
 interface ParentExamSchedulerProps {
   parentAccount: ParentAccount;
   activeChildId: string | null;
@@ -60,9 +72,43 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
   const [selectedStudentId, setSelectedStudentId] = useState<string>(initialChild?.id || '');
   const activeChild = parentAccount.children.find(c => c.id === selectedStudentId) || initialChild;
 
-  const availableSubjects: string[] = (activeChild?.classGrade && CLASS_SUBJECTS_MAP[activeChild.classGrade])
-    ? CLASS_SUBJECTS_MAP[activeChild.classGrade]
-    : ['Mathematics', 'Science', 'English', 'Social Studies', 'Computer Science', 'Logical Reasoning'];
+  // Dynamic Database Curriculum Options
+  const [dbSubjects, setDbSubjects] = useState<DbSubject[]>([]);
+  const [isLoadingCurriculum, setIsLoadingCurriculum] = useState(false);
+
+  // Fetch subjects, chapters & topics mapped directly from the database
+  useEffect(() => {
+    let isMounted = true;
+    if (!activeChild) return;
+
+    setIsLoadingCurriculum(true);
+    ApiServices.getCurriculumOptions({
+      board: activeChild.targetBoard,
+      classGrade: activeChild.classGrade,
+      studentId: activeChild.id,
+    })
+      .then((res: any) => {
+        if (!isMounted) return;
+        const fetchedSubjects: DbSubject[] = res?.subjects || res?.data?.subjects || [];
+        setDbSubjects(fetchedSubjects);
+      })
+      .catch((err) => {
+        console.error('Failed to load database curriculum options:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingCurriculum(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeChild?.id, activeChild?.classGrade, activeChild?.targetBoard]);
+
+  const availableSubjects: string[] = dbSubjects.length > 0
+    ? dbSubjects.map(s => s.name)
+    : (activeChild?.classGrade && CLASS_SUBJECTS_MAP[activeChild.classGrade])
+      ? CLASS_SUBJECTS_MAP[activeChild.classGrade]
+      : ['Mathematics', 'Science', 'English', 'Social Studies', 'Computer Science', 'Logical Reasoning'];
 
   const [subject, setSubject] = useState<string>(presetSubject || '');
   const [chapterTopic, setChapterTopic] = useState<string>(presetTopic || '');
@@ -71,6 +117,10 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
   const [timeLimitMinutes, setTimeLimitMinutes] = useState<number>(10);
   const [dueDate, setDueDate] = useState<string>('');
   const [parentInstructions, setParentInstructions] = useState<string>('');
+
+  // Find chapters from DB for the selected subject
+  const currentDbSubject = dbSubjects.find(s => s.name.trim().toLowerCase() === subject.trim().toLowerCase());
+  const availableChapters = currentDbSubject?.chapters || [];
 
   // Sync active student from props
   useEffect(() => {
@@ -105,6 +155,7 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
     );
 
     setSubject('');
+    setChapterTopic('');
     if (isKid) {
       setQuestionCount(5);
       setTimeLimitMinutes(5);
@@ -371,39 +422,73 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
               </div>
             </div>
 
-            {/* Subject Dropdown */}
+            {/* Subject Dropdown (Database Mapped) */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-stone-700 flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-stone-400" />
-                Subject
+              <label className="text-[11px] font-bold text-stone-700 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-stone-400" />
+                  Subject (Database Mapped)
+                </span>
+                {isLoadingCurriculum ? (
+                  <span className="text-[10px] text-amber-600 font-medium animate-pulse">Loading DB subjects...</span>
+                ) : (
+                  <span className="text-[10px] text-stone-400 font-medium">{activeChild?.targetBoard} • {activeChild?.classGrade}</span>
+                )}
               </label>
               <select
                 value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-semibold text-stone-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
+                onChange={(e) => {
+                  setSubject(e.target.value);
+                  setChapterTopic(''); // Reset chapter when subject changes
+                }}
+                disabled={isLoadingCurriculum}
+                className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-semibold text-stone-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all disabled:opacity-60 cursor-pointer"
               >
-                <option value="" disabled>Select Subject</option>
+                <option value="" disabled>
+                  {isLoadingCurriculum ? 'Loading database subjects...' : 'Select Subject'}
+                </option>
                 {availableSubjects.map((sub) => (
                   <option key={sub} value={sub}>{sub}</option>
                 ))}
               </select>
             </div>
 
-            {/* Chapter / Topic Input */}
+            {/* Chapter / Topic Dropdown / Input (Database Mapped) */}
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-stone-700 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5 text-stone-400" />
-                  Chapter or Specific Topic (Optional)
+                  Chapter / Topic (Optional)
                 </span>
+                {availableChapters.length > 0 && (
+                  <span className="text-[10px] text-amber-600 font-semibold">{availableChapters.length} Chapters in DB</span>
+                )}
               </label>
-              <input
-                type="text"
-                placeholder="e.g. Quadratic Equations, Optics, Cell Biology"
-                value={chapterTopic}
-                onChange={(e) => setChapterTopic(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-medium text-stone-800 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
-              />
+
+              {availableChapters.length > 0 ? (
+                <div className="space-y-2">
+                  <select
+                    value={chapterTopic}
+                    onChange={(e) => setChapterTopic(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-semibold text-stone-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all cursor-pointer"
+                  >
+                    <option value="">Full Syllabus / Comprehensive (All Chapters)</option>
+                    {availableChapters.map((ch) => (
+                      <option key={ch.id} value={ch.name}>
+                        {ch.name} {ch.topics && ch.topics.length > 0 ? `(${ch.topics.length} topics)` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="e.g. Quadratic Equations, Optics, Cell Biology (or leave blank for full syllabus)"
+                  value={chapterTopic}
+                  onChange={(e) => setChapterTopic(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-medium text-stone-800 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
+                />
+              )}
             </div>
 
             {/* Difficulty Level */}
