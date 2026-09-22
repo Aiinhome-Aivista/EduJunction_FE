@@ -3,6 +3,7 @@ export const API_V1 = `${BASE_URL}/api/v1`;
 
 export const GET_APIS = {
   // Auth
+  captcha: `${API_V1}/auth/captcha`,
   roles: `${API_V1}/auth/roles`,
   verifySession: `${API_V1}/auth/verify`,
   menuPermissions: `${API_V1}/auth/menu-permissions`,

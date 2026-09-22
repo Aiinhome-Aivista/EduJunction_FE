@@ -169,6 +169,7 @@ class ApiServices {
   googleLogin(body: any) { return apiClient.post(POST_APIS.googleLogin, body); }
   register(body: any) { return this.post(POST_APIS.register, body); }
   resetPassword(body: { identifier: string; newPassword: string }) { return this.post(POST_APIS.resetPassword, body); }
+  getCaptcha() { return this.get(GET_APIS.captcha); }
   checkUsername(username: string) { return this.get(GET_APIS.checkUsername(username)); }
   getRoles() { return this.get(GET_APIS.roles); }
   verifySession() { return this.get(GET_APIS.verifySession); }

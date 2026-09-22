@@ -412,7 +412,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span>✨</span> NEW
                 </span>
                 <span className="text-stone-950 font-black text-sm sm:text-base tracking-wide drop-shadow-sm">
-                  Model Test Papers for <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span>, <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span> &amp; <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span>
+                  Model Test Papers Available for <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span>, <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span> &amp; <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span> Boards
                 </span>
               </span>
             ))}

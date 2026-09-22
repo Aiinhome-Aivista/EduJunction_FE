@@ -13,6 +13,8 @@ import {
   User,
   X,
   AlertCircle,
+  RefreshCw,
+  Calculator,
 } from 'lucide-react';
 import ApiServices, {
   storeTokens,
@@ -41,6 +43,32 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Captcha State
+  const [captchaData, setCaptchaData] = useState<{ captchaId: string; question: string } | null>(null);
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+  const [isCaptchaLoading, setIsCaptchaLoading] = useState(false);
+
+  const fetchCaptcha = async () => {
+    try {
+      setIsCaptchaLoading(true);
+      const res = await ApiServices.getCaptcha();
+      if (res && res.captchaId && res.question) {
+        setCaptchaData(res);
+        setCaptchaAnswer('');
+      }
+    } catch (err) {
+      console.error('Failed to load captcha', err);
+    } finally {
+      setIsCaptchaLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (mode === 'login' || mode === 'register') {
+      fetchCaptcha();
+    }
+  }, [mode]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -245,6 +273,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setCaptchaAnswer('');
+    fetchCaptcha();
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -297,6 +327,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       }
     }
 
+    // Validate Math Captcha
+    if (!captchaAnswer.trim()) {
+      newFieldErrors.captcha = 'Please enter the answer to the math challenge.';
+      hasError = true;
+    }
+
     if (hasError) {
       setFieldErrors(newFieldErrors);
       return;
@@ -307,14 +343,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     try {
       const response =
         mode === 'login'
-          ? await ApiServices.login({ username: username.trim(), password })
+          ? await ApiServices.login({
+              username: username.trim(),
+              password,
+              captchaId: captchaData?.captchaId,
+              captchaAnswer: captchaAnswer.trim(),
+            })
           : await ApiServices.register({
-            name: name.trim(),
-            username: username.trim(),
-            email: email.trim(),
-            password,
-            role: 'Parent',
-          });
+              name: name.trim(),
+              username: username.trim(),
+              email: email.trim(),
+              password,
+              role: 'Parent',
+              captchaId: captchaData?.captchaId,
+              captchaAnswer: captchaAnswer.trim(),
+            });
 
       const result = response.data?.data || response.data || response;
 
@@ -338,13 +381,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
       onAuthenticated(userRole);
     } catch (error: any) {
-      if (error?.message) {
-        setErrorMessage(error.message);
+      fetchCaptcha();
+      const serverMsg = error?.response?.data?.error?.message || error?.response?.data?.message || error?.message;
+      if (serverMsg) {
+        setErrorMessage(serverMsg);
       } else {
         setErrorMessage(
           mode === 'login'
-            ? 'Invalid username or password. Please try again.'
-            : 'Unable to create your account. Please try again.'
+            ? 'Invalid username, password, or captcha answer. Please try again.'
+            : 'Unable to create your account. Please check the details and try again.'
         );
       }
     } finally {
@@ -885,6 +930,60 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 )}
               </div>
             )}
+
+            {/* Math Security Captcha */}
+            <div className="pt-1">
+              <div className="flex items-center justify-between mb-1 ml-1 mr-1">
+                <label className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
+                  <Calculator size={14} className="text-yellow-600" />
+                  <span>Security Captcha</span> <span className="text-red-500">*</span>
+                </label>
+                <span className="text-[10px] text-stone-400 font-medium">Solve the math challenge</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Math Question Box */}
+                <div className="h-11 px-3.5 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-yellow-200/80 rounded-xl flex items-center justify-center gap-2 text-sm font-black text-stone-900 tracking-wider select-none shadow-xs min-w-[110px]">
+                  {isCaptchaLoading ? (
+                    <Loader2 size={16} className="animate-spin text-yellow-600" />
+                  ) : (
+                    <span>{captchaData?.question || '...'}</span>
+                  )}
+                </div>
+
+                {/* Refresh Captcha Button */}
+                <button
+                  type="button"
+                  onClick={fetchCaptcha}
+                  disabled={isCaptchaLoading}
+                  title="Generate new question"
+                  className="w-11 h-11 flex items-center justify-center rounded-xl bg-stone-100 hover:bg-yellow-100 text-stone-600 hover:text-yellow-800 transition-colors border border-stone-200 active:scale-95 disabled:opacity-50 cursor-pointer flex-shrink-0"
+                >
+                  <RefreshCw size={16} className={isCaptchaLoading ? 'animate-spin' : ''} />
+                </button>
+
+                {/* Answer Input */}
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={captchaAnswer}
+                    onChange={(e) => {
+                      setCaptchaAnswer(e.target.value);
+                      clearFieldError('captcha');
+                    }}
+                    placeholder="Enter result"
+                    className={`w-full h-11 px-3.5 bg-white border-2 rounded-xl text-sm font-semibold text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.captcha
+                      ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                      : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
+                      }`}
+                  />
+                </div>
+              </div>
+              {fieldErrors.captcha && (
+                <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{fieldErrors.captcha}</p>
+              )}
+            </div>
 
             {/* Error Banner */}
             {errorMessage && (
