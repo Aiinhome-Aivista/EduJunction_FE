@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
   CheckCircle2,
@@ -26,7 +26,8 @@ import {
   ArrowLeft,
   GraduationCap,
   Layers,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
 
@@ -112,6 +113,10 @@ interface EvaluationResultData {
 export const ModelExamPage: React.FC = () => {
   const { subscriptionId } = useParams<{ subscriptionId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const userRole = (localStorage.getItem('user_role') || sessionStorage.getItem('user_role') || '').toUpperCase();
+  const isViewOnly = userRole === 'PARENT' || searchParams.get('mode') === 'view';
 
   const [paperData, setPaperData] = useState<PaperData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -216,10 +221,10 @@ export const ModelExamPage: React.FC = () => {
 
   const remainingSeconds = Math.max(0, totalAllowedSeconds - elapsedSeconds);
 
-  // Timer for test taking (Reverse Countdown & Auto-Submit on Time Up)
+  // Timer for test taking (Reverse Countdown & Auto-Submit on Time Up) - only for student taking exam
   useEffect(() => {
     let interval: any = null;
-    if (activeMode === 'TEST' && !isLoading && !error) {
+    if (!isViewOnly && activeMode === 'TEST' && !isLoading && !error) {
       if (remainingSeconds <= 0 && !isSubmitting && !isTimeUpModalOpen) {
         setIsTimeUpModalOpen(true);
         setShowSubmitConfirm(false);
@@ -234,7 +239,7 @@ export const ModelExamPage: React.FC = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [activeMode, isLoading, error, remainingSeconds, isSubmitting, isTimeUpModalOpen]);
+  }, [isViewOnly, activeMode, isLoading, error, remainingSeconds, isSubmitting, isTimeUpModalOpen]);
 
   // Content security: prevent right click and print shortcuts inside page
   useEffect(() => {
@@ -446,22 +451,28 @@ export const ModelExamPage: React.FC = () => {
 
           {/* Action Header controls — Timer + Marks + Rubric (right side) */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-
-            {/* Reverse Countdown / Time Remaining info — bigger */}
-            <div className={`flex flex-col items-center px-3 py-1.5 rounded-xl border transition-all ${
-              activeMode === 'TEST' && remainingSeconds <= 300
-                ? 'bg-amber-400 text-stone-950 border-amber-300 animate-pulse ring-2 ring-amber-400/60 font-black'
-                : 'bg-white/10 border-white/15 text-white'
-            }`}>
-              <span className="font-black text-base sm:text-lg leading-none font-mono">
-                {activeMode === 'RESULT'
-                  ? formatTimer(evaluationResult?.timeSpentSeconds || elapsedSeconds)
-                  : formatTimer(remainingSeconds)}
-              </span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider opacity-60">
-                {activeMode === 'RESULT' ? 'Time Spent' : 'Time Remaining'}
-              </span>
-            </div>
+            {isViewOnly ? (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-bold shadow-2xs">
+                <Eye className="w-3.5 h-3.5 text-amber-400" />
+                <span>Parent Preview (Read-Only)</span>
+              </div>
+            ) : (
+              /* Reverse Countdown / Time Remaining info */
+              <div className={`flex flex-col items-center px-3 py-1.5 rounded-xl border transition-all ${
+                activeMode === 'TEST' && remainingSeconds <= 300
+                  ? 'bg-amber-400 text-stone-950 border-amber-300 animate-pulse ring-2 ring-amber-400/60 font-black'
+                  : 'bg-white/10 border-white/15 text-white'
+              }`}>
+                <span className="font-black text-base sm:text-lg leading-none font-mono">
+                  {activeMode === 'RESULT'
+                    ? formatTimer(evaluationResult?.timeSpentSeconds || elapsedSeconds)
+                    : formatTimer(remainingSeconds)}
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider opacity-60">
+                  {activeMode === 'RESULT' ? 'Time Spent' : 'Time Remaining'}
+                </span>
+              </div>
+            )}
 
             {/* Marks */}
             <div className="hidden sm:flex flex-col items-center px-3 py-1.5 rounded-xl bg-amber-400/15 border border-amber-400/30">
@@ -477,7 +488,17 @@ export const ModelExamPage: React.FC = () => {
               <span className="text-emerald-300 text-[11px] font-bold">Board Rubric</span>
             </div>
 
-            {activeMode === 'RESULT' && (
+            {/* Close / Return Button */}
+            <button
+              type="button"
+              onClick={handleExit}
+              className="py-1.5 px-3 rounded-xl bg-stone-700 hover:bg-stone-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs border border-stone-600"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>{isViewOnly ? 'Close View' : 'Exit Exam'}</span>
+            </button>
+
+            {activeMode === 'RESULT' && !isViewOnly && (
               <button
                 type="button"
                 onClick={handleRetake}
@@ -749,129 +770,203 @@ export const ModelExamPage: React.FC = () => {
                         </div>
 
                         {/* ========================================================= */}
-                        {/* TEST MODE: Interactive Answer Inputs                      */}
+                        {/* TEST MODE: Parent Read-Only or Student Interactive Inputs */}
                         {/* ========================================================= */}
                         {activeMode === 'TEST' && (
-                          <div className="pt-2">
-                            {isMcq && q.options && q.options.length > 0 ? (
-                              <div className="space-y-2">
-                                <div className="text-xs font-bold text-stone-500 uppercase tracking-wider">
-                                  Select your answer:
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                  {q.options.map((opt, optIdx) => {
-                                    const optLetter = chr(65 + optIdx);
-                                    const isSelected = currentStudentAns.toUpperCase() === optLetter;
+                          <div className="pt-2 space-y-3">
+                            {isViewOnly ? (
+                              /* ── Parent Read-Only Mode ── */
+                              <div className="space-y-3">
+                                {isMcq && q.options && q.options.length > 0 && (
+                                  <div className="space-y-2">
+                                    <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                                      Options:
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                      {q.options.map((opt, optIdx) => {
+                                        const optLetter = chr(65 + optIdx);
+                                        return (
+                                          <div
+                                            key={optIdx}
+                                            className="p-3.5 rounded-2xl text-left text-xs sm:text-sm font-semibold flex items-start gap-3 border bg-stone-50/70 border-stone-200 text-stone-800"
+                                          >
+                                            <span className="w-6 h-6 rounded-lg bg-stone-200 text-stone-700 flex items-center justify-center text-xs font-black shrink-0">
+                                              {optLetter}
+                                            </span>
+                                            <span className="leading-snug pt-0.5">{opt}</span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
 
-                                    return (
-                                      <button
-                                        key={optIdx}
-                                        type="button"
-                                        onClick={() => handleSelectOption(qKey, optLetter)}
-                                        className={`p-3.5 rounded-2xl text-left text-xs sm:text-sm font-semibold transition-all flex items-start gap-3 border cursor-pointer ${
-                                          isSelected
-                                            ? 'bg-amber-50 border-amber-500 text-stone-950 font-bold shadow-xs ring-2 ring-amber-400'
-                                            : 'bg-stone-50/80 hover:bg-stone-100 border-stone-200 text-stone-700'
-                                        }`}
-                                      >
-                                        <span
-                                          className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
-                                            isSelected
-                                              ? 'bg-amber-500 text-stone-950'
-                                              : 'bg-stone-200 text-stone-600'
-                                          }`}
-                                        >
-                                          {optLetter}
-                                        </span>
-                                        <span className="leading-snug pt-0.5">{opt}</span>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
+                                {/* Model Answer Accordion for Parent View */}
+                                {(q.correct_answer || q.explanation) && (
+                                  <div className="pt-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleSolution(qKey)}
+                                      className="w-full py-2.5 px-4 rounded-2xl bg-amber-50/70 hover:bg-amber-100 text-stone-900 text-xs font-bold flex items-center justify-between transition-colors border border-amber-200 cursor-pointer"
+                                    >
+                                      <span className="flex items-center gap-2 font-bold text-amber-950">
+                                        <CheckCircle2 className="w-4 h-4 text-amber-600" />
+                                        View Model Answer &amp; Solution Details
+                                      </span>
+                                      {isSolutionOpen ? (
+                                        <ChevronUp className="w-4 h-4 text-amber-800" />
+                                      ) : (
+                                        <ChevronDown className="w-4 h-4 text-amber-800" />
+                                      )}
+                                    </button>
+
+                                    {isSolutionOpen && (
+                                      <div className="mt-2 p-4 rounded-2xl bg-white border border-amber-300/80 space-y-2 text-xs animate-in fade-in duration-150 shadow-2xs">
+                                        {q.correct_answer && (
+                                          <div>
+                                            <span className="text-[10px] font-black uppercase text-amber-900 block">
+                                              Correct Model Answer:
+                                            </span>
+                                            <div className="text-stone-900 font-bold mt-0.5">{q.correct_answer}</div>
+                                          </div>
+                                        )}
+                                        {q.explanation && (
+                                          <div className="pt-1.5 border-t border-amber-100">
+                                            <span className="text-[10px] font-black uppercase text-amber-900 block">
+                                              Step-by-Step Solution &amp; Marking Scheme:
+                                            </span>
+                                            <div className="text-stone-700 leading-relaxed mt-0.5 whitespace-pre-line">{q.explanation}</div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             ) : (
-                              <div className="space-y-1.5">
-                                <div className="flex items-center justify-between text-xs text-stone-500 font-bold">
-                                  <span className="flex items-center gap-1.5">
-                                    <PenTool className="w-3.5 h-3.5 text-amber-500" />
-                                    Type your complete step-by-step answer:
-                                  </span>
-                                  <span>{currentStudentAns.length} characters</span>
-                                </div>
-                                <textarea
-                                  value={currentStudentAns}
-                                  onChange={(e) => handleTextAnswerChange(qKey, e.target.value)}
-                                  placeholder="Write your definitions, mathematical derivations, calculations, and final answer here..."
-                                  rows={4}
-                                  className="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all resize-y shadow-2xs"
-                                />
-
-                                {/* Math Quick Toolbar & Diagram Canvas Scratchpad */}
-                                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                                    <span className="text-stone-400 font-bold mr-1">Quick Symbols:</span>
-                                    {['√', 'π', 'θ', 'Δ', '∫', 'Σ', '²', '±', '≠', '≈', '÷', '×'].map((sym) => (
-                                      <button
-                                        key={sym}
-                                        type="button"
-                                        onClick={() => handleTextAnswerChange(qKey, (currentStudentAns || '') + sym)}
-                                        className="px-2 py-0.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-mono font-bold border border-stone-200 cursor-pointer text-xs"
-                                      >
-                                        {sym}
-                                      </button>
-                                    ))}
-                                  </div>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => setActiveCanvasKey(qKey)}
-                                    className="px-3 py-1 rounded-xl bg-stone-900 hover:bg-stone-700 text-amber-300 font-bold text-xs border border-stone-700 flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
-                                  >
-                                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                                    <span>Draw Diagram / Sketch 🎨</span>
-                                  </button>
-                                </div>
-
-                                {/* Display Attached Drawing Preview if present */}
-                                {drawnDiagrams[qKey] && (
-                                  <div className="p-3.5 bg-stone-50 rounded-2xl border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-2 shadow-2xs">
-                                    <div className="flex items-center gap-3">
-                                      <img
-                                        src={drawnDiagrams[qKey]}
-                                        alt="Attached Diagram"
-                                        className="w-24 h-24 object-contain rounded-xl border border-amber-300 bg-white shadow-xs"
-                                      />
-                                      <div>
-                                        <span className="text-xs font-bold text-stone-950 block">
-                                          🎨 Attached Hand-Drawn Diagram / Sketch
-                                        </span>
-                                        <span className="text-[11px] text-stone-600">
-                                          Your figure will be evaluated with your step-by-step text answer.
-                                        </span>
-                                      </div>
+                              /* ── Student Interactive Test Mode ── */
+                              <div>
+                                {isMcq && q.options && q.options.length > 0 ? (
+                                  <div className="space-y-2">
+                                    <div className="text-xs font-bold text-stone-500 uppercase tracking-wider">
+                                      Select your answer:
                                     </div>
-                                    <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                      {q.options.map((opt, optIdx) => {
+                                        const optLetter = chr(65 + optIdx);
+                                        const isSelected = currentStudentAns.toUpperCase() === optLetter;
+
+                                        return (
+                                          <button
+                                            key={optIdx}
+                                            type="button"
+                                            onClick={() => handleSelectOption(qKey, optLetter)}
+                                            className={`p-3.5 rounded-2xl text-left text-xs sm:text-sm font-semibold transition-all flex items-start gap-3 border cursor-pointer ${
+                                              isSelected
+                                                ? 'bg-amber-50 border-amber-500 text-stone-950 font-bold shadow-xs ring-2 ring-amber-400'
+                                                : 'bg-stone-50/80 hover:bg-stone-100 border-stone-200 text-stone-700'
+                                            }`}
+                                          >
+                                            <span
+                                              className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                                                isSelected
+                                                  ? 'bg-amber-500 text-stone-950'
+                                                  : 'bg-stone-200 text-stone-600'
+                                              }`}
+                                            >
+                                              {optLetter}
+                                            </span>
+                                            <span className="leading-snug pt-0.5">{opt}</span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between text-xs text-stone-500 font-bold">
+                                      <span className="flex items-center gap-1.5">
+                                        <PenTool className="w-3.5 h-3.5 text-amber-500" />
+                                        Type your complete step-by-step answer:
+                                      </span>
+                                      <span>{currentStudentAns.length} characters</span>
+                                    </div>
+                                    <textarea
+                                      value={currentStudentAns}
+                                      onChange={(e) => handleTextAnswerChange(qKey, e.target.value)}
+                                      placeholder="Write your definitions, mathematical derivations, calculations, and final answer here..."
+                                      rows={4}
+                                      className="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all resize-y shadow-2xs"
+                                    />
+
+                                    {/* Math Quick Toolbar & Diagram Canvas Scratchpad */}
+                                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                      <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                                        <span className="text-stone-400 font-bold mr-1">Quick Symbols:</span>
+                                        {['√', 'π', 'θ', 'Δ', '∫', 'Σ', '²', '±', '≠', '≈', '÷', '×'].map((sym) => (
+                                          <button
+                                            key={sym}
+                                            type="button"
+                                            onClick={() => handleTextAnswerChange(qKey, (currentStudentAns || '') + sym)}
+                                            className="px-2 py-0.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 font-mono font-bold border border-stone-200 cursor-pointer text-xs"
+                                          >
+                                            {sym}
+                                          </button>
+                                        ))}
+                                      </div>
+
                                       <button
                                         type="button"
                                         onClick={() => setActiveCanvasKey(qKey)}
-                                        className="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-stone-900 text-xs font-bold border border-amber-300 cursor-pointer transition-all"
+                                        className="px-3 py-1 rounded-xl bg-stone-900 hover:bg-stone-700 text-amber-300 font-bold text-xs border border-stone-700 flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
                                       >
-                                        Redraw ✏️
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setDrawnDiagrams((prev) => {
-                                            const copy = { ...prev };
-                                            delete copy[qKey];
-                                            return copy;
-                                          });
-                                        }}
-                                        className="px-3 py-1.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold border border-stone-300 cursor-pointer transition-all"
-                                      >
-                                        Remove 🗑️
+                                        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                                        <span>Draw Diagram / Sketch 🎨</span>
                                       </button>
                                     </div>
+
+                                    {/* Display Attached Drawing Preview if present */}
+                                    {drawnDiagrams[qKey] && (
+                                      <div className="p-3.5 bg-stone-50 rounded-2xl border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-2 shadow-2xs">
+                                        <div className="flex items-center gap-3">
+                                          <img
+                                            src={drawnDiagrams[qKey]}
+                                            alt="Attached Diagram"
+                                            className="w-24 h-24 object-contain rounded-xl border border-amber-300 bg-white shadow-xs"
+                                          />
+                                          <div>
+                                            <span className="text-xs font-bold text-stone-950 block">
+                                              🎨 Attached Hand-Drawn Diagram / Sketch
+                                            </span>
+                                            <span className="text-[11px] text-stone-600">
+                                              Your figure will be evaluated with your step-by-step text answer.
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                                          <button
+                                            type="button"
+                                            onClick={() => setActiveCanvasKey(qKey)}
+                                            className="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-stone-900 text-xs font-bold border border-amber-300 cursor-pointer transition-all"
+                                          >
+                                            Redraw ✏️
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setDrawnDiagrams((prev) => {
+                                                const copy = { ...prev };
+                                                delete copy[qKey];
+                                                return copy;
+                                              });
+                                            }}
+                                            className="px-3 py-1.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold border border-stone-300 cursor-pointer transition-all"
+                                          >
+                                            Remove 🗑️
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -976,12 +1071,18 @@ export const ModelExamPage: React.FC = () => {
             );
           })
         )}
+        {isViewOnly && (
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300/80 text-center text-xs text-amber-900 font-bold flex items-center justify-center gap-2 shadow-2xs">
+            <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>You are viewing this 2027 Specimen Model Question Paper in Parent Read-Only Mode. Answering and test submission are reserved for students taking the timed exam.</span>
+          </div>
+        )}
       </main>
 
       {/* ========================================================= */}
-      {/* Sticky Bottom Submit Bar in TEST Mode                    */}
+      {/* Sticky Bottom Submit Bar in Student TEST Mode             */}
       {/* ========================================================= */}
-      {activeMode === 'TEST' && (
+      {activeMode === 'TEST' && !isViewOnly && (
         <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-stone-200 p-3 sm:p-4 z-40 shadow-2xl">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
             {/* Compact answered info — left side */}

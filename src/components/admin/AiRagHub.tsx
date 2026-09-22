@@ -225,6 +225,14 @@ export const AiRagHub: React.FC = () => {
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestionItem[]>([]);
   const [selectedTargetTopicId, setSelectedTargetTopicId] = useState<number | null>(null);
   const [flatTopics, setFlatTopics] = useState<FlatTopic[]>([]);
+  const [ingestionSummary, setIngestionSummary] = useState<{
+    topic_name: string;
+    total_processed: number;
+    inserted_count: number;
+    updated_count: number;
+    duplicate_skipped_count: number;
+    message: string;
+  } | null>(null);
 
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -578,7 +586,17 @@ export const AiRagHub: React.FC = () => {
         questions: generatedQuestions
       });
 
-      showNotify('success', res?.message || `Successfully saved ${generatedQuestions.length} questions to Question Bank!`);
+      const data = res?.data || res;
+      setIngestionSummary({
+        topic_name: data?.topic_name || 'Selected Topic',
+        total_processed: data?.total_processed || generatedQuestions.length,
+        inserted_count: data?.inserted_count !== undefined ? data.inserted_count : generatedQuestions.length,
+        updated_count: data?.updated_count || 0,
+        duplicate_skipped_count: data?.duplicate_skipped_count || 0,
+        message: data?.message || res?.message || 'Saved to Question Bank!'
+      });
+
+      showNotify('success', res?.message || `Successfully processed ${generatedQuestions.length} questions!`);
       setGeneratorModalOpen(false);
       setGeneratedQuestions([]);
       fetchRagStatus();
@@ -1338,6 +1356,67 @@ export const AiRagHub: React.FC = () => {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          INGESTION SUMMARY MODAL (AI / RAG DEDUPLICATION STATS)
+         ───────────────────────────────────────────────────────────── */}
+      {ingestionSummary && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 border border-stone-200 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-700">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-stone-900">AI Ingestion Completed</h3>
+                  <p className="text-[11px] text-stone-500 font-medium">{ingestionSummary.topic_name}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIngestionSummary(null)}
+                className="p-1.5 hover:bg-stone-100 rounded-xl text-stone-400 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-stone-600 font-medium leading-relaxed">
+              {ingestionSummary.message}
+            </p>
+
+            {/* 4-Metric Grid */}
+            <div className="grid grid-cols-4 gap-2 pt-1">
+              <div className="bg-stone-50 p-2.5 rounded-2xl border border-stone-200/80 text-center">
+                <p className="text-[9px] text-stone-400 font-extrabold uppercase">Total</p>
+                <p className="text-sm font-black text-stone-900">{ingestionSummary.total_processed}</p>
+              </div>
+              <div className="bg-emerald-50 p-2.5 rounded-2xl border border-emerald-200 text-center">
+                <p className="text-[9px] text-emerald-600 font-extrabold uppercase">Inserted</p>
+                <p className="text-sm font-black text-emerald-700">+{ingestionSummary.inserted_count}</p>
+              </div>
+              <div className="bg-amber-50 p-2.5 rounded-2xl border border-amber-200 text-center">
+                <p className="text-[9px] text-amber-600 font-extrabold uppercase">Updated</p>
+                <p className="text-sm font-black text-amber-700">{ingestionSummary.updated_count}</p>
+              </div>
+              <div className="bg-stone-100 p-2.5 rounded-2xl border border-stone-300 text-center">
+                <p className="text-[9px] text-stone-500 font-extrabold uppercase">Duplicates</p>
+                <p className="text-sm font-black text-stone-700">{ingestionSummary.duplicate_skipped_count}</p>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-stone-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIngestionSummary(null)}
+                className="w-full py-2.5 rounded-xl text-xs font-bold bg-stone-900 text-white hover:bg-stone-800 transition-colors shadow-xs cursor-pointer"
+              >
+                Done & Close
+              </button>
             </div>
           </div>
         </div>

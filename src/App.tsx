@@ -345,6 +345,17 @@ export default function App() {
 
     const isSubmitted = notif.type === 'EXAM_SUBMITTED' || notif.type === 'SCHEDULED_EXAM_COMPLETED' || notif.metadata?.status === 'SUBMITTED';
 
+    if (notif.type === 'MODEL_EXAM_ASSIGNED' || notif.metadata?.type === 'MODEL_EXAM') {
+      if (notif.actionUrl) {
+        window.location.href = notif.actionUrl;
+      } else if (notif.metadata?.subscriptionId) {
+        window.location.href = `/model-exam/${notif.metadata.subscriptionId}`;
+      } else {
+        setActiveTab('pricing');
+      }
+      return;
+    }
+
     if (notif.type === 'EXAM_ASSIGNED' && !isSubmitted) {
       setActiveTab('arena');
       return;
@@ -1012,7 +1023,8 @@ export default function App() {
                       ) : (
                         notifications.map((notif) => {
                           const isSubmitted = notif.type === 'EXAM_SUBMITTED' || notif.type === 'SCHEDULED_EXAM_COMPLETED' || notif.metadata?.status === 'SUBMITTED';
-                          const isPending = notif.type === 'EXAM_ASSIGNED' && notif.metadata?.status !== 'SUBMITTED';
+                          const isModelExam = notif.type === 'MODEL_EXAM_ASSIGNED' || notif.metadata?.type === 'MODEL_EXAM';
+                          const isPending = (notif.type === 'EXAM_ASSIGNED' || isModelExam) && !isSubmitted;
 
                           return (
                             <div
@@ -1024,13 +1036,15 @@ export default function App() {
                                 }`}
                             >
                               {/* Icon Badge */}
-                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm mt-0.5 border shadow-2xs ${isPending
-                                ? 'bg-amber-100/90 border-amber-200 text-amber-800'
-                                : isSubmitted
-                                  ? 'bg-emerald-100/90 border-emerald-200 text-emerald-800'
-                                  : 'bg-yellow-100 border-yellow-200 text-yellow-800'
+                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm mt-0.5 border shadow-2xs ${isModelExam
+                                ? 'bg-amber-400/30 border-amber-400 text-stone-900'
+                                : isPending
+                                  ? 'bg-amber-100/90 border-amber-200 text-amber-800'
+                                  : isSubmitted
+                                    ? 'bg-emerald-100/90 border-emerald-200 text-emerald-800'
+                                    : 'bg-yellow-100 border-yellow-200 text-yellow-800'
                                 }`}>
-                                {isPending ? '📝' : isSubmitted ? '🎯' : '🔔'}
+                                {isModelExam ? '📜' : isPending ? '📝' : isSubmitted ? '🎯' : '🔔'}
                               </div>
 
                               {/* Text Body */}
@@ -1041,7 +1055,11 @@ export default function App() {
                                   </h4>
                                   <div className="flex items-center gap-1.5 shrink-0">
                                     {/* Dynamic Status Badge */}
-                                    {isPending ? (
+                                    {isModelExam ? (
+                                      <span className="inline-flex items-center gap-0.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-amber-200 text-amber-950 border border-amber-300 shadow-2xs">
+                                        🎯 2027 Model Paper
+                                      </span>
+                                    ) : isPending ? (
                                       <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200/80 shadow-2xs">
                                         ⏳ Pending
                                       </span>
@@ -1063,7 +1081,7 @@ export default function App() {
                                     {notif.createdAt ? new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'}
                                   </span>
                                   <span className="text-yellow-700 font-semibold group-hover:underline flex items-center gap-0.5">
-                                    {isPending ? 'Start Exam →' : isSubmitted ? 'View Report →' : 'View →'}
+                                    {isModelExam ? 'Start Model Exam →' : isPending ? 'Start Exam →' : isSubmitted ? 'View Report →' : 'View →'}
                                   </span>
                                 </div>
                               </div>
@@ -1384,6 +1402,8 @@ export default function App() {
                     studentEmail={parentAccount?.email}
                     defaultBoard={activeChild?.targetBoard || 'CBSE'}
                     defaultClass={activeChild?.classGrade || 'Class 10'}
+                    childrenList={isParentActive ? (parentAccount?.children || []) : []}
+                    isParent={isParentActive}
                   />
                 )}
 

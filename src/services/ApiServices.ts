@@ -486,8 +486,9 @@ class ApiServices {
   }) {
     return this.post(POST_APIS.verifySubjectSubscriptionPayment, payload);
   }
-  getMySubjectSubscriptions() {
-    return this.get(GET_APIS.mySubjectSubscriptions);
+  getMySubjectSubscriptions(studentId?: number | string) {
+    const url = studentId ? `${GET_APIS.mySubjectSubscriptions}?studentId=${studentId}` : GET_APIS.mySubjectSubscriptions;
+    return this.get(url);
   }
   previewSubjectModelPaper(subscriptionId: number | string) {
     return this.get(GET_APIS.previewSubjectModelPaper(subscriptionId));
