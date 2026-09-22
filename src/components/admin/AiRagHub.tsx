@@ -79,10 +79,12 @@ export const AiRagHub: React.FC = () => {
   const [ragStatus, setRagStatus] = useState<RagStatusData | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
 
-  // Master Data Dynamic State (from DB /api/v1/master/board_class_dropdown)
+  // Master Data Dynamic State (from DB /api/v1/master/board_class_dropdown and /api/v1/master/curriculum-options)
   const [activeBoards, setActiveBoards] = useState<MasterBoard[]>([]);
   const [boardClassesMap, setBoardClassesMap] = useState<Record<string, string[]>>(BOARD_CLASSES_MAP);
+  const [dbSubjects, setDbSubjects] = useState<string[]>([]);
   const [isLoadingMasters, setIsLoadingMasters] = useState(false);
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
 
   // Ingestion Form State (Single & Multi-File Support)
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
@@ -117,17 +119,17 @@ export const AiRagHub: React.FC = () => {
     results: []
   });
 
-  // Dynamic allowed classes strictly determined by Board mapping
+  // Dynamic allowed classes strictly determined by Board mapping from database
   const availableClasses: string[] = (boardClassesMap && boardClassesMap[selectedBoard]) || BOARD_CLASSES_MAP[selectedBoard] || [
     'Class 5', 'Class 6', 'Class 7', 'Class 8',
     'Class 9', 'Class 10', 'Class 11', 'Class 12'
   ];
 
-  // Dynamic allowed subjects strictly determined by Class Grade mapping
-  const availableSubjects: string[] = CLASS_SUBJECTS_MAP[selectedGrade] || [
+  // Dynamic allowed subjects strictly determined by database subject master
+  const availableSubjects: string[] = dbSubjects.length > 0 ? dbSubjects : (CLASS_SUBJECTS_MAP[selectedGrade] || [
     'Mathematics', 'Physics', 'Chemistry', 'Biology',
     'Science', 'Social Studies', 'English', 'Computer Science', 'Logical Reasoning'
-  ];
+  ]);
 
   // Real-time metadata mismatch detection from primary file
   const primaryFile = uploadFiles[0] || null;
@@ -188,24 +190,54 @@ export const AiRagHub: React.FC = () => {
 
   const hasFilenameMismatch = Boolean(primaryFile && (isBoardMismatch || isClassMismatch || isSubjectMismatch));
 
+  // Dynamic Subject fetching from database based on selected board and grade
+  useEffect(() => {
+    let isMounted = true;
+    if (!selectedGrade) return;
+
+    setIsLoadingSubjects(true);
+    ApiServices.getCurriculumOptions({
+      board: selectedBoard,
+      classGrade: selectedGrade,
+    })
+      .then((res: any) => {
+        if (!isMounted) return;
+        const fetched: any[] = res?.subjects || res?.data?.subjects || [];
+        const subjectNames: string[] = fetched.map((s: any) => s.name || s.subject_name).filter(Boolean);
+        if (subjectNames.length > 0) {
+          setDbSubjects(subjectNames);
+          setSelectedSubject((prev) => (subjectNames.includes(prev) ? prev : subjectNames[0]));
+        } else {
+          const fallback = CLASS_SUBJECTS_MAP[selectedGrade] || ['Mathematics'];
+          setDbSubjects(fallback);
+          setSelectedSubject((prev) => (fallback.includes(prev) ? prev : fallback[0]));
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load database curriculum subjects for AI & RAG:', err);
+        if (isMounted) {
+          const fallback = CLASS_SUBJECTS_MAP[selectedGrade] || ['Mathematics'];
+          setDbSubjects(fallback);
+        }
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingSubjects(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedBoard, selectedGrade]);
+
   const handleBoardChange = (newBoard: string) => {
     setSelectedBoard(newBoard);
     const validClasses = (boardClassesMap && boardClassesMap[newBoard]) || BOARD_CLASSES_MAP[newBoard] || ['Class 10'];
     const newClass = validClasses.includes(selectedGrade) ? selectedGrade : (validClasses[0] || 'Class 10');
     setSelectedGrade(newClass);
-
-    const validSubjects = CLASS_SUBJECTS_MAP[newClass] || ['Mathematics'];
-    if (!validSubjects.includes(selectedSubject as any)) {
-      setSelectedSubject(validSubjects[0] || 'Mathematics');
-    }
   };
 
   const handleGradeChange = (newGrade: string) => {
     setSelectedGrade(newGrade);
-    const validSubjects = CLASS_SUBJECTS_MAP[newGrade] || ['Mathematics'];
-    if (!validSubjects.includes(selectedSubject as any)) {
-      setSelectedSubject(validSubjects[0] || 'Mathematics');
-    }
   };
 
   // Playground State
@@ -812,7 +844,10 @@ export const AiRagHub: React.FC = () => {
               {/* Class & Subject */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">Class / Grade</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-stone-700">Class / Grade</label>
+                    {isLoadingMasters && <span className="text-[10px] text-amber-600 animate-pulse font-medium">Syncing...</span>}
+                  </div>
                   <select
                     value={selectedGrade}
                     onChange={(e) => handleGradeChange(e.target.value)}
@@ -824,7 +859,10 @@ export const AiRagHub: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1">Subject</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-stone-700">Subject</label>
+                    {isLoadingSubjects && <span className="text-[10px] text-amber-600 animate-pulse font-medium">Syncing...</span>}
+                  </div>
                   <select
                     value={selectedSubject}
                     onChange={(e) => setSelectedSubject(e.target.value)}

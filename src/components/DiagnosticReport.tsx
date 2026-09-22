@@ -139,7 +139,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-black text-stone-900 tracking-tight">
-              <span className="text-stone-900">Edu</span><span className="text-yellow-500">Path</span> • Student Assessment Dossier
+              <span className="text-stone-900">Edu</span><span className="text-yellow-500">Junction</span> • Student Assessment Dossier
             </h1>
             <p className="text-xs text-stone-600 font-semibold">Diagnostic & Formative Academic Performance Summary</p>
           </div>
