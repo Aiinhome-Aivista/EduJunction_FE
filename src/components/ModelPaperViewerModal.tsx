@@ -652,7 +652,7 @@ export const ModelPaperViewerModal: React.FC<ModelPaperViewerModalProps> = ({
                                   <textarea
                                     value={currentStudentAns}
                                     onChange={(e) => handleTextAnswerChange(qKey, e.target.value)}
-                                    placeholder="Write your definitions, mathematical derivations, calculations, and final answer here..."
+                                    placeholder="Write your answer here..."
                                     rows={3}
                                     className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-400 focus:bg-white transition-all resize-y"
                                   />
