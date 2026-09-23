@@ -213,11 +213,7 @@ export const AcademicsHub: React.FC = () => {
   };
 
   const activeBoard = tree.find(b => b.id === selectedBoardId);
-  const allowedClasses = (activeBoard?.board_name && (BOARD_CLASSES_MAP as any)[activeBoard.board_name]) || [
-    'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6',
-    'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'
-  ];
-  const visibleClasses = (activeBoard?.classes || []).filter(c => allowedClasses.includes(c.class_name as any));
+  const visibleClasses = activeBoard?.classes || [];
   const activeClass = visibleClasses.find(c => c.id === selectedClassId) || (visibleClasses.length > 0 ? visibleClasses[0] : undefined);
   const activeSubject = activeClass?.subjects.find(s => s.id === selectedSubjectId) || (activeClass?.subjects?.[0] || undefined);
 
@@ -300,11 +296,7 @@ export const AcademicsHub: React.FC = () => {
 
   // Cascading Form Hierarchy Selectors
   const formSelectedBoard = tree.find(b => b.id === formBoardId) || tree[0];
-  const formAllowedClasses = (formSelectedBoard?.board_name && (BOARD_CLASSES_MAP as any)[formSelectedBoard.board_name]) || [
-    'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6',
-    'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'
-  ];
-  const formAvailableClasses = (formSelectedBoard?.classes || []).filter(c => formAllowedClasses.includes(c.class_name as any));
+  const formAvailableClasses = formSelectedBoard?.classes || [];
   const formSelectedClass = formAvailableClasses.find(c => c.id === formClassId) || formAvailableClasses[0];
 
   const formAvailableSubjects = formSelectedClass?.subjects || [];
@@ -320,11 +312,7 @@ export const AcademicsHub: React.FC = () => {
   const openAddQuestionModal = () => {
     setEditingQuestion(null);
     const initialBoard = tree[0];
-    const initialAllowed = (initialBoard?.board_name && (BOARD_CLASSES_MAP as any)[initialBoard.board_name]) || [
-      'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6',
-      'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'
-    ];
-    const initialClasses = (initialBoard?.classes || []).filter(c => initialAllowed.includes(c.class_name as any));
+    const initialClasses = initialBoard?.classes || [];
     const initialClass = initialClasses[0];
     const initialSubject = initialClass?.subjects?.[0];
     const initialChapter = initialSubject?.chapters?.[0];
@@ -381,11 +369,7 @@ export const AcademicsHub: React.FC = () => {
   const handleFormBoardChange = (boardId: number) => {
     setFormBoardId(boardId);
     const b = tree.find(item => item.id === boardId);
-    const allowed = (b?.board_name && (BOARD_CLASSES_MAP as any)[b.board_name]) || [
-      'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6',
-      'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'
-    ];
-    const classes = (b?.classes || []).filter(c => allowed.includes(c.class_name as any));
+    const classes = b?.classes || [];
     const firstClass = classes[0];
     const firstSubject = firstClass?.subjects?.[0];
     const firstChapter = firstSubject?.chapters?.[0];
@@ -576,8 +560,7 @@ export const AcademicsHub: React.FC = () => {
                     key={b.id}
                     onClick={() => {
                       setSelectedBoardId(b.id);
-                      const allowed = (BOARD_CLASSES_MAP as any)[b.board_name] || [];
-                      const valid = b.classes.filter(c => allowed.length === 0 || allowed.includes(c.class_name));
+                      const valid = b.classes || [];
                       if (valid.length > 0) {
                         setSelectedClassId(valid[0].id);
                         if (valid[0].subjects.length > 0) {

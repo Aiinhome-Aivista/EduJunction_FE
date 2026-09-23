@@ -61,8 +61,9 @@ interface ParentDashboardProps {
   onUpdateChild?: (updatedChild: ChildAccount) => void;
 }
 
-const BOARDS: Board[] = ['CBSE', 'ICSE', 'ISC', 'UK-Cambridge', 'NCERT', 'NEET', 'IIT'];
-const GRADES: ClassGrade[] = [
+const BOARDS: Board[] = ['CBSE', 'ICSE', 'ISC', 'UK-Cambridge', 'NCERT', 'NEET', 'IIT', 'WBBSE', 'WBCHSE'];
+const ALL_GRADES: ClassGrade[] = [
+  'Class 1', 'Class 2', 'Class 3', 'Class 4',
   'Class 5', 'Class 6', 'Class 7', 'Class 8',
   'Class 9', 'Class 10', 'Class 11', 'Class 12'
 ];
@@ -81,11 +82,33 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const navigate = useNavigate();
   const [selectedChildForEdit, setSelectedChildForEdit] = useState<ChildAccount | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<ChildAccount>>({});
+  const [dynamicClasses, setDynamicClasses] = useState<string[]>(ALL_GRADES);
+  const [dynamicBoards, setDynamicBoards] = useState<string[]>(BOARDS);
   const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month'>('day');
   const [activeModalMetric, setActiveModalMetric] = useState<'children' | 'progress' | 'readiness' | 'activity' | 'streak' | null>(null);
   const [activityLogData, setActivityLogData] = useState<StudentActivityLogResponse | null>(null);
   const [isLoadingActivity, setIsLoadingActivity] = useState(false);
   const [activitySelectedStudentId, setActivitySelectedStudentId] = useState<string | null>(activeChildId);
+
+  // Fetch active Master dropdowns dynamically from database
+  useEffect(() => {
+    ApiServices.getBoardClassDropdown()
+      .then((res: any) => {
+        const fetchedClasses = res?.classes || res?.classGrades || res?.data?.classes || [];
+        if (fetchedClasses.length > 0) {
+          const names = fetchedClasses.map((c: any) => (typeof c === 'string' ? c : c.name || c.class_name)).filter(Boolean);
+          if (names.length > 0) setDynamicClasses(names);
+        }
+        const fetchedBoards = res?.boards || res?.data?.boards || [];
+        if (fetchedBoards.length > 0) {
+          const bNames = fetchedBoards.map((b: any) => (typeof b === 'string' ? b : b.name || b.board_name)).filter(Boolean);
+          if (bNames.length > 0) setDynamicBoards(bNames);
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load active classes for parent dashboard:', err);
+      });
+  }, []);
 
   const fetchActivityLog = async (studentId?: string | number | null) => {
     setIsLoadingActivity(true);
@@ -589,9 +612,14 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     });
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedChildForEdit) return;
+    try {
+      await ApiServices.updateChild(selectedChildForEdit.id, editFormData);
+    } catch (err) {
+      console.warn('API update child returned error, syncing locally', err);
+    }
     const updated: ChildAccount = {
       ...selectedChildForEdit,
       name: editFormData.name || selectedChildForEdit.name,
@@ -601,7 +629,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       schoolName: editFormData.schoolName,
       schoolEmail: editFormData.schoolEmail,
     };
-    onUpdateChild(updated);
+    if (onUpdateChild) {
+      onUpdateChild(updated);
+    }
     setSelectedChildForEdit(null);
   };
 
@@ -829,6 +859,17 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       <p className="text-xs text-stone-500 font-medium mb-1">{child.classGrade} • {child.targetBoard}</p>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStartEdit(child);
+                    }}
+                    className="p-2 rounded-xl bg-stone-100 hover:bg-yellow-100 text-stone-600 hover:text-yellow-800 transition-colors cursor-pointer"
+                    title="Edit Child Profile"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
                 </div>
 
                 {/* Progress Indicators */}
@@ -1108,7 +1149,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     onChange={(e) => setEditFormData({ ...editFormData, classGrade: e.target.value as ClassGrade })}
                     className="w-full px-3 py-2 rounded-lg border border-stone-300 text-xs focus:ring-2 focus:ring-yellow-500 focus:outline-hidden"
                   >
-                    {GRADES.map((g) => (
+                    {dynamicClasses.map((g) => (
                       <option key={g} value={g}>{g}</option>
                     ))}
                   </select>
@@ -1121,7 +1162,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     onChange={(e) => setEditFormData({ ...editFormData, targetBoard: e.target.value as Board })}
                     className="w-full px-3 py-2 rounded-lg border border-stone-300 text-xs focus:ring-2 focus:ring-yellow-500 focus:outline-hidden"
                   >
-                    {BOARDS.map((b) => (
+                    {dynamicBoards.map((b) => (
                       <option key={b} value={b}>{b}</option>
                     ))}
                   </select>

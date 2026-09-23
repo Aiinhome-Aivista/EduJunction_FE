@@ -146,6 +146,86 @@ export const MockTestHub: React.FC = () => {
     loadData();
   }, []);
 
+  // Dynamic Boards, Classes, and Subjects derived directly from Database curriculum tree
+  const dynamicBoards = React.useMemo(() => {
+    if (curriculumTree.length > 0) {
+      return curriculumTree.map((b: any) => b.board_name);
+    }
+    return DEFAULT_BOARDS;
+  }, [curriculumTree]);
+
+  const dynamicClasses = React.useMemo(() => {
+    if (curriculumTree.length > 0) {
+      const boardObj = curriculumTree.find(
+        (b: any) => b.board_name?.toLowerCase().trim() === selectedBoard.toLowerCase().trim()
+      );
+      if (boardObj?.classes?.length > 0) {
+        return boardObj.classes.map((c: any) => c.class_name);
+      }
+    }
+    return DEFAULT_CLASSES;
+  }, [curriculumTree, selectedBoard]);
+
+  const dynamicSubjects = React.useMemo(() => {
+    if (curriculumTree.length > 0) {
+      const boardObj = curriculumTree.find(
+        (b: any) => b.board_name?.toLowerCase().trim() === selectedBoard.toLowerCase().trim()
+      );
+      const classObj = boardObj?.classes?.find(
+        (c: any) => c.class_name?.toLowerCase().trim() === selectedClass.toLowerCase().trim()
+      );
+      if (classObj?.subjects?.length > 0) {
+        return classObj.subjects.map((s: any) => s.subject_name);
+      }
+    }
+    return DEFAULT_SUBJECTS;
+  }, [curriculumTree, selectedBoard, selectedClass]);
+
+  const allUniqueClasses = React.useMemo(() => {
+    if (curriculumTree.length > 0) {
+      const set = new Set<string>();
+      curriculumTree.forEach((b: any) => {
+        (b.classes || []).forEach((c: any) => {
+          if (c.class_name) set.add(c.class_name);
+        });
+      });
+      if (set.size > 0) return Array.from(set);
+    }
+    return DEFAULT_CLASSES;
+  }, [curriculumTree]);
+
+  const handleBoardChange = (newBoard: string) => {
+    setSelectedBoard(newBoard);
+    const boardObj = curriculumTree.find(
+      (b: any) => b.board_name?.toLowerCase().trim() === newBoard.toLowerCase().trim()
+    );
+    const classes = boardObj?.classes || [];
+    const validClass = classes.some((c: any) => c.class_name === selectedClass)
+      ? selectedClass
+      : (classes[0]?.class_name || 'Class 10');
+    setSelectedClass(validClass);
+
+    const classObj = classes.find((c: any) => c.class_name === validClass);
+    const subjects = classObj?.subjects || [];
+    const validSub = subjects.some((s: any) => s.subject_name === selectedSubject)
+      ? selectedSubject
+      : (subjects[0]?.subject_name || 'Mathematics');
+    setSelectedSubject(validSub);
+  };
+
+  const handleClassChange = (newClass: string) => {
+    setSelectedClass(newClass);
+    const boardObj = curriculumTree.find(
+      (b: any) => b.board_name?.toLowerCase().trim() === selectedBoard.toLowerCase().trim()
+    );
+    const classObj = boardObj?.classes?.find((c: any) => c.class_name === newClass);
+    const subjects = classObj?.subjects || [];
+    const validSub = subjects.some((s: any) => s.subject_name === selectedSubject)
+      ? selectedSubject
+      : (subjects[0]?.subject_name || 'Mathematics');
+    setSelectedSubject(validSub);
+  };
+
   // Compute Available Chapters for Selected Board, Class & Subject
   const availableChapters = React.useMemo(() => {
     if (!curriculumTree.length) return [];
@@ -415,10 +495,10 @@ export const MockTestHub: React.FC = () => {
                   </label>
                   <select
                     value={selectedBoard}
-                    onChange={(e) => setSelectedBoard(e.target.value)}
-                    className="w-full h-12 px-4 rounded-2xl bg-stone-50 border-2 border-stone-200 font-bold text-sm text-stone-900 focus:border-amber-400 focus:bg-white outline-none transition-all"
+                    onChange={(e) => handleBoardChange(e.target.value)}
+                    className="w-full h-12 px-4 rounded-2xl bg-stone-50 border-2 border-stone-200 font-bold text-sm text-stone-900 focus:border-amber-400 focus:bg-white outline-none transition-all cursor-pointer"
                   >
-                    {DEFAULT_BOARDS.map((b) => (
+                    {dynamicBoards.map((b) => (
                       <option key={b} value={b}>
                         {b}
                       </option>
@@ -432,10 +512,10 @@ export const MockTestHub: React.FC = () => {
                   </label>
                   <select
                     value={selectedClass}
-                    onChange={(e) => setSelectedClass(e.target.value)}
-                    className="w-full h-12 px-4 rounded-2xl bg-stone-50 border-2 border-stone-200 font-bold text-sm text-stone-900 focus:border-amber-400 focus:bg-white outline-none transition-all"
+                    onChange={(e) => handleClassChange(e.target.value)}
+                    className="w-full h-12 px-4 rounded-2xl bg-stone-50 border-2 border-stone-200 font-bold text-sm text-stone-900 focus:border-amber-400 focus:bg-white outline-none transition-all cursor-pointer"
                   >
-                    {DEFAULT_CLASSES.map((c) => (
+                    {dynamicClasses.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
@@ -453,9 +533,9 @@ export const MockTestHub: React.FC = () => {
                   <select
                     value={selectedSubject}
                     onChange={(e) => setSelectedSubject(e.target.value)}
-                    className="w-full h-12 px-4 rounded-2xl bg-stone-50 border-2 border-stone-200 font-bold text-sm text-stone-900 focus:border-amber-400 focus:bg-white outline-none transition-all"
+                    className="w-full h-12 px-4 rounded-2xl bg-stone-50 border-2 border-stone-200 font-bold text-sm text-stone-900 focus:border-amber-400 focus:bg-white outline-none transition-all cursor-pointer"
                   >
-                    {DEFAULT_SUBJECTS.map((s) => (
+                    {dynamicSubjects.map((s) => (
                       <option key={s} value={s}>
                         {s}
                       </option>
@@ -736,10 +816,10 @@ export const MockTestHub: React.FC = () => {
               <select
                 value={filterBoard}
                 onChange={(e) => setFilterBoard(e.target.value)}
-                className="h-10 px-3 rounded-xl bg-stone-50 border border-stone-200 text-xs font-bold text-stone-800"
+                className="h-10 px-3 rounded-xl bg-stone-50 border border-stone-200 text-xs font-bold text-stone-800 cursor-pointer"
               >
                 <option value="">All Boards</option>
-                {DEFAULT_BOARDS.map((b) => (
+                {dynamicBoards.map((b) => (
                   <option key={b} value={b}>
                     {b}
                   </option>
@@ -749,10 +829,10 @@ export const MockTestHub: React.FC = () => {
               <select
                 value={filterClass}
                 onChange={(e) => setFilterClass(e.target.value)}
-                className="h-10 px-3 rounded-xl bg-stone-50 border border-stone-200 text-xs font-bold text-stone-800"
+                className="h-10 px-3 rounded-xl bg-stone-50 border border-stone-200 text-xs font-bold text-stone-800 cursor-pointer"
               >
                 <option value="">All Classes</option>
-                {DEFAULT_CLASSES.map((c) => (
+                {allUniqueClasses.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>

@@ -44,6 +44,7 @@ interface ExamArenaProps {
 
 const BOARDS: Board[] = ['CBSE', 'ICSE', 'ISC', 'UK-Cambridge', 'NCERT', 'NEET', 'IIT'];
 const GRADES: ClassGrade[] = [
+  'Class 1', 'Class 2', 'Class 3', 'Class 4',
   'Class 5', 'Class 6', 'Class 7', 'Class 8',
   'Class 9', 'Class 10', 'Class 11', 'Class 12'
 ];
@@ -1193,9 +1194,9 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
               {/* Grade / Class Selector */}
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                  2. Student Class / Grade (Class 5 to 12)
+                  2. Student Class / Grade (Class 1 to 12)
                 </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                   {GRADES.map((g) => (
                     <button
                       key={g}

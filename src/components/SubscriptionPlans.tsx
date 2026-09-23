@@ -354,7 +354,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   // Re-fetch subscriptions whenever active student or role context changes
   useEffect(() => {
     fetchMySubscriptions();
-  }, [studentId, isParent, propIsParent, selectedChildId]);
+  }, [studentId, isParent, propIsParent]);
 
   // Live Auto-Refresh (Periodic 60s poll + Window Focus + Tab Visibility + Custom Event)
   useEffect(() => {
@@ -700,21 +700,8 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                   ))}
                 </select>
               ) : (
-                <div className="space-y-2">
-                  <div className="text-[11px] text-amber-900 bg-amber-100/90 border border-amber-300/80 p-2.5 rounded-xl font-medium leading-relaxed">
-                    ℹ️ <strong>Board Exam Notice:</strong> 2027 Model Question Papers are designed exclusively for <strong>Class 10 and Class 12</strong> Board candidates. Your registered children are currently in junior grades ({childrenList.map((c) => `${c.name || 'Child'} [${c.classGrade || 'Grade'}]`).join(', ')}). You can still assign and unlock advance specimen papers for them below.
-                  </div>
-                  <select
-                    value={selectedChildId || ''}
-                    onChange={(e) => handleSelectChild(Number(e.target.value))}
-                    className="w-full p-2.5 rounded-xl border border-amber-300 bg-white text-xs font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer shadow-2xs"
-                  >
-                    {childrenList.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        👤 {c.name || `Child #${c.id}`} ({c.classGrade || 'Class'} • {c.targetBoard || 'Board'})
-                      </option>
-                    ))}
-                  </select>
+                <div className="p-3 rounded-xl bg-amber-100/90 border border-amber-300/80 text-amber-900 text-xs font-medium leading-relaxed">
+                  ℹ️ <strong>Board Exam Notice:</strong> 2027 Model Question Papers are designed exclusively for <strong>Class 10 and Class 12</strong> Board candidates. Your registered children ({childrenList.map((c) => `${c.name || 'Child'} [${c.classGrade || 'Grade'}]`).join(', ')}) are in junior grades and can take practice tests from <strong>Exam Arena</strong> and <strong>Parent Scheduled Exams</strong>.
                 </div>
               )}
             </div>
