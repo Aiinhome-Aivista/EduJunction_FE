@@ -509,7 +509,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </div>
             <div>
               <div className="text-xl font-black tracking-tight">
-                <span className="text-stone-900">Edu</span><span className="text-yellow-500">Path</span>
+                <span className="text-stone-900">Edu</span><span className="text-yellow-500">Junction</span>
               </div>
             </div>
           </div>

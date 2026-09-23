@@ -230,6 +230,7 @@ class ApiServices {
     return this.post(POST_APIS.generateQuickTest, { studentId: paramsOrStudentId, limit });
   }
   submitExam(examId: string, body: any) { return this.post(POST_APIS.submitExam(examId), body); }
+  getExamSubmission(submissionId: string | number) { return this.get(GET_APIS.examSubmission(submissionId)); }
 
   // ── Runbooks ──────────────────────────────
   listRunbooks(filters?: any) {

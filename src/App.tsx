@@ -500,7 +500,7 @@ export default function App() {
       }
 
       if (found) {
-        setActiveSubmissionReport(found);
+        handleOpenSubmissionReport(found);
       }
       setActiveTab('reports');
       return;
@@ -512,11 +512,26 @@ export default function App() {
     }
   };
 
+  const handleOpenSubmissionReport = useCallback(async (sub: ExamSubmission) => {
+    setActiveSubmissionReport(sub);
+    if ((!sub.evaluations || sub.evaluations.length === 0) && sub.id) {
+      try {
+        const fullReport = await ApiServices.getExamSubmission(sub.id);
+        if (fullReport) {
+          setActiveSubmissionReport((prev) => (prev?.id === sub.id ? { ...prev, ...fullReport } : prev));
+        }
+      } catch (err) {
+        console.warn('Could not fetch full submission details:', err);
+      }
+    }
+  }, []);
+
 
 
   // 2-Phase Bootstrap:
   // Phase 1 — Fast: Load minimal profile only → workspace renders immediately (no more long spinner)
   // Phase 2 — Background: Load full dashboard data silently after workspace is visible
+  // Bootstrap data loading on auth role change
   useEffect(() => {
     if (!authRole) {
       setIsBootstrapping(false);
@@ -530,43 +545,35 @@ export default function App() {
       try {
         const isRoot = location.pathname === '/' || location.pathname === '';
         if (isAdminSession) {
-          // Admin: just menu perms, no dashboard data needed
+          // Admin: menu perms
           const perms = await ApiServices.getMenuPermissions();
-          setPageAccess(perms);
-          const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
-          if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
+          if (!cancelled) {
+            setPageAccess(perms);
+            const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
+            if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
+          }
         } else if (isTeacherSession) {
-          // Teacher: just menu perms
+          // Teacher: menu perms
           const perms = await ApiServices.getMenuPermissions();
-          setPageAccess(perms);
-          const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
-          if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
+          if (!cancelled) {
+            setPageAccess(perms);
+            const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
+            if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
+          }
         } else if (isStudentSession) {
-          // Phase 1: load minimal profile only → show workspace immediately
-          const perms = await loadStudentProfileOnly();
+          // Student: load full student dashboard data before showing workspace
+          const perms = await loadStudentData();
           if (!cancelled) {
-            setIsBootstrapping(false); // ← release UI immediately
             const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
             if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
           }
-          // Phase 2: load full data silently in background
-          if (!cancelled) {
-            loadStudentData().catch(() => {}); // non-blocking, errors silently ignored
-          }
-          return; // skip finally setIsBootstrapping(false) — already done above
         } else if (isParentSession) {
-          // Phase 1: load minimal profile only → show workspace immediately
-          const perms = await loadParentProfileOnly();
+          // Parent: load full parent dashboard data + children before showing workspace
+          const perms = await loadParentAndChildren();
           if (!cancelled) {
-            setIsBootstrapping(false); // ← release UI immediately
             const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
             if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
           }
-          // Phase 2: load full children + exam history in background
-          if (!cancelled) {
-            loadParentAndChildren().catch(() => {}); // non-blocking
-          }
-          return; // skip finally
         } else {
           clearTokens();
           setAuthRole(null);
@@ -598,7 +605,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [authRole, isAdminSession, isTeacherSession, isStudentSession, isParentSession, loadParentProfileOnly, loadStudentProfileOnly, loadParentAndChildren, loadStudentData]);
+  }, [authRole, isAdminSession, isTeacherSession, isStudentSession, isParentSession, loadParentAndChildren, loadStudentData]);
 
   // On-demand gamification loading (Only calls API when user navigates to Leaderboard/Gamification)
   useEffect(() => {
@@ -619,6 +626,7 @@ export default function App() {
   // ------------------------------------------------------------
   const handleAuthenticated = (role: string) => {
     setBootstrapError(null);
+    setIsBootstrapping(true);
     const upperRole = role.toUpperCase();
     setAuthRole(upperRole);
     setAuthModalMode(null);
@@ -869,6 +877,29 @@ export default function App() {
     );
   }
 
+  if (isBootstrapping) {
+    return (
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-stone-50/90 backdrop-blur-xs px-4">
+        <div className="flex flex-col items-center space-y-4 max-w-sm text-center">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-xl shadow-yellow-400/30 animate-bounce">
+              <GraduationCap size={32} />
+            </div>
+            <div className="absolute -inset-1.5 rounded-2xl bg-yellow-400/30 blur-md -z-10 animate-pulse" />
+          </div>
+          <div className="space-y-1.5">
+            <div className="text-xl font-black tracking-tight">
+              <span className="text-stone-900">Edu</span><span className="text-yellow-500">Junction</span>
+            </div>
+            <p className="text-xs font-semibold text-stone-500 flex items-center justify-center gap-2">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-yellow-600" />
+              <span>Loading your personalized dashboard...</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (bootstrapError) {
     return (
@@ -1327,7 +1358,7 @@ export default function App() {
                       }}
                       onOpenAddChildModal={() => setShowAddChildModal(true)}
                       examHistory={examHistory}
-                      onViewSubmissionReport={(sub) => setActiveSubmissionReport(sub)}
+                      onViewSubmissionReport={handleOpenSubmissionReport}
                       onUpdateChild={handleUpdateChild}
                     />
                   ) : activeChild ? (
@@ -1354,7 +1385,7 @@ export default function App() {
                         setActiveSubmissionReport(null);
                         setActiveTab('fun-zone');
                       }}
-                      onViewSubmissionReport={(sub) => setActiveSubmissionReport(sub)}
+                      onViewSubmissionReport={handleOpenSubmissionReport}
                     />
                   ) : null
                 )}
@@ -1374,7 +1405,7 @@ export default function App() {
                     examHistory={examHistory}
                     parentAccount={parentAccount}
                     isStudent={!isParentActive}
-                    onViewSubmissionReport={(submission) => setActiveSubmissionReport(submission)}
+                    onViewSubmissionReport={handleOpenSubmissionReport}
                   />
                 )}
 
@@ -1383,7 +1414,7 @@ export default function App() {
                     parentAccount={parentAccount}
                     activeChildId={activeChildId}
                     onChildSelect={setActiveChildId}
-                    onViewSubmissionReport={(submission) => setActiveSubmissionReport(submission)}
+                    onViewSubmissionReport={handleOpenSubmissionReport}
                     onNavigateToArena={() => setActiveTab('arena')}
                     presetSubject={schedulerPresetSubject}
                     presetTopic={schedulerPresetTopic}

@@ -33,6 +33,9 @@ export const GET_APIS = {
   // Notifications
   notifications: `${API_V1}/notifications`,
 
+  // Exams
+  examSubmission: (id: string | number) => `${API_V1}/exams/submissions/${id}`,
+
   // Runbooks
   runbooks: `${API_V1}/runbooks`,
 
