@@ -54,15 +54,34 @@ interface RagStatusData {
 }
 
 interface GeneratedQuestionItem {
-  id: string;
+  id?: string;
   question: string;
   type: string;
   difficulty: string;
-  marks: number;
-  options: string[];
-  correct_answer: string;
-  explanation: string;
+  marks?: number;
+  options?: string[];
+  correct_answer?: string;
+  explanation?: string;
   topic_suggested?: string;
+  is_duplicate?: boolean;
+  source?: string;
+}
+
+interface PreviewExtractionData {
+  filename: string;
+  board: string;
+  classGrade: string;
+  subject: string;
+  documentType: string;
+  cleaned_text?: string;
+  topic_id?: number | null;
+  topic_name?: string;
+  title?: string;
+  summary?: string;
+  detected_topics?: any[];
+  total_extracted?: number;
+  new_questions_count?: number;
+  duplicate_questions_count?: number;
 }
 
 interface FlatTopic {
@@ -188,9 +207,10 @@ export const AiRagHub: React.FC = () => {
   const [testResponse, setTestResponse] = useState<string | null>(null);
   const [testingLlm, setTestingLlm] = useState(false);
 
-  // AI Question Generator Modal State
+  // AI Question Generator / Review Modal State
   const [generatorModalOpen, setGeneratorModalOpen] = useState(false);
   const [activeDocForGen, setActiveDocForGen] = useState<RagDocument | null>(null);
+  const [extractedPreviewData, setExtractedPreviewData] = useState<PreviewExtractionData | null>(null);
   const [genCount, setGenCount] = useState<number>(5);
   const [genType, setGenType] = useState<string>('ALL');
   const [genDifficulty, setGenDifficulty] = useState<string>('ALL');
@@ -309,144 +329,102 @@ export const AiRagHub: React.FC = () => {
     if (uploadFiles.length === 0) return;
 
     setUploading(true);
-    const totalFiles = uploadFiles.length;
+    const file = uploadFiles[0];
+
     const initialProgress = {
       isRunning: true,
       current: 1,
-      total: totalFiles,
-      filename: uploadFiles[0].name,
+      total: 1,
+      filename: file.name,
       percent: 0,
       completed: 0,
-      remaining: totalFiles,
-      currentStepName: `[File 1/${totalFiles}] Step 0: Reading text & validating subject matching with '${selectedSubject}'... (0%)`,
+      remaining: 1,
+      currentStepName: `[File 1/1] Step 0: Reading text & validating subject matching with '${selectedSubject}'... (0%)`,
       lastError: null,
       logs: [
-        `[INITIALIZE] Starting batch ingestion of ${totalFiles} file(s)...`,
-        `[CONFIG] Target: Board=[${selectedBoard}] | Class=[${selectedGrade}] | Subject=[${selectedSubject}]`
+        `[INITIALIZE] Uploading file: ${file.name}...`,
+        `[CONFIG] Target: Board=[${selectedBoard}] | Class=[${selectedGrade}] | Subject=[${selectedSubject}]`,
+        `  ↳ [Step 0] Reading text content & checking subject compatibility against dropdown [${selectedSubject}]...`
       ],
       results: []
     };
     setBatchProgress(initialProgress);
 
-    const resultsArr: any[] = [];
-    let totalAddedQuestions = 0;
-    let successfulFiles = 0;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('board', selectedBoard);
+      formData.append('classGrade', selectedGrade);
+      formData.append('subject', selectedSubject);
+      formData.append('documentType', documentType);
+      if (selectedTargetTopicId) {
+        formData.append('topicId', String(selectedTargetTopicId));
+      }
 
-    for (let i = 0; i < totalFiles; i++) {
-      const file = uploadFiles[i];
-      const fileNum = i + 1;
-      const baseFilePct = Math.round((i / totalFiles) * 100);
+      // Step 1-4: Extract and Preview questions with duplicate checks
+      const res = await ApiServices.extractCurriculumPreview(formData);
+      const data = res?.data !== undefined ? res.data : res;
 
-      // Strictly 0% (or current completed batch percentage) during content reading and subject validation
+      const questionsList: GeneratedQuestionItem[] = data?.questions || [];
+      const newCount = data?.new_questions_count || 0;
+      const dupeCount = data?.duplicate_questions_count || 0;
+
+      setExtractedPreviewData({
+        filename: data?.filename || file.name,
+        board: data?.board || selectedBoard,
+        classGrade: data?.classGrade || selectedGrade,
+        subject: data?.subject || selectedSubject,
+        documentType: data?.documentType || documentType,
+        cleaned_text: data?.cleaned_text || '',
+        topic_id: data?.topic_id || null,
+        topic_name: data?.topic_name || '',
+        title: data?.title || file.name,
+        summary: data?.summary || '',
+        detected_topics: data?.detected_topics || [],
+        total_extracted: data?.total_extracted || questionsList.length,
+        new_questions_count: newCount,
+        duplicate_questions_count: dupeCount,
+      });
+
+      setGeneratedQuestions(questionsList);
+      setActiveDocForGen(null);
+
+      if (data?.topic_id) {
+        setSelectedTargetTopicId(data.topic_id);
+      }
+
       setBatchProgress((prev) => ({
         ...prev,
-        current: fileNum,
-        filename: file.name,
-        percent: baseFilePct,
-        completed: successfulFiles,
-        remaining: totalFiles - successfulFiles,
-        lastError: null,
-        currentStepName: `[File ${fileNum}/${totalFiles}] Step 0: Reading content & verifying '${selectedSubject}' match... (0%)`,
+        percent: 80,
+        currentStepName: `✨ Step 4 Complete: ${questionsList.length} questions extracted (${newCount} new, ${dupeCount} duplicates). Review modal opened.`,
         logs: [
           ...prev.logs,
-          `\n>>> [FILE ${fileNum}/${totalFiles}] Starting validation for: ${file.name}`,
-          `  ↳ [Step 0] Reading text content & checking subject compatibility against dropdown [${selectedSubject}]...`
+          `  ↳ [Step 1-2] Subject Validated: "${data?.subject || selectedSubject}" | Title: "${data?.title || file.name}"`,
+          `  ↳ [Step 3-4] ${questionsList.length} questions extracted & calibrated (${newCount} new, ${dupeCount} existing).`,
+          `✔ [PREVIEW READY] Please review and confirm in the Question Review Modal to complete database commit.`
         ]
       }));
 
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('board', selectedBoard);
-        formData.append('classGrade', selectedGrade);
-        formData.append('subject', selectedSubject);
-        formData.append('documentType', documentType);
-        if (selectedTargetTopicId) {
-          formData.append('topicId', String(selectedTargetTopicId));
-        }
-
-        // Send to backend pipeline - will strictly block at 0% if subject mismatches
-        const res = await ApiServices.processDocumentPipeline(formData);
-
-        const extractedCount = res?.total_extracted || res?.questions?.length || 0;
-        const insertedCount = res?.questions_inserted || extractedCount;
-        totalAddedQuestions += insertedCount;
-        successfulFiles++;
-        resultsArr.push(res);
-
-        // Live Question Insertion Progress Animation (0% to 100%)
-        const targetFilePct = Math.round(((i + 1) / totalFiles) * 100);
-        const startPct = baseFilePct;
-        const totalSteps = 10;
-        const stepTime = 60; // ms
-
-        for (let step = 1; step <= totalSteps; step++) {
-          const currentPct = Math.round(startPct + ((targetFilePct - startPct) * (step / totalSteps)));
-          const qProgress = Math.round((insertedCount * step) / totalSteps);
-          setBatchProgress((prev) => ({
-            ...prev,
-            percent: currentPct,
-            currentStepName: `[File ${fileNum}/${totalFiles}] Step 5: Live Database Insertion: ${qProgress}/${insertedCount} questions saved (${currentPct}%)`
-          }));
-          await new Promise((r) => setTimeout(r, stepTime));
-        }
-
-        setBatchProgress((prev) => ({
-          ...prev,
-          completed: successfulFiles,
-          remaining: totalFiles - successfulFiles,
-          percent: targetFilePct,
-          currentStepName: `[File ${fileNum}/${totalFiles}] Step 5: Database insertion complete! (${insertedCount} questions saved - 100%)`,
-          logs: [
-            ...prev.logs,
-            `  ↳ [Step 1-2] Subject Validated: "${res?.detected_subject || selectedSubject}" | Title: "${res?.title || file.name}"`,
-            `  ↳ [Step 3-4] ${extractedCount} questions extracted & calibrated.`,
-            `  ↳ [Step 5] Database Insertion: Successfully saved ${insertedCount} questions into question_master (Topic ID: ${res?.topic_id || 'Auto'}).`,
-            `✔ [SUCCESS] Completed processing ${file.name}`
-          ],
-          results: [...resultsArr]
-        }));
-
-      } catch (err: any) {
-        console.error(`Error processing file ${file.name}:`, err);
-        const errMsg = err?.response?.data?.error?.message || err?.response?.data?.message || err?.message || 'Processing failed';
-        setBatchProgress((prev) => ({
-          ...prev,
-          percent: baseFilePct,
-          lastError: errMsg,
-          currentStepName: `❌ [VALIDATION BLOCKED] ${file.name}: Subject mismatch with '${selectedSubject}' (0%)`,
-          logs: [
-            ...prev.logs,
-            `❌ [VALIDATION BLOCKED] ${errMsg}`,
-            `  ↳ 0 questions inserted into database. Progress remains at 0%.`
-          ]
-        }));
-      }
+      setGeneratorModalOpen(true);
+      showNotify('success', `✨ Extracted ${questionsList.length} questions from ${file.name}. Review and confirm to save.`);
+    } catch (err: any) {
+      console.error(`Error extracting preview for ${file.name}:`, err);
+      const errMsg = err?.response?.data?.error?.message || err?.response?.data?.message || err?.message || 'Processing failed';
+      setBatchProgress((prev) => ({
+        ...prev,
+        percent: 0,
+        isRunning: false,
+        lastError: errMsg,
+        currentStepName: `❌ [VALIDATION BLOCKED] ${file.name}: Subject mismatch with '${selectedSubject}' (0%)`,
+        logs: [
+          ...prev.logs,
+          `❌ [VALIDATION BLOCKED] ${errMsg}`,
+          `  ↳ 0 questions inserted into database. Progress remains at 0%.`
+        ]
+      }));
+    } finally {
+      setUploading(false);
     }
-
-    setBatchProgress((prev) => ({
-      ...prev,
-      isRunning: false,
-      percent: totalAddedQuestions > 0 ? 100 : 0,
-      completed: successfulFiles,
-      remaining: 0,
-      currentStepName: totalAddedQuestions > 0
-        ? `Processed ${successfulFiles} file(s). Total ${totalAddedQuestions} questions added.`
-        : `Batch blocked: Content validation mismatch. 0 questions added.`,
-      logs: [
-        ...prev.logs,
-        totalAddedQuestions > 0
-          ? `\n🎉 [ALL COMPLETED] Successfully processed ${successfulFiles} file(s). Added ${totalAddedQuestions} questions to Question Bank.`
-          : `\n⚠️ [BATCH BLOCKED] 0 questions were inserted due to content validation mismatch.`
-      ]
-    }));
-
-    if (totalAddedQuestions > 0) {
-      showNotify('success', `Pipeline completed! Added ${totalAddedQuestions} questions across ${successfulFiles} file(s).`);
-    }
-    setUploadFiles([]);
-    setUploading(false);
-    await fetchRagStatus();
   };
 
   const handleDeleteDoc = async (id: string) => {
@@ -477,9 +455,10 @@ export const AiRagHub: React.FC = () => {
     }
   };
 
-  // Open Question Generator Modal for a document
+  // Open Question Generator / Inspector Modal for a document
   const openQuestionGenerator = (doc: RagDocument) => {
     setActiveDocForGen(doc);
+    setExtractedPreviewData(null);
     setGeneratedQuestions([]);
     setGenCount(5);
     setGenType('ALL');
@@ -525,35 +504,36 @@ export const AiRagHub: React.FC = () => {
 
   // Filter topics for the active doc in the question generator modal
   const modalDisplayTopics = React.useMemo(() => {
-    if (!activeDocForGen) return flatTopics;
-    const docBoard = (activeDocForGen.board || '').toLowerCase().trim();
-    const docGrade = (activeDocForGen.classGrade || '').toLowerCase().trim();
-    const docSubject = (activeDocForGen.subject || '').toLowerCase().trim();
+    const targetBoard = (extractedPreviewData?.board || activeDocForGen?.board || '').toLowerCase().trim();
+    const targetGrade = (extractedPreviewData?.classGrade || activeDocForGen?.classGrade || '').toLowerCase().trim();
+    const targetSubject = (extractedPreviewData?.subject || activeDocForGen?.subject || '').toLowerCase().trim();
+
+    if (!targetBoard && !targetGrade && !targetSubject) return flatTopics;
 
     // 1. Exact match or Science alias match
     let matching = flatTopics.filter(t => {
-      const bMatch = !docBoard || t.boardName.toLowerCase().trim() === docBoard;
-      const cMatch = !docGrade || t.className.toLowerCase().trim() === docGrade;
-      const sMatch = !docSubject || t.subjectName.toLowerCase().trim() === docSubject ||
-        (docSubject === 'science' && ['physics', 'chemistry', 'biology', 'science', 'physical science', 'life science'].includes(t.subjectName.toLowerCase().trim()));
+      const bMatch = !targetBoard || t.boardName.toLowerCase().trim() === targetBoard;
+      const cMatch = !targetGrade || t.className.toLowerCase().trim() === targetGrade;
+      const sMatch = !targetSubject || t.subjectName.toLowerCase().trim() === targetSubject ||
+        (targetSubject === 'science' && ['physics', 'chemistry', 'biology', 'science', 'physical science', 'life science'].includes(t.subjectName.toLowerCase().trim()));
       return bMatch && cMatch && sMatch;
     });
 
     // 2. Fallback: match Board + Class
-    if (matching.length === 0 && docBoard && docGrade) {
+    if (matching.length === 0 && targetBoard && targetGrade) {
       matching = flatTopics.filter(
-        t => t.boardName.toLowerCase().trim() === docBoard &&
-          t.className.toLowerCase().trim() === docGrade
+        t => t.boardName.toLowerCase().trim() === targetBoard &&
+          t.className.toLowerCase().trim() === targetGrade
       );
     }
 
     // 3. Fallback: match Board only
-    if (matching.length === 0 && docBoard) {
-      matching = flatTopics.filter(t => t.boardName.toLowerCase().trim() === docBoard);
+    if (matching.length === 0 && targetBoard) {
+      matching = flatTopics.filter(t => t.boardName.toLowerCase().trim() === targetBoard);
     }
 
     return matching.length > 0 ? matching : flatTopics;
-  }, [flatTopics, activeDocForGen]);
+  }, [flatTopics, activeDocForGen, extractedPreviewData]);
 
   // Trigger AI Question Generation
   const handleGenerateQuestions = async () => {
@@ -583,7 +563,7 @@ export const AiRagHub: React.FC = () => {
     }
   };
 
-  // Save generated questions to question_master
+  // Save generated / extracted questions to question_master, ChromaDB, and ArangoDB
   const handleSaveQuestionsToBank = async () => {
     if (!selectedTargetTopicId) {
       showNotify('error', 'Please select a curriculum Topic to save questions under.');
@@ -596,25 +576,61 @@ export const AiRagHub: React.FC = () => {
 
     setIsSaving(true);
     try {
-      const res = await ApiServices.saveRagQuestions({
-        topic_id: selectedTargetTopicId,
-        questions: generatedQuestions
-      });
+      let data: any;
+      if (extractedPreviewData) {
+        // Step 5: Execute complete pipeline with duplicate skipping, vector chunking, and K-Graph syncing
+        const res = await ApiServices.saveExtractedCurriculumQuestions({
+          filename: extractedPreviewData.filename,
+          board: extractedPreviewData.board,
+          classGrade: extractedPreviewData.classGrade,
+          subject: extractedPreviewData.subject,
+          documentType: extractedPreviewData.documentType,
+          cleanedText: extractedPreviewData.cleaned_text,
+          topicId: selectedTargetTopicId,
+          questions: generatedQuestions,
+          detectedTopics: extractedPreviewData.detected_topics,
+          title: extractedPreviewData.title,
+          summary: extractedPreviewData.summary,
+        });
+        data = res?.data || res;
+      } else {
+        const res = await ApiServices.saveRagQuestions({
+          topic_id: selectedTargetTopicId,
+          questions: generatedQuestions
+        });
+        data = res?.data || res;
+      }
 
-      const data = res?.data || res;
       setIngestionSummary({
         topic_name: data?.topic_name || 'Selected Topic',
         total_processed: data?.total_processed || generatedQuestions.length,
         inserted_count: data?.inserted_count !== undefined ? data.inserted_count : generatedQuestions.length,
         updated_count: data?.updated_count || 0,
         duplicate_skipped_count: data?.duplicate_skipped_count || 0,
-        message: data?.message || res?.message || 'Saved to Question Bank!'
+        message: data?.message || 'Successfully saved questions into MySQL Question Bank, indexed ChromaDB vector chunks, and synced ArangoDB Knowledge Graph!'
       });
 
-      showNotify('success', res?.message || `Successfully processed ${generatedQuestions.length} questions!`);
+      showNotify('success', data?.message || `Successfully committed ${generatedQuestions.length} questions!`);
       setGeneratorModalOpen(false);
       setGeneratedQuestions([]);
+      setExtractedPreviewData(null);
+      setUploadFiles([]);
       fetchRagStatus();
+
+      setBatchProgress((prev) => ({
+        ...prev,
+        isRunning: false,
+        percent: 100,
+        completed: 1,
+        remaining: 0,
+        currentStepName: `✔ Step 5 Complete: Database insertion & Vector indexing successful! (${data?.inserted_count || 0} inserted, ${data?.duplicate_skipped_count || 0} duplicate skipped)`,
+        logs: [
+          ...prev.logs,
+          `\n🎉 [ALL COMPLETED] Successfully saved questions into question_master (Topic ID: ${selectedTargetTopicId}).`,
+          `  ↳ ChromaDB Vector chunks indexed.`,
+          `  ↳ ArangoDB Knowledge Graph synchronized.`
+        ]
+      }));
     } catch (err: any) {
       console.error('Save questions error:', err);
       showNotify('error', err?.response?.data?.error?.message || 'Failed to save questions to database');
@@ -641,12 +657,12 @@ export const AiRagHub: React.FC = () => {
     <div className="space-y-6">
       {/* Toast Notification */}
       {notification && (
-        <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md transition-all animate-bounce ${notification.type === 'success'
+        <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md transition-all max-w-md ${notification.type === 'success'
           ? 'bg-emerald-500/90 text-white border-emerald-400'
           : 'bg-rose-500/90 text-white border-rose-400'
           }`}>
-          {notification.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-          <span className="text-sm font-semibold">{notification.message}</span>
+          {notification.type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
+          <span className="text-xs font-semibold leading-snug">{notification.message}</span>
         </div>
       )}
 
@@ -1030,12 +1046,12 @@ export const AiRagHub: React.FC = () => {
                 {uploading ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    Processing {uploadFiles.length} File(s) through 5-Step Pipeline...
+                    Extracting & Calibrating Questions (Steps 1-4)...
                   </>
                 ) : (
                   <>
                     <Zap className="w-4 h-4" />
-                    Process & Ingest {uploadFiles.length > 0 ? `(${uploadFiles.length} Files)` : ''}
+                    Extract & Review Questions (AI Preview)
                   </>
                 )}
               </button>
@@ -1088,15 +1104,18 @@ export const AiRagHub: React.FC = () => {
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
                         {doc.chunk_count} Chunks
                       </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 hidden sm:inline-flex">
+                        ✓ Synced
+                      </span>
 
-                      {/* ⚡ Generate Questions Action Button */}
+                      {/* ⚡ Inspect / Synthesize Questions Action Button */}
                       <button
                         onClick={() => openQuestionGenerator(doc)}
                         className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold text-[11px] shadow-2xs transition-all cursor-pointer hover:scale-105 active:scale-95"
-                        title="Synthesize AI Questions from this document into question_master"
+                        title="Inspect or synthesize AI Questions from this document into question_master"
                       >
                         <Zap className="w-3.5 h-3.5 fill-current" />
-                        <span>Generate Questions</span>
+                        <span>Inspect / Synthesize Questions</span>
                       </button>
 
                       <button
@@ -1158,11 +1177,11 @@ export const AiRagHub: React.FC = () => {
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          MODAL: AI QUESTION GENERATOR & REVIEW CONSOLE
+          MODAL: AI QUESTION REVIEW & GENERATOR CONSOLE
          ───────────────────────────────────────────────────────────── */}
-      {generatorModalOpen && activeDocForGen && (
+      {generatorModalOpen && (activeDocForGen || extractedPreviewData) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-stone-200 flex flex-col max-h-[90vh] overflow-hidden">
+          <div className="bg-white w-full max-w-5xl rounded-3xl shadow-2xl border border-stone-200 flex flex-col max-h-[92vh] overflow-hidden">
             {/* Modal Header */}
             <div className="p-5 border-b border-stone-100 bg-gradient-to-r from-yellow-50/90 to-amber-50/70 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -1171,128 +1190,169 @@ export const AiRagHub: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-stone-900 flex items-center gap-2">
-                    <span>AI Question Generator from Document</span>
+                    <span>
+                      {extractedPreviewData
+                        ? 'AI Question Extraction & Review Console'
+                        : 'AI Question Generator from Document'}
+                    </span>
                     <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-yellow-200/70 text-yellow-900 border border-yellow-300">
-                      Auto-Synthesis
+                      {extractedPreviewData ? 'Upload Preview' : 'Auto-Synthesis'}
                     </span>
                   </h3>
-                  <p className="text-xs text-stone-600 truncate max-w-lg">
-                    Source: <strong className="text-stone-800">{activeDocForGen.filename}</strong> ({activeDocForGen.board} &bull; {activeDocForGen.classGrade} &bull; {activeDocForGen.subject})
+                  <p className="text-xs text-stone-600 truncate max-w-xl">
+                    Source: <strong className="text-stone-800">{extractedPreviewData?.filename || activeDocForGen?.filename}</strong> ({extractedPreviewData?.board || activeDocForGen?.board} &bull; {extractedPreviewData?.classGrade || activeDocForGen?.classGrade} &bull; {extractedPreviewData?.subject || activeDocForGen?.subject})
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => setGeneratorModalOpen(false)}
-                className="p-2 hover:bg-stone-200/60 rounded-xl text-stone-500 hover:text-stone-800 transition-colors"
+                onClick={() => {
+                  setGeneratorModalOpen(false);
+                  setExtractedPreviewData(null);
+                  setActiveDocForGen(null);
+                }}
+                className="p-2 hover:bg-stone-200/60 rounded-xl text-stone-500 hover:text-stone-800 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1">
-              {/* Generation Settings Card */}
-              <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-4">
-                <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
-                  <Sliders className="w-4 h-4 text-amber-600" />
-                  <span>Configure Question Synthesis Parameters</span>
-                </div>
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
+              {/* If Active Doc Synthesis Mode: Show Controls */}
+              {activeDocForGen && (
+                <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-4">
+                  <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
+                    <Sliders className="w-4 h-4 text-amber-600" />
+                    <span>Configure Question Synthesis Parameters</span>
+                  </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-stone-600 mb-1">Number of Questions</label>
-                    <select
-                      value={genCount}
-                      onChange={(e) => setGenCount(Number(e.target.value))}
-                      className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800"
-                    >
-                      <option value={3}>3 Questions</option>
-                      <option value={5}>5 Questions</option>
-                      <option value={10}>10 Questions</option>
-                      <option value={15}>15 Questions</option>
-                    </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-600 mb-1">Number of Questions</label>
+                      <select
+                        value={genCount}
+                        onChange={(e) => setGenCount(Number(e.target.value))}
+                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800"
+                      >
+                        <option value={3}>3 Questions</option>
+                        <option value={5}>5 Questions</option>
+                        <option value={10}>10 Questions</option>
+                        <option value={15}>15 Questions</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-600 mb-1">Question Type</label>
+                      <select
+                        value={genType}
+                        onChange={(e) => setGenType(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800"
+                      >
+                        <option value="ALL">All Types</option>
+                        <option value="MCQ">MCQ (Multiple Choice)</option>
+                        <option value="SAQ">SAQ (Short Answer Question - 2M)</option>
+                        <option value="SHORT ANSWER (3M)">Short Answer (3M)</option>
+                        <option value="CASE STUDY">Case Study (4M)</option>
+                        <option value="LONG ANSWER">Long Answer (5M)</option>
+                        <option value="NUMERICAL">Numerical (Calculation Based)</option>
+                        <option value="ASSERTION REASON">Assertion Reason (1M)</option>
+                        <option value="OBJECTIVE">Objective (One-word / Fill-in / Direct)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-600 mb-1">Difficulty Calibration</label>
+                      <select
+                        value={genDifficulty}
+                        onChange={(e) => setGenDifficulty(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800"
+                      >
+                        <option value="ALL">All Levels</option>
+                        <option value="easy">Easy / Foundation</option>
+                        <option value="medium">Medium / Standard</option>
+                        <option value="hard">Hard / Analytical (HOTS)</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-stone-600 mb-1">Question Type</label>
-                    <select
-                      value={genType}
-                      onChange={(e) => setGenType(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800"
-                    >
-                      <option value="ALL">All Types</option>
-                      <option value="MCQ">MCQ (Multiple Choice)</option>
-                      <option value="SAQ">SAQ (Short Answer Question)</option>
-                      <option value="NUMERICAL">Numerical (Calculation Based)</option>
-                      <option value="OBJECTIVE">Objective (One-word / Fill-in / Direct)</option>
-                    </select>
+                    <label className="block text-[11px] font-bold text-stone-600 mb-1">Custom Focus Instructions (Optional)</label>
+                    <input
+                      type="text"
+                      value={genInstructions}
+                      onChange={(e) => setGenInstructions(e.target.value)}
+                      placeholder="e.g., Focus heavily on core definitions, formulas, and conceptual traps from the PDF..."
+                      className="w-full px-3.5 py-2 bg-white border border-stone-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    />
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-stone-600 mb-1">Difficulty Calibration</label>
-                    <select
-                      value={genDifficulty}
-                      onChange={(e) => setGenDifficulty(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800"
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleGenerateQuestions}
+                      disabled={isGenerating}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-stone-900 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
                     >
-                      <option value="ALL">All Levels</option>
-                      <option value="easy">Easy / Foundation</option>
-                      <option value="medium">Medium / Standard</option>
-                      <option value="hard">Hard / Analytical (HOTS)</option>
-                    </select>
+                      {isGenerating ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          Analyzing Chunks & Synthesizing Questions...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          {generatedQuestions.length > 0 ? 'Re-generate Questions' : 'Generate Questions'}
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-[11px] font-bold text-stone-600 mb-1">Custom Focus Instructions (Optional)</label>
-                  <input
-                    type="text"
-                    value={genInstructions}
-                    onChange={(e) => setGenInstructions(e.target.value)}
-                    placeholder="e.g., Focus heavily on core definitions, formulas, and conceptual traps from the PDF..."
-                    className="w-full px-3.5 py-2 bg-white border border-stone-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  />
+              {/* If Extracted Preview Mode: Summary Banner with Duplicate Protection Stats */}
+              {extractedPreviewData && (
+                <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-600" />
+                      <span className="text-xs font-black text-stone-900">
+                        Calibrated Extraction Preview ({generatedQuestions.length} Questions)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        ✨ {generatedQuestions.filter(q => !q.is_duplicate).length} New Questions
+                      </span>
+                      {generatedQuestions.some(q => q.is_duplicate) && (
+                        <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 border border-amber-300">
+                          ⚠️ {generatedQuestions.filter(q => q.is_duplicate).length} Existing in Database (Duplicate Protection Active)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-stone-600 font-medium">
+                    Review and edit question text, marks (1M-8M), options, and explanations below before confirming database insertion.
+                  </p>
                 </div>
+              )}
 
-                <div className="flex justify-end">
-                  <button
-                    onClick={handleGenerateQuestions}
-                    disabled={isGenerating}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-stone-900 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        Analyzing Chunks & Synthesizing Questions...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4" />
-                        {generatedQuestions.length > 0 ? 'Re-generate Questions' : 'Generate Questions'}
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Generated Questions Preview & Review List */}
+              {/* Generated / Extracted Questions Preview & Review List */}
               {generatedQuestions.length > 0 && (
                 <div className="space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-stone-100">
                     <div className="flex items-center gap-2">
                       <BookmarkCheck className="w-4 h-4 text-emerald-600" />
                       <span className="text-xs font-black text-stone-900">
-                        Generated Questions Preview ({generatedQuestions.length})
+                        Question Review List ({generatedQuestions.length})
                       </span>
                     </div>
 
                     {/* Target Topic Selection for Database Linkage */}
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold text-stone-600 shrink-0">Save under Topic:</span>
+                      <span className="text-[11px] font-bold text-stone-600 shrink-0">Target Topic:</span>
                       <select
                         value={selectedTargetTopicId || ''}
                         onChange={(e) => setSelectedTargetTopicId(Number(e.target.value))}
-                        className="px-3 py-1.5 bg-yellow-50/80 border border-yellow-300/80 rounded-xl text-xs font-bold text-stone-800 max-w-xs truncate focus:outline-hidden"
+                        className="px-3 py-1.5 bg-yellow-50/80 border border-yellow-300/80 rounded-xl text-xs font-bold text-stone-800 max-w-xs truncate focus:outline-hidden cursor-pointer"
                       >
                         {modalDisplayTopics.map(t => (
                           <option key={t.id} value={t.id}>
@@ -1305,25 +1365,84 @@ export const AiRagHub: React.FC = () => {
 
                   <div className="space-y-3">
                     {generatedQuestions.map((q, idx) => (
-                      <div key={q.id || idx} className="p-4 rounded-2xl bg-white border border-stone-200/90 shadow-2xs space-y-2 hover:border-yellow-300 transition-colors">
+                      <div
+                        key={q.id || idx}
+                        className={`p-4 rounded-2xl bg-white border shadow-2xs space-y-3 transition-colors ${
+                          q.is_duplicate
+                            ? 'border-amber-300/80 bg-amber-50/20'
+                            : 'border-stone-200/90 hover:border-yellow-300'
+                        }`}
+                      >
                         <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-2">
-                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border ${q.type === 'MCQ' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                              q.type === 'SAQ' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                                q.type === 'NUMERICAL' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                  'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              }`}>
-                              Q{idx + 1} &bull; {q.type}
+                          <div className="flex flex-wrap items-center gap-2">
+                            {/* Question Number */}
+                            <span className="text-xs font-black text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200">
+                              #{idx + 1}
                             </span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${q.difficulty === 'hard'
-                              ? 'bg-rose-50 text-rose-700 border-rose-200'
-                              : q.difficulty === 'medium'
-                                ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              }`}>
-                              {q.difficulty}
-                            </span>
+
+                            {/* Marks Selector */}
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] font-bold text-stone-500">Marks:</span>
+                              <select
+                                value={q.marks || (q.type === 'LONG ANSWER' ? 5 : q.type === 'SAQ' ? 2 : q.type === 'SHORT ANSWER (3M)' ? 3 : q.type === 'CASE STUDY' ? 4 : 1)}
+                                onChange={(e) => handleUpdateGeneratedQuestion(idx, { marks: Number(e.target.value) })}
+                                className="text-[11px] font-black px-2 py-0.5 rounded-md bg-yellow-100 text-yellow-900 border border-yellow-300 font-mono cursor-pointer"
+                              >
+                                <option value={1}>1 Mark</option>
+                                <option value={2}>2 Marks</option>
+                                <option value={3}>3 Marks</option>
+                                <option value={4}>4 Marks</option>
+                                <option value={5}>5 Marks</option>
+                                <option value={8}>8 Marks</option>
+                              </select>
+                            </div>
+
+                            {/* Question Type Selector */}
+                            <select
+                              value={q.type || 'MCQ'}
+                              onChange={(e) => handleUpdateGeneratedQuestion(idx, { type: e.target.value })}
+                              className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 border border-blue-200 cursor-pointer"
+                            >
+                              <option value="MCQ">MCQ (Multiple Choice)</option>
+                              <option value="SAQ">SAQ (Short Answer - 2M)</option>
+                              <option value="SHORT ANSWER (3M)">Short Answer (3M)</option>
+                              <option value="CASE STUDY">Case Study (4M)</option>
+                              <option value="LONG ANSWER">Long Answer (5M)</option>
+                              <option value="NUMERICAL">Numerical</option>
+                              <option value="ASSERTION REASON">Assertion Reason (1M)</option>
+                              <option value="OBJECTIVE">Objective (1M)</option>
+                              <option value="LONG EVALUATIVE">Long Evaluative (8M)</option>
+                            </select>
+
+                            {/* Difficulty Selector */}
+                            <select
+                              value={q.difficulty || 'medium'}
+                              onChange={(e) => handleUpdateGeneratedQuestion(idx, { difficulty: e.target.value })}
+                              className={`text-[10px] font-bold capitalize px-2 py-0.5 rounded-md border cursor-pointer ${
+                                q.difficulty === 'hard'
+                                  ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                  : q.difficulty === 'medium'
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              }`}
+                            >
+                              <option value="easy">Easy</option>
+                              <option value="medium">Medium</option>
+                              <option value="hard">Hard</option>
+                            </select>
+
+                            {/* Duplicate Flag Badge */}
+                            {q.is_duplicate ? (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
+                                ⚠️ Duplicate in DB (Will Skip/Update)
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300">
+                                ✨ New Question
+                              </span>
+                            )}
                           </div>
+
                           <button
                             onClick={() => handleRemoveGeneratedQuestion(idx)}
                             className="p-1.5 bg-rose-50/80 text-rose-400 hover:bg-rose-100 hover:text-rose-500 rounded-lg transition-colors cursor-pointer"
@@ -1338,45 +1457,101 @@ export const AiRagHub: React.FC = () => {
                           value={q.question}
                           onChange={(e) => handleUpdateGeneratedQuestion(idx, { question: e.target.value })}
                           rows={2}
-                          className="w-full p-2 bg-stone-50/70 border border-stone-200 rounded-xl text-xs font-bold text-stone-900 leading-relaxed focus:bg-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                          className="w-full p-2.5 bg-stone-50/70 border border-stone-200 rounded-xl text-xs font-bold text-stone-900 leading-relaxed focus:bg-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                          placeholder="Enter question text..."
                         />
 
                         {/* Options Display for MCQ vs Direct Answer for SAQ/Numerical/Objective */}
                         {q.options && q.options.length > 0 ? (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                             {q.options.map((opt, optIdx) => {
-                              const isCorrect = opt.trim().toLowerCase().startsWith(q.correct_answer.toLowerCase()) ||
-                                opt.trim().toLowerCase().includes(q.correct_answer.toLowerCase()) ||
-                                (q.correct_answer.toUpperCase() === String.fromCharCode(65 + optIdx));
+                              const isCorrect = (q.correct_answer || '').trim().toLowerCase().startsWith(opt.trim().toLowerCase()) ||
+                                opt.trim().toLowerCase().includes((q.correct_answer || '').toLowerCase()) ||
+                                ((q.correct_answer || '').toUpperCase() === String.fromCharCode(65 + optIdx));
                               return (
                                 <div
                                   key={optIdx}
-                                  className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center justify-between ${isCorrect
-                                    ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-bold'
-                                    : 'bg-stone-50 text-stone-700 border-stone-200/70'
-                                    }`}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center justify-between ${
+                                    isCorrect
+                                      ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-bold'
+                                      : 'bg-stone-50 text-stone-700 border-stone-200/70'
+                                  }`}
                                 >
-                                  <span>{opt}</span>
-                                  {isCorrect && <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
+                                  <input
+                                    type="text"
+                                    value={opt}
+                                    onChange={(e) => {
+                                      const updatedOpts = [...(q.options || [])];
+                                      updatedOpts[optIdx] = e.target.value;
+                                      handleUpdateGeneratedQuestion(idx, { options: updatedOpts });
+                                    }}
+                                    className="bg-transparent border-none outline-none w-full text-xs font-medium text-stone-800"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateGeneratedQuestion(idx, { correct_answer: opt })}
+                                    className={`shrink-0 ml-2 p-1 rounded-md text-[10px] font-bold ${
+                                      isCorrect ? 'text-emerald-700 bg-emerald-100' : 'text-stone-400 hover:text-stone-700'
+                                    }`}
+                                    title="Mark as correct answer"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                  </button>
                                 </div>
                               );
                             })}
                           </div>
                         ) : (
-                          <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-xs font-semibold text-emerald-900 flex items-start gap-2">
-                            <span className="shrink-0 font-bold text-emerald-700">🎯 Correct Answer / Solution:</span>
-                            <span className="font-bold text-emerald-950">{q.correct_answer}</span>
+                          <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-xs font-semibold text-emerald-900 space-y-1">
+                            <span className="shrink-0 font-bold text-emerald-800 block text-[11px]">🎯 Correct Answer / Solution:</span>
+                            <input
+                              type="text"
+                              value={q.correct_answer || ''}
+                              onChange={(e) => handleUpdateGeneratedQuestion(idx, { correct_answer: e.target.value })}
+                              className="w-full bg-white/90 border border-emerald-300 rounded-lg px-2.5 py-1 text-xs font-bold text-emerald-950 focus:outline-none"
+                              placeholder="Enter correct solution / marking criteria..."
+                            />
                           </div>
                         )}
 
                         {/* Explanation */}
-                        {q.explanation && (
-                          <div className="p-2 rounded-xl bg-yellow-50/60 border border-yellow-200/60 text-[11px] text-yellow-900 font-medium">
-                            💡 <strong>Explanation:</strong> {q.explanation}
-                          </div>
-                        )}
+                        <div className="p-2.5 rounded-xl bg-yellow-50/60 border border-yellow-200/60 space-y-1">
+                          <span className="text-[11px] font-bold text-yellow-900 block">💡 Explanation & Diagnostic Notes:</span>
+                          <input
+                            type="text"
+                            value={q.explanation || ''}
+                            onChange={(e) => handleUpdateGeneratedQuestion(idx, { explanation: e.target.value })}
+                            className="w-full bg-white/90 border border-yellow-300 rounded-lg px-2.5 py-1 text-xs font-medium text-stone-800 focus:outline-none"
+                            placeholder="Add explanation or step-by-step resolution..."
+                          />
+                        </div>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Add Question Button */}
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newQ: GeneratedQuestionItem = {
+                          id: `custom_${Date.now()}`,
+                          question: '',
+                          type: 'MCQ',
+                          marks: 1,
+                          difficulty: 'medium',
+                          options: ['Option A', 'Option B', 'Option C', 'Option D'],
+                          correct_answer: 'Option A',
+                          explanation: '',
+                          is_duplicate: false
+                        };
+                        setGeneratedQuestions(prev => [...prev, newQ]);
+                      }}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs border border-stone-300 transition-colors cursor-pointer"
+                    >
+                      <PlusCircle className="w-4 h-4 text-amber-600" />
+                      <span>+ Add Custom Question</span>
+                    </button>
                   </div>
                 </div>
               )}
@@ -1385,12 +1560,18 @@ export const AiRagHub: React.FC = () => {
             {/* Modal Footer */}
             <div className="p-4 border-t border-stone-100 bg-stone-50 flex items-center justify-between">
               <span className="text-xs text-stone-500 font-medium">
-                {generatedQuestions.length > 0 ? `${generatedQuestions.length} questions ready to save` : 'Select settings and click generate'}
+                {generatedQuestions.length > 0
+                  ? `${generatedQuestions.length} questions ready to commit (Duplicate protection active)`
+                  : 'Select settings and click generate'}
               </span>
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setGeneratorModalOpen(false)}
+                  onClick={() => {
+                    setGeneratorModalOpen(false);
+                    setExtractedPreviewData(null);
+                    setActiveDocForGen(null);
+                  }}
                   className="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
                   Cancel
@@ -1398,17 +1579,17 @@ export const AiRagHub: React.FC = () => {
                 <button
                   onClick={handleSaveQuestionsToBank}
                   disabled={generatedQuestions.length === 0 || isSaving}
-                  className="flex items-center gap-2 px-5 py-2 bg-yellow-400 hover:bg-yellow-300 text-stone-900 rounded-xl text-xs font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                  className="flex items-center gap-2 px-6 py-2 bg-yellow-400 hover:bg-yellow-300 text-stone-900 rounded-xl text-xs font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isSaving ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      Saving to Database...
+                      Saving to Database & Indexing Chunks...
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4" />
-                      Save to Question Bank
+                      Confirm & Ingest to Question Bank
                     </>
                   )}
                 </button>

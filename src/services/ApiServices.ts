@@ -412,6 +412,26 @@ class ApiServices {
   saveRagQuestions(payload: { topic_id: number; questions: any[] }) {
     return this.post(POST_APIS.saveRagQuestions, payload);
   }
+  extractCurriculumPreview(formData: FormData) {
+    return apiClient.post(POST_APIS.extractCurriculumPreview, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((res) => res.data.data !== undefined ? res.data.data : res.data);
+  }
+  saveExtractedCurriculumQuestions(payload: {
+    filename: string;
+    board: string;
+    classGrade: string;
+    subject: string;
+    documentType: string;
+    cleanedText?: string;
+    topicId?: number | null;
+    questions: any[];
+    detectedTopics?: any[];
+    title?: string;
+    summary?: string;
+  }) {
+    return this.post(POST_APIS.saveExtractedCurriculumQuestions, payload);
+  }
   processDocumentPipeline(formData: FormData) {
     return apiClient.post(POST_APIS.processDocumentPipeline, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
