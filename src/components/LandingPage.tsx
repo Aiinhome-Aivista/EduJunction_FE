@@ -118,18 +118,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [activeRole, setActiveRole] = useState<Role>('student');
-  const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(null);
+  const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(true);
   const [freeMockBoard, setFreeMockBoard] = useState<string>('CBSE');
   const [freeMockClass, setFreeMockClass] = useState<string>('Class 10');
   const [freeMockSubject, setFreeMockSubject] = useState<string>('Mathematics');
   const [isGeneratingMock, setIsGeneratingMock] = useState<boolean>(false);
   const [mockSuccessMsg, setMockSuccessMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    ApiServices.checkHealth()
-      .then(() => setIsBackendOnline(true))
-      .catch(() => setIsBackendOnline(false));
-  }, []);
 
   const handleStartFreeMock = async () => {
     try {
@@ -380,7 +374,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     loadWord(currentWordIndex);
   };
 
-  const supportComposeUrl = 'https://mail.google.com/mail/u/0/?fs=1&to=Support@edujunction.co.in&tf=cm';
+  const supportComposeUrl = 'https://mail.google.com/mail/u/0/?fs=1&to=support@edujunction.co.in&tf=cm';
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 overflow-x-hidden">
       <style>{`
@@ -428,8 +422,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-yellow-200 text-yellow-700 text-xs font-bold shadow-sm">
                 Study Buddy-powered learning for students, teachers & parents
-                <span className={`w-1.5 h-1.5 rounded-full ${isBackendOnline === false ? 'bg-rose-500' : 'bg-yellow-500'
-                  }`} />
               </div>
 
               <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.08] tracking-tight capitalize">
@@ -641,22 +633,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
 
-          {/* 1. Coming Soon: Model Test Papers – ICSE & CBSE 2027 Announcement Banner */}
+          {/* 1. Model Test Papers - ICSE, CBSE & ISC 2027 Announcement Banner */}
           <div className="rounded-3xl bg-white border border-amber-300/80 p-6 sm:p-8 shadow-lg shadow-amber-500/5 relative overflow-hidden">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
               <div className="space-y-3 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-black uppercase tracking-wider">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                  Upcoming Feature
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-black uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  Available Now
                 </div>
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-tight">
-                  Coming Soon: Model Test Papers —{' '}
+                  Model Test Papers :{' '}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-yellow-600">
-                    ICSE & CBSE 2027
+                    ICSE, CBSE & ISC 2027
                   </span>
                 </h2>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
-                  Full-length authentic specimen model papers tailored to each board: <b>CBSE (3 Hours • 80 Marks)</b>, <b>ICSE (2.5 Hours • 80 Marks)</b>, and <b>ISC (3 Hours • 70/80 Marks)</b>, designed with 10–15 years past question patterns, step-by-step marking schemes, and competency-based questions.
+                  Access full-length authentic specimen model papers tailored to each board: <b>CBSE (3 Hours • 80 Marks)</b>, <b>ICSE (2.5 Hours • 80 Marks)</b> and <b>ISC (3 Hours • 70/80 Marks)</b>. Designed based on 10–15 years of past question patterns, step-by-step marking schemes, and competency-based questions.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1">
                   {[
@@ -673,15 +665,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
               </div>
 
-              <div className="shrink-0 bg-gradient-to-br from-amber-500 to-yellow-500 text-white p-6 rounded-2xl shadow-md text-center space-y-2 w-full lg:w-64">
-                <span className="text-3xl">📝</span>
-                <h3 className="font-black text-lg">Model Papers 2027</h3>
-                <p className="text-xs text-amber-100 font-bold">ICSE • CBSE • ISC</p>
-                <div className="pt-2">
-                  <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-[11px] font-black uppercase">
-                    Coming Soon
-                  </span>
+              <div className="shrink-0 bg-gradient-to-br from-amber-500 to-yellow-500 text-white p-6 rounded-2xl shadow-md text-center space-y-3 w-full lg:w-64 flex flex-col justify-between">
+                <div>
+                  <span className="text-3xl">📝</span>
+                  <h3 className="font-black text-lg">Model Papers 2027</h3>
+                  <p className="text-xs text-amber-100 font-bold">ICSE • CBSE • ISC</p>
                 </div>
+                <button
+                  onClick={() => onOpenAuth('register')}
+                  className="w-full py-2.5 px-4 rounded-xl bg-stone-950 hover:bg-stone-800 text-yellow-400 font-black text-xs shadow-md transition-all cursor-pointer hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1.5"
+                >
+                  Explore Model Papers <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           </div>
@@ -1619,7 +1614,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             Get Support <ArrowRight className="w-5 h-5" />
           </a>
           <div className="mt-3 leading-tight">
-            <a href={supportComposeUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-yellow-400 hover:text-yellow-300 hover:underline">Support@edujunction.co.in</a>
+            <a href={supportComposeUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-yellow-400 hover:text-yellow-300 hover:underline">support@edujunction.co.in</a>
           </div>
         </div>
       </section>

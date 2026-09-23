@@ -23,7 +23,7 @@ export default defineConfig(() => {
       // exactly as the original code did against the old Express server.
       proxy: {
         '/api': {
-          target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8000',
+          target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:5002',
           changeOrigin: true,
         },
       },

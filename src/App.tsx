@@ -989,13 +989,13 @@ export default function App() {
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-stone-900/50 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-40 bg-stone-900/60 backdrop-blur-sm lg:hidden transition-opacity"
           onClick={() => setMobileSidebarOpen(false)}
         />
       )}
 
       {/* Left Sidebar (High Density Theme with Global Collapse / Expand) */}
-      <div className={`fixed inset-y-0 left-0 z-50 flex flex-col transform transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} ${mobileSidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full'} print:hidden`}>
+      <div className={`fixed inset-y-0 left-0 z-50 flex flex-col transform transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} ${mobileSidebarOpen ? 'w-72 sm:w-64 translate-x-0 shadow-2xl' : '-translate-x-full'} print:hidden`}>
         <Sidebar
           pageAccess={pageAccess}
           isSidebarCollapsed={isSidebarCollapsed}
@@ -1284,7 +1284,7 @@ export default function App() {
           </header>
 
           {/* Scrollable Main Content Frame (High Density Theme) */}
-          <div className="flex-1 overflow-y-auto bg-stone-50 p-4 sm:p-6 lg:p-8 print:p-0 print:m-0 print:bg-white print:w-full print:block print:overflow-visible">
+          <div className="flex-1 overflow-y-auto bg-stone-50 pt-3 sm:pt-4 px-4 sm:px-6 lg:px-8 pb-8 print:p-0 print:m-0 print:bg-white print:w-full print:block print:overflow-visible">
 
 
             {activeSubmissionReport ? (

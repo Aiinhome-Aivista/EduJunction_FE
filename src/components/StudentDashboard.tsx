@@ -295,32 +295,32 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         const isDueSoon = isDueSet && dueMs !== null && dueMs >= nowMs && (dueMs - nowMs) <= 24 * 60 * 60 * 1000;
 
         return (
-          <div className="rounded-3xl p-5 sm:p-6 text-white shadow-xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300 bg-gradient-to-r from-stone-950 via-stone-900 to-stone-950 border-2 border-amber-400/40">
+          <div className="rounded-3xl p-5 sm:p-6 text-stone-950 shadow-xl relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 border-2 border-yellow-300 shadow-amber-500/10">
             <div className="flex items-start sm:items-center gap-3.5 z-10">
-              <div className="w-12 h-12 rounded-2xl bg-amber-400/20 border border-amber-400/30 backdrop-blur-md flex items-center justify-center text-2xl shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-stone-950/10 border border-stone-950/20 backdrop-blur-md flex items-center justify-center text-2xl shrink-0">
                 {isOverdue ? '⚠️' : '📝'}
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 text-[11px] font-bold text-amber-300 tracking-wide">
-                    <CalendarClock className="w-3.5 h-3.5 text-amber-400" />
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-950/10 border border-stone-950/20 text-[11px] font-extrabold text-stone-900 tracking-wide">
+                    <CalendarClock className="w-3.5 h-3.5 text-stone-950" />
                     <span>Parent Assigned Challenge ({assignedExams.length} Pending)</span>
                   </div>
                   {isOverdue && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-stone-950 text-[11px] font-black uppercase tracking-wider animate-pulse">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-950 text-yellow-400 text-[11px] font-black uppercase tracking-wider animate-pulse shadow-sm">
                       ⚠️ Overdue
                     </span>
                   )}
                   {isDueSoon && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-800 text-amber-300 text-[11px] font-bold border border-amber-400/40">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-900 text-amber-300 text-[11px] font-bold border border-stone-800">
                       ⏳ Due in 24 Hours
                     </span>
                   )}
                 </div>
-                <h3 className="text-lg font-black text-white mt-1">
+                <h3 className="text-lg font-black text-stone-950 mt-1">
                   {firstExam.subject} {firstExam.chapterTopic ? `— ${firstExam.chapterTopic}` : ''}
                 </h3>
-                <p className="text-xs text-stone-300 font-medium mt-0.5">
+                <p className="text-xs text-stone-900 font-bold mt-0.5">
                   {firstExam.questionCount} Questions • {firstExam.timeLimitMinutes} Mins • {firstExam.difficulty.toUpperCase()}
                   {firstExam.dueDate ? ` • Due: ${new Date(firstExam.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}${
                     new Date(firstExam.dueDate).getHours() !== 0 || new Date(firstExam.dueDate).getMinutes() !== 0
@@ -334,10 +334,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
             <button
               onClick={onNavigateToArena}
-              className="px-6 py-3 rounded-2xl font-black text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer shrink-0 z-10 hover:scale-105 bg-amber-400 hover:bg-amber-300 text-stone-950 shadow-amber-500/20 active:scale-95"
+              className="px-6 py-3 rounded-2xl font-black text-xs transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer shrink-0 z-10 hover:scale-105 bg-stone-950 hover:bg-stone-800 text-yellow-400 shadow-stone-900/20 active:scale-95"
             >
               <span>{isOverdue ? 'Complete Overdue Test' : 'Start Assigned Test'}</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 text-yellow-400" />
             </button>
           </div>
         );
