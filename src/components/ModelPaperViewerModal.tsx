@@ -17,7 +17,6 @@ import {
   EyeOff,
   Send,
   Loader2,
-  RotateCcw,
   Sparkles,
   BarChart3,
   CheckCircle,
@@ -243,16 +242,6 @@ export const ModelPaperViewerModal: React.FC<ModelPaperViewerModalProps> = ({
     }
   };
 
-  const handleRetake = () => {
-    if (window.confirm('Are you sure you want to re-take this test? Your previous answers will be cleared.')) {
-      setAnswers({});
-      setEvaluationResult(null);
-      setActiveMode('TEST');
-      setElapsedSeconds(0);
-      setSelectedSection('ALL');
-    }
-  };
-
   const sectionsToRender = useMemo(() => {
     if (activeMode === 'RESULT' && evaluationResult) {
       return evaluationResult.sectionBreakdown || [];
@@ -345,17 +334,6 @@ export const ModelPaperViewerModal: React.FC<ModelPaperViewerModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {activeMode === 'RESULT' && (
-              <button
-                type="button"
-                onClick={handleRetake}
-                className="py-1.5 px-3 rounded-xl bg-stone-700/80 hover:bg-stone-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border border-stone-600"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-                <span>Re-take Test</span>
-              </button>
-            )}
-
             <button
               type="button"
               onClick={onClose}

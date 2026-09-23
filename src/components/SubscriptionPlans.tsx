@@ -574,7 +574,12 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   };
 
   const handleOpenViewer = (sub: any) => {
-    const modeParam = (isParent || sub.examStatus === 'COMPLETED') ? '?mode=view' : '';
+    let modeParam = '';
+    if (sub.examStatus === 'COMPLETED') {
+      modeParam = isParent ? '?mode=parent_review' : '?mode=review';
+    } else if (isParent) {
+      modeParam = '?mode=view';
+    }
     window.open(`/model-exam/${sub.id}${modeParam}`, '_blank');
   };
 
@@ -1455,7 +1460,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 onClick={() => {
                   const subId = confirmExamModalSub.id;
                   setConfirmExamModalSub(null);
-                  window.open(`/model-exam/${subId}`, '_blank');
+                  window.open(`/model-exam/${subId}?mode=exam`, '_blank');
                   // Re-fetch after starting exam so status updates to Exam In Progress
                   setTimeout(() => {
                     fetchMySubscriptions();

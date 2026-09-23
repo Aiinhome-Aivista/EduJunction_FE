@@ -119,13 +119,19 @@ export const ModelExamPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const userRole = (localStorage.getItem('user_role') || sessionStorage.getItem('user_role') || '').toUpperCase();
-  const isViewOnly = userRole === 'PARENT' || searchParams.get('mode') === 'view';
-
   const [paperData, setPaperData] = useState<PaperData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeMode, setActiveMode] = useState<'TEST' | 'RESULT'>('TEST');
+
+  const userRole = (localStorage.getItem('user_role') || sessionStorage.getItem('user_role') || '').toUpperCase();
+  const modeParam = (searchParams.get('mode') || '').toLowerCase();
+  const isExplicitExam = modeParam === 'exam' || modeParam === 'take_test' || modeParam === 'student';
+  const isParentReview = modeParam === 'parent_review';
+  const isStudentReview = modeParam === 'review' || modeParam === 'student_review';
+  const isParentPreview = !isExplicitExam && (modeParam === 'view' || modeParam === 'preview' || modeParam === 'parent_preview' || (userRole === 'PARENT' && !isStudentReview));
+  const isParent = isParentReview || (!isExplicitExam && !isStudentReview && (userRole === 'PARENT' || isParentPreview));
+  const isViewOnly = isParentPreview && activeMode !== 'RESULT';
   const [selectedSection, setSelectedSection] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -443,18 +449,6 @@ export const ModelExamPage: React.FC = () => {
     }
   };
 
-  const handleRetake = () => {
-    if (window.confirm('Are you sure you want to re-take this test? Your previous answers will be cleared.')) {
-      setAnswers({});
-      setDrawnDiagrams({});
-      setEvaluationResult(null);
-      setActiveMode('TEST');
-      setElapsedSeconds(0);
-      setSelectedSection('ALL');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
   const handleExit = () => {
     if (activeMode === 'TEST' && (Object.keys(answers).length > 0 || Object.keys(drawnDiagrams).length > 0)) {
       if (window.confirm('Are you sure you want to exit the exam? Your unsaved progress will be lost.')) {
@@ -641,7 +635,12 @@ export const ModelExamPage: React.FC = () => {
 
           {/* Action Header controls — Timer + Marks + Rubric (right side) */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {isViewOnly ? (
+            {activeMode === 'RESULT' ? (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-bold shadow-2xs">
+                <Award className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isParent ? "Child's Scorecard & Performance Report" : "Student Scorecard & Performance Report"}</span>
+              </div>
+            ) : isParentPreview ? (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-bold shadow-2xs">
                 <Eye className="w-3.5 h-3.5 text-amber-400" />
                 <span>Parent Preview (Read-Only)</span>
@@ -653,12 +652,10 @@ export const ModelExamPage: React.FC = () => {
                   : 'bg-white/10 border-white/15 text-white'
                 }`}>
                 <span className="font-black text-base sm:text-lg leading-none font-mono">
-                  {activeMode === 'RESULT'
-                    ? formatTimer(evaluationResult?.timeSpentSeconds || elapsedSeconds)
-                    : formatTimer(remainingSeconds)}
+                  {formatTimer(remainingSeconds)}
                 </span>
                 <span className="text-[10px] font-semibold uppercase tracking-wider opacity-60">
-                  {activeMode === 'RESULT' ? 'Time Spent' : 'Time Remaining'}
+                  Time Remaining
                 </span>
               </div>
             )}
@@ -677,37 +674,28 @@ export const ModelExamPage: React.FC = () => {
               <span className="text-amber-300 text-[11px] font-bold">Board Rubric</span>
             </div>
 
-            {/* Close / Return Button — Only visible for Parent View or Result mode (No exit for student during active test) */}
-            {isViewOnly ? (
+            {/* Action Buttons */}
+            {isParentPreview ? (
               <button
                 type="button"
                 onClick={handleExit}
-                className="py-1.5 px-3 rounded-xl bg-stone-700 hover:bg-stone-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs border border-stone-600"
+                title="Close Preview"
+                aria-label="Close Preview"
+                className="w-8 h-8 rounded-full bg-stone-700/90 hover:bg-stone-600 text-white flex items-center justify-center transition-all cursor-pointer shadow-xs border border-stone-600 active:scale-95"
               >
-                <X className="w-3.5 h-3.5" />
-                <span>Close View</span>
+                <X className="w-4 h-4" />
               </button>
             ) : activeMode === 'RESULT' ? (
               <button
                 type="button"
                 onClick={() => navigate('/pricing')}
-                className="py-1.5 px-3 rounded-xl bg-stone-700 hover:bg-stone-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs border border-stone-600"
+                title="Return to Passes"
+                aria-label="Return to Passes"
+                className="w-8 h-8 rounded-full bg-stone-700/90 hover:bg-stone-600 text-white flex items-center justify-center transition-all cursor-pointer shadow-xs border border-stone-600 active:scale-95"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Return to Passes</span>
+                <ArrowLeft className="w-4 h-4" />
               </button>
             ) : null}
-
-            {activeMode === 'RESULT' && !isViewOnly && (
-              <button
-                type="button"
-                onClick={handleRetake}
-                className="py-1.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Re-take</span>
-              </button>
-            )}
           </div>
         </div>
       </header>
