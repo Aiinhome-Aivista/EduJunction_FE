@@ -5178,7 +5178,7 @@ const AdminLogin: React.FC = () => {
             </div>
 
             {/* Forgot Password Link */}
-            <div className="flex justify-end pt-0.5">
+            {/* <div className="flex justify-end pt-0.5">
               <button
                 type="button"
                 id="admin-forgot-password"
@@ -5193,7 +5193,7 @@ const AdminLogin: React.FC = () => {
               >
                 Forgot Password?
               </button>
-            </div>
+            </div> */}
 
             {/* Error Message */}
             {errorMessage && (

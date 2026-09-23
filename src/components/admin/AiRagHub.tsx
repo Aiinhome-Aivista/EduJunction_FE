@@ -104,6 +104,7 @@ export const AiRagHub: React.FC = () => {
     completed: number;
     remaining: number;
     currentStepName: string;
+    lastError: string | null;
     logs: string[];
     results: any[];
   }>({
@@ -115,6 +116,7 @@ export const AiRagHub: React.FC = () => {
     completed: 0,
     remaining: 0,
     currentStepName: '',
+    lastError: null,
     logs: [],
     results: []
   });
@@ -130,65 +132,6 @@ export const AiRagHub: React.FC = () => {
     'Mathematics', 'Physics', 'Chemistry', 'Biology',
     'Science', 'Social Studies', 'English', 'Computer Science', 'Logical Reasoning'
   ]);
-
-  // Real-time metadata mismatch detection from primary file
-  const primaryFile = uploadFiles[0] || null;
-  const detectedMeta = React.useMemo(() => {
-    if (!primaryFile) return null;
-    const fn = primaryFile.name.replace(/[-_.]/g, ' ').toLowerCase();
-    let board: string | undefined;
-    if (/\bcbse\b/.test(fn)) board = 'CBSE';
-    else if (/\bicse\b/.test(fn)) board = 'ICSE';
-    else if (/\bisc\b/.test(fn)) board = 'ISC';
-    else if (/\bwbbse\b/.test(fn) || /\bwb\b/.test(fn)) board = 'WBBSE';
-    else if (/\bwbchse\b/.test(fn)) board = 'WBCHSE';
-    else if (/\bcambridge\b/.test(fn) || /\bigcse\b/.test(fn)) board = 'UK-Cambridge';
-    else if (/\bncert\b/.test(fn)) board = 'NCERT';
-    else if (/\bneet\b/.test(fn)) board = 'NEET';
-    else if (/\biit\b/.test(fn) || /\bjee\b/.test(fn)) board = 'IIT';
-
-    let classGrade: string | undefined;
-    for (let i = 12; i >= 1; i--) {
-      const roman = i === 12 ? 'xii' : i === 11 ? 'xi' : i === 10 ? 'x' : i === 9 ? 'ix' : i === 8 ? 'viii' : i === 7 ? 'vii' : i === 6 ? 'vi' : i === 5 ? 'v' : i === 4 ? 'iv' : i === 3 ? 'iii' : i === 2 ? 'ii' : 'i';
-      const pattern = new RegExp(`(?:class|grade|std)[_\\s-]*(?:${i}|${roman})\\b`, 'i');
-      if (pattern.test(fn)) {
-        classGrade = `Class ${i}`;
-        break;
-      }
-    }
-
-    let subject: string | undefined;
-    if (/\b(?:math|maths|mathematics|calculus|algebra|geometry)\b/.test(fn)) subject = 'Mathematics';
-    else if (/\bphysics\b/.test(fn)) subject = 'Physics';
-    else if (/\bchemistry\b/.test(fn)) subject = 'Chemistry';
-    else if (/\bbiology\b/.test(fn)) subject = 'Biology';
-    else if (/\bscience\b/.test(fn)) subject = 'Science';
-    else if (/\b(?:social|history|geography|civics|economics|sst)\b/.test(fn)) subject = 'Social Studies';
-    else if (/\b(?:english|grammar|literature)\b/.test(fn)) subject = 'English';
-    else if (/\b(?:computer|coding|python|informatics)\b/.test(fn)) subject = 'Computer Science';
-
-    return { board, classGrade, subject };
-  }, [primaryFile]);
-
-  const isBoardMismatch = Boolean(
-    detectedMeta?.board &&
-    detectedMeta.board !== selectedBoard &&
-    !(detectedMeta.board === 'NCERT' && selectedBoard === 'CBSE') &&
-    !(detectedMeta.board === 'CBSE' && selectedBoard === 'NCERT')
-  );
-
-  const isClassMismatch = Boolean(
-    detectedMeta?.classGrade &&
-    detectedMeta.classGrade !== selectedGrade
-  );
-
-  const isSubjectMismatch = Boolean(
-    detectedMeta?.subject &&
-    detectedMeta.subject !== selectedSubject &&
-    !(selectedSubject === 'Science' && ['Physics', 'Chemistry', 'Biology'].includes(detectedMeta.subject))
-  );
-
-  const hasFilenameMismatch = Boolean(primaryFile && (isBoardMismatch || isClassMismatch || isSubjectMismatch));
 
   // Dynamic Subject fetching from database based on selected board and grade
   useEffect(() => {
@@ -372,32 +315,43 @@ export const AiRagHub: React.FC = () => {
       current: 1,
       total: totalFiles,
       filename: uploadFiles[0].name,
-      percent: 5,
+      percent: 0,
       completed: 0,
       remaining: totalFiles,
-      currentStepName: 'Step 1: Reading file & extracting text...',
-      logs: [`[INITIALIZE] Starting batch ingestion of ${totalFiles} file(s)...`],
+      currentStepName: `[File 1/${totalFiles}] Step 0: Reading text & validating subject matching with '${selectedSubject}'... (0%)`,
+      lastError: null,
+      logs: [
+        `[INITIALIZE] Starting batch ingestion of ${totalFiles} file(s)...`,
+        `[CONFIG] Target: Board=[${selectedBoard}] | Class=[${selectedGrade}] | Subject=[${selectedSubject}]`
+      ],
       results: []
     };
     setBatchProgress(initialProgress);
 
     const resultsArr: any[] = [];
     let totalAddedQuestions = 0;
+    let successfulFiles = 0;
 
     for (let i = 0; i < totalFiles; i++) {
       const file = uploadFiles[i];
       const fileNum = i + 1;
-      const pct = Math.round(((i) / totalFiles) * 100);
+      const baseFilePct = Math.round((i / totalFiles) * 100);
 
+      // Strictly 0% (or current completed batch percentage) during content reading and subject validation
       setBatchProgress((prev) => ({
         ...prev,
         current: fileNum,
         filename: file.name,
-        percent: Math.max(pct, 10),
-        completed: i,
-        remaining: totalFiles - i,
-        currentStepName: `[File ${fileNum}/${totalFiles}] Step 1: Extracting text from ${file.name}...`,
-        logs: [...prev.logs, `\n>>> [FILE ${fileNum}/${totalFiles}] Starting pipeline for: ${file.name}`]
+        percent: baseFilePct,
+        completed: successfulFiles,
+        remaining: totalFiles - successfulFiles,
+        lastError: null,
+        currentStepName: `[File ${fileNum}/${totalFiles}] Step 0: Reading content & verifying '${selectedSubject}' match... (0%)`,
+        logs: [
+          ...prev.logs,
+          `\n>>> [FILE ${fileNum}/${totalFiles}] Starting validation for: ${file.name}`,
+          `  ↳ [Step 0] Reading text content & checking subject compatibility against dropdown [${selectedSubject}]...`
+        ]
       }));
 
       try {
@@ -411,30 +365,43 @@ export const AiRagHub: React.FC = () => {
           formData.append('topicId', String(selectedTargetTopicId));
         }
 
-        setBatchProgress((prev) => ({
-          ...prev,
-          currentStepName: `[File ${fileNum}/${totalFiles}] Step 2 & 3: Contextual analysis & question extraction...`,
-          logs: [...prev.logs, `  ↳ [Step 1] Text extracted successfully. Running AI contextual analysis...`]
-        }));
-
+        // Send to backend pipeline - will strictly block at 0% if subject mismatches
         const res = await ApiServices.processDocumentPipeline(formData);
 
         const extractedCount = res?.total_extracted || res?.questions?.length || 0;
         const insertedCount = res?.questions_inserted || extractedCount;
         totalAddedQuestions += insertedCount;
+        successfulFiles++;
         resultsArr.push(res);
+
+        // Live Question Insertion Progress Animation (0% to 100%)
+        const targetFilePct = Math.round(((i + 1) / totalFiles) * 100);
+        const startPct = baseFilePct;
+        const totalSteps = 10;
+        const stepTime = 60; // ms
+
+        for (let step = 1; step <= totalSteps; step++) {
+          const currentPct = Math.round(startPct + ((targetFilePct - startPct) * (step / totalSteps)));
+          const qProgress = Math.round((insertedCount * step) / totalSteps);
+          setBatchProgress((prev) => ({
+            ...prev,
+            percent: currentPct,
+            currentStepName: `[File ${fileNum}/${totalFiles}] Step 5: Live Database Insertion: ${qProgress}/${insertedCount} questions saved (${currentPct}%)`
+          }));
+          await new Promise((r) => setTimeout(r, stepTime));
+        }
 
         setBatchProgress((prev) => ({
           ...prev,
-          completed: i + 1,
-          remaining: totalFiles - (i + 1),
-          percent: Math.round(((i + 1) / totalFiles) * 100),
-          currentStepName: `[File ${fileNum}/${totalFiles}] Step 5: Database insertion complete! (${insertedCount} questions saved)`,
+          completed: successfulFiles,
+          remaining: totalFiles - successfulFiles,
+          percent: targetFilePct,
+          currentStepName: `[File ${fileNum}/${totalFiles}] Step 5: Database insertion complete! (${insertedCount} questions saved - 100%)`,
           logs: [
             ...prev.logs,
-            `  ↳ [Step 2] Inferred Title: "${res?.title || file.name}"`,
-            `  ↳ [Step 3 & 4] ${extractedCount} questions extracted and formatted into question_master schema.`,
-            `  ↳ [Step 5] Saved to Database: ${insertedCount} inserted into question_master (Topic ID: ${res?.topic_id || 'Auto'}).`,
+            `  ↳ [Step 1-2] Subject Validated: "${res?.detected_subject || selectedSubject}" | Title: "${res?.title || file.name}"`,
+            `  ↳ [Step 3-4] ${extractedCount} questions extracted & calibrated.`,
+            `  ↳ [Step 5] Database Insertion: Successfully saved ${insertedCount} questions into question_master (Topic ID: ${res?.topic_id || 'Auto'}).`,
             `✔ [SUCCESS] Completed processing ${file.name}`
           ],
           results: [...resultsArr]
@@ -442,10 +409,17 @@ export const AiRagHub: React.FC = () => {
 
       } catch (err: any) {
         console.error(`Error processing file ${file.name}:`, err);
-        const errMsg = err?.message || err?.response?.data?.error?.message || 'Processing failed';
+        const errMsg = err?.response?.data?.error?.message || err?.response?.data?.message || err?.message || 'Processing failed';
         setBatchProgress((prev) => ({
           ...prev,
-          logs: [...prev.logs, `❌ [ERROR] Failed to process ${file.name}: ${errMsg}`]
+          percent: baseFilePct,
+          lastError: errMsg,
+          currentStepName: `❌ [VALIDATION BLOCKED] ${file.name}: Subject mismatch with '${selectedSubject}' (0%)`,
+          logs: [
+            ...prev.logs,
+            `❌ [VALIDATION BLOCKED] ${errMsg}`,
+            `  ↳ 0 questions inserted into database. Progress remains at 0%.`
+          ]
         }));
       }
     }
@@ -453,14 +427,23 @@ export const AiRagHub: React.FC = () => {
     setBatchProgress((prev) => ({
       ...prev,
       isRunning: false,
-      percent: 100,
-      completed: totalFiles,
+      percent: totalAddedQuestions > 0 ? 100 : 0,
+      completed: successfulFiles,
       remaining: 0,
-      currentStepName: `All ${totalFiles} file(s) processed! Total ${totalAddedQuestions} questions added.`,
-      logs: [...prev.logs, `\n🎉 [ALL COMPLETED] Successfully processed ${totalFiles} file(s). Added ${totalAddedQuestions} questions to Question Bank.`]
+      currentStepName: totalAddedQuestions > 0
+        ? `Processed ${successfulFiles} file(s). Total ${totalAddedQuestions} questions added.`
+        : `Batch blocked: Content validation mismatch. 0 questions added.`,
+      logs: [
+        ...prev.logs,
+        totalAddedQuestions > 0
+          ? `\n🎉 [ALL COMPLETED] Successfully processed ${successfulFiles} file(s). Added ${totalAddedQuestions} questions to Question Bank.`
+          : `\n⚠️ [BATCH BLOCKED] 0 questions were inserted due to content validation mismatch.`
+      ]
     }));
 
-    showNotify('success', `Pipeline completed! Added ${totalAddedQuestions} questions across ${totalFiles} file(s).`);
+    if (totalAddedQuestions > 0) {
+      showNotify('success', `Pipeline completed! Added ${totalAddedQuestions} questions across ${successfulFiles} file(s).`);
+    }
     setUploadFiles([]);
     setUploading(false);
     await fetchRagStatus();
@@ -875,13 +858,13 @@ export const AiRagHub: React.FC = () => {
                 </div>
               </div>
 
-              {/* Multi-Format Document Dropzone */}
+              {/* PDF & DOCX Document Dropzone */}
               <div className="relative border-2 border-dashed border-stone-300 rounded-2xl p-5 text-center hover:border-yellow-400 transition-colors bg-stone-50/50">
                 <input
                   type="file"
                   id="curriculum-upload-input"
                   multiple
-                  accept=".pdf,.docx,.doc,.rtf,.txt,.csv"
+                  accept=".pdf,.docx,.doc"
                   onChange={(e) => {
                     if (e.target.files && e.target.files.length > 0) {
                       const filesArr = Array.from(e.target.files);
@@ -897,7 +880,7 @@ export const AiRagHub: React.FC = () => {
                   <p className="text-xs font-bold text-stone-800">
                     Click to browse or Drag & Drop Multiple PDF / DOCX
                   </p>
-                  <p className="text-[10px] text-stone-400 font-medium">Supports multiple PDF, Word (.docx/.doc), RTF, TXT files</p>
+                  <p className="text-[10px] text-stone-400 font-medium">Supports multiple PDF, Word (.docx/.doc) files</p>
                 </label>
 
                 {/* Selected Files List */}
@@ -935,70 +918,106 @@ export const AiRagHub: React.FC = () => {
                 )}
               </div>
 
-              {/* Filename & Selection Mismatch Alert Banner */}
-              {hasFilenameMismatch && (
-                <div className="p-3.5 bg-amber-50/90 border border-amber-300 rounded-2xl flex items-start gap-2.5 animate-in fade-in">
-                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <div className="text-xs text-amber-950 space-y-0.5">
-                    <p className="font-bold text-amber-900">Curriculum Mismatch Warning</p>
-                    <p className="text-[11px] text-amber-800 leading-relaxed">
-                      First file suggests: <span className="font-bold underline">{detectedMeta?.board || 'Any'} &bull; {detectedMeta?.classGrade || 'Any'} &bull; {detectedMeta?.subject || 'Any'}</span>
-                      , but dropdown is currently set to <span className="font-bold">{selectedBoard} &bull; {selectedGrade} &bull; {selectedSubject}</span>.
-                    </p>
-                  </div>
-                </div>
-              )}
 
-              {/* Multi-File Progress Bar Card */}
-              {(batchProgress.isRunning || batchProgress.results.length > 0) && (
-                <div className="p-4 bg-stone-900 text-white rounded-2xl border border-stone-800 space-y-3 shadow-md">
+              {/* Multi-File Progress Bar Card (Modern Theme) */}
+              {(batchProgress.isRunning || batchProgress.results.length > 0 || batchProgress.lastError || batchProgress.logs.length > 0) && (
+                <div className={`p-4 rounded-2xl border transition-all duration-300 shadow-xs space-y-3 ${
+                  batchProgress.lastError
+                    ? 'bg-rose-50/50 border-rose-200'
+                    : 'bg-stone-50 border-stone-200'
+                }`}>
+                  {/* Header Row */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <RefreshCw className={`w-4 h-4 text-amber-400 ${batchProgress.isRunning ? 'animate-spin' : ''}`} />
-                      <span className="text-xs font-bold text-stone-200">
+                      <RefreshCw className={`w-4 h-4 ${
+                        batchProgress.lastError
+                          ? 'text-rose-600'
+                          : 'text-amber-600'
+                      } ${batchProgress.isRunning ? 'animate-spin' : ''}`} />
+                      <span className="text-xs font-bold text-stone-800">
                         {batchProgress.isRunning
                           ? `Processing File ${batchProgress.current} of ${batchProgress.total}`
+                          : batchProgress.lastError
+                          ? 'Validation Blocked'
                           : 'Batch Ingestion Complete'}
                       </span>
                     </div>
-                    <span className="text-xs font-mono font-bold text-amber-400">{batchProgress.percent}%</span>
+                    <span className={`text-xs font-mono font-black px-2 py-0.5 rounded-md ${
+                      batchProgress.lastError
+                        ? 'bg-rose-100 text-rose-700'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {batchProgress.percent}%
+                    </span>
                   </div>
 
-                  {/* Tailwind Progress Bar */}
-                  <div className="w-full bg-stone-800 h-2.5 rounded-full overflow-hidden border border-stone-700">
+                  {/* Clean Modern Progress Bar */}
+                  <div className="w-full bg-stone-200/80 h-2.5 rounded-full overflow-hidden border border-stone-300/50">
                     <div
-                      className="bg-gradient-to-r from-amber-400 to-emerald-400 h-full transition-all duration-300 ease-out"
-                      style={{ width: `${batchProgress.percent}%` }}
+                      className={`h-full transition-all duration-300 ease-out ${
+                        batchProgress.lastError
+                          ? 'bg-rose-500'
+                          : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-emerald-500'
+                      }`}
+                      style={{ width: `${Math.max(batchProgress.percent, batchProgress.lastError ? 100 : 0)}%` }}
                     />
                   </div>
 
                   {/* Badge Metrics */}
-                  <div className="flex items-center justify-between text-[11px] text-stone-300 pt-1">
-                    <span className="flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      Completed: <strong className="text-white">{batchProgress.completed}</strong>
+                  <div className="flex items-center justify-between text-[11px] text-stone-600 pt-0.5">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      Completed: <strong className="text-stone-900 font-bold">{batchProgress.completed}</strong>
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Sliders className="w-3.5 h-3.5 text-amber-400" />
-                      Remaining: <strong className="text-white">{batchProgress.remaining}</strong>
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Sliders className="w-3.5 h-3.5 text-amber-600" />
+                      Remaining: <strong className="text-stone-900 font-bold">{batchProgress.remaining}</strong>
                     </span>
-                    <span className="text-stone-400 font-mono text-[10px]">
+                    <span className="text-stone-500 font-mono text-[10px] bg-stone-100 px-2 py-0.5 rounded border border-stone-200">
                       Total: {batchProgress.total} Files
                     </span>
                   </div>
 
-                  {/* Current Active Step */}
-                  <p className="text-[11px] text-amber-300 font-mono truncate bg-stone-800/80 px-2.5 py-1.5 rounded-lg border border-stone-700/60">
+                  {/* Inline Compact Error Box inside Card */}
+                  {batchProgress.lastError && (
+                    <div className="p-3 bg-rose-100/80 border border-rose-300/70 rounded-xl text-xs flex items-start gap-2.5 animate-in fade-in">
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                      <div className="space-y-0.5 overflow-hidden">
+                        <span className="font-bold text-rose-900 block text-xs">Content Mismatch Error</span>
+                        <p className="text-[11px] text-rose-800 leading-snug">{batchProgress.lastError}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Current Active Step Pill */}
+                  <p className={`text-[11px] font-mono truncate px-3 py-1.5 rounded-xl border ${
+                    batchProgress.lastError
+                      ? 'text-rose-900 bg-rose-100/70 border-rose-200/80 font-medium'
+                      : 'text-stone-800 bg-amber-50/80 border-amber-200/80 font-medium'
+                  }`}>
                     {batchProgress.currentStepName}
                   </p>
 
-                  {/* Live Terminal Log Box */}
-                  <div className="bg-black/60 border border-stone-800 rounded-xl p-2.5 max-h-36 overflow-y-auto font-mono text-[10px] text-stone-300 space-y-1 custom-scrollbar">
-                    {batchProgress.logs.map((log, lIdx) => (
-                      <div key={lIdx} className="leading-tight whitespace-pre-wrap">
-                        {log}
-                      </div>
-                    ))}
+                  {/* Modern Light Clean Log Box */}
+                  <div className="bg-white border border-stone-200/90 rounded-xl p-3 max-h-36 overflow-y-auto font-mono text-[11px] text-stone-700 space-y-1.5 shadow-2xs custom-scrollbar">
+                    {batchProgress.logs.map((log, lIdx) => {
+                      const isErr = log.includes('❌') || log.includes('BLOCKED') || log.includes('ERROR');
+                      const isSuccess = log.includes('✔') || log.includes('🎉') || log.includes('SUCCESS');
+                      return (
+                        <div
+                          key={lIdx}
+                          className={`leading-relaxed whitespace-pre-wrap text-[11px] ${
+                            isErr
+                              ? 'text-rose-700 font-bold bg-rose-50/90 p-1.5 rounded-lg border border-rose-200/60'
+                              : isSuccess
+                              ? 'text-emerald-800 font-bold bg-emerald-50/90 p-1.5 rounded-lg border border-emerald-200/60'
+                              : 'text-stone-600'
+                          }`}
+                        >
+                          {log}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

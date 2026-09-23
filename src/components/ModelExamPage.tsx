@@ -648,8 +648,8 @@ export const ModelExamPage: React.FC = () => {
             ) : (
               /* Reverse Countdown / Time Remaining info */
               <div className={`flex flex-col items-center px-3 py-1.5 rounded-xl border transition-all ${activeMode === 'TEST' && remainingSeconds <= 300
-                  ? 'bg-amber-400 text-stone-950 border-amber-300 animate-pulse ring-2 ring-amber-400/60 font-black'
-                  : 'bg-white/10 border-white/15 text-white'
+                ? 'bg-amber-400 text-stone-950 border-amber-300 animate-pulse ring-2 ring-amber-400/60 font-black'
+                : 'bg-white/10 border-white/15 text-white'
                 }`}>
                 <span className="font-black text-base sm:text-lg leading-none font-mono">
                   {formatTimer(remainingSeconds)}
@@ -666,12 +666,6 @@ export const ModelExamPage: React.FC = () => {
                 {paperData.max_marks || 80}
               </span>
               <span className="text-amber-400/80 text-[10px] font-semibold uppercase tracking-wider">Marks</span>
-            </div>
-
-            {/* Standard Board Rubric */}
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400/10 border border-amber-400/30">
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span className="text-amber-300 text-[11px] font-bold">Board Rubric</span>
             </div>
 
             {/* Action Buttons */}
@@ -779,8 +773,8 @@ export const ModelExamPage: React.FC = () => {
               type="button"
               onClick={() => setSelectedSection('ALL')}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${selectedSection === 'ALL'
-                  ? 'bg-amber-400 text-stone-950 shadow-xs font-black'
-                  : 'bg-stone-50 text-stone-600 hover:bg-stone-200/70 border border-stone-200'
+                ? 'bg-amber-400 text-stone-950 shadow-xs font-black'
+                : 'bg-stone-50 text-stone-600 hover:bg-stone-200/70 border border-stone-200'
                 }`}
             >
               All Sections ({totalQuestions})
@@ -805,10 +799,10 @@ export const ModelExamPage: React.FC = () => {
                       : undefined
                   }
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${!isUnlocked
-                      ? 'opacity-40 cursor-not-allowed bg-stone-100 text-stone-400 border border-stone-200'
-                      : isSelected
-                        ? 'bg-stone-900 text-amber-400 shadow-xs font-black cursor-pointer'
-                        : 'bg-stone-50 text-stone-600 hover:bg-stone-200/70 border border-stone-200 cursor-pointer'
+                    ? 'opacity-40 cursor-not-allowed bg-stone-100 text-stone-400 border border-stone-200'
+                    : isSelected
+                      ? 'bg-stone-900 text-amber-400 shadow-xs font-black cursor-pointer'
+                      : 'bg-stone-50 text-stone-600 hover:bg-stone-200/70 border border-stone-200 cursor-pointer'
                     }`}
                 >
                   <span>{secName}</span>
@@ -1114,14 +1108,14 @@ export const ModelExamPage: React.FC = () => {
                                             type="button"
                                             onClick={() => handleSelectOption(qKey, optLetter)}
                                             className={`p-3.5 rounded-2xl text-left text-xs sm:text-sm font-semibold transition-all flex items-start gap-3 border cursor-pointer ${isSelected
-                                                ? 'bg-amber-50 border-amber-500 text-stone-950 font-bold shadow-xs ring-2 ring-amber-400'
-                                                : 'bg-stone-50/80 hover:bg-stone-100 border-stone-200 text-stone-700'
+                                              ? 'bg-amber-50 border-amber-500 text-stone-950 font-bold shadow-xs ring-2 ring-amber-400'
+                                              : 'bg-stone-50/80 hover:bg-stone-100 border-stone-200 text-stone-700'
                                               }`}
                                           >
                                             <span
                                               className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${isSelected
-                                                  ? 'bg-amber-500 text-stone-950'
-                                                  : 'bg-stone-200 text-stone-600'
+                                                ? 'bg-amber-500 text-stone-950'
+                                                : 'bg-stone-200 text-stone-600'
                                                 }`}
                                             >
                                               {optLetter}
@@ -1504,7 +1498,7 @@ export const ModelExamPage: React.FC = () => {
 
             <div className="space-y-1.5">
               <h3 className="text-lg font-black tracking-tight text-white">
-                AI Examiner is Evaluating Your Answers...
+                Examiner is Evaluating Your Answers...
               </h3>
               <p className="text-xs text-stone-400 font-medium">
                 Evaluating against authentic 2027 {paperData?.board || 'Board'} 80-Mark Marking Scheme
@@ -1525,10 +1519,10 @@ export const ModelExamPage: React.FC = () => {
                   <div
                     key={sIdx}
                     className={`flex items-center gap-2.5 transition-all ${isPassed
-                        ? 'text-emerald-400 font-bold'
-                        : isCurrent
-                          ? 'text-amber-300 font-black animate-pulse'
-                          : 'text-stone-600 font-medium'
+                      ? 'text-emerald-400 font-bold'
+                      : isCurrent
+                        ? 'text-amber-300 font-black animate-pulse'
+                        : 'text-stone-600 font-medium'
                       }`}
                   >
                     {isPassed ? (

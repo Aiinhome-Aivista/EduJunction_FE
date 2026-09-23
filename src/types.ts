@@ -54,7 +54,8 @@ export type Subject =
   | 'Social Studies' 
   | 'English' 
   | 'Computer Science' 
-  | 'Logical Reasoning';
+  | 'Logical Reasoning'
+  | (string & {});
 
 export const CLASS_SUBJECTS_MAP: Record<string, Subject[]> = {
   // Primary (Class 1 to 5)

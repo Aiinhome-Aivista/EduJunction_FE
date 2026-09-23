@@ -47,10 +47,22 @@ const GRADES: ClassGrade[] = [
   'Class 5', 'Class 6', 'Class 7', 'Class 8',
   'Class 9', 'Class 10', 'Class 11', 'Class 12'
 ];
-const SUBJECTS: Subject[] = [
-  'Mathematics', 'Physics', 'Chemistry', 'Biology',
-  'Science', 'Social Studies', 'English', 'Computer Science', 'Logical Reasoning'
-];
+interface DbTopic {
+  id: number;
+  name: string;
+}
+
+interface DbChapter {
+  id: number;
+  name: string;
+  topics: DbTopic[];
+}
+
+interface DbSubject {
+  id: number;
+  name: string;
+  chapters: DbChapter[];
+}
 
 export const getExamBlueprint = (grade: string = 'Class 10') => {
   const g = (grade || '').toLowerCase().trim();
@@ -107,11 +119,64 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
   // Config State
   const [selectedBoard, setSelectedBoard] = useState<Board>(activeChild?.targetBoard || 'CBSE');
   const [selectedGrade, setSelectedGrade] = useState<ClassGrade>(activeChild?.classGrade || 'Class 10');
+  const [dbSubjects, setDbSubjects] = useState<string[]>([]);
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState<boolean>(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject>(presetSubject || 'Mathematics');
   const [selectedDifficulty, setSelectedDifficulty] = useState<ExamDifficulty>(presetDifficulty || 'medium');
   const [activeTopic, setActiveTopic] = useState<string | null>(presetTopic || null);
 
   const hasAutoStartedRef = useRef<string | null>(null);
+
+  // Synchronize board and class when activeChild changes
+  useEffect(() => {
+    if (activeChild) {
+      if (activeChild.targetBoard) setSelectedBoard(activeChild.targetBoard);
+      if (activeChild.classGrade) setSelectedGrade(activeChild.classGrade);
+    }
+  }, [activeChild?.id, activeChild?.targetBoard, activeChild?.classGrade]);
+
+  // Dynamically fetch mapped subjects from Database (subject_master) based on board & class
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoadingSubjects(true);
+
+    const targetBoard = selectedBoard || activeChild?.targetBoard || 'CBSE';
+    const targetGrade = selectedGrade || activeChild?.classGrade || 'Class 10';
+
+    ApiServices.getCurriculumOptions({
+      board: targetBoard,
+      classGrade: targetGrade,
+      studentId: activeChild?.id,
+    })
+      .then((res: any) => {
+        if (!isMounted) return;
+        const fetched: DbSubject[] = res?.subjects || res?.data?.subjects || [];
+        const subjectNames = fetched.map((s) => s.name).filter(Boolean);
+        setDbSubjects(subjectNames);
+
+        if (subjectNames.length > 0) {
+          setSelectedSubject((prev) => {
+            if (prev && subjectNames.includes(prev)) {
+              return prev;
+            }
+            if (presetSubject && subjectNames.includes(presetSubject)) {
+              return presetSubject;
+            }
+            return subjectNames[0] as Subject;
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load database curriculum subjects:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingSubjects(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedBoard, selectedGrade, activeChild?.id]);
 
   useEffect(() => {
     if (presetSubject) {
@@ -413,81 +478,81 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 hide-scrollbar">
 
-        {/* ═══════════════ TOP HEADER BAR ═══════════════ */}
-        <div className="sticky top-0 z-30 max-w-6xl mx-auto px-4 pt-3 pb-0">
-          <div className={`rounded-3xl overflow-hidden shadow-xl transition-all duration-500 ${isLowTime
+        {/* ═══════════════ TOP HEADER BAR (Scrolls with page) ═══════════════ */}
+        <div className="max-w-6xl mx-auto px-4 pt-3 pb-2">
+          <div className={`rounded-2xl overflow-hidden shadow-sm transition-all duration-500 ${isLowTime
             ? 'bg-gradient-to-r from-rose-600 via-rose-500 to-orange-500'
             : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500'
             }`}
-            style={{ boxShadow: isLowTime ? '0 8px 32px rgba(239,68,68,0.30)' : '0 8px 32px rgba(251,191,36,0.30)' }}
+            style={{ boxShadow: isLowTime ? '0 4px 20px rgba(239,68,68,0.20)' : '0 4px 20px rgba(251,191,36,0.20)' }}
           >
-            {/* Decorative shimmer strip */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute -top-1 left-0 right-0 h-0.5 bg-white/40 rounded-full" />
-              <div className="absolute top-0 -left-32 w-64 h-full bg-white/10 rotate-12 blur-2xl" />
-              <div className="absolute top-0 right-0 w-48 h-full bg-white/5 -rotate-12 blur-2xl" />
-            </div>
+              {/* Decorative shimmer strip */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-1 left-0 right-0 h-0.5 bg-white/40 rounded-full" />
+                <div className="absolute top-0 -left-32 w-64 h-full bg-white/10 rotate-12 blur-2xl" />
+                <div className="absolute top-0 right-0 w-48 h-full bg-white/5 -rotate-12 blur-2xl" />
+              </div>
 
-            <div className="relative w-full px-5 sm:px-6 py-3 flex items-center justify-between gap-4">
+              <div className="relative w-full px-5 sm:px-6 py-2.5 flex items-center justify-between gap-4">
 
-              {/* Left — Exam Title & Badges */}
-              <div className="min-w-0 flex-1 flex flex-col gap-1.5">
-                {/* 1st Line: Title */}
-                <div className="flex items-center">
-                  <span className="text-stone-900 font-black text-sm sm:text-base truncate drop-shadow-sm">
-                    {activeExam.title}
-                  </span>
+                {/* Left — Exam Title & Badges */}
+                <div className="min-w-0 flex-1 flex flex-col gap-1">
+                  {/* 1st Line: Title */}
+                  <div className="flex items-center">
+                    <span className="text-stone-900 font-black text-xs sm:text-sm md:text-base truncate drop-shadow-xs">
+                      {activeExam.title}
+                    </span>
+                  </div>
+                  {/* 2nd Line: Badges */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-stone-900/15 text-stone-900 border border-stone-900/20 shrink-0 backdrop-blur-xs">
+                      {activeExam.totalMarks || 15} Marks
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold bg-white/50 text-stone-800 border border-white/60 shrink-0 backdrop-blur-xs">
+                      {activeExam.board} • {activeExam.classGrade}
+                    </span>
+                  </div>
                 </div>
-                {/* 2nd Line: Badges */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-stone-900/15 text-stone-900 border border-stone-900/20 shrink-0 backdrop-blur-sm">
-                    {activeExam.totalMarks || 15} Marks
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/40 text-stone-800 border border-white/50 shrink-0 backdrop-blur-sm">
-                    {activeExam.board} • {activeExam.classGrade}
-                  </span>
+
+
+                {/* Right — Timer + Submit */}
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                  {/* Timer */}
+                  <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border font-mono font-black text-sm sm:text-base transition-all duration-300 ${isLowTime
+                    ? 'bg-white text-rose-600 border-white animate-pulse shadow-md'
+                    : timeRemainingSeconds < 600
+                      ? 'bg-amber-600/30 border-amber-700/40 text-stone-900'
+                      : 'bg-white/40 border-white/60 text-stone-900 backdrop-blur-xs'
+                    }`}>
+                    <Clock className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLowTime ? 'text-rose-500' : 'text-stone-800'}`} />
+                    <span>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    id="finish-exam-btn"
+                    onClick={() => setShowConfirmSubmit(true)}
+                    className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-yellow-400 text-xs sm:text-sm font-bold shadow-md shadow-stone-900/20 transition-all duration-150 border border-stone-800"
+                  >
+                    Submit
+                  </button>
                 </div>
               </div>
 
-
-              {/* Right — Timer + Submit */}
-              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                {/* Timer */}
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border font-mono font-black text-base sm:text-lg transition-all duration-300 ${isLowTime
-                  ? 'bg-white text-rose-600 border-white animate-pulse shadow-lg'
-                  : timeRemainingSeconds < 600
-                    ? 'bg-amber-600/30 border-amber-700/40 text-stone-900'
-                    : 'bg-white/30 border-white/50 text-stone-900 backdrop-blur-sm'
-                  }`}>
-                  <Clock className={`w-4 h-4 ${isLowTime ? 'text-rose-500' : 'text-stone-800'}`} />
-                  <span>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
+              {/* Progress Bar — aligned with content, narrow pill */}
+              <div className="w-full px-4 pb-2 pt-0.5 flex justify-center">
+                <div className="w-24 h-1.5 bg-stone-900/20 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-yellow-200 rounded-full transition-all duration-700 shadow-2xs"
+                    style={{ width: `${progressPct}%` }}
+                  />
                 </div>
-
-                {/* Submit Button */}
-                <button
-                  id="finish-exam-btn"
-                  onClick={() => setShowConfirmSubmit(true)}
-                  className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-yellow-400 text-xs sm:text-sm font-bold shadow-lg shadow-stone-900/30 transition-all duration-150 border border-stone-800"
-                >
-                  Submit
-                </button>
-              </div>
-            </div>
-
-            {/* Progress Bar — aligned with content, narrow pill */}
-            <div className="w-full px-4 pb-3 pt-1 flex justify-center">
-              <div className="w-20 h-1.5 bg-stone-900/20 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-yellow-200 rounded-full transition-all duration-700 shadow-sm"
-                  style={{ width: `${progressPct}%` }}
-                />
               </div>
             </div>
           </div>
-        </div>
 
         {/* ═══════════════ BODY ═══════════════ */}
-        <div className="max-w-6xl mx-auto px-4 py-5">
+        <div className="max-w-6xl mx-auto px-4 py-3 pb-12">
 
           {/* Mobile Stats Row */}
           <div className="sm:hidden flex items-center gap-2 mb-4">
@@ -788,8 +853,8 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
               </div>
             </div>
 
-            {/* ═══ RIGHT — Sticky Sidebar (1 col) ═══ */}
-            <div className="lg:col-span-1 space-y-4 self-start sticky top-[73px]">
+            {/* ═══ RIGHT — Sidebar (1 col) ═══ */}
+            <div className="lg:col-span-1 space-y-4">
 
               {/* Progress Summary Card */}
               <div className="bg-white rounded-2xl border border-stone-200/80 shadow-sm p-4">
@@ -1150,22 +1215,34 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
             </>
           )}
 
-          {/* Subject Selector (Always Unlocked & Interactive) */}
+          {/* Subject Selector (Dynamically populated from database subject_master) */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
                 {isStudentPersona ? '1. Select Subject for Practice' : '3. Subject'}
               </label>
+              {isLoadingSubjects && (
+                <span className="text-[11px] text-amber-600 font-medium flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Fetching mapped subjects...
+                </span>
+              )}
             </div>
             <select
               id="subject-dropdown-select"
               value={selectedSubject}
+              disabled={isLoadingSubjects || dbSubjects.length === 0}
               onChange={(e) => setSelectedSubject(e.target.value as Subject)}
-              className="w-full px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-800 text-sm font-medium focus:ring-2 focus:ring-yellow-500 focus:outline-hidden"
+              className="w-full px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-800 text-sm font-medium focus:ring-2 focus:ring-yellow-500 focus:outline-hidden disabled:bg-stone-100 disabled:text-stone-400"
             >
-              {SUBJECTS.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
+              {isLoadingSubjects ? (
+                <option value="">Fetching mapped subjects from database...</option>
+              ) : dbSubjects.length === 0 ? (
+                <option value="">No subjects mapped in database for {selectedGrade} ({selectedBoard})</option>
+              ) : (
+                dbSubjects.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))
+              )}
             </select>
           </div>
 
