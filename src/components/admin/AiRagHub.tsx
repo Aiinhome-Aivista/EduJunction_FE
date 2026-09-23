@@ -65,6 +65,7 @@ interface GeneratedQuestionItem {
   topic_suggested?: string;
   is_duplicate?: boolean;
   source?: string;
+  source_file?: string;
 }
 
 interface PreviewExtractionData {
@@ -82,6 +83,7 @@ interface PreviewExtractionData {
   total_extracted?: number;
   new_questions_count?: number;
   duplicate_questions_count?: number;
+  filesData?: any[];
 }
 
 interface FlatTopic {
@@ -282,6 +284,24 @@ export const AiRagHub: React.FC = () => {
     }
   };
 
+  // Auto-sync selectedTargetTopicId whenever selectedBoard, selectedGrade, or selectedSubject changes
+  useEffect(() => {
+    if (flatTopics.length === 0) return;
+    const bLower = selectedBoard.toLowerCase().trim();
+    const gLower = selectedGrade.toLowerCase().trim();
+    const sLower = selectedSubject.toLowerCase().trim();
+
+    const matched = flatTopics.find(t => 
+      t.boardName.toLowerCase().trim() === bLower &&
+      (t.className.toLowerCase().trim() === gLower || t.className.toLowerCase().replace('class ', '').trim() === gLower.replace('class ', '')) &&
+      (t.subjectName.toLowerCase().trim() === sLower || (sLower === 'science' && ['physics', 'chemistry', 'biology', 'science'].includes(t.subjectName.toLowerCase().trim())))
+    );
+
+    if (matched) {
+      setSelectedTargetTopicId(matched.id);
+    }
+  }, [selectedBoard, selectedGrade, selectedSubject, flatTopics]);
+
   const fetchMasterDropdowns = async () => {
     setIsLoadingMasters(true);
     try {
@@ -329,102 +349,170 @@ export const AiRagHub: React.FC = () => {
     if (uploadFiles.length === 0) return;
 
     setUploading(true);
-    const file = uploadFiles[0];
+    const totalFiles = uploadFiles.length;
 
     const initialProgress = {
       isRunning: true,
       current: 1,
-      total: 1,
-      filename: file.name,
+      total: totalFiles,
+      filename: uploadFiles[0].name,
       percent: 0,
       completed: 0,
-      remaining: 1,
-      currentStepName: `[File 1/1] Step 0: Reading text & validating subject matching with '${selectedSubject}'... (0%)`,
+      remaining: totalFiles,
+      currentStepName: `[File 1/${totalFiles}] Step 0: Reading text & validating subject matching with '${selectedSubject}'... (0%)`,
       lastError: null,
       logs: [
-        `[INITIALIZE] Uploading file: ${file.name}...`,
-        `[CONFIG] Target: Board=[${selectedBoard}] | Class=[${selectedGrade}] | Subject=[${selectedSubject}]`,
-        `  ↳ [Step 0] Reading text content & checking subject compatibility against dropdown [${selectedSubject}]...`
+        `[INITIALIZE] Uploading and extracting preview across ${totalFiles} file(s)...`,
+        `[CONFIG] Target: Board=[${selectedBoard}] | Class=[${selectedGrade}] | Subject=[${selectedSubject}] | Mode=[${documentType.toUpperCase()}]`,
       ],
       results: []
     };
     setBatchProgress(initialProgress);
 
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('board', selectedBoard);
-      formData.append('classGrade', selectedGrade);
-      formData.append('subject', selectedSubject);
-      formData.append('documentType', documentType);
-      if (selectedTargetTopicId) {
-        formData.append('topicId', String(selectedTargetTopicId));
+    const allExtractedQuestions: GeneratedQuestionItem[] = [];
+    const allPreviewFiles: any[] = [];
+    let totalNew = 0;
+    let totalDupe = 0;
+    let resolvedTopicId: number | null = selectedTargetTopicId;
+    let lastErrorOccurred: string | null = null;
+    let successFileCount = 0;
+
+    for (let i = 0; i < totalFiles; i++) {
+      const file = uploadFiles[i];
+      const fileNum = i + 1;
+      const progressPercent = Math.round((i / totalFiles) * 80);
+
+      setBatchProgress((prev) => ({
+        ...prev,
+        current: fileNum,
+        filename: file.name,
+        percent: progressPercent,
+        currentStepName: `[File ${fileNum}/${totalFiles}] Parsing & extracting questions from '${file.name}'...`,
+        logs: [
+          ...prev.logs,
+          `\n>>> [FILE ${fileNum}/${totalFiles}]: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`
+        ]
+      }));
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('board', selectedBoard);
+        formData.append('classGrade', selectedGrade);
+        formData.append('subject', selectedSubject);
+        formData.append('documentType', documentType);
+        if (resolvedTopicId) {
+          formData.append('topicId', String(resolvedTopicId));
+        }
+
+        const res = await ApiServices.extractCurriculumPreview(formData);
+        const data = res?.data !== undefined ? res.data : res;
+
+        const questionsList: GeneratedQuestionItem[] = (data?.questions || []).map((q: any) => ({
+          ...q,
+          source_file: file.name
+        }));
+        const newCount = data?.new_questions_count || questionsList.filter(q => !q.is_duplicate).length;
+        const dupeCount = data?.duplicate_questions_count || questionsList.filter(q => q.is_duplicate).length;
+
+        totalNew += newCount;
+        totalDupe += dupeCount;
+        allExtractedQuestions.push(...questionsList);
+        successFileCount += 1;
+
+        if (data?.topic_id && !resolvedTopicId) {
+          resolvedTopicId = data.topic_id;
+          setSelectedTargetTopicId(data.topic_id);
+        }
+
+        allPreviewFiles.push({
+          filename: data?.filename || file.name,
+          board: data?.board || selectedBoard,
+          classGrade: data?.classGrade || selectedGrade,
+          subject: data?.subject || selectedSubject,
+          documentType: data?.documentType || documentType,
+          cleaned_text: data?.cleaned_text || '',
+          title: data?.title || file.name,
+          summary: data?.summary || '',
+          detected_topics: data?.detected_topics || [],
+          questions: questionsList
+        });
+
+        setBatchProgress((prev) => ({
+          ...prev,
+          completed: successFileCount,
+          remaining: totalFiles - successFileCount,
+          percent: Math.round((fileNum / totalFiles) * 80),
+          logs: [
+            ...prev.logs,
+            `  ↳ [Subject Match] Verified: "${data?.subject || selectedSubject}" | Title: "${data?.title || file.name}"`,
+            `  ↳ [Extracted] ${questionsList.length} questions (${newCount} new, ${dupeCount} duplicates).`
+          ]
+        }));
+      } catch (err: any) {
+        console.error(`Error extracting preview for ${file.name}:`, err);
+        const errMsg = err?.response?.data?.error?.message || err?.response?.data?.message || err?.message || 'Processing failed';
+        lastErrorOccurred = errMsg;
+        setBatchProgress((prev) => ({
+          ...prev,
+          lastError: errMsg,
+          logs: [
+            ...prev.logs,
+            `  ❌ [ERROR] ${file.name}: ${errMsg}`
+          ]
+        }));
       }
+    }
 
-      // Step 1-4: Extract and Preview questions with duplicate checks
-      const res = await ApiServices.extractCurriculumPreview(formData);
-      const data = res?.data !== undefined ? res.data : res;
-
-      const questionsList: GeneratedQuestionItem[] = data?.questions || [];
-      const newCount = data?.new_questions_count || 0;
-      const dupeCount = data?.duplicate_questions_count || 0;
-
+    if (allExtractedQuestions.length > 0) {
       setExtractedPreviewData({
-        filename: data?.filename || file.name,
-        board: data?.board || selectedBoard,
-        classGrade: data?.classGrade || selectedGrade,
-        subject: data?.subject || selectedSubject,
-        documentType: data?.documentType || documentType,
-        cleaned_text: data?.cleaned_text || '',
-        topic_id: data?.topic_id || null,
-        topic_name: data?.topic_name || '',
-        title: data?.title || file.name,
-        summary: data?.summary || '',
-        detected_topics: data?.detected_topics || [],
-        total_extracted: data?.total_extracted || questionsList.length,
-        new_questions_count: newCount,
-        duplicate_questions_count: dupeCount,
+        filename: totalFiles === 1 ? uploadFiles[0].name : `${totalFiles} Uploaded Files (${successFileCount} processed)`,
+        board: selectedBoard,
+        classGrade: selectedGrade,
+        subject: selectedSubject,
+        documentType: documentType,
+        cleaned_text: allPreviewFiles.map(f => f.cleaned_text).filter(Boolean).join('\n\n--- NEXT DOCUMENT ---\n\n'),
+        topic_id: resolvedTopicId,
+        topic_name: '',
+        title: totalFiles === 1 ? allPreviewFiles[0]?.title : `${selectedSubject} Question Bank (${successFileCount} Chapters/Files)`,
+        summary: allPreviewFiles.map(f => f.summary).filter(Boolean).join(' '),
+        detected_topics: Array.from(new Set(allPreviewFiles.flatMap(f => f.detected_topics || []))),
+        total_extracted: allExtractedQuestions.length,
+        new_questions_count: totalNew,
+        duplicate_questions_count: totalDupe,
+        filesData: allPreviewFiles,
       });
 
-      setGeneratedQuestions(questionsList);
+      setGeneratedQuestions(allExtractedQuestions);
       setActiveDocForGen(null);
-
-      if (data?.topic_id) {
-        setSelectedTargetTopicId(data.topic_id);
-      }
 
       setBatchProgress((prev) => ({
         ...prev,
         percent: 80,
-        currentStepName: `✨ Step 4 Complete: ${questionsList.length} questions extracted (${newCount} new, ${dupeCount} duplicates). Review modal opened.`,
+        isRunning: false,
+        currentStepName: `✨ Steps 1-4 Complete: ${allExtractedQuestions.length} questions extracted across ${successFileCount} file(s) (${totalNew} new, ${totalDupe} duplicates). Review modal opened.`,
         logs: [
           ...prev.logs,
-          `  ↳ [Step 1-2] Subject Validated: "${data?.subject || selectedSubject}" | Title: "${data?.title || file.name}"`,
-          `  ↳ [Step 3-4] ${questionsList.length} questions extracted & calibrated (${newCount} new, ${dupeCount} existing).`,
-          `✔ [PREVIEW READY] Please review and confirm in the Question Review Modal to complete database commit.`
+          `\n✔ [PREVIEW READY] Aggregated ${allExtractedQuestions.length} questions from ${successFileCount} file(s). Review and confirm in modal to commit to database.`
         ]
       }));
 
       setGeneratorModalOpen(true);
-      showNotify('success', `✨ Extracted ${questionsList.length} questions from ${file.name}. Review and confirm to save.`);
-    } catch (err: any) {
-      console.error(`Error extracting preview for ${file.name}:`, err);
-      const errMsg = err?.response?.data?.error?.message || err?.response?.data?.message || err?.message || 'Processing failed';
+      showNotify('success', `✨ Extracted ${allExtractedQuestions.length} questions from ${successFileCount} file(s). Review and confirm to save.`);
+    } else {
       setBatchProgress((prev) => ({
         ...prev,
         percent: 0,
         isRunning: false,
-        lastError: errMsg,
-        currentStepName: `❌ [VALIDATION BLOCKED] ${file.name}: Subject mismatch with '${selectedSubject}' (0%)`,
+        currentStepName: `❌ Ingestion failed: ${lastErrorOccurred || 'No questions could be extracted.'} (0%)`,
         logs: [
           ...prev.logs,
-          `❌ [VALIDATION BLOCKED] ${errMsg}`,
-          `  ↳ 0 questions inserted into database. Progress remains at 0%.`
+          `\n❌ Failed to extract questions from uploaded file(s).`
         ]
       }));
-    } finally {
-      setUploading(false);
     }
+
+    setUploading(false);
   };
 
   const handleDeleteDoc = async (id: string) => {
@@ -591,7 +679,8 @@ export const AiRagHub: React.FC = () => {
           detectedTopics: extractedPreviewData.detected_topics,
           title: extractedPreviewData.title,
           summary: extractedPreviewData.summary,
-        });
+          files: extractedPreviewData.filesData,
+        } as any);
         data = res?.data || res;
       } else {
         const res = await ApiServices.saveRagQuestions({
@@ -1439,6 +1528,13 @@ export const AiRagHub: React.FC = () => {
                             ) : (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300">
                                 ✨ New Question
+                              </span>
+                            )}
+
+                            {/* Source File Badge */}
+                            {q.source_file && (
+                              <span className="text-[10px] font-medium text-stone-600 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200 truncate max-w-[200px]" title={q.source_file}>
+                                📄 {q.source_file}
                               </span>
                             )}
                           </div>
