@@ -303,6 +303,15 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
       setConsecutiveWrong(0);
       setAdaptiveNotification(null);
       setTimeRemainingSeconds((exam.timeLimitMinutes || targetDuration || 15) * 60);
+
+      // Reset scroll position to top
+      setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        const scrollContainers = document.querySelectorAll('.overflow-y-auto');
+        scrollContainers.forEach((el) => { el.scrollTop = 0; });
+      }, 30);
     } catch (err) {
       console.error('Error generating exam:', err);
     } finally {
@@ -311,7 +320,23 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
     }
   };
 
-  // Auto-launch targeted remedial sprint immediately when navigated from dashboard weak topics
+  // Scroll to top whenever active exam changes
+  useEffect(() => {
+    if (activeExam) {
+      const resetScroll = () => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        const scrollContainers = document.querySelectorAll('.overflow-y-auto');
+        scrollContainers.forEach((el) => { el.scrollTop = 0; });
+      };
+      resetScroll();
+      const timer = setTimeout(resetScroll, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [activeExam]);
+
+  // Set active topic when navigated with presetTopic, without auto-launching exam
   useEffect(() => {
     if (
       presetTopic &&
@@ -321,7 +346,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
       activeChildId
     ) {
       hasAutoStartedRef.current = presetTopic;
-      handleStartExam(false);
+      // Do not auto-launch test; let user review configuration and click Start when ready
     }
   }, [presetTopic, activeChildId, activeExam, isGenerating]);
 
@@ -372,28 +397,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Dedicated Loading State ONLY while auto-generating targeted remedial sprint from Topic Master / Weak Topics
-  if (isGenerating && presetTopic) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-20 text-center animate-in fade-in zoom-in-95 duration-200">
-        <div className="bg-white rounded-3xl border border-stone-200/80 shadow-xl p-8 sm:p-12 relative overflow-hidden">
-          <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-3xl mx-auto mb-5 shadow-xs animate-bounce">
-            🎯
-          </div>
-          <h2 className="text-xl sm:text-2xl font-black text-stone-900 mb-2">
-            Launching Targeted Remedial Sprint
-          </h2>
-          <p className="text-sm font-semibold text-amber-800 mb-6 bg-amber-50 py-1.5 px-4 rounded-full border border-amber-200/60 inline-block">
-            Topic: {presetTopic}
-          </p>
-          <div className="flex items-center justify-center gap-2.5 text-xs text-stone-500 font-medium">
-            <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
-            <span>{generationStep || 'Retrieving Board Syllabus & RAG Runbook Nodes...'}</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   // If in active exam mode
   if (activeExam) {
@@ -407,7 +411,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
     const secs = timeRemainingSeconds % 60;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 hide-scrollbar">
 
         {/* ═══════════════ TOP HEADER BAR ═══════════════ */}
         <div className="sticky top-0 z-30 max-w-6xl mx-auto px-4 pt-3 pb-0">
