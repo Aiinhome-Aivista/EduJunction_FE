@@ -1020,13 +1020,13 @@ export default function App() {
       {/* Mobile Sidebar Overlay */}
       {mobileSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-stone-900/50 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-40 bg-stone-900/60 backdrop-blur-sm lg:hidden transition-opacity"
           onClick={() => setMobileSidebarOpen(false)}
         />
       )}
 
       {/* Left Sidebar (High Density Theme with Global Collapse / Expand) */}
-      <div className={`fixed inset-y-0 left-0 z-50 flex flex-col transform transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} ${mobileSidebarOpen ? 'w-64 translate-x-0' : '-translate-x-full'} print:hidden`}>
+      <div className={`fixed inset-y-0 left-0 z-50 flex flex-col transform transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} ${mobileSidebarOpen ? 'w-72 sm:w-64 translate-x-0 shadow-2xl' : '-translate-x-full'} print:hidden`}>
         <Sidebar
           pageAccess={pageAccess}
           isSidebarCollapsed={isSidebarCollapsed}

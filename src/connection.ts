@@ -1,4 +1,5 @@
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+export const BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 export const API_V1 = `${BASE_URL}/api/v1`;
 
 export const GET_APIS = {

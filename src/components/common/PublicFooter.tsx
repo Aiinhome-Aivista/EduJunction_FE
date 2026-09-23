@@ -21,12 +21,6 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
           <p className="mt-3 text-xs leading-relaxed max-w-sm">
             Study Buddy-powered adaptive learning that connects students, teachers and parents.
           </p>
-          {isBackendOnline !== undefined && (
-            <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-stone-800 text-[10px]">
-              <span className={`w-1.5 h-1.5 rounded-full ${isBackendOnline === false ? 'bg-rose-500' : 'bg-yellow-500'}`} />
-              Platform: {isBackendOnline === false ? 'Offline' : 'Online'}
-            </div>
-          )}
         </div>
         <div>
           <div className="text-white text-xs font-black uppercase tracking-wider">Platform</div>
