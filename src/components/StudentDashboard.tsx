@@ -531,7 +531,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   {activeChild.classGrade} &bull; {activeChild.curriculumBoard} (All Core Subjects)
                 </div>
                 <p className="text-xs text-stone-600 font-medium">
-                  AI dynamically calibrates questions according to your previous strengths & weak areas.
+                  Dynamically calibrates questions according to your previous strengths &amp; weak areas.
                 </p>
               </div>
               <button

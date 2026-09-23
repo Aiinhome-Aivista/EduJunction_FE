@@ -1153,7 +1153,7 @@ export const ParentTeacherCommunication: React.FC<ParentTeacherCommunicationProp
                       </span>
                     </div>
                     <p className="text-[11px] text-stone-700 leading-relaxed">
-                      <strong>AI Diagnosis:</strong> {sub.analysis?.encouragementNote || sub.analysis?.evolutionaryRoadmap || 'Proficient performance.'}
+                      <strong>Pedagogical Diagnosis:</strong> {sub.analysis?.encouragementNote || sub.analysis?.evolutionaryRoadmap || 'Proficient performance.'}
                     </p>
                     {sub.analysis?.areasToImprove && sub.analysis.areasToImprove.length > 0 && (
                       <p className="text-[11px] text-rose-700 font-medium">

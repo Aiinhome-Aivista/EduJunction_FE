@@ -28,7 +28,7 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({ activeChild, childre
       setMessages([
         {
           id: 1,
-          text: `Hey ${studentFirstName}! 🚀 I'm your AI Teacher. Stuck on a concept, test question, or need tips to level up your score? Ask me anything!`,
+          text: `Hey ${studentFirstName}! 🚀 I'm your Personal Tutor. Stuck on a concept, test question, or need tips to level up your score? Ask me anything!`,
           isBot: true
         }
       ]);
@@ -36,7 +36,7 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({ activeChild, childre
       setMessages([
         {
           id: 1,
-          text: `Hello! I'm EduJunction AI Support. How can I assist you with curriculum guidance, class analytics, or student management today?`,
+          text: `Hello! I'm EduJunction Support. How can I assist you with curriculum guidance, class analytics, or student management today?`,
           isBot: true
         }
       ]);
@@ -172,7 +172,7 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({ activeChild, childre
         "How can I generate dynamic diagnostic question papers?",
         "Show summary of class mastery and average scores",
         "What topics need remediation across students?",
-        "How does the AI RAG grounding work?"
+        "How does curriculum grounding work?"
       ]
       : dynamicParentFallback);
 
@@ -226,10 +226,10 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({ activeChild, childre
               </div>
               <div>
                 <h3 className="font-bold text-sm">
-                  {isStudent ? 'AI Study Buddy' : 'Teacher Support'}
+                  {isStudent ? 'Study Assistant' : 'Teacher Support'}
                 </h3>
                 <p className="text-[10px] text-yellow-100 font-medium">
-                  {isStudent ? 'Online • Your Personal AI Tutor' : 'Online • Replies instantly'}
+                  {isStudent ? 'Online • Your Personal Tutor' : 'Online • Replies instantly'}
                 </p>
               </div>
             </div>

@@ -12,11 +12,11 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
   const content = {
     about: {
       title: 'About Us',
-      subtitle: 'Building the future of learning with AI.',
+      subtitle: 'Building the future of personalized learning.',
       icon: Info,
       color: 'text-yellow-600',
       bg: 'bg-yellow-50',
-      text: 'EduJunction was founded with a simple mission: to make high-quality, personalized education accessible to every student. We believe that every child learns differently, and our RAG-based AI model adapts to those unique needs. By bridging the gap between students, teachers, and parents, we are creating a holistic ecosystem where learning never stops.'
+      text: 'EduJunction was founded with a simple mission: to make high-quality, personalized education accessible to every student. We believe that every child learns differently, and our adaptive learning engine adapts to those unique needs. By bridging the gap between students, teachers, and parents, we are creating a holistic ecosystem where learning never stops.'
     },
     blog: {
       title: 'Our Blog',
@@ -24,7 +24,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
       icon: BookOpen,
       color: 'text-yellow-600',
       bg: 'bg-yellow-50',
-      text: 'Welcome to our blog. Here we share the latest trends in ed-tech, deep dives into our AI models, and tips for parents and teachers to maximize student engagement. (This page is currently a placeholder. Full blog posts will be available soon.)'
+      text: 'Welcome to our blog. Here we share the latest trends in ed-tech, deep dives into learning methodologies, and tips for parents and teachers to maximize student engagement. (This page is currently a placeholder. Full blog posts will be available soon.)'
     },
     contact: {
       title: 'Contact Us',
@@ -32,8 +32,8 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
       icon: Mail,
       color: 'text-pink-600',
       bg: 'bg-pink-50',
-      text: 'Whether you are a school looking to integrate our platform, a parent with a question, or a student needing help, our team is here for you. Reach out to us at support@EduJunction.ai or call our toll-free number. We aim to respond to all inquiries within 24 hours.'
-    }
+      text: 'Whether you are a school looking to integrate our platform, a parent with a question, or a student needing help, our team is here for you. Reach out to us at support@edujunction.edu or call our toll-free number. We aim to respond to all inquiries within 24 hours.'
+    },
   };
 
   const { title, subtitle, icon: Icon, color, bg, text } = content[type];

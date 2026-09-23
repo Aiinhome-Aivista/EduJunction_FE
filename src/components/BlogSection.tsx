@@ -46,7 +46,7 @@ export const BlogSection: React.FC = () => {
             </p>
             <h3 className="text-lg font-bold text-stone-900 mt-6 mb-2">2. Evolutionary Learning Pathways</h3>
             <p>
-              Evolutionary learning means that no assessment exists in isolation. Each 10-mark submission feeds the child's knowledge graph. If a student shows weakness in ray optics sign conventions, the AI engine immediately presents remedial reference links and schedules targeted reinforcement questions in the next session.
+              Evolutionary learning means that no assessment exists in isolation. Each 10-mark submission feeds the child's knowledge graph. If a student shows weakness in ray optics sign conventions, the adaptive learning engine immediately presents remedial reference links and schedules targeted reinforcement questions in the next session.
             </p>
           </div>
 
@@ -73,7 +73,7 @@ export const BlogSection: React.FC = () => {
           EduJunction Learning Blog & Board Strategies
         </h1>
         <p className="text-sm sm:text-base text-stone-500">
-          Expert guides on mastering CBSE, ICSE, Cambridge, NEET, and IIT JEE curricula with AI-RAG diagnostics.
+          Expert guides on mastering CBSE, ICSE, Cambridge, NEET, and IIT JEE curricula with adaptive diagnostics.
         </p>
       </div>
 

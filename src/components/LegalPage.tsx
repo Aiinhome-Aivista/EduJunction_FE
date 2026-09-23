@@ -16,11 +16,11 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
     },
     terms: {
       title: 'Terms of Service',
-      text: 'By using EduJunction, you agree to these Terms of Service. The platform is provided for educational purposes, and you agree not to misuse any part of the service, including the gamification elements and AI models. We reserve the right to suspend accounts that violate academic integrity or our community guidelines.'
+      text: 'By using EduJunction, you agree to these Terms of Service. The platform is provided for educational purposes, and you agree not to misuse any part of the service, including the gamification elements and assessment tools. We reserve the right to suspend accounts that violate academic integrity or our community guidelines.'
     },
     disclaimer: {
       title: 'Disclaimer',
-      text: 'EduJunction provides AI-assisted educational assessments. While we strive for accuracy, the RAG-based AI model may occasionally produce inaccurate suggestions. The platform is meant to supplement, not replace, formal education and professional teacher guidance. EduJunction is not liable for any academic outcomes based solely on the usage of this platform.'
+      text: 'EduJunction provides diagnostic educational assessments. While we strive for accuracy, automated evaluation engines may occasionally produce inaccurate suggestions. The platform is meant to supplement, not replace, formal education and professional teacher guidance. EduJunction is not liable for any academic outcomes based solely on the usage of this platform.'
     }
   };
 

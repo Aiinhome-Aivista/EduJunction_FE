@@ -785,7 +785,7 @@ export const ModelPaperViewerModal: React.FC<ModelPaperViewerModalProps> = ({
               </div>
 
               <p className="text-[11px] text-stone-500">
-                Our automated AI grading engine will evaluate all your objective and subjective answers against standard 2027 board rubrics.
+                Our automated grading engine will evaluate all your objective and subjective answers against standard 2027 board rubrics.
               </p>
 
               <div className="flex items-center gap-3 pt-2">

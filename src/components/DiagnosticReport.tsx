@@ -328,7 +328,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
           <div className="mt-6 p-5 rounded-2xl bg-stone-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-300 block mb-1">
-                {isKid ? 'Next Fun Adventure Challenge 🚀' : 'AI-RAG Recommended Next Level Exam'}
+                {isKid ? 'Next Fun Adventure Challenge 🚀' : 'Recommended Next Level Exam'}
               </span>
               <h4 className="text-base font-bold">
                 {nextExam.classGrade} {nextExam.board} {nextExam.subject} ({nextExam.difficulty.toUpperCase()} Level)
@@ -379,7 +379,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-stone-100 mb-6">
           <div>
             <h2 className="text-lg font-bold text-stone-900">
-              {evaluations.length > 0 ? `${evaluations.length}-Question Itemized Review & AI Explanations` : 'Itemized Question Review & AI Explanations'}
+              {evaluations.length > 0 ? `${evaluations.length}-Question Itemized Review & Explanations` : 'Itemized Question Review & Explanations'}
             </h2>
             <p className="text-xs text-stone-500">Compare student choices with correct answers, step-by-step logic, and reference links</p>
           </div>
@@ -601,11 +601,11 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                         </div>
                       )}
 
-                      {/* Step-by-Step AI Explanation */}
+                      {/* Step-by-Step Explanation */}
                       <div className="p-4 rounded-xl bg-yellow-50/50 border border-yellow-200 text-xs text-yellow-950 space-y-1">
                         <div className="font-bold text-yellow-900 flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-yellow-600" />
-                          Step-by-Step AI Derivation & Concept Explanation:
+                          Step-by-Step Model Derivation & Concept Explanation:
                         </div>
                         <p className="leading-relaxed whitespace-pre-line text-stone-800">{eq.explanation}</p>
                       </div>
@@ -748,7 +748,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
             <h3 className="text-base font-bold text-stone-900">Curated Reference Links & Chapter Grasp Enhancers</h3>
           </div>
           <p className="text-xs text-stone-500 mb-6">
-            Official syllabus chapters, interactive simulations, and board exemplars recommended by our AI-RAG engine for {submission.studentName}.
+            Official syllabus chapters, interactive simulations, and board exemplars recommended for {submission.studentName}.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

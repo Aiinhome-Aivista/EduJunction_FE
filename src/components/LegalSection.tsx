@@ -25,7 +25,7 @@ export const LegalSection: React.FC = () => {
             <h2 className="text-base font-bold text-stone-900">1. Academic & Diagnostic Disclaimer</h2>
           </div>
           <p>
-            EduJunction is a supplementary educational diagnostic assessment platform. All 10-mark sprint examinations, AI step-by-step solutions, and topic mastery ratings are generated using Retrieval-Augmented Generation (RAG) calibrated against published public syllabi of CBSE, ICSE, ISC, Cambridge Assessment International Education, NCERT, and competitive exam guidelines (NEET/IIT-JEE). EduJunction is an independent educational platform and is not officially affiliated with or endorsed by CISCE, CBSE, Cambridge University Press & Assessment, or NTA. Diagnostic scores should be used as formative practice indicators alongside regular school instruction.
+            EduJunction is a supplementary educational diagnostic assessment platform. All 10-mark sprint examinations, step-by-step model solutions, and topic mastery ratings are generated using curriculum analytics calibrated against published public syllabi of CBSE, ICSE, ISC, Cambridge Assessment International Education, NCERT, and competitive exam guidelines (NEET/IIT-JEE). EduJunction is an independent educational platform and is not officially affiliated with or endorsed by CISCE, CBSE, Cambridge University Press &amp; Assessment, or NTA. Diagnostic scores should be used as formative practice indicators alongside regular school instruction.
           </p>
         </section>
 
