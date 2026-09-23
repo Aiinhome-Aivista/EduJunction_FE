@@ -376,7 +376,7 @@ export const BLOG_POSTS: BlogPost[] = [
       '**CBSE (Central Board of Secondary Education):** Following NEP 2020 guidelines, CBSE has shifted over 50% of question weightage to Competency-Based Questions (CBQs). These include real-world case studies, assertion-reasoning matrices, and data interpretation scenarios.',
       '**ICSE & ISC (CISCE):** ICSE questions demand meticulous procedural steps, precise scientific nomenclature, and comprehensive derivation mechanics. In mathematics and commercial arithmetic, losing an intermediate unit or step immediately penalizes marks.',
       '**UK-Cambridge (IGCSE & A-Levels):** Cambridge examinations pivot around strict "Command Words" such as State, Describe, Explain, Evaluate, and Deduce. A student writing a description when asked to "Explain" will score zero marks on the marking rubric.',
-      'Our AI-RAG engine dynamically adjusts its generation runbook depending on which board you select, guaranteeing that a Class 10 student taking a CBSE test receives competency cases, while an ICSE student is evaluated on strict procedural rubrics.'
+      'Our adaptive evaluation engine dynamically adjusts its generation runbook depending on which board you select, guaranteeing that a Class 10 student taking a CBSE test receives competency cases, while an ICSE student is evaluated on strict procedural rubrics.'
     ],
     tags: ['CBSE', 'ICSE', 'Cambridge', 'Exam Strategy', 'Pedagogy']
   },
@@ -388,16 +388,16 @@ export const BLOG_POSTS: BlogPost[] = [
     authorRole: 'Cognitive Science Researcher & EdTech Strategist',
     readTime: '5 min read',
     publishedDate: '2026-08-18',
-    category: 'AI & RAG Learning',
+    category: 'Adaptive Learning',
     summary: 'How 10-question, 10-mark focused diagnostic tests activate the testing effect, prevent cognitive burnout, and construct high-precision knowledge graphs.',
     content: [
       'In traditional education, students subject themselves to infrequent, high-stakes 3-hour mock exams. Cognitive psychology research shows that long tests often measure stamina and test fatigue rather than precise concept mastery.',
       'By distilling each evaluation into a calibrated 10-mark, 10-question sprint comprising MCQs, numericals, short objectives, and logical assertion cases, three cognitive breakthroughs occur:',
       '1. **Immediate Retrieval Practice:** The testing effect is activated instantly, transferring concepts from working memory to long-term memory.',
       '2. **Zero Fatigue Distortion:** Students approach all 10 questions with maximum cognitive focus, ensuring that errors represent genuine concept gaps rather than simple careless fatigue.',
-      '3. **High-Resolution RAG Knowledge Graph Updates:** In 15 minutes, our system updates the child’s evolutionary mastery percentage across 3–4 granular topic nodes, immediately updating parent dashboards.'
+      '3. **High-Resolution Knowledge Graph Updates:** In 15 minutes, our system updates the child’s evolutionary mastery percentage across 3–4 granular topic nodes, immediately updating parent dashboards.'
     ],
-    tags: ['Micro-Assessments', 'Cognitive Science', 'Memory', 'RAG AI', 'Parenting']
+    tags: ['Micro-Assessments', 'Cognitive Science', 'Memory', 'Adaptive Engine', 'Parenting']
   },
   {
     id: 'blog-03',
@@ -415,7 +415,7 @@ export const BLOG_POSTS: BlogPost[] = [
       '- **Ray & Wave Optics:** Lens Maker’s Formula, Total Internal Reflection, and Compound Microscope resolving power.',
       '- **Modern Physics & Semiconductors:** Photoelectric equation, Bohr’s radii ratios, and Logic gate combinations (guaranteed 16–20 marks).',
       '- **Chemical Kinetics & Thermodynamics:** First-order half-life calculations, Arrhenius temperature shifts, and Gibbs free energy spontaneous criteria.',
-      'Our AI-RAG engine includes dedicated NTA NEET runbooks that enforce 1-minute time pressure calibration so aspirants develop rapid numerical instincts.'
+      'Our adaptive evaluation engine includes dedicated NTA NEET runbooks that enforce 1-minute time pressure calibration so aspirants develop rapid numerical instincts.'
     ],
     tags: ['NEET UG', 'Medical Prep', 'Physics', 'Chemistry', 'Time Management']
   },
@@ -431,7 +431,7 @@ export const BLOG_POSTS: BlogPost[] = [
     summary: 'Transforming scores from anxiety triggers into constructive evolutionary roadmaps with parent-child collaborative accounts.',
     content: [
       'When a child receives a 6/10 on an exam, the instinctual reaction is often disappointment or panic. However, in adaptive evolutionary learning, a 6/10 is a goldmine of diagnostic insight.',
-      'The 4 incorrect questions clearly identify the exact boundary of the child’s current cognitive frontier. When parents and children share a transparent portal where both can see the detailed step-by-step AI explanation and official syllabus reference links, conversation shifts from "Why did you lose marks?" to "Let’s review the lens formula sign convention together."',
+      'The 4 incorrect questions clearly identify the exact boundary of the child’s current cognitive frontier. When parents and children share a transparent portal where both can see the detailed step-by-step model explanation and official syllabus reference links, conversation shifts from "Why did you lose marks?" to "Let’s review the lens formula sign convention together."',
       'Our parent account model allows parents to celebrate daily streak consistency and support their child through personalized study resource suggestions.'
     ],
     tags: ['Parenting', 'Student Mental Health', 'Growth Mindset', 'Parent-Child Sync']
@@ -931,7 +931,7 @@ export const INITIAL_PT_MESSAGES: ParentTeacherMessage[] = [
     childId: 'child-01',
     childName: 'Aarav Sharma',
     senderRole: 'parent',
-    message: 'Dear Mrs. Mukherjee, Aarav completed his Class 10 CBSE Quadratic Equations diagnostic test on AI-RAG with 9/10 marks. His concept graph shows high mastery in factorisation, but he needed clarity on finding roots when discriminant D < 0. Sharing his full analytical report.',
+    message: 'Dear Mrs. Mukherjee, Aarav completed his Class 10 CBSE Quadratic Equations diagnostic test on EduJunction with 9/10 marks. His concept graph shows high mastery in factorisation, but he needed clarity on finding roots when discriminant D < 0. Sharing his full analytical report.',
     timestamp: '2026-08-26T14:30:00.000Z',
     attachedSubmissionId: 'sub-demo-01',
     attachedSubmissionTitle: 'Class 10 CBSE Mathematics: Quadratic Equations & Roots Diagnostic (9/10)',
@@ -947,7 +947,7 @@ export const INITIAL_PT_MESSAGES: ParentTeacherMessage[] = [
     childId: 'child-01',
     childName: 'Aarav Sharma',
     senderRole: 'teacher',
-    message: 'Hello Dr. Sharma! Thank you for sharing Aarav’s detailed AI-RAG report. I reviewed the question-by-question breakdown. His algebra working is very tidy. I have assigned him two extra practice problems on discriminant word problems in class tomorrow.',
+    message: 'Hello Dr. Sharma! Thank you for sharing Aarav’s detailed diagnostic report. I reviewed the question-by-question breakdown. His algebra working is very tidy. I have assigned him two extra practice problems on discriminant word problems in class tomorrow.',
     timestamp: '2026-08-26T16:15:00.000Z',
     actionItems: ['Assigned 2 practice word problems', 'Schedule short check-in on Friday'],
     status: 'action_taken'

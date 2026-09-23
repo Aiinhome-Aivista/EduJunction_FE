@@ -1440,7 +1440,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                   <li><strong>Stopwatch Timer:</strong> The 180-minute countdown stopwatch starts immediately when you begin.</li>
                   <li><strong>Strict No-Exit Environment:</strong> You cannot exit or leave the exam page until you submit your answers.</li>
                   <li><strong>Auto-Submit on Tab Close:</strong> If you accidentally close or refresh your browser tab, your answers will be auto-submitted and evaluated as-is, and the final report will be sent to your parent.</li>
-                  <li><strong>AI Evaluation:</strong> All subjective step answers and MCQs will be graded with step-by-step model solutions upon submission.</li>
+                  <li><strong>Model Evaluation:</strong> All subjective step answers and MCQs will be graded with step-by-step model solutions upon submission.</li>
                 </ul>
               </div>
             </div>

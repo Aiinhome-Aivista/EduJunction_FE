@@ -377,7 +377,7 @@ export interface BlogPost {
   authorRole: string;
   readTime: string;
   publishedDate: string;
-  category: 'Board Strategies' | 'NEET & IIT' | 'Parenting & Pedagogy' | 'AI & RAG Learning';
+  category: 'Board Strategies' | 'NEET & IIT' | 'Parenting & Pedagogy' | 'Adaptive Learning';
   summary: string;
   content: string[];
   tags: string[];

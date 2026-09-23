@@ -1382,7 +1382,7 @@ export const ModelExamPage: React.FC = () => {
 
             <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-center gap-2 text-xs text-amber-900 font-bold">
               <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
-              <span>Submitting your paper &amp; generating AI grade sheet...</span>
+              <span>Submitting your paper &amp; generating grade sheet...</span>
             </div>
           </div>
         </div>
@@ -1420,7 +1420,7 @@ export const ModelExamPage: React.FC = () => {
                     <span>Great Job Completing Your Exam!</span>
                   </div>
                   <p className="text-xs text-stone-800 font-semibold leading-relaxed">
-                    Great work! Ready to evaluate your result? Click below to complete your submission and generate your detailed performance scorecard &amp; AI analysis.
+                    Great work! Ready to evaluate your result? Click below to complete your submission and generate your detailed performance scorecard &amp; concept analysis.
                   </p>
                   <div className="pt-1 flex items-center justify-between text-[11px] text-amber-900 font-bold border-t border-amber-200/70">
                     <span>Attempted: {answeredCount}/{totalQuestions} Questions</span>
