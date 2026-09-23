@@ -411,11 +411,10 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
 
         {/* ═══════════════ TOP HEADER BAR ═══════════════ */}
         <div className="sticky top-0 z-30 max-w-6xl mx-auto px-4 pt-3 pb-0">
-          <div className={`rounded-3xl overflow-hidden shadow-xl transition-all duration-500 ${
-            isLowTime
-              ? 'bg-gradient-to-r from-rose-600 via-rose-500 to-orange-500'
-              : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500'
-          }`}
+          <div className={`rounded-3xl overflow-hidden shadow-xl transition-all duration-500 ${isLowTime
+            ? 'bg-gradient-to-r from-rose-600 via-rose-500 to-orange-500'
+            : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500'
+            }`}
             style={{ boxShadow: isLowTime ? '0 8px 32px rgba(239,68,68,0.30)' : '0 8px 32px rgba(251,191,36,0.30)' }}
           >
             {/* Decorative shimmer strip */}
@@ -450,13 +449,12 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
               {/* Right — Timer + Submit */}
               <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                 {/* Timer */}
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border font-mono font-black text-base sm:text-lg transition-all duration-300 ${
-                  isLowTime
-                    ? 'bg-white text-rose-600 border-white animate-pulse shadow-lg'
-                    : timeRemainingSeconds < 600
+                <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border font-mono font-black text-base sm:text-lg transition-all duration-300 ${isLowTime
+                  ? 'bg-white text-rose-600 border-white animate-pulse shadow-lg'
+                  : timeRemainingSeconds < 600
                     ? 'bg-amber-600/30 border-amber-700/40 text-stone-900'
                     : 'bg-white/30 border-white/50 text-stone-900 backdrop-blur-sm'
-                }`}>
+                  }`}>
                   <Clock className={`w-4 h-4 ${isLowTime ? 'text-rose-500' : 'text-stone-800'}`} />
                   <span>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
                 </div>
@@ -506,11 +504,10 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
 
               {/* Adaptive Banner */}
               {adaptiveNotification && (
-                <div className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-semibold border shadow-sm animate-in slide-in-from-top-2 duration-300 ${
-                  adaptiveNotification.type === 'up'
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-amber-50 border-amber-200 text-amber-800'
-                }`}>
+                <div className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-semibold border shadow-sm animate-in slide-in-from-top-2 duration-300 ${adaptiveNotification.type === 'up'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                  : 'bg-amber-50 border-amber-200 text-amber-800'
+                  }`}>
                   <Sparkles className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>{adaptiveNotification.message}</span>
                   <button onClick={() => setAdaptiveNotification(null)} className="ml-auto text-current opacity-40 hover:opacity-70">✕</button>
@@ -530,13 +527,12 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                     <span className="text-xs text-stone-400 font-medium">of {totalQuestions}</span>
 
                     {/* Difficulty Badge */}
-                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${
-                      (currentQ.difficulty || adaptiveDifficulty) === 'hard'
-                        ? 'bg-rose-50 text-rose-700 border-rose-200'
-                        : (currentQ.difficulty || adaptiveDifficulty) === 'medium'
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${(currentQ.difficulty || adaptiveDifficulty) === 'hard'
+                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                      : (currentQ.difficulty || adaptiveDifficulty) === 'medium'
                         ? 'bg-amber-50 text-amber-700 border-amber-200'
                         : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    }`}>
+                      }`}>
                       {(currentQ.difficulty || adaptiveDifficulty)}
                     </span>
 
@@ -561,11 +557,10 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                       id="flag-question-btn"
                       onClick={() => toggleFlagQuestion(currentQ.id)}
                       title="Flag for review"
-                      className={`p-1.5 rounded-lg border transition-colors ${
-                        flaggedQuestions[currentQ.id]
-                          ? 'bg-amber-50 border-amber-300 text-amber-600'
-                          : 'border-stone-200 text-stone-300 hover:text-stone-500 hover:border-stone-300'
-                      }`}
+                      className={`p-1.5 rounded-lg border transition-colors ${flaggedQuestions[currentQ.id]
+                        ? 'bg-amber-50 border-amber-300 text-amber-600'
+                        : 'border-stone-200 text-stone-300 hover:text-stone-500 hover:border-stone-300'
+                        }`}
                     >
                       <Flag className={`w-4 h-4 ${flaggedQuestions[currentQ.id] ? 'fill-amber-500 text-amber-500' : ''}`} />
                     </button>
@@ -608,15 +603,13 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                             key={oIdx}
                             id={`question-${currentQuestionIdx}-opt-${oIdx}`}
                             onClick={() => handleSelectAnswer(currentQ.id, letter)}
-                            className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] ${
-                              isSelected
-                                ? 'bg-yellow-50 border-yellow-400 shadow-sm shadow-yellow-100'
-                                : 'bg-white border-stone-150 hover:border-stone-300 hover:bg-stone-50/50'
-                            }`}
+                            className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] ${isSelected
+                              ? 'bg-yellow-50 border-yellow-400 shadow-sm shadow-yellow-100'
+                              : 'bg-white border-stone-150 hover:border-stone-300 hover:bg-stone-50/50'
+                              }`}
                           >
-                            <div className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-xs font-bold mt-0.5 transition-colors ${
-                              isSelected ? 'bg-yellow-400 text-stone-900 border-2 border-yellow-400' : 'border-2 border-stone-300 text-stone-400 bg-white'
-                            }`}>
+                            <div className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-xs font-bold mt-0.5 transition-colors ${isSelected ? 'bg-yellow-400 text-stone-900 border-2 border-yellow-400' : 'border-2 border-stone-300 text-stone-400 bg-white'
+                              }`}>
                               {letter}
                             </div>
                             <span className={`text-sm sm:text-base leading-snug ${isSelected ? 'text-stone-900 font-semibold' : 'text-stone-700'}`}>
@@ -708,11 +701,10 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                       {activeExam.questions.map((_, i) => (
                         <div
                           key={i}
-                          className={`h-1.5 rounded-full transition-all duration-300 ${
-                            i === currentQuestionIdx ? 'w-5 bg-yellow-400' :
+                          className={`h-1.5 rounded-full transition-all duration-300 ${i === currentQuestionIdx ? 'w-5 bg-yellow-400' :
                             answers[activeExam.questions[i].id]?.trim() ? 'w-2.5 bg-emerald-400' :
-                            'w-2.5 bg-stone-200'
-                          }`}
+                              'w-2.5 bg-stone-200'
+                            }`}
                         />
                       ))}
                     </div>
@@ -862,15 +854,14 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                         id={`palette-q-${idx + 1}`}
                         onClick={() => setCurrentQuestionIdx(idx)}
                         title={`Question ${idx + 1}${isAnswered ? ' (Answered)' : ''}${isFlagged ? ' (Flagged)' : ''}`}
-                        className={`relative h-9 rounded-xl text-xs font-bold flex items-center justify-center transition-all duration-150 hover:scale-105 active:scale-95 ${
-                          isCurrent
-                            ? 'bg-stone-900 text-white ring-2 ring-stone-900 ring-offset-1 shadow-md'
-                            : isFlagged
+                        className={`relative h-9 rounded-xl text-xs font-bold flex items-center justify-center transition-all duration-150 hover:scale-105 active:scale-95 ${isCurrent
+                          ? 'bg-stone-900 text-white ring-2 ring-stone-900 ring-offset-1 shadow-md'
+                          : isFlagged
                             ? 'bg-amber-400 text-amber-950 shadow-sm'
                             : isAnswered
-                            ? 'bg-emerald-400 text-white shadow-sm'
-                            : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
-                        }`}
+                              ? 'bg-emerald-400 text-white shadow-sm'
+                              : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                          }`}
                       >
                         {idx + 1}
                         {isFlagged && !isCurrent && (
@@ -963,30 +954,30 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
 
   // Configuration & Exam Setup Screen
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-6xl mx-auto pt-0 pb-6 space-y-1.5">
       {/* Hero Welcome Banner (Clean, Light Landing-Page Style) */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-3xl p-6 sm:p-8 border border-yellow-200/80 shadow-xs mb-6">
+      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-3xl p-4 sm:p-5 border border-yellow-200/80 shadow-xs">
         {/* Soft Ambient Glow Accents (matching landing page hero) */}
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-yellow-200/50 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-amber-200/40 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-yellow-200 text-yellow-800 text-xs font-bold shadow-xs mb-3.5">
+        <div className="relative z-10 max-w-2xl space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-yellow-200 text-yellow-800 text-xs font-bold shadow-xs">
             <Zap className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
             <span>{blueprint.badgeText}</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight mb-2.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
             Exam Preparedness & Knowledge Assessment
           </h1>
 
-          <p className="text-stone-600 text-xs sm:text-sm leading-relaxed mb-5 font-normal">
-            Calibrated for Classes 5 to 12 across CBSE, ICSE, ISC, Cambridge, NCERT, NEET, and IIT.
-            Grounding your test in authentic syllabus runbooks with instant misconception analysis.
+          <p className="text-stone-600 text-xs sm:text-sm leading-relaxed font-normal">
+            Calibrated for Classes 10 & 12 across CBSE, ICSE, ISC.
+            Grounding Your Test In Authentic Syllabus Runbooks With Instant Misconception Analysis.
           </p>
 
           {/* Active Candidate Badge */}
-          <div className="inline-flex items-center gap-3 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-yellow-200/80 shadow-xs">
+          <div className="inline-flex items-center gap-3 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-yellow-200/80 shadow-xs mt-1">
             <span className="text-xl p-1 bg-yellow-100/70 rounded-xl border border-yellow-200/60">{activeChild?.avatar || '👦'}</span>
             <div>
               <span className="text-stone-500 text-[10px] block font-semibold uppercase tracking-wider">Active Candidate Persona</span>

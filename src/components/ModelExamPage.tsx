@@ -51,6 +51,9 @@ interface SectionItem {
   type?: string;
   marksObtained?: number;
   maxMarks?: number;
+  targetMaxMarks?: number;
+  targetQuestions?: number;
+  choiceNote?: string;
   percentage?: number;
   attempted?: number;
   totalQuestions?: number;
@@ -101,6 +104,7 @@ interface EvaluationResultData {
   timeSpentSeconds: number;
   summary: {
     totalQuestions: number;
+    targetQuestions?: number;
     attemptedCount: number;
     correctCount: number;
     partialCount: number;
@@ -290,6 +294,14 @@ export const ModelExamPage: React.FC = () => {
             sections: data.sections || rawPaper.sections || [],
           };
           setPaperData(normalized);
+
+          if (data.examStatus === 'COMPLETED' || data.evaluationResult) {
+            if (data.evaluationResult) {
+              setEvaluationResult(data.evaluationResult);
+            }
+            setActiveMode('RESULT');
+          }
+
           // Broadcast status change to parent/student dashboards
           try {
             window.dispatchEvent(new CustomEvent('edujunction_exam_status_update'));
@@ -453,8 +465,6 @@ export const ModelExamPage: React.FC = () => {
     }
   };
 
-  const CHOICE_TARGETS = useMemo(() => [null, 5, 6, 4, 3], []);
-
   const sectionsToRender = useMemo(() => {
     let baseSections: SectionItem[] = [];
     if (activeMode === 'RESULT' && evaluationResult) {
@@ -462,63 +472,8 @@ export const ModelExamPage: React.FC = () => {
     } else {
       baseSections = paperData?.sections || [];
     }
-
-    if (!baseSections || baseSections.length === 0) return [];
-
-    return baseSections.map((sec, sIdx) => {
-      const target = CHOICE_TARGETS[sIdx];
-      if (!target) return sec;
-
-      const minQuestionsRequired = target + 2; // Always ensure 2 extra choice questions (e.g. 5 of 7, 6 of 8, 4 of 6, 3 of 5)
-      if (sec.questions && sec.questions.length >= minQuestionsRequired) {
-        return sec;
-      }
-
-      // Synthesize 2 extra choice questions if backend returns fewer
-      const currentQs = sec.questions ? [...sec.questions] : [];
-      const marksPerQ = sIdx === 1 ? 2 : sIdx === 2 ? 3 : sIdx === 3 ? 5 : 4;
-      const subj = paperData?.subject || 'Subject';
-
-      while (currentQs.length < minQuestionsRequired) {
-        const qNum = currentQs.length + 1;
-        if (sIdx === 1 || sIdx === 2) {
-          currentQs.push({
-            key: `s${sIdx}_q${currentQs.length}`,
-            num: qNum,
-            question: `<b>(Optional Choice Question ${qNum})</b> Explain the fundamental working mechanism of ${subj} equilibrium under test conditions and derive its analytical equation.`,
-            marks: marksPerQ,
-            correct_answer: `Fundamental law states that in any ${subj} system under steady state, the rate of change is directly proportional to applied gradient.`,
-            explanation: `Marking Rubric [${marksPerQ} Marks]: Full marks for stating core principle and analytical equation.`
-          });
-        } else if (sIdx === 3) {
-          currentQs.push({
-            key: `s${sIdx}_q${currentQs.length}`,
-            num: qNum,
-            question: `<b>(Optional Choice Question ${qNum})</b> (a) Derive the generalized governing equation for ${subj} oscillations from first principles.<br/>(b) Solve for steady-state resonant value when external load is increased. [3 + 2 = 5 Marks]`,
-            marks: 5,
-            correct_answer: `Part (a): Analytical derivation with SI units. Part (b): Numerical solution at resonant threshold.`,
-            explanation: `Marking Rubric [5 Marks]: 3 Marks for analytical derivation; 2 Marks for numerical justification.`
-          });
-        } else {
-          currentQs.push({
-            key: `s${sIdx}_q${currentQs.length}`,
-            num: qNum,
-            case_title: `Case Study ${qNum} (Optional Choice) — Investigation in ${subj}`,
-            case_text: `A dedicated research facility analyzed the telemetry data of a standard ${subj} test apparatus. Dynamic measurements recorded steady linear correlation before boundary transition.`,
-            question: `(i) Identify independent and dependent variables. [1 Mark]<br/>(ii) State physical significance of transition threshold. [1 Mark]<br/>(iii) Calculate expected variance when load is increased by 20%. [2 Marks]`,
-            marks: 4,
-            correct_answer: `(i) Independent: Input parameters; Dependent: Output telemetry. (ii) Transition threshold marks linearity limit. (iii) Variance calculation = 4.0%.`,
-            explanation: `Marking Rubric [4 Marks]: (i) 1 Mark; (ii) 1 Mark; (iii) 2 Marks.`
-          });
-        }
-      }
-
-      return {
-        ...sec,
-        questions: currentQs
-      };
-    });
-  }, [activeMode, paperData, evaluationResult, CHOICE_TARGETS]);
+    return baseSections || [];
+  }, [activeMode, paperData, evaluationResult]);
 
   const filteredSections = useMemo(() => {
     if (!sectionsToRender) return [];
@@ -551,8 +506,15 @@ export const ModelExamPage: React.FC = () => {
     return new Set([...textKeys, ...diagKeys]).size;
   }, [answers, drawnDiagrams]);
 
-  // Section progressive unlock thresholds: Sec A needs 5 attempts -> unlocks Sec B -> Sec B needs 2 -> unlocks Sec C -> Sec C needs 2 -> unlocks Sec D -> Sec D needs 1 -> unlocks Sec E
-  const UNLOCK_THRESHOLDS = useMemo(() => [5, 2, 2, 1, 1], []);
+  // Section progressive unlock thresholds: Requires at least 2 attempts from previous section (or 1 for small sections)
+  const UNLOCK_THRESHOLDS = useMemo(() => {
+    if (!sectionsToRender) return [];
+    return sectionsToRender.map((sec, idx) => {
+      if (idx === 0) return 5;
+      const qCount = sec.questions?.length || 5;
+      return Math.min(2, Math.max(1, Math.floor(qCount / 3)));
+    });
+  }, [sectionsToRender]);
 
   const sectionAttemptCounts = useMemo(() => {
     if (!sectionsToRender) return [];
@@ -770,22 +732,26 @@ export const ModelExamPage: React.FC = () => {
                   Overall Score: {evaluationResult.accuracyPercentage}% Marks Obtained
                 </h2>
                 <p className="text-xs text-stone-300 mt-1">
-                  Attempted {evaluationResult.summary.attemptedCount} of {evaluationResult.summary.totalQuestions} Questions • {evaluationResult.summary.correctCount} Correct • {evaluationResult.summary.partialCount} Partial
+                  Attempted {evaluationResult.summary.attemptedCount} of {evaluationResult.summary.targetQuestions || evaluationResult.summary.totalQuestions} Target Questions ({evaluationResult.summary.totalQuestions} Total) • {evaluationResult.summary.correctCount} Correct • {evaluationResult.summary.partialCount} Partial
                 </p>
               </div>
             </div>
 
             {/* Section Breakdown Pills */}
             <div className="flex flex-wrap items-center gap-2.5 justify-center md:justify-end">
-              {evaluationResult.sectionBreakdown.map((sec, sIdx) => (
-                <div
-                  key={sec.id || sIdx}
-                  className="px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/10 text-center"
-                >
-                  <div className="text-[10px] font-bold text-amber-300 uppercase">{sec.name}</div>
-                  <div className="text-sm font-black text-white">{sec.marksObtained} / {sec.maxMarks}</div>
-                </div>
-              ))}
+              {(evaluationResult.sectionBreakdown || []).map((sec, sIdx) => {
+                const sMax = sec.maxMarks ?? sec.targetMaxMarks ?? (sec.questions?.reduce((sum, q) => sum + (q.marks || 1), 0) || 20);
+                const sObtained = sec.marksObtained !== undefined ? sec.marksObtained : 0;
+                return (
+                  <div
+                    key={sec.id || sIdx}
+                    className="px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/10 text-center"
+                  >
+                    <div className="text-[10px] font-bold text-amber-300 uppercase">{sec.name}</div>
+                    <div className="text-sm font-black text-white">{sObtained} / {sMax}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -918,7 +884,8 @@ export const ModelExamPage: React.FC = () => {
             const prevSecName = realIdx > 0 ? (sectionsToRender[realIdx - 1]?.name || `Section ${realIdx}`) : '';
             const minReq = realIdx > 0 ? (UNLOCK_THRESHOLDS[realIdx - 1] || 1) : 0;
             const prevAttempts = realIdx > 0 ? (sectionAttemptCounts[realIdx - 1] || 0) : 0;
-            const choiceTarget = CHOICE_TARGETS[realIdx];
+            const choiceTarget = section.targetQuestions && section.targetQuestions < section.questions.length ? section.targetQuestions : null;
+            const isChoiceSection = !!choiceTarget;
 
             if (!isUnlocked && !isViewOnly) {
               return (
@@ -955,20 +922,28 @@ export const ModelExamPage: React.FC = () => {
                         <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                         {secTitle}
                       </h3>
-                      {choiceTarget && (
+                      {section.choiceNote && (
                         <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-stone-950 font-black text-[11px] border border-amber-400/50">
-                          Choice: Attempt any {choiceTarget} of {section.questions.length} questions (2 Extra Options)
+                          {section.choiceNote}
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-stone-500 mt-1">
-                      {section.questions.length} Total Questions (2 Extra Options Provided) • Attempted: {sectionAttemptCounts[realIdx] || 0} / {choiceTarget || section.questions.length} target
+                      {isChoiceSection ? (
+                        <>
+                          {section.questions.length} Total Questions ({section.questions.length - choiceTarget} Extra Choice Options) • Attempted: {sectionAttemptCounts[realIdx] || 0} / {choiceTarget} target
+                        </>
+                      ) : (
+                        <>
+                          {section.questions.length} Compulsory Questions • Attempted: {sectionAttemptCounts[realIdx] || 0} / {section.questions.length}
+                        </>
+                      )}
                     </p>
                   </div>
 
                   {activeMode === 'RESULT' && section.marksObtained !== undefined && (
                     <span className="px-3.5 py-1.5 rounded-xl bg-amber-50 text-amber-900 text-xs font-black border border-amber-200 self-start sm:self-auto">
-                      Score: {section.marksObtained} / {section.maxMarks} Marks
+                      Score: {section.marksObtained} / {section.maxMarks || section.targetMaxMarks} Marks
                     </span>
                   )}
                 </div>
@@ -1073,7 +1048,7 @@ export const ModelExamPage: React.FC = () => {
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                       {q.options.map((opt, optIdx) => {
-                                        const optLetter = chr(65 + optIdx);
+                                        const optLetter = String.fromCharCode(65 + optIdx);
                                         return (
                                           <div
                                             key={optIdx}

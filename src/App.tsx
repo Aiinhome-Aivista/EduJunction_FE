@@ -1315,7 +1315,7 @@ export default function App() {
           </header>
 
           {/* Scrollable Main Content Frame (High Density Theme) */}
-          <div className="flex-1 overflow-y-auto bg-stone-50 p-4 sm:p-6 lg:p-8 print:p-0 print:m-0 print:bg-white print:w-full print:block print:overflow-visible">
+          <div className="flex-1 overflow-y-auto bg-stone-50 px-4 sm:px-6 lg:px-8 pt-1 pb-6 print:p-0 print:m-0 print:bg-white print:w-full print:block print:overflow-visible">
 
 
             {activeSubmissionReport ? (

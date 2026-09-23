@@ -574,7 +574,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   };
 
   const handleOpenViewer = (sub: any) => {
-    const modeParam = isParent ? '?mode=view' : '';
+    const modeParam = (isParent || sub.examStatus === 'COMPLETED') ? '?mode=view' : '';
     window.open(`/model-exam/${sub.id}${modeParam}`, '_blank');
   };
 
@@ -609,14 +609,14 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in duration-300">
+    <div className="max-w-7xl mx-auto pt-0 pb-6 space-y-1.5 animate-in fade-in duration-300">
       {/* Top Banner / Header (Clean, Light Theme matching Exam Schedule) */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-3xl p-6 sm:p-8 border border-yellow-200/80 shadow-xs">
+      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-3xl p-4 sm:p-5 border border-yellow-200/80 shadow-xs">
         {/* Soft Ambient Glow Accents */}
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-yellow-200/50 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-amber-200/40 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-3xl space-y-2.5">
+        <div className="relative z-10 max-w-3xl space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/80 text-amber-900 border border-yellow-300/60 text-xs font-bold shadow-2xs">
             <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
             <span>2027 {selectedBoard} Specimen Examination Series</span>
@@ -1089,7 +1089,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                         {isCompleted ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                            Completed • {sub.scoreObtained ?? 0}/{sub.totalMarks || 80} ({sub.accuracyPercentage ?? 0}%)
+                            Completed
                           </span>
                         ) : isInProgress ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-blue-100 text-blue-800 border border-blue-300 animate-pulse">
