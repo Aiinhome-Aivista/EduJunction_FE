@@ -741,7 +741,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
       </div>
 
       {/* Curated Study Resources Hub */}
-      {analysis.curatedStudyLinks && analysis.curatedStudyLinks.length > 0 && (
+      {/* {analysis.curatedStudyLinks && analysis.curatedStudyLinks.length > 0 && (
         <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 mb-8">
           <div className="flex items-center gap-2 mb-2">
             <BookOpen className="w-5 h-5 text-yellow-600" />
@@ -770,7 +770,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
             ))}
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

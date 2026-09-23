@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Sparkles,
   Database,
@@ -19,6 +19,7 @@ import {
   X,
   Edit3,
   Sliders,
+  ChevronLeft,
   ChevronRight,
   BookmarkCheck
 } from 'lucide-react';
@@ -233,6 +234,20 @@ export const AiRagHub: React.FC = () => {
   } | null>(null);
 
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Vector Repository Documents Pagination (10 per page)
+  const [docPage, setDocPage] = useState<number>(1);
+  const DOCS_PER_PAGE = 10;
+
+  const totalDocs = ragStatus?.documents?.length || 0;
+  const totalDocPages = Math.max(1, Math.ceil(totalDocs / DOCS_PER_PAGE));
+  const currentDocPage = Math.min(Math.max(1, docPage), totalDocPages);
+
+  const paginatedDocuments = useMemo(() => {
+    if (!ragStatus?.documents || ragStatus.documents.length === 0) return [];
+    const start = (currentDocPage - 1) * DOCS_PER_PAGE;
+    return ragStatus.documents.slice(start, start + DOCS_PER_PAGE);
+  }, [ragStatus?.documents, currentDocPage]);
 
   const showNotify = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -1175,50 +1190,117 @@ export const AiRagHub: React.FC = () => {
                 <p className="text-xs text-stone-400">Upload your first chapter textbook or notes on the left to start vectorizing.</p>
               </div>
             ) : (
-              <div className="divide-y divide-stone-100">
-                {ragStatus.documents.map((doc) => (
-                  <div key={doc.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-stone-50/60 p-2 rounded-2xl transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center flex-shrink-0 border border-amber-200/60 font-bold">
-                        <FileText className="w-4 h-4" />
+              <>
+                <div className="divide-y divide-stone-100">
+                  {paginatedDocuments.map((doc) => (
+                    <div key={doc.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-stone-50/60 p-2 rounded-2xl transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center flex-shrink-0 border border-amber-200/60 font-bold">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-stone-900 truncate" title={doc.filename}>{doc.filename}</p>
+                          <p className="text-[10px] text-stone-400 font-medium">
+                            {doc.board || 'General'} &bull; {doc.classGrade || 'Standard'} &bull; {doc.subject || 'All'}
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-stone-900 truncate" title={doc.filename}>{doc.filename}</p>
-                        <p className="text-[10px] text-stone-400 font-medium">
-                          {doc.board || 'General'} &bull; {doc.classGrade || 'Standard'} &bull; {doc.subject || 'All'}
-                        </p>
+
+                      <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {doc.chunk_count} Chunks
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 hidden sm:inline-flex">
+                          ✓ Synced
+                        </span>
+
+                        {/* ⚡ Inspect / Synthesize Questions Action Button */}
+                        <button
+                          onClick={() => openQuestionGenerator(doc)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold text-[11px] shadow-2xs transition-all cursor-pointer hover:scale-105 active:scale-95"
+                          title="Inspect or synthesize AI Questions from this document into question_master"
+                        >
+                          <Zap className="w-3.5 h-3.5 fill-current" />
+                          <span>Inspect / Synthesize Questions</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteDoc(doc.id)}
+                          className="p-1.5 bg-rose-50/80 text-rose-400 hover:bg-rose-100 hover:text-rose-500 rounded-lg transition-colors cursor-pointer"
+                          title="Remove Document"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
+                  ))}
+                </div>
 
-                    <div className="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        {doc.chunk_count} Chunks
-                      </span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 hidden sm:inline-flex">
-                        ✓ Synced
-                      </span>
+                {/* 10-Item Pagination Controls */}
+                {totalDocPages > 1 && (
+                  <div className="pt-4 border-t border-stone-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="text-xs text-stone-500 font-medium">
+                      Showing <strong className="text-stone-800 font-bold">{(currentDocPage - 1) * DOCS_PER_PAGE + 1}</strong> to{' '}
+                      <strong className="text-stone-800 font-bold">{Math.min(currentDocPage * DOCS_PER_PAGE, totalDocs)}</strong> of{' '}
+                      <strong className="text-stone-800 font-bold">{totalDocs}</strong> documents
+                    </div>
 
-                      {/* ⚡ Inspect / Synthesize Questions Action Button */}
+                    <div className="flex items-center gap-1.5">
                       <button
-                        onClick={() => openQuestionGenerator(doc)}
-                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold text-[11px] shadow-2xs transition-all cursor-pointer hover:scale-105 active:scale-95"
-                        title="Inspect or synthesize AI Questions from this document into question_master"
+                        type="button"
+                        onClick={() => setDocPage((prev) => Math.max(1, prev - 1))}
+                        disabled={currentDocPage <= 1}
+                        className="p-1.5 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                        title="Previous Page"
                       >
-                        <Zap className="w-3.5 h-3.5 fill-current" />
-                        <span>Inspect / Synthesize Questions</span>
+                        <ChevronLeft className="w-4 h-4" />
                       </button>
 
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalDocPages }, (_, i) => i + 1).map((p) => {
+                          if (
+                            totalDocPages <= 7 ||
+                            p === 1 ||
+                            p === totalDocPages ||
+                            (p >= currentDocPage - 1 && p <= currentDocPage + 1)
+                          ) {
+                            return (
+                              <button
+                                key={p}
+                                type="button"
+                                onClick={() => setDocPage(p)}
+                                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                  p === currentDocPage
+                                    ? 'bg-amber-400 text-stone-900 shadow-2xs'
+                                    : 'bg-stone-50 hover:bg-stone-100 text-stone-600 border border-stone-200/80'
+                                }`}
+                              >
+                                {p}
+                              </button>
+                            );
+                          } else if (
+                            (p === currentDocPage - 2 && p > 1) ||
+                            (p === currentDocPage + 2 && p < totalDocPages)
+                          ) {
+                            return <span key={p} className="text-stone-400 text-xs px-1">...</span>;
+                          }
+                          return null;
+                        })}
+                      </div>
+
                       <button
-                        onClick={() => handleDeleteDoc(doc.id)}
-                        className="p-1.5 bg-rose-50/80 text-rose-400 hover:bg-rose-100 hover:text-rose-500 rounded-lg transition-colors cursor-pointer"
-                        title="Remove Document"
+                        type="button"
+                        onClick={() => setDocPage((prev) => Math.min(totalDocPages, prev + 1))}
+                        disabled={currentDocPage >= totalDocPages}
+                        className="p-1.5 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                        title="Next Page"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </div>
         </div>

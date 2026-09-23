@@ -284,7 +284,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
-      
+
       {/* ── PARENT ASSIGNED EXAM BANNER (IF ANY) ────────────────────────── */}
       {assignedExams.length > 0 && (() => {
         const firstExam = assignedExams[0];
@@ -322,11 +322,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 </h3>
                 <p className="text-xs text-stone-900 font-bold mt-0.5">
                   {firstExam.questionCount} Questions • {firstExam.timeLimitMinutes} Mins • {firstExam.difficulty.toUpperCase()}
-                  {firstExam.dueDate ? ` • Due: ${new Date(firstExam.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}${
-                    new Date(firstExam.dueDate).getHours() !== 0 || new Date(firstExam.dueDate).getMinutes() !== 0
+                  {firstExam.dueDate ? ` • Due: ${new Date(firstExam.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}${new Date(firstExam.dueDate).getHours() !== 0 || new Date(firstExam.dueDate).getMinutes() !== 0
                       ? ` at ${new Date(firstExam.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                       : ''
-                  }` : ''}
+                    }` : ''}
                   {firstExam.parentInstructions ? ` • "${firstExam.parentInstructions}"` : ''}
                 </p>
               </div>
@@ -514,8 +513,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     {isKid
                       ? '5 Questions • 5 Marks • ~10 Minutes'
                       : ['Class 11', 'Class 12', 'NEET', 'IIT'].some(c => (activeChild.classGrade || '').includes(c))
-                      ? '10 Questions • 20 Marks • ~25 Minutes'
-                      : '10 Questions • 15 Marks • ~15 Minutes'}
+                        ? '10 Questions • 20 Marks • ~25 Minutes'
+                        : '10 Questions • 15 Marks • ~15 Minutes'}
                   </p>
                 </div>
               </div>
@@ -555,12 +554,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   <p className="text-xs text-stone-500 font-medium">Curriculum mastery sequence for your class</p>
                 </div>
               </div>
-              <button
+              {/* <button
                 onClick={onNavigateToLearningPath}
                 className="text-xs font-bold text-amber-700 hover:text-amber-900 flex items-center gap-1 cursor-pointer"
               >
                 View Full Path <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+              </button> */}
             </div>
 
             {nextRecommendedTopic ? (
@@ -1043,40 +1042,37 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     return (
                       <div key={item.id} className="relative group">
                         {/* Dot Icon on Vertical Line */}
-                        <div className={`absolute -left-6 top-3 w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white shadow-xs ${
-                          isParentExam
+                        <div className={`absolute -left-6 top-3 w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white shadow-xs ${isParentExam
                             ? 'bg-stone-900 text-amber-400'
                             : isExam
                               ? 'bg-amber-500 text-stone-950'
                               : isMindBreak
                                 ? 'bg-amber-400 text-stone-950'
                                 : 'bg-stone-700 text-amber-300'
-                        }`}>
+                          }`}>
                           {isParentExam ? '🎯' : isExam ? '📝' : isMindBreak ? '🎮' : '🏆'}
                         </div>
 
                         {/* Card Item */}
-                        <div className={`p-3.5 rounded-2xl border transition-all ${
-                          isParentExam
+                        <div className={`p-3.5 rounded-2xl border transition-all ${isParentExam
                             ? 'bg-stone-50 border-stone-300 hover:border-amber-400'
                             : isExam
                               ? 'bg-amber-50/40 border-amber-200/70 hover:border-amber-400'
                               : isMindBreak
                                 ? 'bg-stone-50 border-amber-200/80 hover:border-amber-300'
                                 : 'bg-amber-50/40 border-amber-200/80 hover:border-amber-300'
-                        }`}>
+                          }`}>
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                                  isParentExam
+                                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${isParentExam
                                     ? 'bg-stone-900 text-amber-300'
                                     : isExam
                                       ? 'bg-amber-400 text-stone-950'
                                       : isMindBreak
                                         ? 'bg-amber-200 text-stone-900'
                                         : 'bg-stone-200 text-stone-800'
-                                }`}>
+                                  }`}>
                                   {isParentExam
                                     ? 'Parent Assignment'
                                     : isExam
@@ -1111,13 +1107,12 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
                               <div className="flex items-center justify-end gap-1.5 mt-1.5 flex-wrap">
                                 {item.scorePct !== undefined && item.scorePct !== null && (
-                                  <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
-                                    item.scorePct >= 70
+                                  <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${item.scorePct >= 70
                                       ? 'bg-amber-400 text-stone-950 shadow-2xs'
                                       : item.scorePct >= 50
                                         ? 'bg-stone-200 text-stone-900'
                                         : 'bg-stone-900 text-amber-300'
-                                  }`}>
+                                    }`}>
                                     {item.marksObtained !== undefined && item.marksObtained !== null && item.totalMarks
                                       ? `${item.marksObtained}/${item.totalMarks}`
                                       : `${item.scorePct}%`}
