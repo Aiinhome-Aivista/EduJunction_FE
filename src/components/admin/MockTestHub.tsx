@@ -369,34 +369,35 @@ export const MockTestHub: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      {/* Top Banner & Stats */}
-      <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 rounded-3xl p-6 sm:p-8 text-stone-900 shadow-xl shadow-yellow-200/50 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/30 backdrop-blur-md text-xs font-black tracking-wide uppercase text-stone-950 mb-3">
-              <Sparkles size={14} className="text-yellow-900" />
-              Academic Assessment Engine
+      {/* Top Banner & Stats (Styled matching AI & RAG Hub) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-amber-50/90 via-yellow-50/80 to-orange-50/60 border border-yellow-200/90 p-4 sm:p-5 rounded-2xl shadow-xs">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center text-white shadow-xs shrink-0">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-950">
-              Mock Test & Auto-Assign Hub 🎯
-            </h1>
-            <p className="text-sm font-semibold text-stone-900/90 mt-1 max-w-2xl">
-              Create curriculum-aligned diagnostic mock tests from question bank and auto-assign them to registered students.
-            </p>
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold text-stone-900 flex items-center gap-1.5">
+                <span>Mock Test & Auto-Assign Hub</span>
+                <span>🎯</span>
+              </h1>
+            </div>
           </div>
+          <p className="text-xs text-stone-600 pl-10 sm:pl-11.5 max-w-2xl">
+            Create curriculum-aligned diagnostic mock tests from question bank and auto-assign them to registered students.
+          </p>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <div className="bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/40 shadow-sm text-center">
-              <span className="text-2xl font-black text-stone-900">{mockTests.length}</span>
-              <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Mock Tests</p>
-            </div>
-            <div className="bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/40 shadow-sm text-center">
-              <span className="text-2xl font-black text-emerald-600">
-                {mockTests.filter((t) => t.isAutoAssign).length}
-              </span>
-              <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Auto-Assign Active</p>
-            </div>
+        <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
+          <div className="bg-white/90 px-3.5 py-2 rounded-xl border border-yellow-200/80 shadow-2xs text-center min-w-[95px]">
+            <span className="text-lg sm:text-xl font-bold text-stone-900 block leading-tight">{mockTests.length}</span>
+            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Total Mock Tests</p>
+          </div>
+          <div className="bg-white/90 px-3.5 py-2 rounded-xl border border-yellow-200/80 shadow-2xs text-center min-w-[95px]">
+            <span className="text-lg sm:text-xl font-bold text-emerald-600 block leading-tight">
+              {mockTests.filter((t) => t.isAutoAssign).length}
+            </span>
+            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Auto-Assign Active</p>
           </div>
         </div>
       </div>

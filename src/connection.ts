@@ -76,6 +76,7 @@ export const GET_APIS = {
   adminSubscriptionHistory: (params?: string) => `${API_V1}/admin/subscription-history${params ? `?${params}` : ''}`,
   llmConfigs: `${API_V1}/admin/llm-config`,
   activeLlmConfig: `${API_V1}/admin/llm-config/active`,
+  llmScenarios: `${API_V1}/admin/llm-scenarios`,
   previewSubjectModelPaper: (subId: number | string) => `${API_V1}/subscriptions/subject/${subId}/preview-paper`,
   downloadSubjectModelPaper: (subId: number | string, format: string = 'pdf') => `${API_V1}/subscriptions/subject/${subId}/download-paper?format=${format}`,
 };
@@ -163,6 +164,7 @@ export const PUT_APIS = {
   updateQuestion: (id: string | number) => `${API_V1}/admin/questions/${id}`,
   updateMockTestBlueprint: (id: number | string) => `${API_V1}/admin/mock-tests/blueprints/${id}`,
   updateLlmConfig: (id: string | number) => `${API_V1}/admin/llm-config/${id}`,
+  updateLlmScenarios: `${API_V1}/admin/llm-scenarios`,
   updateAdminSubscriptionPlan: (id: number | string) => `${API_V1}/admin/subscription-plans/${id}`,
 };
 

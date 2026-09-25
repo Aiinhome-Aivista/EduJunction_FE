@@ -595,7 +595,7 @@ class ApiServices {
     return this.get(GET_APIS.adminSubscriptionHistory(q.toString()));
   }
 
-  // ── LLM Configuration ───────────────────
+  // ── LLM Configuration & Scenario Routing ───────────────────
   getLlmConfigs() {
     return this.get(GET_APIS.llmConfigs);
   }
@@ -603,26 +603,26 @@ class ApiServices {
     return this.get(GET_APIS.activeLlmConfig);
   }
   createLlmConfig(payload: {
-    displayTitle: string;
-    providerName: string;
+    name?: string;
+    displayTitle?: string;
+    providerType?: string;
+    providerName?: string;
     baseUrl?: string;
     apiKey?: string;
     modelName: string;
-    maxTokens?: number;
-    temperature?: number;
     timeoutSeconds?: number;
     isActive?: boolean;
   }) {
     return this.post(POST_APIS.createLlmConfig, payload);
   }
   updateLlmConfig(id: number | string, payload: {
+    name?: string;
     displayTitle?: string;
+    providerType?: string;
     providerName?: string;
     baseUrl?: string;
     apiKey?: string;
     modelName?: string;
-    maxTokens?: number;
-    temperature?: number;
     timeoutSeconds?: number;
     isActive?: boolean;
   }) {
@@ -634,17 +634,24 @@ class ApiServices {
   deleteLlmConfig(id: number | string) {
     return this.del(DELETE_APIS.deleteLlmConfig(id));
   }
-  testLlmConfig(payload: {
-    config_id: number | string;
-    provider?: string;
-    base_url?: string;
-    api_key?: string;
-    model_name?: string;
-    temperature?: number;
-    max_tokens?: number;
-    timeout_seconds?: number;
+  testLlmConfig(idOrPayload: number | string | { config_id?: number | string; id?: number | string }) {
+    const configId = typeof idOrPayload === 'object' ? (idOrPayload.config_id || idOrPayload.id) : idOrPayload;
+    return this.post(POST_APIS.testLlmConfig(configId!), typeof idOrPayload === 'object' ? idOrPayload : {});
+  }
+  getLlmScenarios() {
+    return this.get(GET_APIS.llmScenarios);
+  }
+  updateLlmScenarios(payload: {
+    assignments: Array<{
+      scenario: string;
+      provider_id?: number | string;
+      providerId?: number | string;
+      temperature?: number;
+      max_tokens?: number;
+      maxTokens?: number;
+    }>;
   }) {
-    return this.post(POST_APIS.testLlmConfig(payload.config_id), payload);
+    return this.put(PUT_APIS.updateLlmScenarios, payload);
   }
 
   // ── Health ────────────────────────────────
