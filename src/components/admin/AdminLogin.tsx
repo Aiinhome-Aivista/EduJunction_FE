@@ -34,6 +34,7 @@ import {
   Search,
   Plus,
   Edit,
+  Edit2,
   Trash2,
   Upload,
   Globe,
@@ -1166,7 +1167,7 @@ const DashboardView: React.FC = () => {
     }
     if (action === 'CHILD_UPDATED') {
       return {
-        icon: <Edit className="w-4 h-4 text-indigo-600" />,
+        icon: <Edit2 className="w-4 h-4 text-indigo-600" />,
         text: name ? `Student profile updated: ${name}` : 'Student profile updated',
         bg: 'bg-indigo-50',
       };
@@ -1194,7 +1195,7 @@ const DashboardView: React.FC = () => {
     }
     if (action === 'BLOG_UPDATED') {
       return {
-        icon: <Edit className="w-4 h-4 text-amber-600" />,
+        icon: <Edit2 className="w-4 h-4 text-amber-600" />,
         text: log.entityId ? `Curriculum blog updated: "${log.entityId}"` : 'Curriculum blog updated',
         bg: 'bg-amber-50',
       };
@@ -2225,7 +2226,7 @@ const UsersView: React.FC = () => {
                               aria-label="Edit user"
                               className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                             >
-                              <Edit className="w-4 h-4 stroke-[2.2]" />
+                              <Edit2 className="w-4 h-4 stroke-[2.2]" />
                             </button>
                             <button
                               type="button"
@@ -2280,7 +2281,7 @@ const UsersView: React.FC = () => {
                                 aria-label="Edit student"
                                 className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-lg transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                               >
-                                <Edit className="w-3.5 h-3.5 stroke-[2.2]" />
+                                <Edit2 className="w-3.5 h-3.5 stroke-[2.2]" />
                               </button>
                               <button
                                 type="button"
@@ -3038,7 +3039,7 @@ const CourseDetailModal: React.FC<{
               }}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-amber-400 text-stone-900 hover:bg-amber-500 transition-colors cursor-pointer"
             >
-              <Edit className="w-3.5 h-3.5" />
+              <Edit2 className="w-3.5 h-3.5" />
               <span>Edit Chapter</span>
             </button>
             <button
@@ -3404,7 +3405,7 @@ const CoursesView: React.FC = () => {
                     title="Edit Chapter"
                     className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                   >
-                    <Edit className="w-4 h-4 stroke-[2.2]" />
+                    <Edit2 className="w-4 h-4 stroke-[2.2]" />
                   </button>
 
                   <button
@@ -3788,7 +3789,7 @@ const ManageBlogsView: React.FC<{ setActiveView: (v: AdminView) => void }> = ({ 
                           title="Edit Blog"
                           className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                         >
-                          <Edit className="w-4 h-4 stroke-[2.2]" />
+                          <Edit2 className="w-4 h-4 stroke-[2.2]" />
                         </button>
 
                         {/* Delete Button - Soft Rose Pill */}
@@ -4309,7 +4310,7 @@ const CategoryView: React.FC<{ setActiveView: (v: string) => void }> = () => {
                           title="Edit Category"
                           className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                         >
-                          <Edit className="w-4 h-4 stroke-[2.2]" />
+                          <Edit2 className="w-4 h-4 stroke-[2.2]" />
                         </button>
 
                         {/* Soft Red Delete Button */}
@@ -4376,7 +4377,7 @@ const CategoryView: React.FC<{ setActiveView: (v: string) => void }> = () => {
             <div className="flex items-center justify-between pb-3 border-b border-stone-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center text-amber-800">
-                  {modalMode === 'add' ? <Plus className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
+                  {modalMode === 'add' ? <Plus className="w-5 h-5" /> : <Edit2 className="w-5 h-5" />}
                 </div>
                 <div>
                   <h3 className="text-base font-black text-stone-900">
