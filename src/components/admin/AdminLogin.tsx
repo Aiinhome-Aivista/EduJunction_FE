@@ -4588,11 +4588,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, user }) => {
       case 'Zap': return <Zap className="w-5 h-5" />;
       case 'Cpu': return <Cpu className="w-5 h-5" />;
       case 'CreditCard': return <CreditCard className="w-5 h-5" />;
+      case 'Globe': return <Globe className="w-5 h-5" />;
       default: return <LayoutDashboard className="w-5 h-5" />;
     }
   };
 
-  const dynamicNavItems = pageAccess.map(page => ({
+  const sortedPages = [...pageAccess].sort((a, b) => (Number(a.menuOrder) || 0) - (Number(b.menuOrder) || 0));
+  const dynamicNavItems = sortedPages.map(page => ({
     id: page.pageRoute?.split('/').pop() || 'dashboard',
     route: page.pageRoute || '/admin/dashboard',
     icon: getIcon(page.icon),
@@ -5152,10 +5154,10 @@ const AdminLogin: React.FC = () => {
             {view === 'login'
               ? 'Admin Sign In'
               : resetSuccess
-              ? 'Password Created'
-              : resetStep === 'REQUEST_OTP'
-              ? 'Forgot Password'
-              : 'Create New Password'}
+                ? 'Password Created'
+                : resetStep === 'REQUEST_OTP'
+                  ? 'Forgot Password'
+                  : 'Create New Password'}
           </h1>
           {view === 'forgot-password' && !resetSuccess && (
             <p className="text-xs text-stone-500 font-medium mt-1.5 text-center">
@@ -5384,7 +5386,7 @@ const AdminLogin: React.FC = () => {
                     <Loader2 size={18} className="animate-spin" />
                   ) : (
                     <>
-                      <span>Send Verification Code</span>
+                      <span>Send OTP</span>
                       <Send size={15} />
                     </>
                   )}

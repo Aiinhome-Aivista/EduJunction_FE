@@ -21,10 +21,12 @@ import {
   Sliders,
   ChevronLeft,
   ChevronRight,
-  BookmarkCheck
+  BookmarkCheck,
+  Network
 } from 'lucide-react';
 import ApiServices from '../../services/ApiServices';
 import { Board, ClassGrade, Subject, BOARD_CLASSES_MAP, CLASS_SUBJECTS_MAP } from '../../types';
+import { KnowledgeGraphViewer } from './KnowledgeGraphViewer';
 
 interface MasterBoard {
   id: number;
@@ -97,7 +99,7 @@ interface FlatTopic {
 }
 
 export const AiRagHub: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'ingestion' | 'playground'>('ingestion');
+  const [activeTab, setActiveTab] = useState<'ingestion' | 'playground' | 'kgraph'>('ingestion');
   const [ragStatus, setRagStatus] = useState<RagStatusData | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
 
@@ -817,53 +819,65 @@ export const AiRagHub: React.FC = () => {
             <Cpu className="w-4 h-4 text-yellow-600" />
             Query Playground
           </button>
+          <button
+            onClick={() => setActiveTab('kgraph')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'kgraph'
+              ? 'bg-white text-stone-900 shadow-xs border border-stone-200/80'
+              : 'text-stone-500 hover:text-stone-800'
+              }`}
+          >
+            <Network className="w-4 h-4 text-amber-600" />
+            Knowledge Graph (K-Graph)
+          </button>
         </div>
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          VECTOR STORE HEALTH & CURRICULUM METRICS CARDS
+          VECTOR STORE HEALTH & CURRICULUM METRICS CARDS (Only on Ingestion & Playground tabs)
          ───────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs space-y-2 relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Curriculum Topics</span>
-            <Sparkles className="w-4 h-4 text-amber-500" />
+      {activeTab !== 'kgraph' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs space-y-2 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Curriculum Topics</span>
+              <Sparkles className="w-4 h-4 text-amber-500" />
+            </div>
+            <p className="text-2xl font-black text-stone-900">
+              {ragStatus?.total_topics ?? 0}
+            </p>
+            <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Mapped Core Learning Concepts
+            </p>
           </div>
-          <p className="text-2xl font-black text-stone-900">
-            {ragStatus?.total_topics ?? 0}
-          </p>
-          <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Mapped Core Learning Concepts
-          </p>
-        </div>
 
-        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Indexed Chunks</span>
-            <Layers className="w-4 h-4 text-yellow-600" />
+          <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Indexed Chunks</span>
+              <Layers className="w-4 h-4 text-yellow-600" />
+            </div>
+            <p className="text-2xl font-black text-stone-900">{ragStatus?.total_chunks || 0}</p>
+            <p className="text-[11px] text-stone-400 font-medium">300-500 token semantic segments</p>
           </div>
-          <p className="text-2xl font-black text-stone-900">{ragStatus?.total_chunks || 0}</p>
-          <p className="text-[11px] text-stone-400 font-medium">300-500 token semantic segments</p>
-        </div>
 
-        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Textbook Repository</span>
-            <FileText className="w-4 h-4 text-blue-600" />
+          <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Textbook Repository</span>
+              <FileText className="w-4 h-4 text-blue-600" />
+            </div>
+            <p className="text-2xl font-black text-stone-900">{ragStatus?.total_documents || 0}</p>
+            <p className="text-[11px] text-stone-400 font-medium">Official Curriculum Chapters</p>
           </div>
-          <p className="text-2xl font-black text-stone-900">{ragStatus?.total_documents || 0}</p>
-          <p className="text-[11px] text-stone-400 font-medium">Official Curriculum Chapters</p>
-        </div>
 
-        <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Runbooks</span>
-            <BookOpen className="w-4 h-4 text-amber-600" />
+          <div className="bg-white p-5 rounded-3xl border border-stone-200/80 shadow-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Runbooks</span>
+              <BookOpen className="w-4 h-4 text-amber-600" />
+            </div>
+            <p className="text-2xl font-black text-stone-900">{ragStatus?.total_runbooks || 0}</p>
+            <p className="text-[11px] text-stone-400 font-medium">Curated Concepts & Formulas</p>
           </div>
-          <p className="text-2xl font-black text-stone-900">{ragStatus?.total_runbooks || 0}</p>
-          <p className="text-[11px] text-stone-400 font-medium">Curated Concepts & Formulas</p>
         </div>
-      </div>
+      )}
 
       {/* ─────────────────────────────────────────────────────────────
           TAB 1: PDF INGESTION & DOCUMENT REPOSITORY
@@ -1348,6 +1362,13 @@ export const AiRagHub: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          TAB 3: KNOWLEDGE GRAPH (K-GRAPH) TOPOLOGY & DIAGNOSTICS
+         ───────────────────────────────────────────────────────────── */}
+      {activeTab === 'kgraph' && (
+        <KnowledgeGraphViewer />
       )}
 
       {/* ─────────────────────────────────────────────────────────────

@@ -654,6 +654,49 @@ class ApiServices {
     return this.put(PUT_APIS.updateLlmScenarios, payload);
   }
 
+  // ── Knowledge Graph (K-Graph) ────────────
+  getKnowledgeGraph(params?: { board?: string; classGrade?: string; subject?: string; studentId?: string | number; mode?: 'curriculum' | 'student' }) {
+    const q = new URLSearchParams();
+    if (params?.board && params.board !== 'ALL') q.append('board', params.board);
+    if (params?.classGrade && params.classGrade !== 'ALL') q.append('classGrade', params.classGrade);
+    if (params?.subject && params.subject !== 'ALL') q.append('subject', params.subject);
+    if (params?.studentId) q.append('studentId', String(params.studentId));
+    if (params?.mode) q.append('mode', params.mode);
+    return this.get(GET_APIS.knowledgeGraph(q.toString()));
+  }
+  getKnowledgeGraphExportUrl(params?: { board?: string; classGrade?: string; subject?: string; studentId?: string | number; mode?: 'curriculum' | 'student' }) {
+    const q = new URLSearchParams();
+    if (params?.board && params.board !== 'ALL') q.append('board', params.board);
+    if (params?.classGrade && params.classGrade !== 'ALL') q.append('classGrade', params.classGrade);
+    if (params?.subject && params.subject !== 'ALL') q.append('subject', params.subject);
+    if (params?.studentId) q.append('studentId', String(params.studentId));
+    if (params?.mode) q.append('mode', params.mode);
+
+    const tokens = getStoredTokens();
+    if (tokens?.accessToken) q.append('token', tokens.accessToken);
+
+    return GET_APIS.exportKnowledgeGraphHtml(q.toString());
+  }
+  async exportKnowledgeGraphHtml(params?: { board?: string; classGrade?: string; subject?: string; studentId?: string | number; mode?: 'curriculum' | 'student' }) {
+    const q = new URLSearchParams();
+    if (params?.board && params.board !== 'ALL') q.append('board', params.board);
+    if (params?.classGrade && params.classGrade !== 'ALL') q.append('classGrade', params.classGrade);
+    if (params?.subject && params.subject !== 'ALL') q.append('subject', params.subject);
+    if (params?.studentId) q.append('studentId', String(params.studentId));
+    if (params?.mode) q.append('mode', params.mode);
+
+    const tokens = getStoredTokens();
+    if (tokens?.accessToken) q.append('token', tokens.accessToken);
+
+    const res = await apiClient.get(GET_APIS.exportKnowledgeGraphHtml(q.toString()), {
+      responseType: 'text'
+    });
+    return res.data;
+  }
+  syncKnowledgeGraph() {
+    return this.post(POST_APIS.syncKnowledgeGraph, {});
+  }
+
   // ── Health ────────────────────────────────
   checkHealth() { return this.get(GET_APIS.health); }
 }
