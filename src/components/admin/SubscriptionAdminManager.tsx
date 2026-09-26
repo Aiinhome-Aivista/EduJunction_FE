@@ -15,6 +15,7 @@ import {
   Globe,
   Loader2,
   X,
+  ChevronLeft,
   ChevronRight,
   ShieldCheck,
   Check,
@@ -95,6 +96,8 @@ export const SubscriptionAdminManager: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [totalCount, setTotalCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(5);
   const [boardOptions, setBoardOptions] = useState<string[]>(['CBSE', 'ICSE', 'ISC', 'WBBSE']);
   const [metrics, setMetrics] = useState<{
     totalOrders: number;
@@ -135,7 +138,7 @@ export const SubscriptionAdminManager: React.FC = () => {
   };
 
   // Load Transaction History
-  const loadHistory = async (page: number = 1) => {
+  const loadHistory = async (page: number = currentPage, limit: number = pageSize) => {
     setLoadingHistory(true);
     try {
       const res: any = await ApiServices.getAdminSubscriptionHistory({
@@ -143,14 +146,16 @@ export const SubscriptionAdminManager: React.FC = () => {
         board: filterBoard !== 'ALL' ? filterBoard : undefined,
         status: filterStatus !== 'ALL' ? filterStatus : undefined,
         page,
-        limit: 20
+        limit
       });
       const txList = res?.transactions || res?.data?.transactions || (Array.isArray(res) ? res : []);
       const total = res?.total ?? res?.data?.total ?? txList.length;
       const curPage = res?.page ?? res?.data?.page ?? page;
+      const pages = res?.totalPages ?? res?.data?.totalPages ?? Math.max(1, Math.ceil(total / limit));
       setTransactions(txList);
       setTotalCount(total);
       setCurrentPage(curPage);
+      setTotalPages(pages);
 
       if (res?.metrics) {
         setMetrics(res.metrics);
@@ -665,6 +670,57 @@ export const SubscriptionAdminManager: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {!loadingHistory && transactions.length > 0 && (
+              <div className="p-4 border-t border-stone-200/80 bg-stone-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-xs text-stone-500 font-medium">
+                  Showing <strong className="text-stone-900 font-bold">{totalCount > 0 ? (currentPage - 1) * pageSize + 1 : 0}</strong> to{' '}
+                  <strong className="text-stone-900 font-bold">{Math.min(currentPage * pageSize, totalCount)}</strong> of{' '}
+                  <strong className="text-stone-900 font-bold">{totalCount}</strong> transactions
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => loadHistory(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1 || loadingHistory}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 font-semibold text-xs hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Prev</span>
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => loadHistory(pageNum)}
+                        disabled={loadingHistory}
+                        className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          currentPage === pageNum
+                            ? 'bg-stone-900 text-white shadow-xs'
+                            : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => loadHistory(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage >= totalPages || loadingHistory}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 font-semibold text-xs hover:bg-stone-50 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
