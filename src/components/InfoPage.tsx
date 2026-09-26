@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { PublicHeader } from './common/PublicHeader';
 import { PublicFooter } from './common/PublicFooter';
 import { GraduationCap, ArrowLeft, Info, BookOpen, Mail } from 'lucide-react';
+import { SEO } from './common/SEO';
 
 interface InfoPageProps {
   type: 'about' | 'blog' | 'contact';
@@ -32,7 +33,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
       icon: Mail,
       color: 'text-pink-600',
       bg: 'bg-pink-50',
-      text: 'Whether you are a school looking to integrate our platform, a parent with a question, or a student needing help, our team is here for you. Reach out to us at support@edujunction.edu or call our toll-free number. We aim to respond to all inquiries within 24 hours.'
+      text: 'Whether you are a school looking to integrate our platform, a parent with a question, or a student needing help, our team is here for you. Reach out to us at support@edujunction.co.in or call our toll-free number. We aim to respond to all inquiries within 24 hours.'
     },
   };
 
@@ -40,6 +41,11 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col font-sans text-stone-900 relative overflow-hidden">
+      <SEO
+        title={`${title} – EduJunction`}
+        description={text.substring(0, 160)}
+        canonicalUrl={`https://www.edujunction.co.in/${type}`}
+      />
       {/* Background Glows */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-yellow-300/20 rounded-full blur-3xl -z-10 mix-blend-multiply" />
       <div className="absolute -bottom-32 -left-32 w-[600px] h-[600px] bg-amber-300/20 rounded-full blur-3xl -z-10 mix-blend-multiply" />

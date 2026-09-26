@@ -78,6 +78,7 @@ import { AiRagHub } from './AiRagHub';
 import { MockTestHub } from './MockTestHub';
 import { LlmConfigManager } from './LlmConfigManager';
 import { SubscriptionAdminManager } from './SubscriptionAdminManager';
+import { SeoAdminManager } from './SeoAdminManager';
 
 const JoditEditor = lazy(() => import('jodit-react'));
 
@@ -4841,6 +4842,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, user }) => {
               'add-blogs': <BlogFormModal isOpen fullPage initialBlog={null} onClose={() => navigate('/manage-blogs')} onSuccess={() => navigate('/manage-blogs')} />,
               'edit-blog': <BlogEditPage blogId={editBlogId} onBack={() => navigate('/manage-blogs')} onSaved={() => { }} />,
               category: <CategoryView setActiveView={(v) => navigate('/' + v)} />,
+              seo: <SeoAdminManager />,
+              'seo-management': <SeoAdminManager />,
+              'seo-metadata': <SeoAdminManager />,
             };
 
             return VIEW_MAP[activeView] ?? (

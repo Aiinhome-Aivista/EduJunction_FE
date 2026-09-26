@@ -440,9 +440,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="mt-7 flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => openAuth('register')}
-                  className="px-7 py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-white font-extrabold shadow-xl shadow-yellow-200 flex items-center justify-center gap-2"
+                  className="px-7 py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-extrabold shadow-xl shadow-yellow-200 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  Get Started <ArrowRight className="w-5 h-5" />
+                  Get Started For FREE <ArrowRight className="w-5 h-5" />
                 </button>
                 <a
                   href="#how-it-works"

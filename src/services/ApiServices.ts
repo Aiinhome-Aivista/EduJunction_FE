@@ -302,6 +302,11 @@ class ApiServices {
   createBlogAuthor(body: any) { return this.post(POST_APIS.createBlogAuthor, body); }
   shareBlog(id: string | number) { return this.post(POST_APIS.shareBlog(id), {}); }
 
+  // ── SEO Metadata Management ───────────────
+  listSeoMetadata() { return this.get('/api/v1/seo/metadata'); }
+  saveSeoMetadata(body: any) { return this.post('/api/v1/seo/metadata', body); }
+  deleteSeoMetadata(id: string | number) { return this.del(`/api/v1/seo/metadata/${id}`); }
+
   // ── Curriculum & Question Bank ────────────
   getCurriculumTree() { return this.get(GET_APIS.curriculumTree); }
   listQuestions(filters?: any) {

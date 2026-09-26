@@ -81,6 +81,7 @@ export const GET_APIS = {
   llmScenarios: `${API_V1}/admin/llm-scenarios`,
   previewSubjectModelPaper: (subId: number | string) => `${API_V1}/subscriptions/subject/${subId}/preview-paper`,
   downloadSubjectModelPaper: (subId: number | string, format: string = 'pdf') => `${API_V1}/subscriptions/subject/${subId}/download-paper?format=${format}`,
+  seoMetadata: `${API_V1}/seo/metadata`,
 };
 
 export const POST_APIS = {
@@ -154,6 +155,7 @@ export const POST_APIS = {
   activateLlmConfig: (id: string | number) => `${API_V1}/admin/llm-config/${id}/activate`,
   createAdminSubscriptionPlan: `${API_V1}/admin/subscription-plans`,
   evaluateSubjectModelPaper: (subId: number | string) => `${API_V1}/subscriptions/subject/${subId}/evaluate-paper`,
+  saveSeoMetadata: `${API_V1}/admin/seo`,
 };
 
 export const PUT_APIS = {
@@ -184,4 +186,5 @@ export const DELETE_APIS = {
   deleteAdminMockTest: (id: string) => `${API_V1}/admin/mock-tests/${id}`,
   deleteLlmConfig: (id: string | number) => `${API_V1}/admin/llm-config/${id}`,
   deleteAdminSubscriptionPlan: (id: number | string) => `${API_V1}/admin/subscription-plans/${id}`,
+  deleteSeoMetadata: (id: number | string) => `${API_V1}/admin/seo/${id}`,
 };

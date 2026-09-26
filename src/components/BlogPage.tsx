@@ -15,10 +15,10 @@ import {
   BookOpen,
   CheckCircle2,
 } from "lucide-react";
-import ApiServices from "../services/ApiServices";
 import DOMPurify from "dompurify";
 import { PublicHeader } from "./common/PublicHeader";
 import { PublicFooter } from "./common/PublicFooter";
+import { SEO } from "./common/SEO";
 
 export interface BlogPostData {
   id: string;
@@ -513,8 +513,38 @@ export const BlogPage: React.FC = () => {
 
   // ── Detail view
   if (selectedPost) {
+    const articleJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": selectedPost.title,
+      "description": selectedPost.excerpt,
+      "image": selectedPost.image || selectedPost.featuredImage,
+      "author": {
+        "@type": "Person",
+        "name": selectedPost.author || "EduJunction Team"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "EduJunction",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.edujunction.co.in/favicon.svg"
+        }
+      },
+      "datePublished": selectedPost.date
+    };
+
     return (
       <div className="min-h-screen flex flex-col">
+        <SEO
+          title={`${selectedPost.title} – EduJunction Blog`}
+          description={selectedPost.excerpt}
+          keywords={`${selectedPost.category || 'EdTech'}, EduJunction blog, board exam preparation`}
+          ogImage={selectedPost.image || selectedPost.featuredImage}
+          ogType="article"
+          canonicalUrl={`https://www.edujunction.co.in/blog/${selectedPost.slug || selectedPost.id}`}
+          jsonLd={articleJsonLd}
+        />
         <PublicHeader />
         <div className="flex-1">
           <ArticleDetail post={selectedPost} allPosts={posts} onBack={() => navigate("/blog")} />
@@ -526,6 +556,12 @@ export const BlogPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      <SEO
+        title="EdTech & Board Exam Insights – EduJunction Blog"
+        description="Latest insights, study tips, exam strategies, and educational updates for CBSE, ICSE, and ISC students."
+        keywords="EduJunction blog, board exam tips, study strategies, Class 10 preparation"
+        canonicalUrl="https://www.edujunction.co.in/blog"
+      />
       {/* ── Header */}
       <PublicHeader />
 
