@@ -16,6 +16,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import DOMPurify from "dompurify";
+import ApiServices from "../services/ApiServices";
 import { PublicHeader } from "./common/PublicHeader";
 import { PublicFooter } from "./common/PublicFooter";
 import { SEO } from "./common/SEO";

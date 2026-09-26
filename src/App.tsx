@@ -153,10 +153,15 @@ export default function App() {
   const [examHistory, setExamHistory] = useState<ExamSubmission[]>([]);
   const [activeSubmissionReport, setActiveSubmissionReport] = useState<ExamSubmission | null>(null);
 
-  // Automatically dismiss active report view whenever the route Junction changes via sidebar or navigation
+  // Automatically dismiss active report view and scroll to top whenever the route changes
   useEffect(() => {
     setActiveSubmissionReport(null);
-  }, [location.pathname]);
+    if (!location.hash) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, [location.pathname, location.search]);
 
   // Adaptive Learning, Gamification & PTC State
   const [learningNodes, setLearningNodes] = useState<LearningPathNode[]>([]);

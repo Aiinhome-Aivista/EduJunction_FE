@@ -303,9 +303,9 @@ class ApiServices {
   shareBlog(id: string | number) { return this.post(POST_APIS.shareBlog(id), {}); }
 
   // ── SEO Metadata Management ───────────────
-  listSeoMetadata() { return this.get('/api/v1/seo/metadata'); }
-  saveSeoMetadata(body: any) { return this.post('/api/v1/seo/metadata', body); }
-  deleteSeoMetadata(id: string | number) { return this.del(`/api/v1/seo/metadata/${id}`); }
+  listSeoMetadata() { return this.get(GET_APIS.seoMetadata); }
+  saveSeoMetadata(body: any) { return this.post(POST_APIS.saveSeoMetadata, body); }
+  deleteSeoMetadata(id: string | number) { return this.del(DELETE_APIS.deleteSeoMetadata(id)); }
 
   // ── Curriculum & Question Bank ────────────
   getCurriculumTree() { return this.get(GET_APIS.curriculumTree); }
