@@ -351,8 +351,9 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
     }
   };
 
-  // Re-fetch subscriptions whenever active student or role context changes
+  // Re-fetch subscriptions and active pricing plans whenever active student or role context changes
   useEffect(() => {
+    fetchPlans();
     fetchMySubscriptions();
   }, [studentId, isParent, propIsParent]);
 
