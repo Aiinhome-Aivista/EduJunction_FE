@@ -1,0 +1,7 @@
+# EduJunction Robots.txt
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://www.edujunction.co.in/sitemap.xml

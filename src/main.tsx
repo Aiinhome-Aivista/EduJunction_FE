@@ -25,6 +25,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/edit-blog/:blogId" element={<AdminLogin />} />
           <Route path="/category" element={<AdminLogin />} />
           <Route path="/mock-tests" element={<AdminLogin />} />
+          <Route path="/seo" element={<AdminLogin />} />
 
           {/* Dedicated Model Examination Full-Page Route */}
           <Route path="/model-exam/:subscriptionId" element={<ModelExamPage />} />
