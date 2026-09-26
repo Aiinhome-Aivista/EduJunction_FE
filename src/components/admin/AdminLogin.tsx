@@ -44,6 +44,11 @@ import {
   Zap,
   Cpu,
   CreditCard,
+  KeyRound,
+  Send,
+  ArrowLeft,
+  ArrowRight,
+  RefreshCw,
 } from 'lucide-react';
 import ApiServices, {
   storeTokens,
@@ -2218,18 +2223,18 @@ const UsersView: React.FC = () => {
                               onClick={() => openEditModal(u)}
                               title="Edit user"
                               aria-label="Edit user"
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors cursor-pointer"
+                              className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-4 h-4 stroke-[2.2]" />
                             </button>
                             <button
                               type="button"
                               onClick={() => { setUserToDelete(u); setActionError(''); }}
                               title="Delete user"
                               aria-label="Delete user"
-                              className="p-1.5 bg-rose-50/80 text-rose-400 hover:bg-rose-100 hover:text-rose-500 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
+                              className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4 stroke-[2.2]" />
                             </button>
                           </div>
                         </td>
@@ -2273,18 +2278,18 @@ const UsersView: React.FC = () => {
                                 onClick={() => openEditModal({ ...student, role: 'Student', roleName: 'STUDENT', parentId: u.id })}
                                 title="Edit student"
                                 aria-label="Edit student"
-                                className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-colors cursor-pointer"
+                                className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-lg transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                               >
-                                <Edit className="w-3.5 h-3.5" />
+                                <Edit className="w-3.5 h-3.5 stroke-[2.2]" />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => { setUserToDelete({ ...student, role: 'Student', roleName: 'STUDENT', parentId: u.id }); setActionError(''); }}
                                 title="Delete student"
                                 aria-label="Delete student"
-                                className="p-1.5 bg-rose-50/80 text-rose-400 hover:bg-rose-100 hover:text-rose-500 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
+                                className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-lg transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
                               </button>
                             </div>
                           </td>
@@ -3386,10 +3391,9 @@ const CoursesView: React.FC = () => {
                   <button
                     onClick={() => setViewingCourse(c)}
                     title="View Chapter Details"
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                    className="p-2 text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                   >
-                    <Eye className="w-3.5 h-3.5 text-stone-500" />
-                    <span>View</span>
+                    <Eye className="w-4 h-4 stroke-[2.2]" />
                   </button>
 
                   <button
@@ -3398,22 +3402,21 @@ const CoursesView: React.FC = () => {
                       setIsFormModalOpen(true);
                     }}
                     title="Edit Chapter"
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                    className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                   >
-                    <Edit className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Edit</span>
+                    <Edit className="w-4 h-4 stroke-[2.2]" />
                   </button>
 
                   <button
                     onClick={() => handleDeleteCourse(c.id, c.chapterName || c.subject)}
                     disabled={deletingId === c.id}
                     title="Delete Chapter"
-                    className="p-1.5 bg-rose-50/80 text-rose-400 hover:bg-rose-100 hover:text-rose-500 rounded-lg transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center justify-center"
+                    className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center disabled:opacity-50"
                   >
                     {deletingId === c.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-rose-400" />
+                      <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
                     ) : (
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4 stroke-[2.2]" />
                     )}
                   </button>
                 </div>
@@ -3774,7 +3777,7 @@ const ManageBlogsView: React.FC<{ setActiveView: (v: AdminView) => void }> = ({ 
                     <td className="px-6 py-4 text-stone-500 text-xs">{b.date}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {/* Edit Button - Blue Background */}
+                        {/* Edit Button - Soft Blue Pill */}
                         <button
                           type="button"
                           onClick={(event) => {
@@ -3783,23 +3786,23 @@ const ManageBlogsView: React.FC<{ setActiveView: (v: AdminView) => void }> = ({ 
                             handleEditBlog(b);
                           }}
                           title="Edit Blog"
-                          className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-4 h-4 stroke-[2.2]" />
                         </button>
 
-                        {/* Delete Button - Red/Rose Background */}
+                        {/* Delete Button - Soft Rose Pill */}
                         <button
                           type="button"
                           onClick={() => promptDeleteBlog(b)}
                           disabled={deletingId === b.id}
                           title="Delete Blog"
-                          className="p-1.5 bg-rose-50/80 text-rose-400 hover:bg-rose-100 hover:text-rose-500 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                          className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center disabled:opacity-50"
                         >
                           {deletingId === b.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-rose-400" />
+                            <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
                           ) : (
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4 stroke-[2.2]" />
                           )}
                         </button>
                       </div>
@@ -4304,9 +4307,9 @@ const CategoryView: React.FC<{ setActiveView: (v: string) => void }> = () => {
                           type="button"
                           onClick={() => openEditModal(c)}
                           title="Edit Category"
-                          className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100/80 hover:text-blue-700 rounded-xl transition-all cursor-pointer active:scale-95"
+                          className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-4 h-4 stroke-[2.2]" />
                         </button>
 
                         {/* Soft Red Delete Button */}
@@ -4314,9 +4317,9 @@ const CategoryView: React.FC<{ setActiveView: (v: string) => void }> = () => {
                           type="button"
                           onClick={() => promptDeleteCategory(c)}
                           title="Delete Category"
-                          className="p-1.5 bg-rose-50/80 text-rose-400 hover:bg-rose-100 hover:text-rose-500 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
+                          className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4 stroke-[2.2]" />
                         </button>
                       </div>
                     </td>
@@ -4914,20 +4917,35 @@ const AdminLogin: React.FC = () => {
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [loginSuccess, setLoginSuccess] = useState(false);
 
-  // ── Create New Password state ───────────────
+  // ── Forgot / Reset Password state (OTP-Enabled) ───────────
+  const [resetStep, setResetStep] = useState<'REQUEST_OTP' | 'VERIFY_OTP'>('REQUEST_OTP');
   const [resetEmail, setResetEmail] = useState('');
+  const [resetOtp, setResetOtp] = useState('');
+  const [resetMaskedEmail, setResetMaskedEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
   const [resetSubmitting, setResetSubmitting] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
   const [resetErrorMessage, setResetErrorMessage] = useState<string | null>(null);
   const [resetFieldErrors, setResetFieldErrors] = useState<{
     email?: string;
+    otp?: string;
     newPassword?: string;
     confirmPassword?: string;
   }>({});
+
+  // Countdown timer for resending OTP
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCountdown]);
 
   const clearFieldError = (field: 'email' | 'password') => {
     setFieldErrors((prev) => {
@@ -5006,22 +5024,60 @@ const AdminLogin: React.FC = () => {
     }
   };
 
+  const handleSendResetOtp = async (isResend = false) => {
+    setResetErrorMessage(null);
+    setResetFieldErrors({});
+
+    const trimmed = resetEmail.trim();
+    if (!trimmed) {
+      setResetFieldErrors({ email: 'Please enter your admin email.' });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setResetFieldErrors({ email: 'Please enter a valid email address.' });
+      return;
+    }
+
+    setIsSendingOtp(true);
+    try {
+      const response = await ApiServices.sendResetOtp({ identifier: trimmed });
+      const data = response.data?.data || response.data || {};
+      setResetMaskedEmail(data.maskedEmail || trimmed);
+      setResetStep('VERIFY_OTP');
+      setResendCountdown(60);
+      if (isResend) {
+        setResetOtp('');
+      }
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.error?.message ||
+        err?.response?.data?.message ||
+        err?.message ||
+        'Failed to send verification code. Please check your admin email and try again.';
+      setResetErrorMessage(msg);
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
   const handleResetSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setResetErrorMessage(null);
     setResetFieldErrors({});
 
-    const errs: { email?: string; newPassword?: string; confirmPassword?: string } = {};
-    if (!resetEmail.trim()) {
-      errs.email = 'Please enter your admin email.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetEmail.trim())) {
-      errs.email = 'Please enter a valid email address.';
+    const errs: { email?: string; otp?: string; newPassword?: string; confirmPassword?: string } = {};
+    if (!resetOtp.trim()) {
+      errs.otp = 'Please enter the 6-digit OTP code.';
+    } else if (resetOtp.trim().length !== 6 || !/^\d{6}$/.test(resetOtp.trim())) {
+      errs.otp = 'OTP must be a 6-digit number.';
     }
+
     if (!newPassword) {
       errs.newPassword = 'Please enter a new password.';
     } else if (newPassword.length < 6) {
       errs.newPassword = 'Password must be at least 6 characters.';
     }
+
     if (!confirmPassword) {
       errs.confirmPassword = 'Please confirm your new password.';
     } else if (newPassword !== confirmPassword) {
@@ -5035,8 +5091,9 @@ const AdminLogin: React.FC = () => {
 
     setResetSubmitting(true);
     try {
-      await ApiServices.adminResetPassword({
-        email: resetEmail.trim(),
+      await ApiServices.resetPassword({
+        identifier: resetEmail.trim(),
+        otp: resetOtp.trim(),
         newPassword,
       });
       setResetSuccess(true);
@@ -5045,7 +5102,7 @@ const AdminLogin: React.FC = () => {
         err?.response?.data?.error?.message ||
         err?.response?.data?.message ||
         err?.message ||
-        'Failed to update password. Please try again.';
+        'Failed to update password. Please verify the OTP and try again.';
       setResetErrorMessage(msg);
     } finally {
       setResetSubmitting(false);
@@ -5091,8 +5148,21 @@ const AdminLogin: React.FC = () => {
             <span className="text-stone-900">Edu</span><span className="text-yellow-500">Junction</span>
           </div>
           <h1 className="text-2xl font-black text-stone-900 tracking-tight mt-4">
-            {view === 'login' ? 'Admin Sign In' : 'Create New Password'}
+            {view === 'login'
+              ? 'Admin Sign In'
+              : resetSuccess
+              ? 'Password Created'
+              : resetStep === 'REQUEST_OTP'
+              ? 'Forgot Password'
+              : 'Create New Password'}
           </h1>
+          {view === 'forgot-password' && !resetSuccess && (
+            <p className="text-xs text-stone-500 font-medium mt-1.5 text-center">
+              {resetStep === 'REQUEST_OTP'
+                ? 'Enter your registered admin email to receive a verification OTP'
+                : 'Enter the 6-digit code sent to your email to set a new password'}
+            </p>
+          )}
         </div>
 
         {/* ── View: Admin Sign In ── */}
@@ -5178,12 +5248,14 @@ const AdminLogin: React.FC = () => {
             </div>
 
             {/* Forgot Password Link */}
-            {/* <div className="flex justify-end pt-0.5">
+            <div className="flex justify-end pt-0.5">
               <button
                 type="button"
                 id="admin-forgot-password"
                 onClick={() => {
                   setResetEmail(email);
+                  setResetOtp('');
+                  setResetStep('REQUEST_OTP');
                   setResetSuccess(false);
                   setResetErrorMessage(null);
                   setResetFieldErrors({});
@@ -5193,7 +5265,7 @@ const AdminLogin: React.FC = () => {
               >
                 Forgot Password?
               </button>
-            </div> */}
+            </div>
 
             {/* Error Message */}
             {errorMessage && (
@@ -5221,15 +5293,18 @@ const AdminLogin: React.FC = () => {
           </form>
         )}
 
-        {/* ── View: Create New Password ── */}
+        {/* ── View: Create New Password (2-Step OTP Protected) ── */}
         {view === 'forgot-password' && (
           <div>
             {resetSuccess ? (
               <div className="text-center space-y-4 py-2">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center mx-auto shadow-sm">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <p className="text-sm font-bold text-stone-800">Password created successfully.</p>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-stone-900">Password Created Successfully</p>
+                  <p className="text-xs text-stone-500">You can now sign in with your new password.</p>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
@@ -5237,13 +5312,21 @@ const AdminLogin: React.FC = () => {
                     setPassword('');
                     setView('login');
                   }}
-                  className="w-full h-12 rounded-2xl font-extrabold text-sm transition-all duration-200 shadow-lg shadow-yellow-200 bg-yellow-400 hover:bg-yellow-500 text-stone-900 active:scale-[0.98] flex items-center justify-center mt-4"
+                  className="w-full h-12 rounded-2xl font-extrabold text-sm transition-all duration-200 shadow-lg shadow-yellow-200 bg-yellow-400 hover:bg-yellow-500 text-stone-900 active:scale-[0.98] flex items-center justify-center mt-4 cursor-pointer"
                 >
                   Sign In
                 </button>
               </div>
-            ) : (
-              <form onSubmit={handleResetSubmit} noValidate className="space-y-4">
+            ) : resetStep === 'REQUEST_OTP' ? (
+              /* Step 1: Request OTP Screen */
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendResetOtp();
+                }}
+                noValidate
+                className="space-y-4"
+              >
                 {/* Admin Email */}
                 <div>
                   <label htmlFor="reset-email" className="block text-xs font-bold text-stone-700 mb-2 uppercase tracking-wider">
@@ -5265,6 +5348,7 @@ const AdminLogin: React.FC = () => {
                       }}
                       placeholder="admin@EduJunction.com"
                       autoComplete="email"
+                      autoFocus
                       className={`w-full h-12 pl-11 pr-4 rounded-2xl text-sm font-semibold text-stone-900 outline-none transition-all
                         placeholder:text-stone-300 placeholder:font-normal bg-stone-50/60 border-2 ${resetFieldErrors.email
                           ? 'border-red-300 focus:border-red-400 focus:ring-4 focus:ring-red-400/15'
@@ -5274,6 +5358,110 @@ const AdminLogin: React.FC = () => {
                   </div>
                   {resetFieldErrors.email && (
                     <p className="text-red-500 text-xs font-bold mt-1.5 ml-1">{resetFieldErrors.email}</p>
+                  )}
+                  <p className="text-[11px] text-stone-500 mt-1.5 ml-1">
+                    A 6-digit verification code will be sent to your registered admin email.
+                  </p>
+                </div>
+
+                {/* Error Message */}
+                {resetErrorMessage && (
+                  <div className="p-3.5 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-xs font-bold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <span>{resetErrorMessage}</span>
+                  </div>
+                )}
+
+                {/* Send OTP Button */}
+                <button
+                  id="admin-send-otp-submit"
+                  type="submit"
+                  disabled={isSendingOtp}
+                  className="w-full h-12 rounded-2xl font-extrabold text-sm transition-all duration-200 shadow-lg shadow-yellow-200 bg-yellow-400 hover:bg-yellow-500 text-stone-900 active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2 mt-2 cursor-pointer"
+                >
+                  {isSendingOtp ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <>
+                      <span>Send Verification Code</span>
+                      <Send size={15} />
+                    </>
+                  )}
+                </button>
+
+                {/* Back to Sign In Link */}
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setView('login');
+                      setResetErrorMessage(null);
+                    }}
+                    className="text-xs font-bold text-stone-500 hover:text-stone-800 transition-colors flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
+                  >
+                    <ArrowLeft size={14} />
+                    <span>Back to Sign In</span>
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Step 2: Verify OTP & Enter New Password */
+              <form onSubmit={handleResetSubmit} noValidate className="space-y-4">
+                {/* Destination Banner */}
+                <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-between text-xs text-amber-900">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Mail size={16} className="text-amber-600 flex-shrink-0" />
+                    <div className="truncate">
+                      <span className="text-stone-600">OTP sent to: </span>
+                      <span className="font-bold text-stone-900">{resetMaskedEmail}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetStep('REQUEST_OTP');
+                      setResetErrorMessage(null);
+                      setResetFieldErrors({});
+                    }}
+                    className="text-[11px] font-bold text-amber-700 hover:text-amber-900 underline ml-2 flex-shrink-0 cursor-pointer"
+                  >
+                    Change
+                  </button>
+                </div>
+
+                {/* 6-Digit OTP */}
+                <div>
+                  <label htmlFor="reset-otp" className="block text-xs font-bold text-stone-700 mb-2 uppercase tracking-wider">
+                    6-Digit Verification Code (OTP)
+                  </label>
+                  <div className="relative group">
+                    <KeyRound
+                      size={17}
+                      className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none ${resetFieldErrors.otp ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'
+                        }`}
+                    />
+                    <input
+                      id="reset-otp"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={resetOtp}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setResetOtp(val);
+                        setResetFieldErrors((prev) => ({ ...prev, otp: undefined }));
+                      }}
+                      placeholder="• • • • • •"
+                      autoFocus
+                      className={`w-full h-12 pl-11 pr-4 rounded-2xl text-center font-mono text-base font-bold tracking-widest text-stone-900 outline-none transition-all
+                        placeholder:text-stone-300 placeholder:font-normal bg-stone-50/60 border-2 ${resetFieldErrors.otp
+                          ? 'border-red-300 focus:border-red-400 focus:ring-4 focus:ring-red-400/15'
+                          : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-400/15 focus:bg-white'
+                        }`}
+                    />
+                  </div>
+                  {resetFieldErrors.otp && (
+                    <p className="text-red-500 text-xs font-bold mt-1.5 ml-1">{resetFieldErrors.otp}</p>
                   )}
                 </div>
 
@@ -5296,7 +5484,7 @@ const AdminLogin: React.FC = () => {
                         setNewPassword(e.target.value);
                         setResetFieldErrors((prev) => ({ ...prev, newPassword: undefined }));
                       }}
-                      placeholder="••••••••"
+                      placeholder="Min. 6 characters"
                       className={`w-full h-12 pl-11 pr-12 rounded-2xl text-sm font-semibold text-stone-900 outline-none transition-all
                         placeholder:text-stone-300 placeholder:font-normal bg-stone-50/60 border-2 ${resetFieldErrors.newPassword
                           ? 'border-red-300 focus:border-red-400 focus:ring-4 focus:ring-red-400/15'
@@ -5336,7 +5524,7 @@ const AdminLogin: React.FC = () => {
                         setConfirmPassword(e.target.value);
                         setResetFieldErrors((prev) => ({ ...prev, confirmPassword: undefined }));
                       }}
-                      placeholder="••••••••"
+                      placeholder="Re-enter new password"
                       className={`w-full h-12 pl-11 pr-12 rounded-2xl text-sm font-semibold text-stone-900 outline-none transition-all
                         placeholder:text-stone-300 placeholder:font-normal bg-stone-50/60 border-2 ${resetFieldErrors.confirmPassword
                           ? 'border-red-300 focus:border-red-400 focus:ring-4 focus:ring-red-400/15'
@@ -5370,14 +5558,37 @@ const AdminLogin: React.FC = () => {
                   id="admin-reset-submit"
                   type="submit"
                   disabled={resetSubmitting}
-                  className="w-full h-12 rounded-2xl font-extrabold text-sm transition-all duration-200 shadow-lg shadow-yellow-200 bg-yellow-400 hover:bg-yellow-500 text-stone-900 active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2 mt-2"
+                  className="w-full h-12 rounded-2xl font-extrabold text-sm transition-all duration-200 shadow-lg shadow-yellow-200 bg-yellow-400 hover:bg-yellow-500 text-stone-900 active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2 mt-2 cursor-pointer"
                 >
                   {resetSubmitting ? (
                     <Loader2 size={18} className="animate-spin" />
                   ) : (
-                    <span>Create Password</span>
+                    <>
+                      <span>Reset Password</span>
+                      <ArrowRight size={16} />
+                    </>
                   )}
                 </button>
+
+                {/* Resend Code Action */}
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-stone-500">Didn't receive the code?</span>
+                  {resendCountdown > 0 ? (
+                    <span className="text-xs font-semibold text-stone-400">
+                      Resend in {resendCountdown}s
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isSendingOtp}
+                      onClick={() => handleSendResetOtp(true)}
+                      className="text-xs font-bold text-yellow-600 hover:text-yellow-700 flex items-center gap-1 cursor-pointer"
+                    >
+                      <RefreshCw size={12} className={isSendingOtp ? 'animate-spin' : ''} />
+                      <span>Resend OTP</span>
+                    </button>
+                  )}
+                </div>
 
                 {/* Back to Sign In Link */}
                 <div className="text-center pt-2">
@@ -5385,11 +5596,12 @@ const AdminLogin: React.FC = () => {
                     type="button"
                     onClick={() => {
                       setView('login');
-                      setErrorMessage(null);
+                      setResetErrorMessage(null);
                     }}
-                    className="text-xs font-bold text-stone-500 hover:text-stone-800 transition-colors"
+                    className="text-xs font-bold text-stone-500 hover:text-stone-800 transition-colors flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
                   >
-                    Back to Sign In
+                    <ArrowLeft size={14} />
+                    <span>Back to Sign In</span>
                   </button>
                 </div>
               </form>

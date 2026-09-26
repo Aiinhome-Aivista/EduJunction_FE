@@ -975,30 +975,20 @@ export const LlmConfigManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* Field 6: Active Toggle */}
-              <div className="flex items-center justify-between pt-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formIsActive}
-                    onChange={(e) => setFormIsActive(e.target.checked)}
-                    className="w-4 h-4 text-amber-600 rounded border-stone-300 focus:ring-amber-500"
-                  />
-                  <span className="text-xs font-bold text-stone-800">Set as Primary Default</span>
-                </label>
-
-                {editingConfig && (
+              {/* Modal Connection Test Button (When editing existing provider) */}
+              {editingConfig && (
+                <div className="flex items-center justify-end pt-1">
                   <button
                     type="button"
                     onClick={handleTestModal}
                     disabled={modalTesting}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-200 transition-colors"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-200 transition-colors cursor-pointer"
                   >
                     {modalTesting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
                     <span>Test Connection</span>
                   </button>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Modal Test Result Banner */}
               {modalTestResult && (

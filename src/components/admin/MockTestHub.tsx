@@ -917,29 +917,32 @@ export const MockTestHub: React.FC = () => {
                       </td>
 
                       <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center justify-end gap-2">
                           <button
+                            type="button"
                             title="Assign to all existing students of this board & class"
                             onClick={() => handleBulkAssign(t)}
-                            className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 transition-colors"
+                            className="p-2 text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                           >
-                            <Users size={15} />
+                            <Users className="w-4 h-4 stroke-[2.2]" />
                           </button>
 
                           <button
+                            type="button"
                             title="Preview Questions"
                             onClick={() => setPreviewTest(t)}
-                            className="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors"
+                            className="p-2 text-stone-700 bg-stone-100 hover:bg-stone-200 border border-stone-200 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                           >
-                            <Eye size={15} />
+                            <Eye className="w-4 h-4 stroke-[2.2]" />
                           </button>
 
                           <button
+                            type="button"
                             title="Delete"
                             onClick={() => handleDeleteMockTest(t.id, t.title)}
-                            className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 transition-colors"
+                            className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                           >
-                            <Trash2 size={15} />
+                            <Trash2 className="w-4 h-4 stroke-[2.2]" />
                           </button>
                         </div>
                       </td>

@@ -738,7 +738,7 @@ export const ParentTeacherCommunication: React.FC<ParentTeacherCommunicationProp
 
                       <button
                         onClick={() => handleOpenPreview(dossier.shareToken)}
-                        className="py-1.5 px-3 rounded-lg border border-yellow-300 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="py-1.5 px-3 rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
                         title="Open and preview the public dossier portal"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -748,10 +748,10 @@ export const ParentTeacherCommunication: React.FC<ParentTeacherCommunicationProp
                       <button
                         onClick={() => handleRevokeDossier(dossier.id)}
                         disabled={deletingDossierId === dossier.id}
-                        className="py-1.5 px-2.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                        className="py-1.5 px-3 rounded-xl border border-rose-200/80 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
                         title="Revoke and delete this dossier access link"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
                         <span>{deletingDossierId === dossier.id ? 'Revoking...' : 'Revoke'}</span>
                       </button>
                     </div>

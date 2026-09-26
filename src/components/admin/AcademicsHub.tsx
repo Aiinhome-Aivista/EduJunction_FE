@@ -864,20 +864,22 @@ export const AcademicsHub: React.FC = () => {
                         </div>
 
                       {/* Action buttons */}
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <button
+                          type="button"
                           onClick={() => openEditQuestionModal(q)}
-                          className="p-1.5 hover:bg-stone-100 rounded-lg text-stone-400 hover:text-stone-700 transition-colors"
+                          className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                           title="Edit Question"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-4 h-4 stroke-[2.2]" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDeleteQuestion(q.id)}
-                          className="p-1.5 bg-rose-50/80 text-rose-400 hover:bg-rose-100 hover:text-rose-500 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
+                          className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                           title="Deactivate Question"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4 stroke-[2.2]" />
                         </button>
                       </div>
                     </div>

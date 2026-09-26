@@ -433,20 +433,22 @@ export const SubscriptionAdminManager: React.FC = () => {
                       </td>
 
                       <td className="py-4 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center justify-end gap-2">
                           <button
+                            type="button"
                             onClick={() => handleOpenEditPlan(plan)}
-                            className="p-1.5 text-stone-500 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors"
+                            className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                             title="Edit Plan"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-4 h-4 stroke-[2.2]" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => setDeletePlanId(plan.id)}
-                            className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                            className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                             title="Delete Plan"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4 stroke-[2.2]" />
                           </button>
                         </div>
                       </td>

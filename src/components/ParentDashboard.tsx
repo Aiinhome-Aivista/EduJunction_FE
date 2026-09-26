@@ -865,10 +865,10 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       e.stopPropagation();
                       handleStartEdit(child);
                     }}
-                    className="p-2 rounded-xl bg-stone-100 hover:bg-yellow-100 text-stone-600 hover:text-yellow-800 transition-colors cursor-pointer"
+                    className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                     title="Edit Child Profile"
                   >
-                    <Edit3 className="w-4 h-4" />
+                    <Edit3 className="w-4 h-4 stroke-[2.2]" />
                   </button>
                 </div>
 

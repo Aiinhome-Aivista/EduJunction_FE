@@ -754,10 +754,10 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
                         {isPending && (
                           <button
                             onClick={() => handleDelete(exam.id)}
-                            className="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
                             title="Cancel Scheduled Exam"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4 stroke-[2.2]" />
                           </button>
                         )}
 
