@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PublicHeader } from './common/PublicHeader';
 import { PublicFooter } from './common/PublicFooter';
 import {
@@ -37,11 +37,21 @@ interface LegalPageProps {
 }
 
 export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
+  const navigate = useNavigate();
+
   React.useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   }, [type]);
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col font-sans text-stone-900 relative overflow-hidden">
@@ -74,13 +84,14 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 z-10">
         {/* Back Link */}
         <div className="mb-6">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-xs font-bold text-stone-400 hover:text-amber-600 transition-colors uppercase tracking-wider group"
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 text-xs font-bold text-stone-400 hover:text-amber-600 transition-colors uppercase tracking-wider group cursor-pointer bg-transparent border-0 p-0"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            Back to Home
-          </Link>
+            Back
+          </button>
         </div>
 
         {/* ── PRIVACY POLICY SPECIALIZED RICH LAYOUT ── */}

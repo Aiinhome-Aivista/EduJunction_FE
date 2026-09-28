@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { GraduationCap, ArrowRight, Menu, X } from "lucide-react";
 import { getStoredTokens } from "../../services/ApiServices";
 
@@ -10,14 +10,45 @@ export interface PublicHeaderProps {
 export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
   const [mob, setMob] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const isBlogActive = location.pathname.startsWith("/blog");
   const isLoggedIn = !!getStoredTokens();
+
+  const isLandingRoute =
+    location.pathname === "/" ||
+    location.pathname === "/landing" ||
+    location.pathname === "/features" ||
+    location.pathname === "/model-papers-2027" ||
+    location.pathname === "/how-it-works" ||
+    location.pathname === "/roles" ||
+    location.pathname === "/demo";
+
+  const handleNavClick = (path: string, sectionId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (isLandingRoute) {
+      if (location.pathname !== path) {
+        navigate(path);
+      }
+      if (sectionId === 'hero' || sectionId === 'top' || sectionId === '') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    } else {
+      // Coming from other routes (e.g. /blog, /about, /privacy, etc.)
+      navigate(path);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[72px] flex items-center justify-between">
         {/* Logo */}
-        <Link to={isLoggedIn ? "/landing" : "/"} className="flex items-center gap-3">
+        <Link to={isLoggedIn ? "/landing" : "/"} onClick={(e) => handleNavClick(isLoggedIn ? "/landing" : "/", 'hero', e)} className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-lg shadow-yellow-200">
             <GraduationCap className="w-5 h-5" />
           </div>
@@ -32,16 +63,16 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
 
         {/* Desktop nav */}
         <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-stone-600">
-          <Link to={isLoggedIn ? "/landing" : "/"} className="hover:text-yellow-600 transition-colors">Home</Link>
-          <a href="/features" className="hover:text-yellow-600 transition-colors">Features</a>
-          <a href="/model-papers-2027" className="hover:text-yellow-600 flex items-center gap-1.5 transition-colors">
+          <Link to={isLoggedIn ? "/landing" : "/"} onClick={(e) => handleNavClick(isLoggedIn ? "/landing" : "/", 'hero', e)} className="hover:text-yellow-600 transition-colors">Home</Link>
+          <Link to="/features" onClick={(e) => handleNavClick('/features', 'features', e)} className="hover:text-yellow-600 transition-colors">Features</Link>
+          <Link to="/model-papers-2027" onClick={(e) => handleNavClick('/model-papers-2027', 'model-papers-2027', e)} className="hover:text-yellow-600 flex items-center gap-1.5 transition-colors">
             Model Papers <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">2027</span>
-          </a>
-          <a href="/how-it-works" className="hover:text-yellow-600 transition-colors">How It Works</a>
-          <a href="/roles" className="hover:text-yellow-600 transition-colors">For Everyone</a>
-          <a href="/demo" className="hover:text-yellow-600 flex items-center gap-1.5 transition-colors">
+          </Link>
+          <Link to="/how-it-works" onClick={(e) => handleNavClick('/how-it-works', 'how-it-works', e)} className="hover:text-yellow-600 transition-colors">How It Works</Link>
+          <Link to="/roles" onClick={(e) => handleNavClick('/roles', 'roles', e)} className="hover:text-yellow-600 transition-colors">For Everyone</Link>
+          <Link to="/demo" onClick={(e) => handleNavClick('/demo', 'demo', e)} className="hover:text-yellow-600 flex items-center gap-1.5 transition-colors">
             Demo <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700">LIVE</span>
-          </a>
+          </Link>
           <Link to="/blog" className={isBlogActive ? "text-yellow-600 font-black" : "hover:text-yellow-600 transition-colors"}>Blogs</Link>
         </nav>
 
@@ -81,8 +112,8 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
       {/* Mobile drawer */}
       {mob && (
         <div className="lg:hidden bg-white border-t border-stone-100 px-4 py-4 space-y-2">
-          {[["/hero", "Home"], ["/features", "Features"], ["/model-papers-2027", "Model Papers 2027 (Coming Soon)"], ["/how-it-works", "How It Works"], ["/roles", "For Everyone"], ["/demo", "Demo"]].map(([href, label]) => (
-            <a key={href} href={href} onClick={() => setMob(false)} className="block py-2.5 text-sm font-semibold text-stone-700 hover:text-yellow-600">{label}</a>
+          {[["/", "hero", "Home"], ["/features", "features", "Features"], ["/model-papers-2027", "model-papers-2027", "Model Papers 2027"], ["/how-it-works", "how-it-works", "How It Works"], ["/roles", "roles", "For Everyone"], ["/demo", "demo", "Demo"]].map(([path, sectionId, label]) => (
+            <Link key={path} to={path} onClick={(e) => { setMob(false); handleNavClick(path, sectionId, e); }} className="block py-2.5 text-sm font-semibold text-stone-700 hover:text-yellow-600">{label}</Link>
           ))}
           <Link to="/blog" onClick={() => setMob(false)} className={isBlogActive ? "block py-2.5 text-sm font-black text-yellow-600" : "block py-2.5 text-sm font-semibold text-stone-700 hover:text-yellow-600"}>Blogs</Link>
           <div className="pt-3 border-t border-stone-100 flex gap-2">
