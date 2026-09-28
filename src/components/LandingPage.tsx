@@ -184,11 +184,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     if (location.search.includes('auth=login')) {
       openAuth('login');
       navigate('/', { replace: true });
+      return;
     } else if (location.search.includes('auth=register')) {
       openAuth('register');
       navigate('/', { replace: true });
+      return;
     }
-  }, [location, navigate]);
+
+    const pathId = location.pathname.substring(1);
+    const targetId = location.hash ? location.hash.replace('#', '') : pathId;
+    if (targetId && targetId !== 'landing' && targetId !== 'hero') {
+      const scrollToEl = () => {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+      const scrollTimer1 = setTimeout(scrollToEl, 100);
+      const scrollTimer2 = setTimeout(scrollToEl, 300);
+      return () => {
+        clearTimeout(scrollTimer1);
+        clearTimeout(scrollTimer2);
+      };
+    } else {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [location.pathname, location.hash, location.search, navigate]);
 
   const runDemo = (subject: keyof typeof demoQuestions) => {
     setSelectedSubject(subject);
@@ -453,13 +474,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 >
                   Get Started For FREE <ArrowRight className="w-5 h-5" />
                 </button>
-                <a
-                  href="how-it-works"
+                <Link
+                  to="/how-it-works"
                   className="px-7 py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-yellow-300 text-stone-800 font-bold flex items-center justify-center gap-2"
                 >
                   <Play className="w-4 h-4 fill-current" />
                   See How It Works
-                </a>
+                </Link>
               </div>
 
               <div className="mt-7 flex flex-wrap gap-3 text-xs font-bold text-stone-600">

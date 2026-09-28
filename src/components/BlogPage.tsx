@@ -56,27 +56,63 @@ const renderMD = (text: string) => {
 
 const catColor = (_category: string) => "text-stone-500";
 
+import { BASE_URL } from "../connection";
+
+export const resolveBlogImageUrl = (url?: string) => {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+
+  // 1. If response already has a full absolute URL (http/https), use it directly from the response
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+
+  // 2. If it's a relative path from the response, dynamically prepend BASE_URL
+  const cleanPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  if (BASE_URL) {
+    return `${BASE_URL}${cleanPath}`;
+  }
+
+  return cleanPath;
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Cover image (gradient + emoji, like a real thumbnail)
 // ─────────────────────────────────────────────────────────────────────────────
-const CoverImg: React.FC<{ post: BlogPostData }> = ({ post }) => (
-  <div className="relative w-full h-48 overflow-hidden bg-stone-100 flex items-center justify-center group-hover:opacity-90 transition-opacity">
-    {post.image ? (
-      <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-    ) : (
-      <div className="w-full h-full bg-gradient-to-br from-amber-100 via-stone-100 to-emerald-100 p-6 flex flex-col justify-end">
-        <BookOpen className="w-8 h-8 text-stone-700/40 mb-3" />
-        <p className="max-w-xs text-xl font-black leading-tight text-stone-800/80">EduJunction Journal</p>
+const CoverImg: React.FC<{ post: BlogPostData }> = ({ post }) => {
+  const [imgSrc, setImgSrc] = useState(() => resolveBlogImageUrl(post.image));
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setImgSrc(resolveBlogImageUrl(post.image));
+    setHasError(false);
+  }, [post.image]);
+
+  return (
+    <div className="relative w-full h-48 overflow-hidden bg-stone-100 flex items-center justify-center group-hover:opacity-90 transition-opacity">
+      {imgSrc && !hasError ? (
+        <img
+          src={imgSrc}
+          alt={post.title}
+          onError={() => setHasError(true)}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-amber-100 via-stone-100 to-emerald-100 p-6 flex flex-col justify-end">
+          <BookOpen className="w-8 h-8 text-stone-700/40 mb-3" />
+          <p className="max-w-xs text-xl font-black leading-tight text-stone-800/80">EduJunction Journal</p>
+        </div>
+      )}
+      <div className="absolute inset-0 bg-black/10" />
+      {/* class + board chips */}
+      <div className="absolute top-3 left-3 flex gap-1.5 z-10">
+        <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-[9px] font-bold">{post.board}</span>
+        <span className="px-2 py-0.5 rounded-full bg-white/25 backdrop-blur-sm text-white text-[9px] font-bold border border-white/20">{post.classRange}</span>
       </div>
-    )}
-    <div className="absolute inset-0 bg-black/10" />
-    {/* class + board chips */}
-    <div className="absolute top-3 left-3 flex gap-1.5 z-10">
-      <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-white text-[9px] font-bold">{post.board}</span>
-      <span className="px-2 py-0.5 rounded-full bg-white/25 backdrop-blur-sm text-white text-[9px] font-bold border border-white/20">{post.classRange}</span>
     </div>
-  </div>
-);
+  );
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Blog Card — exact EduJobs reference layout
@@ -126,11 +162,22 @@ const BlogCard: React.FC<{ post: BlogPostData }> = ({ post }) => (
 // ─────────────────────────────────────────────────────────────────────────────
 // Article Detail page
 // ─────────────────────────────────────────────────────────────────────────────
-const ArticleDetail: React.FC<{ post: BlogPostData; allPosts: BlogPostData[]; onBack: () => void }> = ({ post, allPosts, onBack }) => {
+const ArticleDetail: React.FC<{ post: BlogPostData; allPosts: BlogPostData[]; onBack?: () => void }> = ({ post, allPosts, onBack }) => {
+  const navigate = useNavigate();
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [post]);
 
   const [sharesCount, setSharesCount] = useState<number>(post.sharesCount || 0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/blog");
+    }
+  };
 
   useEffect(() => {
     setSharesCount(post.sharesCount || 0);
@@ -203,15 +250,34 @@ const ArticleDetail: React.FC<{ post: BlogPostData; allPosts: BlogPostData[]; on
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 py-10">
+    <div className="min-h-screen bg-stone-50 py-8 sm:py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 text-xs font-bold text-stone-600 hover:text-amber-600 transition-colors uppercase tracking-wider group cursor-pointer bg-white px-3.5 py-2 rounded-lg border border-stone-200 shadow-2xs hover:border-amber-300"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Articles
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
           {/* Main Content (Left) */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
             {/* Hero Image - Full Align / Edge-to-Edge */}
             <div className="w-full aspect-video max-h-[480px] overflow-hidden bg-stone-100 border-b border-stone-100">
-              <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+              <img
+                src={resolveBlogImageUrl(post.image)}
+                alt={post.title}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+                className="w-full h-full object-cover"
+              />
             </div>
 
             {/* Article Body Content */}
@@ -288,7 +354,13 @@ const ArticleDetail: React.FC<{ post: BlogPostData; allPosts: BlogPostData[]; on
               <div className="text-xs text-stone-500 mb-8 flex items-center gap-1.5 flex-wrap font-semibold">
                 <Link to="/" className="text-[#0d47a1] hover:underline">Home</Link>
                 <ChevronRight className="w-3 h-3" />
-                <Link to="/blog" className="text-[#0d47a1] hover:underline">Blog</Link>
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="text-[#0d47a1] hover:underline cursor-pointer bg-transparent border-0 p-0 font-semibold"
+                >
+                  Blog
+                </button>
                 <ChevronRight className="w-3 h-3" />
                 <span className="text-stone-700">{post.title}</span>
               </div>
@@ -346,7 +418,14 @@ const ArticleDetail: React.FC<{ post: BlogPostData; allPosts: BlogPostData[]; on
               <div className="p-4 space-y-4">
                 {latestPosts.map(p => (
                   <Link to={`/blog/${p.slug}`} key={p.id} className="flex gap-3 group">
-                    <img src={p.image} alt={p.title} className="w-16 h-16 object-cover rounded-md border border-stone-200 shrink-0" />
+                    <img
+                      src={resolveBlogImageUrl(p.image)}
+                      alt={p.title}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                      className="w-16 h-16 object-cover rounded-md border border-stone-200 shrink-0"
+                    />
                     <div>
                       <h4 className="text-xs font-bold text-stone-900 group-hover:text-[#0d47a1] transition-colors line-clamp-2 mb-1">{p.title}</h4>
                       <p className="text-[10px] text-stone-500 font-medium">{new Date(p.publishedDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} | By {p.author}</p>
@@ -365,7 +444,14 @@ const ArticleDetail: React.FC<{ post: BlogPostData; allPosts: BlogPostData[]; on
                 <div className="p-4 space-y-4">
                   {relatedPosts.map(p => (
                     <Link to={`/blog/${p.slug}`} key={p.id} className="flex gap-3 group">
-                      <img src={p.image} alt={p.title} className="w-16 h-16 object-cover rounded-md border border-stone-200 shrink-0" />
+                      <img
+                        src={resolveBlogImageUrl(p.image)}
+                        alt={p.title}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                        className="w-16 h-16 object-cover rounded-md border border-stone-200 shrink-0"
+                      />
                       <div>
                         <h4 className="text-xs font-bold text-stone-900 group-hover:text-[#0d47a1] transition-colors line-clamp-2 mb-1">{p.title}</h4>
                         <p className="text-[10px] text-stone-500 font-medium">{new Date(p.publishedDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} | By {p.author}</p>
@@ -452,7 +538,7 @@ export const BlogPage: React.FC = () => {
             : (blog.content || "Read the latest learning update from EduJunction.").split(/\n\s*\n/),
           tags: Array.isArray(blog.tags) ? blog.tags : [],
           featured: false,
-          image: blog.imageUrl || blog.image || "",
+          image: resolveBlogImageUrl(blog.imageUrl || blog.image || ""),
         })));
       })
       .catch((error) => console.error("Failed to load public blogs and categories:", error))
@@ -548,7 +634,17 @@ export const BlogPage: React.FC = () => {
         />
         <PublicHeader />
         <div className="flex-1">
-          <ArticleDetail post={selectedPost} allPosts={posts} onBack={() => navigate("/blog")} />
+          <ArticleDetail
+            post={selectedPost}
+            allPosts={posts}
+            onBack={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate("/blog");
+              }
+            }}
+          />
         </div>
         <PublicFooter />
       </div>
@@ -568,7 +664,25 @@ export const BlogPage: React.FC = () => {
 
       {/* ── Page body */}
       <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+          {/* Back button */}
+          <div className="mb-6">
+            <button
+              type="button"
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/');
+                }
+              }}
+              className="inline-flex items-center gap-2 text-xs font-bold text-stone-400 hover:text-amber-600 transition-colors uppercase tracking-wider group cursor-pointer bg-transparent border-0 p-0"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Back
+            </button>
+          </div>
 
           {/* ── Title row + search (exactly like reference) */}
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">

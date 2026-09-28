@@ -999,7 +999,7 @@ export default function App() {
   }
 
 
-  if (activeTab === 'landing') {
+  if (['landing', 'features', 'model-papers-2027', 'how-it-works', 'roles', 'demo', 'hero'].includes(activeTab)) {
     return (
       <div className="relative w-full h-full min-h-screen overflow-x-hidden">
         <LandingPage
