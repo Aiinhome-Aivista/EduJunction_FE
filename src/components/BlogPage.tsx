@@ -519,7 +519,7 @@ export const BlogPage: React.FC = () => {
           title: blog.title || "Untitled blog",
           heading: blog.heading || blog.title || "Untitled blog",
           introduction: blog.introduction || "",
-          slug: blog.slug || `blog-${blog.id}`,
+          slug: blog.slug ? String(blog.slug).trim() : String(blog.id),
           author: blog.author || "Admin User",
           authorRole: "EduJunction",
           authorAvatar: "",
@@ -558,7 +558,9 @@ export const BlogPage: React.FC = () => {
     };
   }, []);
 
-  const selectedPost = slug ? posts.find((p) => p.slug === slug) ?? null : null;
+  const selectedPost = slug
+    ? posts.find((p) => p.slug === slug || p.id === slug) ?? null
+    : null;
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [selectedPost]);
 
   useEffect(() => {
