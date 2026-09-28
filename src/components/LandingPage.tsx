@@ -374,10 +374,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     loadWord(currentWordIndex);
   };
 
+  const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(null);
+  const [demoMcqSelected, setDemoMcqSelected] = useState<number | null>(null);
+  const [demoBadgeClaimed, setDemoBadgeClaimed] = useState<boolean>(false);
+
   const supportComposeUrl = 'https://mail.google.com/mail/u/0/?fs=1&to=support@edujunction.co.in&tf=cm';
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900 overflow-x-hidden">
+    <div className="min-h-screen bg-stone-50 text-stone-900 overflow-x-clip">
       <style>{`
+        html {
+          scroll-padding-top: 140px;
+          scroll-behavior: smooth;
+        }
         @keyframes fade-in-up {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
@@ -386,19 +394,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           animation: fade-in-up 0.6s ease-out forwards;
         }
       `}</style>
-      {/* NAVBAR */}
-      <PublicHeader onOpenAuth={openAuth} />
-
-      {/* HERO */}
-      <section
-        id="hero"
-        className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-white to-stone-50"
-      >
-        {/* ── Marquee Ticker — right below navbar ── */}
-        <div className="w-full overflow-hidden relative py-2.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-sm select-none">
+      {/* FIXED NAVBAR & MARQUEE TICKER (Guaranteed 100% Viewport Locking) */}
+      <div className="fixed top-0 left-0 right-0 z-50 shadow-sm bg-white">
+        <PublicHeader onOpenAuth={openAuth} />
+        <div className="w-full overflow-hidden relative py-2.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none">
           <div
             className="flex items-center whitespace-nowrap w-max"
-            style={{ animation: 'navMarquee 25s linear infinite' }}
+            style={{ animation: 'navMarquee 80s linear infinite' }}
           >
             {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
               <span key={i} className="flex items-center gap-3 pr-12">
@@ -412,6 +414,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             ))}
           </div>
         </div>
+      </div>
+
+      {/* HERO SECTION (Padded for Fixed Header Height) */}
+      <section
+        id="hero"
+        className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-white to-stone-50 pt-28 sm:pt-32"
+      >
 
         <div className="absolute -top-28 -right-28 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl" />
         <div className="absolute top-40 -left-32 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl" />
@@ -445,7 +454,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Get Started For FREE <ArrowRight className="w-5 h-5" />
                 </button>
                 <a
-                  href="#how-it-works"
+                  href="how-it-works"
                   className="px-7 py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-yellow-300 text-stone-800 font-bold flex items-center justify-center gap-2"
                 >
                   <Play className="w-4 h-4 fill-current" />
@@ -533,7 +542,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="py-16 bg-stone-50">
+      <section id="features" className="py-16 bg-stone-50 scroll-mt-36">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/80 text-yellow-800 text-xs font-bold shadow-sm">
@@ -551,71 +560,126 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {[
               {
+                id: 'smart-assessment',
                 icon: Target,
                 title: 'Smart Assessment',
+                subtitle: 'Adaptive diagnostic testing calibrated to ICSE & CBSE standards',
                 text: 'Take short assessments that show exactly which topics need attention.',
                 bg: 'bg-amber-100/70',
                 fg: 'text-amber-700',
                 hoverBorder: 'hover:border-amber-300',
+                highlights: [
+                  'Chapter-wise diagnostic quizzes (5-10 mins)',
+                  'Step-by-step marking scheme aligned to CBSE/ICSE blueprint',
+                  'Instant auto-grading with explanation for wrong answers',
+                  'Detects speed vs accuracy bottlenecks'
+                ]
               },
               {
+                id: 'study-buddy',
                 icon: Brain,
                 title: 'Study Buddy Insights',
+                subtitle: 'mentor analyzing student learning behavior and common traps',
                 text: 'Study Buddy finds strengths, weak areas and common mistake patterns.',
                 bg: 'bg-yellow-100/70',
                 fg: 'text-yellow-700',
                 hoverBorder: 'hover:border-yellow-300',
+                highlights: [
+                  'Identifies misconception patterns before exam day',
+                  'Recommends targeted concept revision sheets',
+                  'Tracks prerequisite gaps across previous classes',
+                  'Personalized  study scheduler'
+                ]
               },
               {
+                id: 'personalized',
                 icon: TrendingUp,
                 title: 'Personalized Learning',
+                subtitle: 'Dynamic learning roadmap that scales with student performance',
                 text: 'Get lessons, resources and practice based on your current level.',
                 bg: 'bg-orange-100/70',
                 fg: 'text-orange-700',
                 hoverBorder: 'hover:border-orange-300',
+                highlights: [
+                  '3-Tier Difficulty Calibration (Simple, Medium, Hard/HOTS)',
+                  'Automatic remediation exercises for weak topics',
+                  'Custom paper generator tailored to board syllabus',
+                  'Adaptive revision speed adjustments'
+                ]
               },
               {
+                id: 'points-badges',
                 icon: Trophy,
                 title: 'Points & Badges',
+                subtitle: 'Gamified rewards system to keep students engaged every day',
                 text: 'Earn points for correct answers and badges for milestones.',
                 bg: 'bg-emerald-100/70',
                 fg: 'text-emerald-700',
                 hoverBorder: 'hover:border-emerald-300',
+                highlights: [
+                  'Earn XP points for quiz completions and accuracy',
+                  'Unlock badges like "Math Wizard", "Formula Champ", "Streak Master"',
+                  'Daily learning streak multiplier bonus',
+                  'Friendly leaderboards for peer motivation'
+                ]
               },
               {
+                id: 'progress-tracking',
                 icon: BarChart3,
                 title: 'Progress Tracking',
+                subtitle: 'Visual analytics dashboard for students, teachers, and parents',
                 text: 'See scores, topic mastery, streaks and improvement over time.',
                 bg: 'bg-sky-100/70',
                 fg: 'text-sky-700',
                 hoverBorder: 'hover:border-sky-300',
+                highlights: [
+                  'Real-time accuracy & speed progress charts',
+                  'Chapter-by-chapter mastery percentages',
+                  'Historical exam score trend analysis',
+                  'Exportable PDF performance dossiers'
+                ]
               },
               {
+                id: 'parent-teacher',
                 icon: MessageSquare,
                 title: 'Parent-Teacher Connect',
+                subtitle: 'Seamless parent notifications & automated email/PDF report dispatch',
                 text: 'Share progress and communicate securely about the student.',
                 bg: 'bg-rose-100/70',
                 fg: 'text-rose-700',
                 hoverBorder: 'hover:border-rose-300',
+                highlights: [
+                  'Automated PDF exam report sent directly to parent email',
+                  'Parent dashboard link for child activity monitoring',
+                  'Teacher note & feedback attachment support',
+                  'WhatsApp performance alerts'
+                ]
               },
             ].map((feature) => {
               const Icon = feature.icon;
               return (
                 <div
-                  key={feature.title}
-                  className={`group bg-white rounded-2xl border border-stone-200/80 p-5 hover:-translate-y-1.5 hover:shadow-lg hover:shadow-stone-200/60 transition-all duration-300 reveal-on-scroll ${feature.hoverBorder}`}
+                  key={feature.id}
+                  onClick={() => {
+                    setActiveFeatureModal(feature.id);
+                    setDemoMcqSelected(null);
+                  }}
+                  className={`group bg-white rounded-2xl border border-stone-200/80 p-5 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-stone-200/80 transition-all duration-300 reveal-on-scroll cursor-pointer relative overflow-hidden ${feature.hoverBorder}`}
                 >
-                  {/* Header: Icon + Title Side-by-Side */}
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl ${feature.bg} ${feature.fg} flex items-center justify-center shrink-0 shadow-inner transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-                      <Icon className="w-5 h-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl ${feature.bg} ${feature.fg} flex items-center justify-center shrink-0 shadow-inner transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <h3 className="font-black text-stone-800 text-base leading-snug group-hover:text-amber-600 transition-colors">
+                        {feature.title}
+                      </h3>
                     </div>
-                    <h3 className="font-black text-stone-800 text-base leading-snug group-hover:text-amber-600 transition-colors">
-                      {feature.title}
-                    </h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 group-hover:bg-amber-100 group-hover:text-amber-900 transition-all">
+                      Preview ↗
+                    </span>
                   </div>
 
-                  {/* Description Text */}
                   <p className="mt-3 text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
                     {feature.text}
                   </p>
@@ -623,11 +687,356 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               );
             })}
           </div>
+
+          {/* ── INTERACTIVE FEATURE PREVIEW MODAL ── */}
+          {activeFeatureModal && (() => {
+            const featuresMap: Record<string, any> = {
+              'smart-assessment': {
+                icon: Target,
+                title: 'Smart Assessment',
+                badge: 'Assessment Engine',
+                badgeColor: 'bg-amber-100 text-amber-900 border-amber-300',
+                subtitle: 'Adaptive ICSE & CBSE Diagnostic Test Engine',
+                description: 'Smart Assessment automatically analyzes student response patterns, evaluates step-by-step logic, and pinpoints conceptual gaps in real time.',
+                highlights: [
+                  'Automatic Board Alignment (CBSE, ICSE & ISC 2027 Blueprint)',
+                  'Real-time Stopwatch & Speed vs Accuracy Tracking',
+                  'Instant Model Answers & Step-by-Step Marking Rules',
+                  'Targeted Revision Recommendations after every submission'
+                ],
+                demoTitle: 'Interactive Live Preview: MCQ Diagnostic',
+                demoWidget: (
+                  <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-3">
+                    <div className="flex items-center justify-between text-xs font-bold text-amber-900">
+                      <span>Class 10 Physics • Current Electricity</span>
+                      <span className="px-2 py-0.5 rounded-md bg-amber-200 text-amber-900 text-[10px]">1 Mark</span>
+                    </div>
+                    <p className="text-xs font-black text-stone-800">
+                      Q: What happens to the resistance of a conductor if its length is doubled and radius is halved?
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
+                      {[
+                        { label: 'A) Remains unchanged', correct: false },
+                        { label: 'B) Increases 4 times', correct: false },
+                        { label: 'C) Increases 8 times', correct: true },
+                        { label: 'D) Decreases to half', correct: false }
+                      ].map((opt, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setDemoMcqSelected(idx)}
+                          className={`p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
+                            demoMcqSelected === idx
+                              ? opt.correct
+                                ? 'bg-emerald-100 border-emerald-400 text-emerald-900 font-bold'
+                                : 'bg-rose-100 border-rose-400 text-rose-900 font-bold'
+                              : 'bg-white border-stone-200 hover:border-amber-300 text-stone-800'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    {demoMcqSelected !== null && (
+                      <div className={`p-3 rounded-xl text-xs ${demoMcqSelected === 2 ? 'bg-emerald-100/90 text-emerald-900' : 'bg-amber-100 text-amber-900'} font-medium animate-fade-in`}>
+                        {demoMcqSelected === 2 ? (
+                          <span>✨ <strong>Correct!</strong> R = ρ * (2L) / π(r/2)² = 8 * R_initial. Resistance increases 8 times.</span>
+                        ) : (
+                          <span>💡 <strong>Tip:</strong> R = ρ * L / A. When radius is halved, area becomes 1/4th. Try Option C!</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              },
+              'study-buddy': {
+                icon: Brain,
+                title: 'Study Buddy Insights',
+                badge: ' Mentor Insights',
+                badgeColor: 'bg-yellow-100 text-yellow-900 border-yellow-300',
+                subtitle: 'Personalized  Learning Companion & Mistake Detector',
+                description: 'Study Buddy acts as a 24/7 personal tutor that finds root causes of mistakes, recommends remedial practice, and builds long-term memory.',
+                highlights: [
+                  'Pinpoints common exam traps and formula calculation slips',
+                  'Builds personalized revision Flashcards and Mind Maps',
+                  'Reminds students to review prerequisite topics before new chapters',
+                  'Natural language doubt clarification in plain English & Bengali'
+                ],
+                demoTitle: 'Live Insights Dashboard Preview',
+                demoWidget: (
+                  <div className="p-4 rounded-2xl bg-yellow-50/70 border border-yellow-200/80 space-y-3 text-xs">
+                    <div className="flex items-center justify-between font-black text-stone-800">
+                      <span>🤖 Study Buddy Misconception Radar</span>
+                      <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full font-bold">Active Analysis</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="p-2.5 rounded-xl bg-white border border-stone-200 space-y-1">
+                        <div className="flex justify-between font-bold text-stone-800">
+                          <span>⚠️ Trait Identified: Sign Convention in Optics</span>
+                          <span className="text-amber-600 font-black">72% Risk</span>
+                        </div>
+                        <p className="text-[11px] text-stone-600">You tend to confuse mirror formula negative sign with lens formula positive sign.</p>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
+                        <div className="flex justify-between font-bold text-emerald-900">
+                          <span>✨ Recommended Action</span>
+                          <span className="text-emerald-700 font-bold">5 Min Practice</span>
+                        </div>
+                        <p className="text-[11px] text-emerald-800">Complete 3 targeted lens formula numericals to eliminate this trap permanently.</p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              },
+              'personalized': {
+                icon: TrendingUp,
+                title: 'Personalized Learning',
+                subtitle: 'Adaptive Roadmap Aligned to Board Syllabus',
+                text: 'Tailored study speed, difficulty levels, and step-by-step guidance.',
+                badge: 'Adaptive Path',
+                badgeColor: 'bg-orange-100 text-orange-900 border-orange-300',
+                description: 'Every student gets a unique learning pathway. If a student masters basic concepts quickly, difficulty automatically scales up to HOTS (High Order Thinking Skills).',
+                highlights: [
+                  '3-Tier Difficulty Scaling: Simple (Foundational), Medium (Standard), Hard (HOTS)',
+                  'Dynamic Question Bank selection based on target board (ICSE / CBSE / ISC)',
+                  'Custom mock test creation by selecting preferred chapters',
+                  'Saves time by skipping already mastered topics'
+                ],
+                demoTitle: 'Adaptive Progression Pathway',
+                demoWidget: (
+                  <div className="p-4 rounded-2xl bg-orange-50/60 border border-orange-200/80 space-y-3 text-xs">
+                    <div className="font-black text-stone-800 flex justify-between items-center">
+                      <span>🚀 Class 10 Math Roadmap</span>
+                      <span className="text-orange-700 font-bold">Level 3 Unlocked</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-stone-200">
+                        <div className="w-6 h-6 rounded-full bg-emerald-500 text-white font-bold text-[10px] flex items-center justify-center">✓</div>
+                        <div>
+                          <div className="font-bold text-stone-800 text-[11px]">Level 1: Foundational Definitions</div>
+                          <div className="text-[10px] text-stone-500">Mastered (100% Accuracy)</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-stone-200">
+                        <div className="w-6 h-6 rounded-full bg-emerald-500 text-white font-bold text-[10px] flex items-center justify-center">✓</div>
+                        <div>
+                          <div className="font-bold text-stone-800 text-[11px]">Level 2: Standard Formula Application</div>
+                          <div className="text-[10px] text-stone-500">Mastered (94% Accuracy)</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-2 bg-amber-100 rounded-xl border border-amber-300">
+                        <div className="w-6 h-6 rounded-full bg-amber-500 text-white font-bold text-[10px] flex items-center justify-center animate-pulse">🔥</div>
+                        <div>
+                          <div className="font-bold text-amber-950 text-[11px]">Level 3: Board HOTS & Traps (Current)</div>
+                          <div className="text-[10px] text-amber-800">Active Challenge Set</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              },
+              'points-badges': {
+                icon: Trophy,
+                title: 'Points & Badges',
+                subtitle: 'Gamified Motivation Engine & Achievement Showcase',
+                badge: 'Gamified XP System',
+                badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+                description: 'Turn study sessions into an exciting journey. Students earn XP points, daily streak multipliers, and unlock authentic academic badges as they master subjects.',
+                highlights: [
+                  'XP Rewards for correct answers, daily streaks, and full test completions',
+                  'Unlockable badges: "Math Wizard", "Optics Scholar", "Streak Master"',
+                  'Level up from Novice Learner to National Board Scholar',
+                  'Safe, positive peer encouragement'
+                ],
+                demoTitle: 'Student Achievement Badge Showcase',
+                demoWidget: (
+                  <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 space-y-3 text-xs">
+                    <div className="flex justify-between items-center font-black text-emerald-950">
+                      <span>🏆 Level 4 Board Scholar (850 / 1000 XP)</span>
+                      <span className="text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">🔥 7 Day Streak</span>
+                    </div>
+                    <div className="w-full bg-stone-200 rounded-full h-2 overflow-hidden">
+                      <div className="bg-emerald-500 h-full w-[85%] rounded-full transition-all duration-500"></div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+                      <div className="p-2 bg-white rounded-xl border border-emerald-200 flex flex-col items-center">
+                        <span className="text-xl">🧙‍♂️</span>
+                        <span className="font-bold text-[10px] text-stone-800 mt-1">Math Wizard</span>
+                      </div>
+                      <div className="p-2 bg-white rounded-xl border border-emerald-200 flex flex-col items-center">
+                        <span className="text-xl">⚡</span>
+                        <span className="font-bold text-[10px] text-stone-800 mt-1">Streak Master</span>
+                      </div>
+                      <div className="p-2 bg-white rounded-xl border border-emerald-200 flex flex-col items-center">
+                        <span className="text-xl">📜</span>
+                        <span className="font-bold text-[10px] text-stone-800 mt-1">Formula Champ</span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              },
+              'progress-tracking': {
+                icon: BarChart3,
+                title: 'Progress Tracking',
+                subtitle: 'Real-Time Performance Analytics & Mastery Graphs',
+                badge: 'Real-Time Analytics',
+                badgeColor: 'bg-sky-100 text-sky-900 border-sky-300',
+                description: 'Comprehensive dashboard presenting accuracy percentages, speed trends, chapter completion rates, and historical performance graphs.',
+                highlights: [
+                  'Subject-wise accuracy breakdown (Mathematics, Physics, Chemistry, Biology)',
+                  'Weekly test score improvement trend tracking',
+                  'Time spent per question metrics to eliminate test anxiety',
+                  'Instant downloadable PDF progress dossiers'
+                ],
+                demoTitle: 'Analytics Performance Preview',
+                demoWidget: (
+                  <div className="p-4 rounded-2xl bg-sky-50/60 border border-sky-200/80 space-y-3 text-xs">
+                    <div className="flex justify-between items-center font-black text-sky-950">
+                      <span>📊 Subject Mastery Breakdown</span>
+                      <span className="text-sky-700 font-bold bg-sky-100 px-2 py-0.5 rounded-full">+14% Score Increase</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div>
+                        <div className="flex justify-between font-bold text-stone-700 text-[11px] mb-1">
+                          <span>Mathematics (Class 10)</span>
+                          <span>92% Accuracy</span>
+                        </div>
+                        <div className="w-full bg-stone-200 rounded-full h-2">
+                          <div className="bg-yellow-500 h-2 rounded-full w-[92%]"></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between font-bold text-stone-700 text-[11px] mb-1">
+                          <span>Physics (Class 10)</span>
+                          <span>86% Accuracy</span>
+                        </div>
+                        <div className="w-full bg-stone-200 rounded-full h-2">
+                          <div className="bg-sky-500 h-2 rounded-full w-[86%]"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              },
+              'parent-teacher': {
+                icon: MessageSquare,
+                title: 'Parent-Teacher Connect',
+                subtitle: 'Automated Parent Email/PDF Reports & Communication',
+                badge: 'Parent Notification',
+                badgeColor: 'bg-rose-100 text-rose-900 border-rose-300',
+                description: 'Keep parents informed without manual hassle. Detailed PDF exam reports are generated and automatically emailed to registered parents after test completion.',
+                highlights: [
+                  'Automatic PDF report emailed to parents after every full mock test',
+                  'Detailed report includes score, strengths, weak topics, and teacher notes',
+                  'Dedicated Parent Portal view to track child activity securely',
+                  'Instant WhatsApp performance summary alerts'
+                ],
+                demoTitle: 'Parent Email PDF Notification Preview',
+                demoWidget: (
+                  <div className="p-4 rounded-2xl bg-rose-50/60 border border-rose-200/80 space-y-2.5 text-xs">
+                    <div className="flex items-center gap-2 font-black text-rose-950">
+                      <span className="p-1 rounded bg-rose-200 text-rose-800">📄</span>
+                      <span>Automated Parent Email Report</span>
+                    </div>
+                    <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1.5 text-[11px]">
+                      <div className="flex justify-between font-bold text-stone-800">
+                        <span>To: parent@edujunction.co.in</span>
+                        <span className="text-emerald-600">✓ Delivered</span>
+                      </div>
+                      <p className="text-stone-600">
+                        "Dear Parent, your child completed <strong>ICSE Class 10 Physics Model Paper 1</strong> with <strong>88% score</strong>. Detailed PDF report is attached."
+                      </p>
+                      <div className="pt-1 flex items-center justify-between font-bold text-amber-700">
+                        <span>📎 Attached: Exam_Report_ICSE10_Physics.pdf</span>
+                        <span className="text-[10px] bg-amber-100 px-2 py-0.5 rounded border border-amber-300">Ready</span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+            };
+
+            const featData = featuresMap[activeFeatureModal];
+            if (!featData) return null;
+            const ModalIcon = featData.icon;
+
+            return (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[90vh]">
+                  {/* Header */}
+                  <div className="p-6 border-b border-stone-100 bg-gradient-to-r from-yellow-50 via-amber-50 to-white flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-md shadow-yellow-200 shrink-0">
+                        <ModalIcon className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-black text-stone-900">{featData.title}</h3>
+                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${featData.badgeColor}`}>
+                            {featData.badge}
+                          </span>
+                        </div>
+                        <p className="text-xs font-medium text-stone-600 mt-0.5">{featData.subtitle}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setActiveFeatureModal(null)}
+                      className="p-2 rounded-xl hover:bg-stone-200/60 text-stone-500 hover:text-stone-900 transition-colors cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Body */}
+                  <div className="p-6 overflow-y-auto space-y-5 custom-scrollbar">
+                    <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed">
+                      {featData.description}
+                    </p>
+
+                    {/* Highlights Grid */}
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-black text-stone-900 uppercase tracking-wider">Key Feature Highlights:</h4>
+                      <div className="grid sm:grid-cols-2 gap-2">
+                        {featData.highlights.map((h: string, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-stone-50 border border-stone-200/80 text-xs font-semibold text-stone-800">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>{h}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Interactive Demo Widget */}
+                    {featData.demoWidget && (
+                      <div className="space-y-2 pt-2 border-t border-stone-100">
+                        <h4 className="text-xs font-black text-stone-900 uppercase tracking-wider">{featData.demoTitle}:</h4>
+                        {featData.demoWidget}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="p-4 bg-stone-50 border-t border-stone-100 flex items-center justify-between">
+                    <span className="text-xs text-stone-500 font-medium hidden sm:inline">
+                      Experience Study Buddy-powered adaptive learning
+                    </span>
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                      <button
+                        onClick={() => setActiveFeatureModal(null)}
+                        className="px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        Close Preview
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </section>
 
       {/* 🌟 COMING SOON: MODEL TEST PAPERS 2027 & FREE MOCK TEST BANNER */}
-      <section id="model-papers-2027" className="py-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden">
+      <section id="model-papers-2027" className="py-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden scroll-mt-36">
         <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
 
@@ -809,7 +1218,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
 
       {/* HOW IT WORKS */}
-      <section id="how-it-works" className="py-20 bg-white">
+      <section id="how-it-works" className="py-20 bg-white scroll-mt-36">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold shadow-sm">
@@ -859,7 +1268,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* PERSONAS */}
-      <section id="roles" className="py-20 bg-stone-50 border-y border-stone-200">
+      <section id="roles" className="py-20 bg-stone-50 border-y border-stone-200 scroll-mt-36">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-stone-200 text-stone-700 text-xs font-bold">
@@ -940,7 +1349,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ==================== 2-COLUMN WORD BUILDER SECTION ==================== */}
-      <section className="py-14 bg-amber-50/60 relative relative z-20 font-sans select-none px-4">
+      <section id="demo" className="py-14 bg-amber-50/60 relative z-20 font-sans select-none px-4 scroll-mt-36">
 
         {/* Background Soft Glows */}
         <div className="absolute top-5 left-5 w-72 h-72 bg-yellow-200/50 rounded-full blur-3xl animate-pulse pointer-events-none" />
