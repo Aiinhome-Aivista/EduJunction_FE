@@ -26,7 +26,8 @@ import {
   Award,
   Zap,
   CalendarClock,
-  Loader2
+  Loader2,
+  Lock
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
 
@@ -259,6 +260,15 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
   const [showScratchpad, setShowScratchpad] = useState(false);
   const [scratchpadNote, setScratchpadNote] = useState('');
   const [generationStep, setGenerationStep] = useState('');
+  const autoAdvanceTimerRef = useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimerRef.current) {
+        clearTimeout(autoAdvanceTimerRef.current);
+      }
+    };
+  }, []);
 
   // Adaptive Engine State
   const [timeSpentPerQuestion, setTimeSpentPerQuestion] = useState<Record<string, number>>({});
@@ -416,11 +426,76 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
     }
   }, [presetTopic, activeChildId, activeExam, isGenerating]);
 
-  const handleSelectAnswer = (questionId: string, answerValue: string) => {
+  const handleNextQuestion = () => {
+    if (!activeExam) return;
+    const currentQ = activeExam.questions[currentQuestionIdx];
+    const userAns = (answers[currentQ.id] || '').trim();
+
+    if (userAns) {
+      const nextCorrect = consecutiveCorrect + 1;
+      setConsecutiveWrong(0);
+      if (nextCorrect >= 2) {
+        if (adaptiveDifficulty === 'simple') {
+          setAdaptiveDifficulty('medium');
+          setAdaptiveNotification({
+            type: 'up',
+            message: '🚀 2 consecutive correct answers! Escalating difficulty to MEDIUM level.',
+          });
+        } else if (adaptiveDifficulty === 'medium') {
+          setAdaptiveDifficulty('hard');
+          setAdaptiveNotification({
+            type: 'up',
+            message: '🔥 Great mastery! Escalating difficulty to HARD level.',
+          });
+        }
+        setConsecutiveCorrect(0);
+      } else {
+        setConsecutiveCorrect(nextCorrect);
+      }
+    } else {
+      const nextWrong = consecutiveWrong + 1;
+      setConsecutiveCorrect(0);
+      if (nextWrong >= 2) {
+        if (adaptiveDifficulty === 'hard') {
+          setAdaptiveDifficulty('medium');
+          setAdaptiveNotification({
+            type: 'down',
+            message: '📉 2 consecutive unanswered questions. Adjusting to MEDIUM difficulty.',
+          });
+        } else if (adaptiveDifficulty === 'medium') {
+          setAdaptiveDifficulty('simple');
+          setAdaptiveNotification({
+            type: 'down',
+            message: '📉 Difficulty adjusted to EASY level. Keep going!',
+          });
+        }
+        setConsecutiveWrong(0);
+      } else {
+        setConsecutiveWrong(nextWrong);
+      }
+    }
+
+    if (currentQuestionIdx < (activeExam.questions.length - 1)) {
+      setCurrentQuestionIdx((p) => p + 1);
+    } else {
+      setShowConfirmSubmit(true);
+    }
+  };
+
+  const handleSelectAnswer = (questionId: string, answerValue: string, isMCQ: boolean = false) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: answerValue
     }));
+
+    if (isMCQ) {
+      if (autoAdvanceTimerRef.current) {
+        clearTimeout(autoAdvanceTimerRef.current);
+      }
+      autoAdvanceTimerRef.current = setTimeout(() => {
+        handleNextQuestion();
+      }, 350);
+    }
   };
 
   const toggleFlagQuestion = (questionId: string) => {
@@ -487,70 +562,70 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
             }`}
             style={{ boxShadow: isLowTime ? '0 4px 20px rgba(239,68,68,0.20)' : '0 4px 20px rgba(251,191,36,0.20)' }}
           >
-              {/* Decorative shimmer strip */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-1 left-0 right-0 h-0.5 bg-white/40 rounded-full" />
-                <div className="absolute top-0 -left-32 w-64 h-full bg-white/10 rotate-12 blur-2xl" />
-                <div className="absolute top-0 right-0 w-48 h-full bg-white/5 -rotate-12 blur-2xl" />
-              </div>
+            {/* Decorative shimmer strip */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-1 left-0 right-0 h-0.5 bg-white/40 rounded-full" />
+              <div className="absolute top-0 -left-32 w-64 h-full bg-white/10 rotate-12 blur-2xl" />
+              <div className="absolute top-0 right-0 w-48 h-full bg-white/5 -rotate-12 blur-2xl" />
+            </div>
 
-              <div className="relative w-full px-5 sm:px-6 py-2.5 flex items-center justify-between gap-4">
+            <div className="relative w-full px-5 sm:px-6 py-2.5 flex items-center justify-between gap-4">
 
-                {/* Left — Exam Title & Badges */}
-                <div className="min-w-0 flex-1 flex flex-col gap-1">
-                  {/* 1st Line: Title */}
-                  <div className="flex items-center">
-                    <span className="text-stone-900 font-black text-xs sm:text-sm md:text-base truncate drop-shadow-xs">
-                      {activeExam.title}
-                    </span>
-                  </div>
-                  {/* 2nd Line: Badges */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-stone-900/15 text-stone-900 border border-stone-900/20 shrink-0 backdrop-blur-xs">
-                      {activeExam.totalMarks || 15} Marks
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold bg-white/50 text-stone-800 border border-white/60 shrink-0 backdrop-blur-xs">
-                      {activeExam.board} • {activeExam.classGrade}
-                    </span>
-                  </div>
+              {/* Left — Exam Title & Badges */}
+              <div className="min-w-0 flex-1 flex flex-col gap-1">
+                {/* 1st Line: Title */}
+                <div className="flex items-center">
+                  <span className="text-stone-900 font-black text-xs sm:text-sm md:text-base truncate drop-shadow-xs">
+                    {activeExam.title}
+                  </span>
                 </div>
-
-
-                {/* Right — Timer + Submit */}
-                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                  {/* Timer */}
-                  <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border font-mono font-black text-sm sm:text-base transition-all duration-300 ${isLowTime
-                    ? 'bg-white text-rose-600 border-white animate-pulse shadow-md'
-                    : timeRemainingSeconds < 600
-                      ? 'bg-amber-600/30 border-amber-700/40 text-stone-900'
-                      : 'bg-white/40 border-white/60 text-stone-900 backdrop-blur-xs'
-                    }`}>
-                    <Clock className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLowTime ? 'text-rose-500' : 'text-stone-800'}`} />
-                    <span>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
-                  </div>
-
-                  {/* Submit Button */}
-                  <button
-                    id="finish-exam-btn"
-                    onClick={() => setShowConfirmSubmit(true)}
-                    className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-yellow-400 text-xs sm:text-sm font-bold shadow-md shadow-stone-900/20 transition-all duration-150 border border-stone-800"
-                  >
-                    Submit
-                  </button>
+                {/* 2nd Line: Badges */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-stone-900/15 text-stone-900 border border-stone-900/20 shrink-0 backdrop-blur-xs">
+                    {activeExam.totalMarks || 15} Marks
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold bg-white/50 text-stone-800 border border-white/60 shrink-0 backdrop-blur-xs">
+                    {activeExam.board} • {activeExam.classGrade}
+                  </span>
                 </div>
               </div>
 
-              {/* Progress Bar — aligned with content, narrow pill */}
-              <div className="w-full px-4 pb-2 pt-0.5 flex justify-center">
-                <div className="w-24 h-1.5 bg-stone-900/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-yellow-200 rounded-full transition-all duration-700 shadow-2xs"
-                    style={{ width: `${progressPct}%` }}
-                  />
+
+              {/* Right — Timer + Submit */}
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                {/* Timer */}
+                <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border font-mono font-black text-sm sm:text-base transition-all duration-300 ${isLowTime
+                  ? 'bg-white text-rose-600 border-white animate-pulse shadow-md'
+                  : timeRemainingSeconds < 600
+                    ? 'bg-amber-600/30 border-amber-700/40 text-stone-900'
+                    : 'bg-white/40 border-white/60 text-stone-900 backdrop-blur-xs'
+                  }`}>
+                  <Clock className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLowTime ? 'text-rose-500' : 'text-stone-800'}`} />
+                  <span>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
                 </div>
+
+                {/* Submit Button */}
+                <button
+                  id="finish-exam-btn"
+                  onClick={() => setShowConfirmSubmit(true)}
+                  className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-yellow-400 text-xs sm:text-sm font-bold shadow-md shadow-stone-900/20 transition-all duration-150 border border-stone-800"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
+            {/* Progress Bar — aligned with content, narrow pill */}
+            <div className="w-full px-4 pb-2 pt-0.5 flex justify-center">
+              <div className="w-24 h-1.5 bg-stone-900/20 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-yellow-200 rounded-full transition-all duration-700 shadow-2xs"
+                  style={{ width: `${progressPct}%` }}
+                />
               </div>
             </div>
           </div>
+        </div>
 
         {/* ═══════════════ BODY ═══════════════ */}
         <div className="max-w-6xl mx-auto px-4 py-3 pb-12">
@@ -672,9 +747,9 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                           <label
                             key={oIdx}
                             id={`question-${currentQuestionIdx}-opt-${oIdx}`}
-                            onClick={() => handleSelectAnswer(currentQ.id, letter)}
+                            onClick={() => handleSelectAnswer(currentQ.id, letter, true)}
                             className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] ${isSelected
-                              ? 'bg-yellow-50 border-yellow-400 shadow-sm shadow-yellow-100'
+                              ? 'bg-yellow-50 border-yellow-400 shadow-sm shadow-yellow-100 ring-2 ring-yellow-400/40'
                               : 'bg-white border-stone-150 hover:border-stone-300 hover:bg-stone-50/50'
                               }`}
                           >
@@ -695,7 +770,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                   )}
 
                   {/* SAQ */}
-                  {currentQ.type === 'saq' && (
+                  {(currentQ.type === 'saq' || (!currentQ.options || currentQ.options.length === 0) && currentQ.type !== 'numerical' && currentQ.type !== 'objective') && (
                     <div className="space-y-2">
                       <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wider">
                         Your Answer <span className="text-amber-500">(Short Answer — {currentQ.marks || 2} Marks)</span>
@@ -752,15 +827,12 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
 
                 {/* Navigation Footer */}
                 <div className="flex items-center justify-between px-5 py-4 bg-stone-50 border-t border-stone-100">
-                  <button
-                    id="prev-question-btn"
-                    disabled={currentQuestionIdx === 0}
-                    onClick={() => setCurrentQuestionIdx((p) => Math.max(0, p - 1))}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border-2 border-stone-200 text-sm font-semibold text-stone-700 hover:bg-white hover:border-stone-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Previous
-                  </button>
+                  {/* Forward-Only Indicator instead of Previous Button */}
+                  <div className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-stone-200/60 border border-stone-200 text-xs font-semibold text-stone-600 select-none">
+                    <Lock className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+                    <span className="hidden sm:inline">Strict Mock Drill • Forward Only</span>
+                    <span className="sm:hidden">Forward Only</span>
+                  </div>
 
                   {/* Centre progress text */}
                   <div className="hidden sm:flex flex-col items-center">
@@ -783,61 +855,10 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                   {currentQuestionIdx < totalQuestions - 1 ? (
                     <button
                       id="next-question-btn"
-                      onClick={() => {
-                        if (!activeExam) return;
-                        const currentQ = activeExam.questions[currentQuestionIdx];
-                        const userAns = (answers[currentQ.id] || '').trim();
-
-                        if (userAns) {
-                          // Answered — track consecutive correct streak; reset wrong streak
-                          const nextCorrect = consecutiveCorrect + 1;
-                          setConsecutiveWrong(0);
-                          if (nextCorrect >= 2) {
-                            if (adaptiveDifficulty === 'simple') {
-                              setAdaptiveDifficulty('medium');
-                              setAdaptiveNotification({
-                                type: 'up',
-                                message: '🚀 2 consecutive correct answers! Escalating difficulty to MEDIUM level.',
-                              });
-                            } else if (adaptiveDifficulty === 'medium') {
-                              setAdaptiveDifficulty('hard');
-                              setAdaptiveNotification({
-                                type: 'up',
-                                message: '🔥 Great mastery! Escalating difficulty to HARD level.',
-                              });
-                            }
-                            setConsecutiveCorrect(0);
-                          } else {
-                            setConsecutiveCorrect(nextCorrect);
-                          }
-                        } else {
-                          // Skipped / unanswered — track consecutive wrong streak; reset correct streak
-                          const nextWrong = consecutiveWrong + 1;
-                          setConsecutiveCorrect(0);
-                          if (nextWrong >= 2) {
-                            if (adaptiveDifficulty === 'hard') {
-                              setAdaptiveDifficulty('medium');
-                              setAdaptiveNotification({
-                                type: 'down',
-                                message: '📉 2 consecutive unanswered questions. Adjusting to MEDIUM difficulty.',
-                              });
-                            } else if (adaptiveDifficulty === 'medium') {
-                              setAdaptiveDifficulty('simple');
-                              setAdaptiveNotification({
-                                type: 'down',
-                                message: '📉 Difficulty adjusted to EASY level. Keep going!',
-                              });
-                            }
-                            setConsecutiveWrong(0);
-                          } else {
-                            setConsecutiveWrong(nextWrong);
-                          }
-                        }
-                        setCurrentQuestionIdx((p) => Math.min(totalQuestions - 1, p + 1));
-                      }}
+                      onClick={handleNextQuestion}
                       className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-700 active:scale-95 text-white text-sm font-bold shadow-sm transition-all"
                     >
-                      Next
+                      {currentQ.type === 'mcq' || currentQ.type === 'logical' ? 'Next' : 'Lock & Next'}
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   ) : (
@@ -847,7 +868,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                       className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-300 hover:to-amber-300 active:scale-95 text-stone-900 text-sm font-bold shadow-sm shadow-yellow-200 transition-all"
                     >
                       <CheckCircle2 className="w-4 h-4" />
-                      Submit ({activeExam.totalMarks || 15}M)
+                      Submit
                     </button>
                   )}
                 </div>
@@ -911,29 +932,47 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
 
               {/* Question Palette */}
               <div className="bg-white rounded-2xl border border-stone-200/80 shadow-sm p-4">
-                <h3 className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-3">Question Palette</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-[11px] font-bold text-stone-400 uppercase tracking-widest">Question Palette</h3>
+                  <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                    Forward Only
+                  </span>
+                </div>
                 <div className="grid grid-cols-5 gap-1.5">
                   {activeExam.questions.map((q, idx) => {
                     const isCurrent = idx === currentQuestionIdx;
+                    const isPast = idx < currentQuestionIdx;
                     const isAnswered = !!answers[q.id]?.trim();
-                    const isFlagged = !!flaggedQuestions[q.id];
+                    const isFlagged = !isPast && !!flaggedQuestions[q.id];
 
                     return (
                       <button
                         key={q.id}
                         id={`palette-q-${idx + 1}`}
-                        onClick={() => setCurrentQuestionIdx(idx)}
-                        title={`Question ${idx + 1}${isAnswered ? ' (Answered)' : ''}${isFlagged ? ' (Flagged)' : ''}`}
-                        className={`relative h-9 rounded-xl text-xs font-bold flex items-center justify-center transition-all duration-150 hover:scale-105 active:scale-95 ${isCurrent
-                          ? 'bg-stone-900 text-white ring-2 ring-stone-900 ring-offset-1 shadow-md'
-                          : isFlagged
-                            ? 'bg-amber-400 text-amber-950 shadow-sm'
-                            : isAnswered
-                              ? 'bg-emerald-400 text-white shadow-sm'
-                              : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                        disabled={idx !== currentQuestionIdx}
+                        title={
+                          isPast
+                            ? `Question ${idx + 1} (Locked - Already submitted)`
+                            : isCurrent
+                              ? `Question ${idx + 1} (Current Question)`
+                              : `Question ${idx + 1} (Upcoming)`
+                        }
+                        className={`relative h-9 rounded-xl text-xs font-bold flex items-center justify-center transition-all duration-150 ${isCurrent
+                          ? 'bg-stone-900 text-white ring-2 ring-stone-900 ring-offset-1 shadow-md scale-105'
+                          : isPast
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 cursor-not-allowed opacity-90'
+                            : isFlagged
+                              ? 'bg-amber-400 text-amber-950 shadow-sm'
+                              : 'bg-stone-100 text-stone-400 cursor-not-allowed opacity-60'
                           }`}
                       >
-                        {idx + 1}
+                        {isPast ? (
+                          <span className="flex items-center gap-0.5">
+                            ✓{idx + 1}
+                          </span>
+                        ) : (
+                          idx + 1
+                        )}
                         {isFlagged && !isCurrent && (
                           <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
                         )}
@@ -943,14 +982,12 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                 </div>
 
                 {/* Legend */}
-                <div className="mt-3 pt-3 border-t border-stone-100 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] text-stone-500">
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-stone-900 inline-block" />Current</span>
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-400 inline-block" />Answered</span>
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-stone-100 inline-block border border-stone-200" />Pending</span>
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-400 inline-block" />Flagged</span>
+                <div className="mt-3 pt-3 border-t border-stone-100 grid grid-cols-3 gap-x-2 gap-y-1.5 text-[10px] text-stone-500 font-medium">
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-stone-900 inline-block" />Current</span>
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-emerald-200 border border-emerald-400 inline-block" />Locked</span>
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-stone-100 border border-stone-200 inline-block" />Upcoming</span>
                 </div>
               </div>
-
 
             </div>
           </div>

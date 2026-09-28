@@ -23,6 +23,7 @@ import {
   Star,
   Smile,
   Loader2,
+  Lock,
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
 
@@ -74,6 +75,15 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [generationStep, setGenerationStep] = useState('');
+  const autoAdvanceTimerRef = React.useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimerRef.current) {
+        clearTimeout(autoAdvanceTimerRef.current);
+      }
+    };
+  }, []);
 
   const [assignedExam, setAssignedExam] = useState<any>(null);
 
@@ -167,11 +177,29 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
     }
   };
 
-  const handleSelectAnswer = (questionId: string, answerValue: string) => {
+  const handleNextQuestion = () => {
+    if (!activeExam) return;
+    if (currentQuestionIdx < activeExam.questions.length - 1) {
+      setCurrentQuestionIdx((p) => p + 1);
+    } else {
+      setShowConfirmSubmit(true);
+    }
+  };
+
+  const handleSelectAnswer = (questionId: string, answerValue: string, isMCQ: boolean = false) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: answerValue
     }));
+
+    if (isMCQ) {
+      if (autoAdvanceTimerRef.current) {
+        clearTimeout(autoAdvanceTimerRef.current);
+      }
+      autoAdvanceTimerRef.current = setTimeout(() => {
+        handleNextQuestion();
+      }, 350);
+    }
   };
 
   const toggleFlagQuestion = (questionId: string) => {
@@ -371,7 +399,7 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
                       return (
                         <label
                           key={oIdx}
-                          onClick={() => handleSelectAnswer(currentQ.id, letter)}
+                          onClick={() => handleSelectAnswer(currentQ.id, letter, true)}
                           className={`flex items-center gap-3 p-2.5 sm:p-3 rounded-xl border-2 cursor-pointer transition-all hover:-translate-y-0.5 ${isSelected
                             ? 'bg-emerald-100 border-emerald-400 shadow-xs text-emerald-950 font-black'
                             : 'bg-white border-stone-200 hover:border-sky-300 text-stone-700'
@@ -403,7 +431,7 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
                   </div>
                 )}
 
-                {currentQ.type === 'objective' && (
+                {(currentQ.type === 'objective' || currentQ.type === 'saq' || (!currentQ.options || currentQ.options.length === 0) && currentQ.type !== 'numerical') && (
                   <div className="space-y-2">
                     <label className="block text-xs font-black text-sky-700">
                       Type your answer here:
@@ -421,21 +449,17 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
 
               {/* Navigation Footer Controls */}
               <div className="flex items-center justify-between mt-4 pt-3 border-t border-sky-100">
-                <button
-                  disabled={currentQuestionIdx === 0}
-                  onClick={() => setCurrentQuestionIdx((p) => Math.max(0, p - 1))}
-                  className="flex items-center gap-1 px-4 py-1.5 rounded-full border border-sky-300 text-xs sm:text-sm font-black text-sky-700 hover:bg-sky-50 hover:scale-105 disabled:opacity-40 disabled:hover:scale-100 transition-all cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  Back
-                </button>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-stone-100 border border-stone-200 text-xs font-bold text-stone-600 select-none">
+                  <Lock className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+                  <span>Forward Only</span>
+                </div>
 
                 {currentQuestionIdx < totalQuestions - 1 ? (
                   <button
-                    onClick={() => setCurrentQuestionIdx((p) => Math.min(totalQuestions - 1, p + 1))}
+                    onClick={handleNextQuestion}
                     className="flex items-center gap-1 px-5 py-1.5 rounded-full bg-sky-500 hover:bg-sky-600 border border-sky-600 text-white text-xs sm:text-sm font-black shadow-sm hover:scale-105 transition-all cursor-pointer"
                   >
-                    Next
+                    {currentQ.type === 'mcq' || currentQ.type === 'logical' ? 'Next' : 'Lock & Next'}
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 ) : (
@@ -461,25 +485,39 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
               <div className="grid grid-cols-2 gap-2 mb-1">
                 {activeExam.questions.map((q, idx) => {
                   const isCurrent = idx === currentQuestionIdx;
+                  const isPast = idx < currentQuestionIdx;
                   const isAnswered = !!answers[q.id]?.trim();
-                  const isFlagged = !!flaggedQuestions[q.id];
+                  const isFlagged = !isPast && !!flaggedQuestions[q.id];
 
-                  let btnBg = 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100';
-                  if (isAnswered) btnBg = 'bg-emerald-400 border-emerald-500 text-white font-black shadow-xs';
+                  let btnBg = 'bg-stone-50 border-stone-200 text-stone-400 cursor-not-allowed opacity-60';
+                  if (isPast) btnBg = 'bg-emerald-100 border-emerald-300 text-emerald-800 font-black cursor-not-allowed opacity-90';
                   if (isFlagged) btnBg = 'bg-amber-300 border-amber-400 text-amber-900 font-black shadow-xs';
                   if (isCurrent) btnBg = 'bg-yellow-400 border-yellow-500 text-yellow-950 font-black scale-105 shadow-xs';
 
                   return (
                     <button
                       key={q.id}
-                      onClick={() => setCurrentQuestionIdx(idx)}
-                      className={`h-8 sm:h-9 rounded-lg border text-sm font-black flex items-center justify-center transition-all relative cursor-pointer ${btnBg}`}
+                      disabled={idx !== currentQuestionIdx}
+                      title={
+                        isPast
+                          ? `Question ${idx + 1} (Locked - Completed)`
+                          : isCurrent
+                            ? `Question ${idx + 1} (Current)`
+                            : `Question ${idx + 1} (Upcoming)`
+                      }
+                      className={`h-8 sm:h-9 rounded-lg border text-sm font-black flex items-center justify-center transition-all relative ${btnBg}`}
                     >
-                      {idx + 1}
-                      {isFlagged && (
+                      {isPast ? (
+                        <span className="flex items-center gap-0.5">
+                          ✓{idx + 1}
+                        </span>
+                      ) : (
+                        idx + 1
+                      )}
+                      {isFlagged && !isCurrent && (
                         <span className="absolute -top-1 -right-1 text-[10px] drop-shadow-xs">🚩</span>
                       )}
-                      {isAnswered && !isCurrent && !isFlagged && (
+                      {isPast && (
                         <span className="absolute -top-1 -right-1 text-[10px] drop-shadow-xs">⭐</span>
                       )}
                     </button>

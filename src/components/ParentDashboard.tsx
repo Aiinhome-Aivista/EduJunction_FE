@@ -34,7 +34,8 @@ import {
   Gamepad2,
   Clock,
   Target,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from 'lucide-react';
 import {
   AreaChart,
@@ -82,6 +83,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const navigate = useNavigate();
   const [selectedChildForEdit, setSelectedChildForEdit] = useState<ChildAccount | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<ChildAccount>>({});
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [dynamicClasses, setDynamicClasses] = useState<string[]>(ALL_GRADES);
   const [dynamicBoards, setDynamicBoards] = useState<string[]>(BOARDS);
   const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month'>('day');
@@ -614,7 +616,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
 
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedChildForEdit) return;
+    if (!selectedChildForEdit || isSavingEdit) return;
+    setIsSavingEdit(true);
     try {
       await ApiServices.updateChild(selectedChildForEdit.id, editFormData);
     } catch (err) {
@@ -630,8 +633,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       schoolEmail: editFormData.schoolEmail,
     };
     if (onUpdateChild) {
-      onUpdateChild(updated);
+      try {
+        await onUpdateChild(updated);
+      } catch (e) {
+        console.warn('onUpdateChild error:', e);
+      }
     }
+    setIsSavingEdit(false);
     setSelectedChildForEdit(null);
   };
 
@@ -1194,16 +1202,25 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-stone-100">
                 <button
                   type="button"
+                  disabled={isSavingEdit}
                   onClick={() => setSelectedChildForEdit(null)}
-                  className="px-3 py-1.5 rounded-lg border border-stone-200 text-xs font-semibold text-stone-600 hover:bg-stone-50"
+                  className="px-3 py-1.5 rounded-lg border border-stone-200 text-xs font-semibold text-stone-600 hover:bg-stone-50 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-yellow-400 text-stone-900 text-xs font-semibold hover:bg-yellow-700 shadow-xs"
+                  disabled={isSavingEdit}
+                  className="px-4 py-1.5 rounded-lg bg-yellow-400 text-stone-900 text-xs font-semibold hover:bg-yellow-500 shadow-xs flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                 >
-                  Save Changes
+                  {isSavingEdit ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Changes...</span>
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </button>
               </div>
             </form>

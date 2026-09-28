@@ -572,7 +572,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
       if (cleanPhone) {
         try {
           localStorage.setItem('user_phone', cleanPhone);
-        } catch {}
+        } catch { }
       }
 
       setSuccessMessage(
@@ -973,9 +973,8 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                     if (phoneError) setPhoneError(null);
                   }}
                   placeholder="Enter 10-digit mobile number"
-                  className={`w-full pl-16 pr-3 py-2 text-sm font-bold text-stone-900 bg-white border ${
-                    phoneError ? 'border-rose-400 focus:ring-rose-400' : 'border-stone-300 focus:ring-amber-500'
-                  } rounded-lg focus:outline-none focus:ring-2`}
+                  className={`w-full pl-16 pr-3 py-2 text-sm font-bold text-stone-900 bg-white border ${phoneError ? 'border-rose-400 focus:ring-rose-400' : 'border-stone-300 focus:ring-amber-500'
+                    } rounded-lg focus:outline-none focus:ring-2`}
                 />
               </div>
               {phoneError ? (
@@ -1071,7 +1070,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
             {isLoadingSubs ? (
               <div className="py-8 flex items-center justify-center text-stone-400 gap-2 text-xs">
                 <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
-                <span>Loading your passes...</span>
+                <span>Loading your papers...</span>
               </div>
             ) : activeSubscriptions.length === 0 ? (
               <div className="py-8 text-center text-stone-400 space-y-1.5">
