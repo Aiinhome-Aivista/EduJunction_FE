@@ -25,10 +25,10 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
         <div>
           <div className="text-white text-xs font-black uppercase tracking-wider">Platform</div>
           <div className="mt-3 space-y-2 text-xs">
-            <a href="/#features" className="block hover:text-white transition-colors">Features</a>
-            <a href="/#how-it-works" className="block hover:text-white transition-colors">How It Works</a>
-            <a href="/#roles" className="block hover:text-white transition-colors">For Everyone</a>
-            <a href="/#demo" className="block hover:text-white transition-colors">Demo</a>
+            <a href="/features" className="block hover:text-white transition-colors">Features</a>
+            <a href="/how-it-works" className="block hover:text-white transition-colors">How It Works</a>
+            <a href="/roles" className="block hover:text-white transition-colors">For Everyone</a>
+            <a href="/demo" className="block hover:text-white transition-colors">Demo</a>
             <Link to="/blog" className="block hover:text-white transition-colors">Blogs</Link>
           </div>
         </div>
