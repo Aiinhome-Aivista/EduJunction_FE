@@ -304,11 +304,28 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     let hasError = false;
     const newFieldErrors: Record<string, string> = {};
 
-    // Validate Username
-    const usernameError = validateUsername(username);
-    if (usernameError) {
-      newFieldErrors.username = usernameError;
-      hasError = true;
+    // Validate Username or Email
+    if (mode === 'login') {
+      const trimmed = username.trim();
+      if (!trimmed) {
+        newFieldErrors.username = 'Please enter your username or email.';
+        hasError = true;
+      } else if (trimmed.includes(' ')) {
+        newFieldErrors.username = 'Username or email cannot contain spaces.';
+        hasError = true;
+      } else if (trimmed.includes('@')) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(trimmed)) {
+          newFieldErrors.username = 'Please enter a valid email address.';
+          hasError = true;
+        }
+      }
+    } else {
+      const usernameError = validateUsername(username);
+      if (usernameError) {
+        newFieldErrors.username = usernameError;
+        hasError = true;
+      }
     }
 
     if (!password) {
@@ -422,7 +439,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
     const trimmed = resetIdentifier.trim();
     if (!trimmed) {
-      setResetFieldErrors({ identifier: 'Please enter your account username.' });
+      setResetFieldErrors({ identifier: 'Please enter your account username or email.' });
       return;
     }
 
@@ -605,7 +622,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               >
                 <div>
                   <label className="block text-xs font-bold text-stone-700 mb-1 ml-1">
-                    Username <span className="text-red-500">*</span>
+                    Username or Email <span className="text-red-500">*</span>
                   </label>
                   <div className="relative group">
                     <User
@@ -619,7 +636,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                         setResetIdentifier(e.target.value);
                         setResetFieldErrors((prev) => ({ ...prev, identifier: undefined }));
                       }}
-                      placeholder="e.g. rahul2026"
+                      placeholder="e.g. rahul2026 or parent@example.com"
                       autoFocus
                       className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${resetFieldErrors.identifier
                         ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
@@ -631,7 +648,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{resetFieldErrors.identifier}</p>
                   )}
                   <p className="text-[11px] text-stone-500 mt-1.5 ml-1">
-                    An OTP will be dispatched to the email linked to this username.
+                    An OTP will be dispatched to the verified email linked to this account.
                   </p>
                 </div>
 
@@ -942,10 +959,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               </div>
             )}
 
-            {/* Username Field (Both Login & Register) */}
+            {/* Username or Email Field (Login & Register) */}
             <div>
               <label className="block text-xs font-bold text-stone-700 mb-1 ml-1">
-                Username <span className="text-red-500">*</span>
+                {mode === 'login' ? 'Username or Email' : 'Username'} <span className="text-red-500">*</span>
               </label>
               <div className="relative group">
                 <User
@@ -960,7 +977,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     setUsername(e.target.value);
                     clearFieldError('username');
                   }}
-                  placeholder="e.g. rahul2026"
+                  placeholder={mode === 'login' ? 'e.g. rahul2026 or parent@example.com' : 'e.g. rahul2026'}
                   className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.username
                     ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
                     : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'

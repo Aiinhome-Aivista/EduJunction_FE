@@ -30,7 +30,8 @@ import {
   PenTool,
   ExternalLink,
   Users,
-  GraduationCap
+  GraduationCap,
+  Phone
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ApiServices from '../services/ApiServices';
@@ -47,6 +48,7 @@ interface SubscriptionPlansProps {
   studentId?: number;
   studentName?: string;
   studentEmail?: string;
+  studentPhone?: string;
   defaultBoard?: string;
   defaultClass?: string;
   childrenList?: any[];
@@ -149,6 +151,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   studentId,
   studentName = 'Student',
   studentEmail = 'student@edujunction.com',
+  studentPhone,
   defaultBoard = 'CBSE',
   defaultClass = 'Class 10',
   childrenList: propChildrenList,
@@ -162,6 +165,19 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   const [selectedClass, setSelectedClass] = useState<string>(defaultClass);
   const [selectedSubject, setSelectedSubject] = useState<string>('Mathematics');
   const [quantity, setQuantity] = useState<number>(1);
+
+  // Mobile number state for explicit payment input (No cache dependency)
+  const [contactPhone, setContactPhone] = useState<string>(() => {
+    return (
+      studentPhone ||
+      localStorage.getItem('user_phone') ||
+      sessionStorage.getItem('user_phone') ||
+      localStorage.getItem('user_mobile') ||
+      sessionStorage.getItem('user_mobile') ||
+      ''
+    ).trim();
+  });
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // Child selector & User Role state
   const isParent = propIsParent !== undefined
@@ -446,9 +462,17 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
 
   const handleSubscribeNow = async () => {
     try {
-      setIsLoadingOrder(true);
       setErrorMessage(null);
       setSuccessMessage(null);
+
+      const cleanPhone = contactPhone.replace(/\D/g, '');
+      if (!cleanPhone || cleanPhone.length !== 10) {
+        setPhoneError('Please enter a valid 10-digit mobile number');
+        setErrorMessage('Please enter a valid 10-digit mobile number before proceeding to payment.');
+        return;
+      }
+      setPhoneError(null);
+      setIsLoadingOrder(true);
 
       const effectiveStudentId = selectedChildId || studentId;
 
@@ -459,6 +483,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
         studentId: effectiveStudentId,
         planId: activePlan?.id,
         quantity: quantity,
+        contactPhone: cleanPhone,
       });
 
       const keyId = orderData.keyId || '';
@@ -477,7 +502,13 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
           prefill: {
             name: studentName,
             email: studentEmail,
+            contact: cleanPhone,
           },
+          readonly: {
+            contact: true,
+          },
+          remember_customer: false,
+          send_sms_hash: false,
           theme: {
             color: '#f59e0b',
           },
@@ -486,7 +517,8 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               response.razorpay_order_id || orderData.orderId,
               response.razorpay_payment_id || `pay_${Date.now()}`,
               response.razorpay_signature || 'verified_official',
-              orderData.subscriptionId
+              orderData.subscriptionId,
+              cleanPhone
             );
           },
           modal: {
@@ -514,10 +546,12 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
     orderId: string,
     paymentId: string,
     signature: string,
-    subscriptionId?: string | number
+    subscriptionId?: string | number,
+    phoneToSave?: string
   ) => {
     try {
       const effectiveStudentId = selectedChildId || studentId;
+      const cleanPhone = (phoneToSave || contactPhone || '').replace(/\D/g, '');
       const verifyRes = await ApiServices.verifySubjectSubscriptionPayment({
         orderId,
         paymentId,
@@ -528,10 +562,17 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
         subject: selectedSubject,
         studentId: effectiveStudentId,
         quantity: quantity,
+        contactPhone: cleanPhone || undefined,
       });
 
       const assignedChildName = childrenList.find(c => c.id === effectiveStudentId)?.name;
       const assignText = assignedChildName ? ` for ${assignedChildName}` : '';
+
+      if (cleanPhone) {
+        try {
+          localStorage.setItem('user_phone', cleanPhone);
+        } catch {}
+      }
 
       setSuccessMessage(
         verifyRes.message || `🎉 Payment Verified! ${quantity} Full-Length Model Test Paper set${quantity > 1 ? 's' : ''}${assignText} (${selectedBoard} ${selectedClass} ${selectedSubject}) ${quantity > 1 ? 'are' : 'is'} now UNLOCKED.`
@@ -906,6 +947,45 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 </div>
                 <div className="text-[10px] text-stone-500 font-semibold">Per Exam Paper</div>
               </div>
+            </div>
+
+            {/* Explicit Mobile Number Field for Payment */}
+            <div className="bg-white/90 p-3.5 rounded-xl border border-amber-200/90 shadow-2xs space-y-1.5">
+              <label className="block text-xs font-bold text-stone-800 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-amber-600" />
+                  Mobile Number (for Payment & Receipt) <span className="text-rose-500">*</span>
+                </span>
+                <span className="text-[10px] text-stone-400 font-semibold">10-Digit Mobile</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-xs font-bold text-stone-600 border-r border-stone-300 pr-2">🇮🇳 +91</span>
+                </div>
+                <input
+                  type="tel"
+                  maxLength={10}
+                  value={contactPhone}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setContactPhone(val);
+                    if (phoneError) setPhoneError(null);
+                  }}
+                  placeholder="Enter 10-digit mobile number"
+                  className={`w-full pl-16 pr-3 py-2 text-sm font-bold text-stone-900 bg-white border ${
+                    phoneError ? 'border-rose-400 focus:ring-rose-400' : 'border-stone-300 focus:ring-amber-500'
+                  } rounded-lg focus:outline-none focus:ring-2`}
+                />
+              </div>
+              {phoneError ? (
+                <p className="text-[11px] font-bold text-rose-600 flex items-center gap-1">
+                  ⚠️ {phoneError}
+                </p>
+              ) : (
+                <p className="text-[10px] text-stone-500 font-medium">
+                  We will send the Razorpay OTP & official PDF activation confirmation to this number.
+                </p>
+              )}
             </div>
 
             <button

@@ -505,6 +505,7 @@ class ApiServices {
     studentId?: number;
     planId?: number;
     quantity?: number;
+    contactPhone?: string;
   }) {
     return this.post(POST_APIS.createSubjectSubscriptionOrder, payload);
   }
@@ -518,6 +519,7 @@ class ApiServices {
     subject: string;
     studentId?: number;
     quantity?: number;
+    contactPhone?: string;
   }) {
     return this.post(POST_APIS.verifySubjectSubscriptionPayment, payload);
   }

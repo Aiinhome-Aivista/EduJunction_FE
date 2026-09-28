@@ -25,7 +25,8 @@ import {
   DollarSign,
   TrendingUp,
   FileText,
-  Calendar
+  Calendar,
+  Phone
 } from 'lucide-react';
 import ApiServices from '../../services/ApiServices';
 
@@ -52,6 +53,7 @@ export interface TransactionItem {
   userId: number;
   parentName: string;
   parentEmail: string;
+  contactPhone?: string;
   studentId?: number | null;
   studentName: string;
   board: string;
@@ -626,6 +628,12 @@ export const SubscriptionAdminManager: React.FC = () => {
                         <td className="py-4 px-4">
                           <div className="font-bold text-stone-900">{tx.studentName}</div>
                           <div className="text-[11px] text-stone-500">{tx.parentName} ({tx.parentEmail})</div>
+                          {tx.contactPhone && (
+                            <div className="text-[11px] font-semibold text-amber-900 flex items-center gap-1 mt-0.5">
+                              <Phone className="w-3 h-3 text-amber-600" />
+                              <span>+91 {tx.contactPhone}</span>
+                            </div>
+                          )}
                         </td>
 
                         <td className="py-4 px-4">
