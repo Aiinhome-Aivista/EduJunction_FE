@@ -163,9 +163,11 @@ export const ModelExamPage: React.FC = () => {
     };
   }, [isSubmitting]);
 
+  const isRetakeRequested = searchParams.get('retake') === 'true';
+
   // Restore saved draft answers from localStorage if available
   useEffect(() => {
-    if (!subscriptionId || isViewOnly) return;
+    if (!subscriptionId || isViewOnly || isRetakeRequested) return;
     try {
       const saved = localStorage.getItem(`edujunction_model_exam_${subscriptionId}`);
       if (saved) {
@@ -177,7 +179,7 @@ export const ModelExamPage: React.FC = () => {
     } catch (e) {
       console.warn('Could not restore cached exam progress', e);
     }
-  }, [subscriptionId, isViewOnly]);
+  }, [subscriptionId, isViewOnly, isRetakeRequested]);
 
   // Continuously persist answers to localStorage
   useEffect(() => {
@@ -301,7 +303,16 @@ export const ModelExamPage: React.FC = () => {
           };
           setPaperData(normalized);
 
-          if (data.examStatus === 'COMPLETED' || data.evaluationResult) {
+          if (isRetakeRequested) {
+            setActiveMode('TEST');
+            setEvaluationResult(null);
+            setAnswers({});
+            setDrawnDiagrams({});
+            setElapsedSeconds(0);
+            try {
+              localStorage.removeItem(`edujunction_model_exam_${subscriptionId}`);
+            } catch (e) { }
+          } else if (data.examStatus === 'COMPLETED' || data.evaluationResult) {
             if (data.evaluationResult) {
               setEvaluationResult(data.evaluationResult);
             }
@@ -325,7 +336,7 @@ export const ModelExamPage: React.FC = () => {
     };
 
     loadPaper();
-  }, [subscriptionId]);
+  }, [subscriptionId, isRetakeRequested]);
 
   const totalAllowedSeconds = useMemo(() => {
     if (!paperData?.time_allowed) return 10800;
@@ -446,6 +457,28 @@ export const ModelExamPage: React.FC = () => {
       alert('Failed to evaluate test paper. Please check connection and try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleRetakeExam = () => {
+    if (
+      window.confirm(
+        'Are you sure you want to retake this 80-mark model exam? A fresh 3-hour timer will start and you can re-attempt all questions from scratch.'
+      )
+    ) {
+      setAnswers({});
+      setDrawnDiagrams({});
+      setElapsedSeconds(0);
+      setEvaluationResult(null);
+      setActiveMode('TEST');
+      setSelectedSection('ALL');
+      setSearchQuery('');
+      try {
+        localStorage.removeItem(`edujunction_model_exam_${subscriptionId}`);
+        window.dispatchEvent(new CustomEvent('edujunction_exam_status_update'));
+        localStorage.setItem('edujunction_last_exam_status_sync', Date.now().toString());
+      } catch (e) { }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -719,21 +752,34 @@ export const ModelExamPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Section Breakdown Pills */}
-            <div className="flex flex-wrap items-center gap-2.5 justify-center md:justify-end">
-              {(evaluationResult.sectionBreakdown || []).map((sec, sIdx) => {
-                const sMax = sec.maxMarks ?? sec.targetMaxMarks ?? (sec.questions?.reduce((sum, q) => sum + (q.marks || 1), 0) || 20);
-                const sObtained = sec.marksObtained !== undefined ? sec.marksObtained : 0;
-                return (
-                  <div
-                    key={sec.id || sIdx}
-                    className="px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/10 text-center"
-                  >
-                    <div className="text-[10px] font-bold text-amber-300 uppercase">{sec.name}</div>
-                    <div className="text-sm font-black text-white">{sObtained} / {sMax}</div>
-                  </div>
-                );
-              })}
+            {/* Actions & Section Breakdown Pills */}
+            <div className="flex flex-col md:flex-row items-center gap-4 justify-center md:justify-end">
+              {!isParent && (
+                <button
+                  type="button"
+                  onClick={handleRetakeExam}
+                  className="px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs flex items-center gap-2 transition-all shadow-md shadow-amber-400/20 active:scale-95 cursor-pointer shrink-0 border border-amber-300"
+                >
+                  <RotateCcw className="w-4 h-4 text-stone-950" />
+                  <span>Retake Exam (Practice Again)</span>
+                </button>
+              )}
+
+              <div className="flex flex-wrap items-center gap-2.5 justify-center md:justify-end">
+                {(evaluationResult.sectionBreakdown || []).map((sec, sIdx) => {
+                  const sMax = sec.maxMarks ?? sec.targetMaxMarks ?? (sec.questions?.reduce((sum, q) => sum + (q.marks || 1), 0) || 20);
+                  const sObtained = sec.marksObtained !== undefined ? sec.marksObtained : 0;
+                  return (
+                    <div
+                      key={sec.id || sIdx}
+                      className="px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/10 text-center"
+                    >
+                      <div className="text-[10px] font-bold text-amber-300 uppercase">{sec.name}</div>
+                      <div className="text-sm font-black text-white">{sObtained} / {sMax}</div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

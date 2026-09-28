@@ -31,7 +31,8 @@ import {
   ExternalLink,
   Users,
   GraduationCap,
-  Phone
+  Phone,
+  RotateCcw
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ApiServices from '../services/ApiServices';
@@ -1177,7 +1178,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                         )}
                       </div>
 
-                      {/* Actions: View Question Paper for Parent vs Start Exam for Student */}
+                      {/* Actions: View Question Paper for Parent vs Start/Retake Exam for Student */}
                       <div className="pt-1 border-t border-stone-200/60">
                         {isParent ? (
                           <button
@@ -1193,6 +1194,27 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                             </span>
                             <ExternalLink className="w-3.5 h-3.5 text-stone-950/80 ml-0.5" />
                           </button>
+                        ) : isCompleted ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenViewer(sub)}
+                              className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-stone-950 font-black text-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] cursor-pointer shadow-xs"
+                            >
+                              <PenTool className="w-3.5 h-3.5 text-stone-900" />
+                              <span>Review Solution & Scorecard</span>
+                              <ExternalLink className="w-3 h-3 text-stone-900/80" />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setConfirmExamModalSub({ ...sub, isRetake: true })}
+                              className="py-2.5 px-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-amber-300 hover:text-amber-200 border border-amber-500/40 font-black text-xs flex items-center justify-center gap-1.5 transition-all active:scale-[0.98] cursor-pointer shadow-xs"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                              <span>Retake Exam (Practice Again)</span>
+                            </button>
+                          </div>
                         ) : (
                           <button
                             type="button"
@@ -1201,11 +1223,9 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                           >
                             <PenTool className="w-4 h-4 text-stone-900" />
                             <span>
-                              {isCompleted
-                                ? 'Review Solution & Scorecard'
-                                : isInProgress
-                                  ? 'Resume / Continue 80-Mark Model Exam'
-                                  : 'Start 80-Mark Model Exam'}
+                              {isInProgress
+                                ? 'Resume / Continue 80-Mark Model Exam'
+                                : 'Start 80-Mark Model Exam'}
                             </span>
                             <ExternalLink className="w-3.5 h-3.5 text-stone-900/80 ml-0.5" />
                           </button>
@@ -1468,8 +1488,17 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               </button>
 
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950/15 text-stone-950 text-xs font-black mb-2.5">
-                <Zap className="w-3.5 h-3.5 fill-stone-950" />
-                <span>2027 Specimen Model Examination</span>
+                {confirmExamModalSub.isRetake ? (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5 text-stone-950" />
+                    <span>Retake Examination (Unlimited Practice)</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-3.5 h-3.5 fill-stone-950" />
+                    <span>2027 Specimen Model Examination</span>
+                  </>
+                )}
               </div>
 
               <h3 className="text-xl font-black text-stone-950">
@@ -1502,13 +1531,13 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2.5 text-xs">
                 <div className="font-black text-amber-950 flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
-                  <span>Important Examination Rules:</span>
+                  <span>{confirmExamModalSub.isRetake ? 'Retake Guidelines & Scoring:' : 'Important Examination Rules:'}</span>
                 </div>
                 <ul className="space-y-1.5 text-[11px] text-amber-950/90 font-medium list-disc list-inside leading-relaxed">
-                  <li><strong>Stopwatch Timer:</strong> The 180-minute countdown stopwatch starts immediately when you begin.</li>
-                  <li><strong>Strict No-Exit Environment:</strong> You cannot exit or leave the exam page until you submit your answers.</li>
-                  <li><strong>Auto-Submit on Tab Close:</strong> If you accidentally close or refresh your browser tab, your answers will be auto-submitted and evaluated as-is, and the final report will be sent to your parent.</li>
-                  <li><strong>Model Evaluation:</strong> All subjective step answers and MCQs will be graded with step-by-step model solutions upon submission.</li>
+                  <li><strong>Fresh 180-Minute Stopwatch:</strong> A new countdown timer starts immediately for this practice session.</li>
+                  <li><strong>Unlimited Retakes:</strong> You can practice and retake this paper as many times as you want without any restrictions.</li>
+                  <li><strong>Latest Performance Updated:</strong> Your latest scorecard, detailed diagnostic breakdown, and AI grading will be saved upon submission.</li>
+                  <li><strong>Strict Examination Mode:</strong> Please complete your submission before leaving or closing the tab.</li>
                 </ul>
               </div>
             </div>
@@ -1527,17 +1556,28 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 type="button"
                 onClick={() => {
                   const subId = confirmExamModalSub.id;
+                  const isRetake = Boolean(confirmExamModalSub.isRetake);
                   setConfirmExamModalSub(null);
-                  window.open(`/model-exam/${subId}?mode=exam`, '_blank');
-                  // Re-fetch after starting exam so status updates to Exam In Progress
+                  const targetUrl = `/model-exam/${subId}?mode=exam${isRetake ? '&retake=true' : ''}`;
+                  window.open(targetUrl, '_blank');
+                  // Re-fetch after starting exam so status updates
                   setTimeout(() => {
                     fetchMySubscriptions();
                   }, 1200);
                 }}
                 className="flex-1 py-3 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
               >
-                <Play className="w-4 h-4 fill-stone-950" />
-                <span>Begin 80-Mark Exam Now</span>
+                {confirmExamModalSub.isRetake ? (
+                  <>
+                    <RotateCcw className="w-4 h-4 text-stone-950" />
+                    <span>Begin Retake Examination Now</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 fill-stone-950" />
+                    <span>Begin 80-Mark Exam Now</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
