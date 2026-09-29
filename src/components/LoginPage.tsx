@@ -11,6 +11,9 @@ import {
   Mail,
   Sparkles,
   User,
+  Users,
+  Info,
+  BookOpen,
   X,
   AlertCircle,
   RefreshCw,
@@ -20,6 +23,7 @@ import {
 } from 'lucide-react';
 import ApiServices, {
   storeTokens,
+  clearTokens,
   decodeTokenPayload,
 } from '../services/ApiServices';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -37,6 +41,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onClose,
   initialMode = 'login',
 }) => {
+  const [selectedPersona, setSelectedPersona] = useState<'parent' | 'student'>('parent');
   const [mode, setMode] = useState<'login' | 'register' | 'forgot-password'>(initialMode);
 
   // Form Fields
@@ -153,18 +158,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           result.tokens?.refreshToken ||
           result.tokens?.refresh_token;
 
-        if (accessToken && refreshToken) {
-          storeTokens({ accessToken, refreshToken });
-        } else if (accessToken) {
-          storeTokens(accessToken);
-        }
-
         const payload = accessToken ? decodeTokenPayload(accessToken) : null;
         const userRole =
           payload?.role ||
           result.user?.role ||
           result.user?.roleName ||
           'Parent';
+
+        const normalizedRole = (userRole || '').toString().toUpperCase();
+
+        if (normalizedRole === 'STUDENT') {
+          clearTokens();
+          setErrorMessage('This Google account is registered as a Student. Please switch to the "Student" tab and sign in using your student credentials.');
+          return;
+        }
+
+        if (accessToken && refreshToken) {
+          storeTokens({ accessToken, refreshToken });
+        } else if (accessToken) {
+          storeTokens(accessToken);
+        }
 
         onAuthenticated(userRole);
       } catch (error: any) {
@@ -282,6 +295,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     if (/[^A-Za-z0-9]/.test(password)) score++;
     return score;
   })();
+
+  const handlePersonaChange = (persona: 'parent' | 'student') => {
+    setSelectedPersona(persona);
+    setErrorMessage(null);
+    setFieldErrors({});
+    if (persona === 'student' && mode === 'register') {
+      setMode('login');
+    }
+  };
 
   const handleModeChange = (nextMode: 'login' | 'register') => {
     setMode(nextMode);
@@ -402,18 +424,37 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       const refreshToken =
         result.refreshToken || result.tokens?.refreshToken;
 
-      if (accessToken && refreshToken) {
-        storeTokens({ accessToken, refreshToken });
-      } else {
-        console.warn('Login successful but no tokens found in response:', result);
-      }
-
       const payload = accessToken ? decodeTokenPayload(accessToken) : null;
       const userRole =
         payload?.role ||
         result.user?.role ||
         result.user?.roleName ||
         'Parent';
+
+      const normalizedRole = (userRole || '').toString().toUpperCase();
+
+      // Strict Persona / Role Validation
+      if (mode === 'login') {
+        if (selectedPersona === 'parent' && normalizedRole === 'STUDENT') {
+          clearTokens();
+          fetchCaptcha();
+          setErrorMessage('This account is registered as a Student. Please select the "Student" tab above to sign in.');
+          return;
+        }
+
+        if (selectedPersona === 'student' && normalizedRole !== 'STUDENT') {
+          clearTokens();
+          fetchCaptcha();
+          setErrorMessage('This account is registered as a Parent. Please select the "Parent" tab above to sign in.');
+          return;
+        }
+      }
+
+      if (accessToken && refreshToken) {
+        storeTokens({ accessToken, refreshToken });
+      } else {
+        console.warn('Login successful but no tokens found in response:', result);
+      }
 
       onAuthenticated(userRole);
     } catch (error: any) {
@@ -540,29 +581,69 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </button>
         </div>
 
+        {/* Persona Switcher Tabs */}
+        {mode !== 'forgot-password' && (
+          <div className="mb-4">
+            <div className="text-[11px] font-extrabold uppercase tracking-wider text-stone-400 mb-1.5 px-0.5">
+              Select Account Type
+            </div>
+            <div className="grid grid-cols-2 p-1 bg-stone-100 rounded-2xl border border-stone-200/80 gap-1.5">
+              <button
+                type="button"
+                onClick={() => handlePersonaChange('parent')}
+                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedPersona === 'parent'
+                    ? 'bg-white text-stone-900 shadow-md shadow-stone-200/60 border border-yellow-300'
+                    : 'text-stone-500 hover:text-stone-800 hover:bg-white/40'
+                }`}
+              >
+                <Users size={16} className={selectedPersona === 'parent' ? 'text-yellow-600' : 'text-stone-400'} />
+                <span>Parent</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handlePersonaChange('student')}
+                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  selectedPersona === 'student'
+                    ? 'bg-white text-stone-900 shadow-md shadow-stone-200/60 border border-yellow-300'
+                    : 'text-stone-500 hover:text-stone-800 hover:bg-white/40'
+                }`}
+              >
+                <GraduationCap size={16} className={selectedPersona === 'student' ? 'text-yellow-600' : 'text-stone-400'} />
+                <span>Student</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="mb-4">
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-stone-900 mb-2">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900 mb-1.5">
             {mode === 'forgot-password'
               ? resetStep === 'VERIFY_OTP'
                 ? 'Verify OTP'
                 : 'Reset Password'
-              : mode === 'login'
-                ? 'Welcome back'
-                : 'Create an account'}
+              : selectedPersona === 'student'
+                ? 'Student Sign In'
+                : mode === 'login'
+                  ? 'Parent Login'
+                  : 'Create Parent Account'}
           </h2>
-          <p className="text-stone-500 font-medium text-sm sm:text-base leading-relaxed">
+          <p className="text-stone-500 font-medium text-xs sm:text-sm leading-relaxed">
             {mode === 'forgot-password'
               ? resetStep === 'VERIFY_OTP'
                 ? 'Enter the 6-digit verification code and your new password.'
                 : 'Enter your account username to receive a verification OTP.'
-              : mode === 'login'
-                ? 'Sign in with your username & password to access your dashboard.'
-                : 'Register as a Parent to track assessments and empower your kids.'}
+              : selectedPersona === 'student'
+                ? 'Sign in with your student credentials to practice tests & chat with Study Buddy.'
+                : mode === 'login'
+                  ? 'Sign in to track your child\'s learning, diagnostic dossiers & tests.'
+                  : 'Register as a Parent to track assessments and empower your kids.'}
           </p>
         </div>
 
-        {/* Mode Switcher */}
-        {mode !== 'forgot-password' && (
+        {/* Mode Switcher (Parent Only) */}
+        {mode !== 'forgot-password' && selectedPersona === 'parent' && (
           <div className="flex p-1 bg-stone-200/60 rounded-xl mb-4">
             <button
               type="button"
@@ -884,48 +965,50 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           /* Form */
           <form onSubmit={handleSubmit} className="space-y-3" noValidate>
 
-            {/* Google Button available for both Sign In and Sign Up */}
-            <>
-              <button
-                type="button"
-                onClick={handleGoogleClick}
-                disabled={isSubmitting || isGoogleSubmitting}
-                className="w-full h-11 flex items-center justify-center gap-3 bg-white border-2 border-stone-200 hover:border-yellow-300 hover:bg-stone-50 text-stone-700 text-sm font-bold rounded-xl transition-all shadow-sm active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isGoogleSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-yellow-600" />
-                ) : (
-                  <svg viewBox="0 0 24 24" className="w-4 h-4">
-                    <path
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      fill="#4285F4"
-                    />
-                    <path
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      fill="#34A853"
-                    />
-                    <path
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      fill="#FBBC05"
-                    />
-                    <path
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      fill="#EA4335"
-                    />
-                  </svg>
-                )}
-                {isGoogleSubmitting ? 'Connecting with Google...' : 'Continue with Google'}
-              </button>
+            {/* Google Button available for Parent */}
+            {selectedPersona === 'parent' && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleGoogleClick}
+                  disabled={isSubmitting || isGoogleSubmitting}
+                  className="w-full h-11 flex items-center justify-center gap-3 bg-white border-2 border-stone-200 hover:border-yellow-300 hover:bg-stone-50 text-stone-700 text-sm font-bold rounded-xl transition-all shadow-sm active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isGoogleSubmitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-yellow-600" />
+                  ) : (
+                    <svg viewBox="0 0 24 24" className="w-4 h-4">
+                      <path
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        fill="#4285F4"
+                      />
+                      <path
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        fill="#34A853"
+                      />
+                      <path
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        fill="#FBBC05"
+                      />
+                      <path
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        fill="#EA4335"
+                      />
+                    </svg>
+                  )}
+                  {isGoogleSubmitting ? 'Connecting with Google...' : 'Continue with Google'}
+                </button>
 
-              <div className="relative flex items-center justify-center pb-1">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-stone-200"></div>
+                <div className="relative flex items-center justify-center pb-1">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-stone-200"></div>
+                  </div>
+                  <div className="relative bg-white px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider">
+                    {mode === 'register' ? 'Or register with details' : 'Or login with password'}
+                  </div>
                 </div>
-                <div className="relative bg-white px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider">
-                  {mode === 'register' ? 'Or register with details' : 'Or login with password'}
-                </div>
-              </div>
-            </>
+              </>
+            )}
 
             {/* Full Name (Sign Up Only) */}
             {mode === 'register' && (
@@ -962,7 +1045,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             {/* Username or Email Field (Login & Register) */}
             <div>
               <label className="block text-xs font-bold text-stone-700 mb-1 ml-1">
-                {mode === 'login' ? 'Username or Email' : 'Username'} <span className="text-red-500">*</span>
+                {selectedPersona === 'student'
+                  ? 'Student Username or ID'
+                  : mode === 'login'
+                    ? 'Parent Username or Email'
+                    : 'Parent Username'} <span className="text-red-500">*</span>
               </label>
               <div className="relative group">
                 <User
@@ -977,7 +1064,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     setUsername(e.target.value);
                     clearFieldError('username');
                   }}
-                  placeholder={mode === 'login' ? 'e.g. rahul2026 or parent@example.com' : 'e.g. rahul2026'}
+                  placeholder={
+                    selectedPersona === 'student'
+                      ? 'e.g. riya001 or student ID'
+                      : mode === 'login'
+                        ? 'e.g. rahul_parent or parent@example.com'
+                        : 'e.g. rahul_parent'
+                  }
                   className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.username
                     ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
                     : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
@@ -1211,11 +1304,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <Loader2 size={18} className="animate-spin text-stone-900" />
               ) : (
                 <>
-                  {mode === 'login' ? 'Log In' : 'Create Parent Account'}
+                  {selectedPersona === 'student'
+                    ? 'Log In as Student'
+                    : mode === 'login'
+                      ? 'Log In as Parent'
+                      : 'Create Parent Account'}
                   <ArrowRight size={18} />
                 </>
               )}
             </button>
+
+            {/* Student Account Notice */}
+            {selectedPersona === 'student' && (
+              <div className="mt-4 p-3 rounded-xl bg-amber-50/80 border border-amber-200/70 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
+                <Info size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold">Student Notice:</span> Student accounts are registered and managed by Parents. If you do not have login credentials, please ask your parent to add you.
+                </div>
+              </div>
+            )}
           </form>
         )}
       </div>
