@@ -402,20 +402,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       const response =
         mode === 'login'
           ? await ApiServices.login({
-              username: username.trim(),
-              password,
-              captchaId: captchaData?.captchaId,
-              captchaAnswer: captchaAnswer.trim(),
-            })
+            username: username.trim(),
+            password,
+            captchaId: captchaData?.captchaId,
+            captchaAnswer: captchaAnswer.trim(),
+          })
           : await ApiServices.register({
-              name: name.trim(),
-              username: username.trim(),
-              email: email.trim(),
-              password,
-              role: 'Parent',
-              captchaId: captchaData?.captchaId,
-              captchaAnswer: captchaAnswer.trim(),
-            });
+            name: name.trim(),
+            username: username.trim(),
+            email: email.trim(),
+            password,
+            role: 'Parent',
+            captchaId: captchaData?.captchaId,
+            captchaAnswer: captchaAnswer.trim(),
+          });
 
       const result = response.data?.data || response.data || response;
 
@@ -591,11 +591,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               <button
                 type="button"
                 onClick={() => handlePersonaChange('parent')}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                  selectedPersona === 'parent'
+                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all cursor-pointer ${selectedPersona === 'parent'
                     ? 'bg-white text-stone-900 shadow-md shadow-stone-200/60 border border-yellow-300'
                     : 'text-stone-500 hover:text-stone-800 hover:bg-white/40'
-                }`}
+                  }`}
               >
                 <Users size={16} className={selectedPersona === 'parent' ? 'text-yellow-600' : 'text-stone-400'} />
                 <span>Parent</span>
@@ -604,11 +603,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               <button
                 type="button"
                 onClick={() => handlePersonaChange('student')}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                  selectedPersona === 'student'
+                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all cursor-pointer ${selectedPersona === 'student'
                     ? 'bg-white text-stone-900 shadow-md shadow-stone-200/60 border border-yellow-300'
                     : 'text-stone-500 hover:text-stone-800 hover:bg-white/40'
-                }`}
+                  }`}
               >
                 <GraduationCap size={16} className={selectedPersona === 'student' ? 'text-yellow-600' : 'text-stone-400'} />
                 <span>Student</span>
@@ -624,7 +622,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 ? 'Verify OTP'
                 : 'Reset Password'
               : selectedPersona === 'student'
-                ? 'Student Sign In'
+                ? 'Student Login'
                 : mode === 'login'
                   ? 'Parent Login'
                   : 'Create Parent Account'}
