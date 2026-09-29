@@ -468,7 +468,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="absolute -top-28 -right-28 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl" />
         <div className="absolute top-40 -left-32 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-4 sm:pb-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
 
@@ -556,15 +556,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         {/* WAVY DIVIDER at bottom of Hero */}
         <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10 translate-y-[99%]">
-          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-12 sm:h-20 fill-yellow-50/50">
-            < path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V0C101.33,26.6,204.66,66.19,321.39,56.44Z"></ path>
+          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-6 sm:h-10 fill-yellow-50/50">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V0C101.33,26.6,204.66,66.19,321.39,56.44Z"></path>
           </svg>
         </div>
       </section>
 
       {/* QUICK VALUE */}
-      <section className="bg-yellow-50/50 relative pt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <section className="bg-yellow-50/50 relative pt-2 sm:pt-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-3">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
               ['📝', 'Assess', 'Find what you know'],
@@ -585,7 +585,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="py-16 bg-stone-50 scroll-mt-36">
+      <section id="features" className="pt-10 pb-4 sm:pb-6 bg-stone-50 scroll-mt-36">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/80 text-yellow-800 text-xs font-bold shadow-sm">
@@ -1079,7 +1079,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* 💎 WHY EDUJUNCTION (EDITORIAL STORY & VALUE NARRATIVE) */}
-      <section id="why-edujunction" className="py-16 sm:py-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-36">
+      <section id="why-edujunction" className="pt-2 sm:pt-4 pb-16 sm:pb-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-36">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-amber-100/30 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-yellow-100/20 rounded-full blur-3xl pointer-events-none" />
 
