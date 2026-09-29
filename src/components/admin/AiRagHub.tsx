@@ -71,6 +71,7 @@ interface GeneratedQuestionItem {
   correct_answer?: string;
   explanation?: string;
   topic_suggested?: string;
+  chapter_name?: string;
   image_url?: string;
   is_duplicate?: boolean;
   source?: string;
@@ -443,16 +444,14 @@ export const AiRagHub: React.FC = () => {
         formData.append('classGrade', selectedGrade);
         formData.append('subject', selectedSubject);
         formData.append('documentType', documentType);
-        if (resolvedTopicId) {
-          formData.append('topicId', String(resolvedTopicId));
-        }
-
         const res = await ApiServices.extractCurriculumPreview(formData);
         const data = res?.data !== undefined ? res.data : res;
 
+        const fileChapterTitle = data?.title || file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
         const questionsList: GeneratedQuestionItem[] = (data?.questions || []).map((q: any) => ({
           ...q,
-          source_file: file.name
+          source_file: file.name,
+          chapter_name: q.chapter_title || fileChapterTitle
         }));
         const newCount = data?.new_questions_count || questionsList.filter(q => !q.is_duplicate).length;
         const dupeCount = data?.duplicate_questions_count || questionsList.filter(q => q.is_duplicate).length;
@@ -1784,7 +1783,7 @@ export const AiRagHub: React.FC = () => {
                               </span>
                             </div>
                             <span className="text-[10px] text-stone-500 font-medium">
-                              {currentBoard} &gt; {currentClass} &gt; {currentSubject} &gt; {currentChapter} &gt; <strong className="text-stone-700">{topicName}</strong>
+                              {currentBoard} &gt; {currentClass} &gt; {currentSubject} &gt; {group.questions[0]?.chapter_name || currentChapter} &gt; <strong className="text-stone-700">{topicName}</strong>
                             </span>
                           </div>
 
