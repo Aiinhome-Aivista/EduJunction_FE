@@ -22,7 +22,12 @@ import {
   ChevronLeft,
   ChevronRight,
   BookmarkCheck,
-  Network
+  Network,
+  Maximize2,
+  Eye,
+  Lightbulb,
+  AlertTriangle,
+  Compass
 } from 'lucide-react';
 import ApiServices from '../../services/ApiServices';
 import { Board, ClassGrade, Subject, BOARD_CLASSES_MAP, CLASS_SUBJECTS_MAP } from '../../types';
@@ -43,7 +48,7 @@ interface RagDocument {
   subject?: string;
   status: 'PENDING' | 'PROCESSED' | 'FAILED';
   chunk_count: number;
-  created_at: string;
+  created_at?: string;
 }
 
 interface RagStatusData {
@@ -66,6 +71,7 @@ interface GeneratedQuestionItem {
   correct_answer?: string;
   explanation?: string;
   topic_suggested?: string;
+  image_url?: string;
   is_duplicate?: boolean;
   source?: string;
   source_file?: string;
@@ -82,12 +88,19 @@ interface PreviewExtractionData {
   topic_name?: string;
   title?: string;
   summary?: string;
+  core_concepts?: string[];
+  key_formulas_or_rules?: string[];
+  common_traps?: string[];
+  topics_breakdown?: Array<{ topic: string; count: number }>;
+  difficulty_distribution?: { easy: number; medium: number; hard: number };
+  type_breakdown?: Record<string, number>;
   detected_topics?: any[];
   total_extracted?: number;
   new_questions_count?: number;
   duplicate_questions_count?: number;
   filesData?: any[];
 }
+
 
 interface FlatTopic {
   id: number;
@@ -226,6 +239,17 @@ export const AiRagHub: React.FC = () => {
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestionItem[]>([]);
   const [selectedTargetTopicId, setSelectedTargetTopicId] = useState<number | null>(null);
   const [flatTopics, setFlatTopics] = useState<FlatTopic[]>([]);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [pedagogicalInsights, setPedagogicalInsights] = useState<{
+    title?: string;
+    summary?: string;
+    core_concepts?: string[];
+    key_formulas_or_rules?: string[];
+    common_traps?: string[];
+    topics_breakdown?: Array<{ topic: string; count: number }>;
+    difficulty_distribution?: { easy: number; medium: number; hard: number };
+    total_questions?: number;
+  } | null>(null);
   const [ingestionSummary, setIngestionSummary] = useState<{
     topic_name: string;
     total_processed: number;
@@ -506,12 +530,12 @@ export const AiRagHub: React.FC = () => {
 
       setBatchProgress((prev) => ({
         ...prev,
-        percent: 80,
+        percent: 100,
         isRunning: false,
-        currentStepName: `✨ Steps 1-4 Complete: ${allExtractedQuestions.length} questions extracted across ${successFileCount} file(s) (${totalNew} new, ${totalDupe} duplicates). Review modal opened.`,
+        currentStepName: `✨ Steps 1-4 Complete: ${allExtractedQuestions.length} questions extracted across ${successFileCount} file(s) (${totalNew} new, ${totalDupe} duplicates). Ready for review.`,
         logs: [
           ...prev.logs,
-          `\n✔ [PREVIEW READY] Aggregated ${allExtractedQuestions.length} questions from ${successFileCount} file(s). Review and confirm in modal to commit to database.`
+          `\n✔ [PREVIEW READY (100%)] Aggregated ${allExtractedQuestions.length} questions from ${successFileCount} file(s). Review and confirm in modal to commit to database.`
         ]
       }));
 
@@ -1018,36 +1042,100 @@ export const AiRagHub: React.FC = () => {
                   <p className="text-[10px] text-stone-400 font-medium">Supports multiple PDF, Word (.docx/.doc) files</p>
                 </label>
 
-                {/* Selected Files List */}
+                {/* Selected Files List with Real-Time Extraction Badges */}
                 {uploadFiles.length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-stone-200 text-left space-y-1.5">
+                  <div className="mt-4 pt-3 border-t border-stone-200 text-left space-y-2">
                     <div className="flex items-center justify-between text-[11px] font-bold text-stone-700">
-                      <span>{uploadFiles.length} File(s) Selected</span>
-                      <button
-                        type="button"
-                        onClick={() => setUploadFiles([])}
-                        className="text-rose-500 hover:underline cursor-pointer"
-                      >
-                        Clear All
-                      </button>
+                      <span className="flex items-center gap-1.5">
+                        <Layers className="w-3.5 h-3.5 text-amber-600" />
+                        {uploadFiles.length} File(s) Selected
+                      </span>
+                      {!batchProgress.isRunning && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUploadFiles([]);
+                            setPedagogicalInsights(null);
+                          }}
+                          className="text-rose-500 hover:underline cursor-pointer"
+                        >
+                          Clear All
+                        </button>
+                      )}
                     </div>
-                    <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                      {uploadFiles.map((f, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs">
-                          <div className="flex items-center gap-2 truncate max-w-[220px]">
-                            <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">#{idx + 1}</span>
-                            <span className="truncate text-stone-800 font-medium">{f.name}</span>
-                            <span className="text-[10px] text-stone-400">({(f.size / 1024).toFixed(0)} KB)</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setUploadFiles((prev) => prev.filter((_, i) => i !== idx))}
-                            className="text-stone-400 hover:text-rose-500"
+                    <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+                      {uploadFiles.map((f, idx) => {
+                        const fileRes = batchProgress.results.find(r => r.filename === f.name);
+                        const isCurrent = batchProgress.isRunning && batchProgress.current === idx + 1;
+                        const isSuccess = fileRes && fileRes.status === 'SUCCESS';
+                        const isFailed = fileRes && fileRes.status === 'FAILED';
+                        const qCount = fileRes ? (fileRes.questions?.length || fileRes.total_extracted || 0) : 0;
+
+                        return (
+                          <div
+                            key={idx}
+                            className={`flex items-center justify-between px-3 py-2 rounded-xl border text-xs transition-all ${
+                              isSuccess
+                                ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-2xs'
+                                : isFailed
+                                ? 'bg-rose-50/90 border-rose-300 text-rose-950'
+                                : isCurrent
+                                ? 'bg-amber-50 border-amber-400 text-amber-950 shadow-xs ring-2 ring-amber-300/60 animate-pulse'
+                                : 'bg-white border-stone-200 text-stone-800'
+                            }`}
                           >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
+                            <div className="flex items-center gap-2 truncate max-w-[280px]">
+                              {isSuccess ? (
+                                <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-300 shrink-0">
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-600" /> #{idx + 1}
+                                </span>
+                              ) : isFailed ? (
+                                <span className="flex items-center gap-1 text-[10px] font-bold text-rose-800 bg-rose-100 px-2 py-0.5 rounded-md border border-rose-300 shrink-0">
+                                  <AlertCircle className="w-3 h-3 text-rose-600" /> #{idx + 1}
+                                </span>
+                              ) : isCurrent ? (
+                                <span className="flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 shrink-0">
+                                  <RefreshCw className="w-3 h-3 text-amber-600 animate-spin" /> #{idx + 1}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold text-stone-700 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200 shrink-0">
+                                  #{idx + 1}
+                                </span>
+                              )}
+                              <span className="truncate font-bold text-stone-900">{f.name}</span>
+                              <span className="text-[10px] text-stone-400 font-mono">({(f.size / 1024).toFixed(0)} KB)</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {isSuccess && (
+                                <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100/90 px-2.5 py-1 rounded-lg border border-emerald-300 flex items-center gap-1">
+                                  <Check className="w-3 h-3 text-emerald-600" /> {qCount > 0 ? `${qCount} Questions` : 'Extracted'}
+                                </span>
+                              )}
+                              {isCurrent && (
+                                <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-1 rounded-lg border border-amber-300 flex items-center gap-1">
+                                  <RefreshCw className="w-3 h-3 animate-spin text-amber-600" /> Extracting...
+                                </span>
+                              )}
+                              {isFailed && (
+                                <span className="text-[10px] font-bold text-rose-800 bg-rose-100 px-2 py-1 rounded-lg border border-rose-300">
+                                  Failed
+                                </span>
+                              )}
+                              {!batchProgress.isRunning && (
+                                <button
+                                  type="button"
+                                  onClick={() => setUploadFiles((prev) => prev.filter((_, i) => i !== idx))}
+                                  className="text-stone-400 hover:text-rose-500 p-1 rounded-md transition-colors"
+                                  title="Remove file"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -1067,6 +1155,8 @@ export const AiRagHub: React.FC = () => {
                       <RefreshCw className={`w-4 h-4 ${
                         batchProgress.lastError
                           ? 'text-rose-600'
+                          : batchProgress.percent === 100 && !batchProgress.isRunning
+                          ? 'text-emerald-600'
                           : 'text-amber-600'
                       } ${batchProgress.isRunning ? 'animate-spin' : ''}`} />
                       <span className="text-xs font-bold text-stone-800">
@@ -1074,12 +1164,16 @@ export const AiRagHub: React.FC = () => {
                           ? `Processing File ${batchProgress.current} of ${batchProgress.total}`
                           : batchProgress.lastError
                           ? 'Validation Blocked'
+                          : batchProgress.percent === 100
+                          ? 'Preview Extraction Complete'
                           : 'Batch Ingestion Complete'}
                       </span>
                     </div>
                     <span className={`text-xs font-mono font-black px-2 py-0.5 rounded-md ${
                       batchProgress.lastError
                         ? 'bg-rose-100 text-rose-700'
+                        : batchProgress.percent === 100 && !batchProgress.isRunning
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300/60'
                         : 'bg-amber-100 text-amber-800'
                     }`}>
                       {batchProgress.percent}%
@@ -1156,6 +1250,75 @@ export const AiRagHub: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* LLM Pedagogical Insights & Curriculum Overview Panel (Topic Wise) */}
+              {pedagogicalInsights && (
+                <div className="p-4 bg-gradient-to-br from-amber-50/70 via-stone-50 to-yellow-50/40 rounded-2xl border border-amber-200/90 shadow-xs space-y-4 animate-in fade-in">
+                  <div className="flex items-center justify-between pb-2 border-b border-amber-200/60">
+                    <div className="flex items-center gap-2">
+                      <Lightbulb className="w-4 h-4 text-amber-600" />
+                      <span className="text-xs font-black text-stone-900 uppercase tracking-wide">
+                        AI Pedagogical Insights & Curriculum Breakdown
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-900">
+                      {pedagogicalInsights.total_questions || 0} Questions Synthesized
+                    </span>
+                  </div>
+
+                  {/* Topic Breakdown Badges */}
+                  {pedagogicalInsights.topics_breakdown && pedagogicalInsights.topics_breakdown.length > 0 && (
+                    <div className="space-y-1.5">
+                      <span className="text-[11px] font-bold text-stone-700 flex items-center gap-1.5">
+                        <Compass className="w-3.5 h-3.5 text-amber-600" /> Topic-Wise Distribution:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {pedagogicalInsights.topics_breakdown.map((tb: any, tbIdx: number) => (
+                          <span
+                            key={tbIdx}
+                            className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-lg bg-white border border-amber-300/80 text-stone-800 shadow-2xs"
+                          >
+                            <span className="text-amber-700">📖 {tb.topic}:</span>
+                            <span className="text-emerald-700 font-extrabold">{tb.count} Qs</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 2-Column Insights: Core Concepts & Formulas/Traps */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    {/* Core Concepts */}
+                    {pedagogicalInsights.core_concepts && pedagogicalInsights.core_concepts.length > 0 && (
+                      <div className="p-3 bg-white/90 rounded-xl border border-stone-200 space-y-1.5">
+                        <span className="font-bold text-stone-800 text-[11px] flex items-center gap-1.5">
+                          <BookOpen className="w-3.5 h-3.5 text-blue-600" /> Core Concepts:
+                        </span>
+                        <ul className="space-y-1 text-[11px] text-stone-700 list-disc list-inside">
+                          {pedagogicalInsights.core_concepts.slice(0, 4).map((c: string, cIdx: number) => (
+                            <li key={cIdx} className="truncate">{c}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Common Traps / Key Rules */}
+                    {(pedagogicalInsights.common_traps?.length > 0 || pedagogicalInsights.key_formulas_or_rules?.length > 0) && (
+                      <div className="p-3 bg-white/90 rounded-xl border border-stone-200 space-y-1.5">
+                        <span className="font-bold text-stone-800 text-[11px] flex items-center gap-1.5">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600" /> Common Traps & Tips:
+                        </span>
+                        <ul className="space-y-1 text-[11px] text-stone-700 list-disc list-inside">
+                          {[...(pedagogicalInsights.common_traps || []), ...(pedagogicalInsights.key_formulas_or_rules || [])].slice(0, 4).map((trap: string, tIdx: number) => (
+                            <li key={tIdx} className="truncate">{trap}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
 
               <button
                 type="submit"
@@ -1560,7 +1723,7 @@ export const AiRagHub: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <BookmarkCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                           <span className="text-sm font-black text-stone-900">
-                            Curriculum Question Review ({generatedQuestions.length} Questions across {topicEntries.length} Sub-Topic{topicEntries.length > 1 ? 's' : ''})
+                            Curriculum Question Review ({generatedQuestions.length} Questions across {topicEntries.length} Topic{topicEntries.length > 1 ? 's' : ''})
                           </span>
                         </div>
                         {/* Target Topic Selection for Fallback Database Linkage */}
@@ -1600,7 +1763,7 @@ export const AiRagHub: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Render Sub-Topic Groups */}
+                    {/* Render Topic Groups */}
                     <div className="space-y-6">
                       {topicEntries.map(([topicName, group], groupIdx) => (
                         <div
@@ -1610,8 +1773,8 @@ export const AiRagHub: React.FC = () => {
                           {/* Topic Group Header */}
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-stone-200">
                             <div className="flex items-center gap-2">
-                              <span className="px-2 py-0.5 rounded-md bg-stone-800 text-white text-[11px] font-black">
-                                Sub-Topic #{groupIdx + 1}
+                              <span className="px-2.5 py-0.5 rounded-md bg-stone-800 text-white text-[11px] font-black">
+                                Topic #{groupIdx + 1}
                               </span>
                               <span className="text-xs font-black text-stone-900">
                                 🏷️ {topicName}
@@ -1696,7 +1859,7 @@ export const AiRagHub: React.FC = () => {
                                         <option value="hard">Hard</option>
                                       </select>
 
-                                      {/* Subtopic edit inline if user wants to change topic */}
+                                      {/* Topic edit inline */}
                                       <div className="flex items-center gap-1">
                                         <span className="text-[10px] font-bold text-stone-500">Topic:</span>
                                         <input
@@ -1704,7 +1867,7 @@ export const AiRagHub: React.FC = () => {
                                           value={q.topic_suggested || topicName}
                                           onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { topic_suggested: e.target.value })}
                                           className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-stone-100 text-stone-800 border border-stone-200 w-36 focus:bg-white"
-                                          placeholder="Sub-topic name"
+                                          placeholder="Topic name"
                                         />
                                       </div>
 
@@ -1745,6 +1908,52 @@ export const AiRagHub: React.FC = () => {
                                     className="w-full p-2.5 bg-stone-50/70 border border-stone-200 rounded-xl text-xs font-bold text-stone-900 leading-relaxed focus:bg-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
                                     placeholder="Enter question text..."
                                   />
+
+                                  {/* Extracted / Attached Diagram Preview with Zoom Lightbox */}
+                                  {q.image_url && (
+                                    <div className="p-3 bg-amber-50/70 border border-amber-200/90 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+                                      <div className="flex items-center gap-3 overflow-hidden">
+                                        <div
+                                          onClick={() => setLightboxImage(q.image_url?.startsWith('http') ? q.image_url : (import.meta.env.VITE_API_BASE_URL || '') + q.image_url)}
+                                          className="relative group cursor-pointer shrink-0"
+                                          title="Click to view full size diagram"
+                                        >
+                                          <img
+                                            src={q.image_url.startsWith('http') ? q.image_url : (import.meta.env.VITE_API_BASE_URL || '') + q.image_url}
+                                            alt="Question Diagram"
+                                            className="h-20 w-28 object-contain rounded-xl border border-amber-300 bg-white p-1 group-hover:opacity-90 transition-opacity shadow-2xs"
+                                          />
+                                          <div className="absolute inset-0 bg-stone-900/40 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
+                                            <Maximize2 className="w-4 h-4" />
+                                          </div>
+                                        </div>
+                                        <div className="text-[11px] space-y-1 min-w-0">
+                                          <span className="font-extrabold text-amber-950 flex items-center gap-1.5">
+                                            🖼️ Linked Question Diagram
+                                          </span>
+                                          <span className="text-[10px] text-stone-500 font-mono truncate max-w-[280px] block">
+                                            {q.image_url}
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={() => setLightboxImage(q.image_url?.startsWith('http') ? q.image_url : (import.meta.env.VITE_API_BASE_URL || '') + q.image_url)}
+                                            className="text-[10px] font-bold text-amber-800 hover:text-amber-950 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                                          >
+                                            <Eye className="w-3 h-3" /> Zoom & Inspect
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleUpdateGeneratedQuestion(globalIdx, { image_url: undefined })}
+                                        className="px-3 py-1.5 text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl border border-rose-200 transition-colors shrink-0 cursor-pointer flex items-center gap-1"
+                                        title="Remove diagram from this question"
+                                      >
+                                        <X className="w-3.5 h-3.5" /> Remove Image
+                                      </button>
+                                    </div>
+                                  )}
+
 
                                   {/* Options Display for MCQ vs Direct Answer for SAQ/Numerical/Objective */}
                                   {q.options && q.options.length > 0 ? (
@@ -1950,6 +2159,52 @@ export const AiRagHub: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ─────────────────────────────────────────────────────────────
+          MODAL: FULLSCREEN DIAGRAM LIGHTBOX
+         ───────────────────────────────────────────────────────────── */}
+      {lightboxImage && (
+        <div
+          onClick={() => setLightboxImage(null)}
+          className="fixed inset-0 z-60 flex items-center justify-center p-4 sm:p-6 bg-stone-950/85 backdrop-blur-md animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-4xl max-h-[90vh] bg-white rounded-3xl p-4 shadow-2xl border border-stone-700 flex flex-col items-center gap-3 overflow-hidden"
+          >
+            <div className="w-full flex items-center justify-between pb-2 border-b border-stone-100 px-2">
+              <div className="flex items-center gap-2">
+                <Maximize2 className="w-4 h-4 text-amber-600" />
+                <span className="text-xs font-black text-stone-900">Question Diagram High-Res Preview</span>
+              </div>
+              <button
+                onClick={() => setLightboxImage(null)}
+                className="p-1.5 rounded-xl hover:bg-stone-100 text-stone-500 hover:text-stone-900 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="max-h-[75vh] overflow-auto rounded-2xl bg-stone-50 p-3 border border-stone-200 flex items-center justify-center">
+              <img
+                src={lightboxImage}
+                alt="Enlarged Question Diagram"
+                className="max-h-[70vh] max-w-full object-contain rounded-xl shadow-xs"
+              />
+            </div>
+            <div className="w-full flex items-center justify-between px-2 pt-1 text-[11px] text-stone-500 font-mono truncate">
+              <span className="truncate">{lightboxImage}</span>
+              <button
+                type="button"
+                onClick={() => setLightboxImage(null)}
+                className="px-4 py-1.5 bg-stone-900 text-white text-xs font-bold rounded-xl hover:bg-stone-800 transition-colors shrink-0 ml-3 cursor-pointer"
+              >
+                Close (ESC)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+

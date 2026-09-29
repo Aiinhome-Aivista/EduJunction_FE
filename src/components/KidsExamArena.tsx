@@ -383,9 +383,23 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
                 </div>
               </div>
 
-              {/* Question Statement */}
-              <div className="text-sky-950 text-sm sm:text-base md:text-lg font-bold leading-snug mb-3.5 whitespace-pre-line">
-                {currentQ.questionText}
+              {/* Question Statement & Diagram */}
+              <div className="space-y-3 mb-3.5">
+                <div className="text-sky-950 text-sm sm:text-base md:text-lg font-bold leading-snug whitespace-pre-line">
+                  {currentQ.questionText}
+                </div>
+
+                {/* Question Diagram / Image if present */}
+                {(currentQ.imageUrl || currentQ.image_url) && (
+                  <div className="my-2.5 p-3 rounded-2xl bg-amber-50/70 border-2 border-amber-200 flex flex-col items-center justify-center">
+                    <img
+                      src={(currentQ.imageUrl || currentQ.image_url)?.startsWith('http') ? (currentQ.imageUrl || currentQ.image_url) : (import.meta.env.VITE_API_BASE_URL || '') + (currentQ.imageUrl || currentQ.image_url)}
+                      alt="Question Diagram"
+                      className="max-h-56 sm:max-h-64 w-auto object-contain rounded-xl bg-white p-2 border border-amber-200 shadow-2xs"
+                    />
+                    <span className="text-[11px] text-amber-800 font-bold mt-1">🖼️ Look at the picture above!</span>
+                  </div>
+                )}
               </div>
 
               {/* Response Inputs based on Type */}

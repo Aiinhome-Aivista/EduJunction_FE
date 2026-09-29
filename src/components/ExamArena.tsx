@@ -721,11 +721,23 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                   </div>
                 )}
 
-                {/* Question Text */}
-                <div className="px-5 pt-4 pb-3">
+                {/* Question Text & Diagram */}
+                <div className="px-5 pt-4 pb-3 space-y-3">
                   <p className="text-stone-900 text-base sm:text-lg font-medium leading-relaxed whitespace-pre-line">
                     {currentQ.questionText}
                   </p>
+
+                  {/* Question Diagram / Image if present */}
+                  {(currentQ.imageUrl || currentQ.image_url) && (
+                    <div className="my-3 p-3 rounded-2xl bg-stone-50 border border-stone-200/80 flex flex-col items-center justify-center">
+                      <img
+                        src={(currentQ.imageUrl || currentQ.image_url)?.startsWith('http') ? (currentQ.imageUrl || currentQ.image_url) : (import.meta.env.VITE_API_BASE_URL || '') + (currentQ.imageUrl || currentQ.image_url)}
+                        alt="Question Diagram"
+                        className="max-h-64 sm:max-h-80 w-auto object-contain rounded-xl bg-white p-2 border border-stone-200 shadow-2xs hover:scale-105 transition-transform cursor-pointer"
+                      />
+                      <span className="text-[10px] text-stone-400 mt-1 font-medium">🖼️ Refer to diagram above</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Divider */}

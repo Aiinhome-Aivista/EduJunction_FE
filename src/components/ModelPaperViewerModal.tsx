@@ -575,6 +575,17 @@ export const ModelPaperViewerModal: React.FC<ModelPaperViewerModalProps> = ({
                               className="text-xs sm:text-sm font-bold text-stone-900 leading-relaxed pt-1"
                               dangerouslySetInnerHTML={{ __html: q.question }}
                             />
+
+                            {/* Question Diagram / Image if present */}
+                            {(q.imageUrl || q.image_url) && (
+                              <div className="my-2.5 p-2 rounded-xl bg-stone-50 border border-stone-200 flex flex-col items-center justify-center">
+                                <img
+                                  src={(q.imageUrl || q.image_url)?.startsWith('http') ? (q.imageUrl || q.image_url) : (import.meta.env.VITE_API_BASE_URL || '') + (q.imageUrl || q.image_url)}
+                                  alt="Question Diagram"
+                                  className="max-h-56 w-auto object-contain rounded-lg bg-white p-1.5 border border-stone-200 shadow-2xs"
+                                />
+                              </div>
+                            )}
                           </div>
 
                           {/* ========================================================= */}

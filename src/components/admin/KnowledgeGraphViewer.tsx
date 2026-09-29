@@ -1244,33 +1244,138 @@ export const KnowledgeGraphViewer: React.FC = () => {
 
         {/* Slide-in Node Inspector Drawer (Right Side) */}
         {selectedNode && (
-          <div className="absolute top-4 bottom-4 right-4 w-80 bg-slate-800/95 backdrop-blur-xl border border-slate-700/90 rounded-2xl p-4 shadow-2xl z-20 flex flex-col justify-between animate-fadeIn">
-            <div className="space-y-3 overflow-y-auto pr-1">
+          <div className="absolute top-4 bottom-4 right-4 w-96 max-w-[calc(100%-2rem)] bg-slate-800/95 backdrop-blur-xl border border-slate-700/90 rounded-2xl p-4 shadow-2xl z-20 flex flex-col justify-between animate-fadeIn custom-scrollbar">
+            <div className="space-y-3.5 overflow-y-auto pr-1">
+              {/* Header */}
               <div className="flex items-center justify-between border-b border-slate-700 pb-2">
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase">
-                  {selectedNode.group}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                    selectedNode.group === 'topic'
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                      : selectedNode.group === 'chapter'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      : selectedNode.group === 'subject'
+                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  }`}>
+                    {selectedNode.group} Node
+                  </span>
+                  {selectedNode.meta?.question_count !== undefined && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                      <BookOpen className="w-3 h-3" />
+                      {selectedNode.meta.question_count} Questions
+                    </span>
+                  )}
+                </div>
                 <button
                   onClick={() => setSelectedNode(null)}
-                  className="text-slate-400 hover:text-white text-xs font-bold cursor-pointer"
+                  className="text-slate-400 hover:text-white text-xs font-bold cursor-pointer p-1"
                 >
                   ✕
                 </button>
               </div>
 
+              {/* Node Title & Breadcrumbs */}
               <div>
-                <p className="text-[10px] text-slate-400 uppercase tracking-wider">Node Name</p>
-                <h3 className="text-base font-black text-white mt-0.5 leading-snug">{selectedNode.label}</h3>
+                {(selectedNode.meta?.board || selectedNode.meta?.subject || selectedNode.meta?.chapter) && (
+                  <p className="text-[10px] font-mono text-slate-400 truncate mb-1">
+                    {[selectedNode.meta.board, selectedNode.meta.class, selectedNode.meta.subject, selectedNode.meta.chapter]
+                      .filter(Boolean)
+                      .join(' › ')}
+                  </p>
+                )}
+                <h3 className="text-base font-black text-white leading-snug">{selectedNode.label}</h3>
               </div>
 
-              {selectedNode.meta && (
-                <div className="bg-slate-900/70 p-3 rounded-xl border border-slate-800 text-[11px] space-y-1.5 font-mono text-slate-300">
-                  {Object.entries(selectedNode.meta).map(([k, v]) => (
-                    <div key={k} className="flex justify-between gap-2">
-                      <span className="text-slate-500">{k}:</span>
-                      <span className="text-slate-200 font-semibold truncate max-w-[150px]">{String(v)}</span>
+              {/* Question Bank Metrics Card */}
+              {selectedNode.meta?.question_count !== undefined && selectedNode.meta.question_count > 0 && (
+                <div className="p-3 bg-cyan-950/40 border border-cyan-800/60 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-cyan-300 font-bold flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5" />
+                      Question Bank Status
+                    </span>
+                    <span className="text-xs font-mono font-black text-white bg-cyan-900/80 px-2 py-0.5 rounded border border-cyan-700/60">
+                      {selectedNode.meta.question_count} Total
+                    </span>
+                  </div>
+                  {selectedNode.meta.difficulty_breakdown && (
+                    <div className="grid grid-cols-3 gap-1.5 text-center text-[10px] font-mono pt-1">
+                      <div className="bg-emerald-950/60 border border-emerald-800/60 p-1.5 rounded-lg text-emerald-300">
+                        <span className="block text-[9px] text-emerald-500 font-sans uppercase">Easy</span>
+                        <strong>{selectedNode.meta.difficulty_breakdown.easy || 0}</strong>
+                      </div>
+                      <div className="bg-amber-950/60 border border-amber-800/60 p-1.5 rounded-lg text-amber-300">
+                        <span className="block text-[9px] text-amber-500 font-sans uppercase">Medium</span>
+                        <strong>{selectedNode.meta.difficulty_breakdown.medium || 0}</strong>
+                      </div>
+                      <div className="bg-rose-950/60 border border-rose-800/60 p-1.5 rounded-lg text-rose-300">
+                        <span className="block text-[9px] text-rose-500 font-sans uppercase">Hard</span>
+                        <strong>{selectedNode.meta.difficulty_breakdown.hard || 0}</strong>
+                      </div>
                     </div>
-                  ))}
+                  )}
+                </div>
+              )}
+
+              {/* Pedagogical Insights: Core Concepts */}
+              {Array.isArray(selectedNode.meta?.core_concepts) && selectedNode.meta.core_concepts.length > 0 && (
+                <div className="p-3 bg-slate-900/70 border border-slate-800 rounded-xl space-y-1.5">
+                  <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Core Pedagogical Concepts
+                  </p>
+                  <ul className="space-y-1 text-[11px] text-slate-300">
+                    {selectedNode.meta.core_concepts.slice(0, 5).map((concept: string, cIdx: number) => (
+                      <li key={cIdx} className="flex items-start gap-1.5">
+                        <span className="text-amber-400 shrink-0 mt-0.5">•</span>
+                        <span>{concept}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Pedagogical Insights: Common Traps / Misconceptions */}
+              {Array.isArray(selectedNode.meta?.common_traps) && selectedNode.meta.common_traps.length > 0 && (
+                <div className="p-3 bg-rose-950/30 border border-rose-900/50 rounded-xl space-y-1.5">
+                  <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Common Traps / Misconceptions
+                  </p>
+                  <ul className="space-y-1 text-[11px] text-rose-200">
+                    {selectedNode.meta.common_traps.slice(0, 4).map((trap: string, tIdx: number) => (
+                      <li key={tIdx} className="flex items-start gap-1.5">
+                        <span className="text-rose-400 shrink-0 mt-0.5">⚠️</span>
+                        <span>{trap}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Pedagogical Insights: Key Formulas & Rules */}
+              {Array.isArray(selectedNode.meta?.key_formulas) && selectedNode.meta.key_formulas.length > 0 && (
+                <div className="p-3 bg-slate-900/70 border border-slate-800 rounded-xl space-y-1.5">
+                  <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5" />
+                    Key Formulas & Rules
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedNode.meta.key_formulas.slice(0, 6).map((formula: string, fIdx: number) => (
+                      <span key={fIdx} className="px-2 py-0.5 bg-slate-800 text-cyan-300 font-mono text-[10px] rounded border border-slate-700">
+                        {formula}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Pedagogical Summary */}
+              {selectedNode.meta?.summary && (
+                <div className="p-3 bg-slate-900/70 border border-slate-800 rounded-xl text-[11px] space-y-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Summary</p>
+                  <p className="text-slate-300 leading-relaxed">{selectedNode.meta.summary}</p>
                 </div>
               )}
 
@@ -1279,7 +1384,7 @@ export const KnowledgeGraphViewer: React.FC = () => {
                 <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5">
                   Connected Concepts ({selectedNodeEdges.length})
                 </p>
-                <div className="space-y-1 max-h-36 overflow-y-auto">
+                <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
                   {selectedNodeEdges.map((e) => (
                     <div
                       key={e.id}

@@ -96,6 +96,8 @@ export interface Question {
   questionNumber: number;
   type: QuestionType;
   questionText: string;
+  imageUrl?: string;
+  image_url?: string;
   options?: string[]; // for MCQ
   correctAnswer: string;
   explanation: string;
@@ -127,6 +129,8 @@ export interface QuestionEvaluation {
   questionNumber: number;
   type: QuestionType;
   questionText: string;
+  imageUrl?: string;
+  image_url?: string;
   options?: string[];
   studentAnswer: string;
   correctAnswer: string;
