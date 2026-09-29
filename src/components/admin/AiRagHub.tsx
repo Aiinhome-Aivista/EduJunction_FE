@@ -1531,233 +1531,321 @@ export const AiRagHub: React.FC = () => {
               )}
 
               {/* Generated / Extracted Questions Preview & Review List */}
-              {generatedQuestions.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-stone-100">
-                    <div className="flex items-center gap-2">
-                      <BookmarkCheck className="w-4 h-4 text-emerald-600" />
-                      <span className="text-xs font-black text-stone-900">
-                        Question Review List ({generatedQuestions.length})
-                      </span>
+              {generatedQuestions.length > 0 && (() => {
+                const currentBoard = extractedPreviewData?.board || activeDocForGen?.board || selectedBoard || 'CBSE';
+                const currentClass = extractedPreviewData?.classGrade || activeDocForGen?.classGrade || selectedGrade || 'Class 10';
+                const currentSubject = extractedPreviewData?.subject || activeDocForGen?.subject || selectedSubject || 'General';
+                const currentChapter = extractedPreviewData?.title || activeDocForGen?.chapterName || modalDisplayTopics.find(t => t.id === selectedTargetTopicId)?.chapterName || 'Main Chapter';
+
+                // Group questions by their topic_suggested or fallback to selectedTargetTopic
+                const fallbackTopicName = modalDisplayTopics.find(t => t.id === selectedTargetTopicId)?.name || 'General Topic';
+                
+                const groups: { [topicName: string]: { originalIndices: number[]; questions: GeneratedQuestionItem[] } } = {};
+                generatedQuestions.forEach((q, idx) => {
+                  const topicKey = (q.topic_suggested && q.topic_suggested.trim() !== '') ? q.topic_suggested.trim() : fallbackTopicName;
+                  if (!groups[topicKey]) {
+                    groups[topicKey] = { originalIndices: [], questions: [] };
+                  }
+                  groups[topicKey].originalIndices.push(idx);
+                  groups[topicKey].questions.push(q);
+                });
+
+                const topicEntries = Object.entries(groups);
+
+                return (
+                  <div className="space-y-6">
+                    {/* Top Header & Hierarchy Breadcrumb Bar */}
+                    <div className="p-4 bg-amber-500/10 border border-amber-300/60 rounded-2xl space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-amber-200/60">
+                        <div className="flex items-center gap-2">
+                          <BookmarkCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                          <span className="text-sm font-black text-stone-900">
+                            Curriculum Question Review ({generatedQuestions.length} Questions across {topicEntries.length} Sub-Topic{topicEntries.length > 1 ? 's' : ''})
+                          </span>
+                        </div>
+                        {/* Target Topic Selection for Fallback Database Linkage */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-bold text-stone-600 shrink-0">Default Topic:</span>
+                          <select
+                            value={selectedTargetTopicId || ''}
+                            onChange={(e) => setSelectedTargetTopicId(Number(e.target.value))}
+                            className="px-3 py-1 bg-white border border-amber-300 rounded-xl text-xs font-bold text-stone-800 max-w-xs truncate focus:outline-hidden cursor-pointer"
+                          >
+                            {modalDisplayTopics.map(t => (
+                              <option key={t.id} value={t.id}>
+                                {t.boardName} &bull; {t.className} &bull; {t.subjectName} &bull; {t.chapterName ? `${t.chapterName} - ` : ''}{t.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Global Breadcrumb */}
+                      <div className="flex flex-wrap items-center gap-1.5 text-xs font-bold text-stone-700">
+                        <span className="px-2.5 py-0.5 rounded-lg bg-white border border-stone-200 text-stone-900 shadow-2xs font-mono">
+                          🏛️ {currentBoard}
+                        </span>
+                        <span className="text-stone-400 font-bold">&gt;</span>
+                        <span className="px-2.5 py-0.5 rounded-lg bg-white border border-stone-200 text-stone-900 shadow-2xs">
+                          🎓 {currentClass}
+                        </span>
+                        <span className="text-stone-400 font-bold">&gt;</span>
+                        <span className="px-2.5 py-0.5 rounded-lg bg-white border border-stone-200 text-stone-900 shadow-2xs">
+                          📘 {currentSubject}
+                        </span>
+                        <span className="text-stone-400 font-bold">&gt;</span>
+                        <span className="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-2xs">
+                          📖 Chapter: {currentChapter}
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Target Topic Selection for Database Linkage */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold text-stone-600 shrink-0">Target Topic:</span>
-                      <select
-                        value={selectedTargetTopicId || ''}
-                        onChange={(e) => setSelectedTargetTopicId(Number(e.target.value))}
-                        className="px-3 py-1.5 bg-yellow-50/80 border border-yellow-300/80 rounded-xl text-xs font-bold text-stone-800 max-w-xs truncate focus:outline-hidden cursor-pointer"
-                      >
-                        {modalDisplayTopics.map(t => (
-                          <option key={t.id} value={t.id}>
-                            {t.boardName} &bull; {t.className} &bull; {t.subjectName} &bull; {t.chapterName ? `${t.chapterName} - ` : ''}{t.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    {generatedQuestions.map((q, idx) => (
-                      <div
-                        key={q.id || idx}
-                        className={`p-4 rounded-2xl bg-white border shadow-2xs space-y-3 transition-colors ${
-                          q.is_duplicate
-                            ? 'border-amber-300/80 bg-amber-50/20'
-                            : 'border-stone-200/90 hover:border-yellow-300'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex flex-wrap items-center gap-2">
-                            {/* Question Number */}
-                            <span className="text-xs font-black text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200">
-                              #{idx + 1}
-                            </span>
-
-                            {/* Marks Selector */}
-                            <div className="flex items-center gap-1">
-                              <span className="text-[10px] font-bold text-stone-500">Marks:</span>
-                              <select
-                                value={q.marks || (q.type === 'LONG ANSWER' ? 5 : q.type === 'SAQ' ? 2 : q.type === 'SHORT ANSWER (3M)' ? 3 : q.type === 'CASE STUDY' ? 4 : 1)}
-                                onChange={(e) => handleUpdateGeneratedQuestion(idx, { marks: Number(e.target.value) })}
-                                className="text-[11px] font-black px-2 py-0.5 rounded-md bg-yellow-100 text-yellow-900 border border-yellow-300 font-mono cursor-pointer"
-                              >
-                                <option value={1}>1 Mark</option>
-                                <option value={2}>2 Marks</option>
-                                <option value={3}>3 Marks</option>
-                                <option value={4}>4 Marks</option>
-                                <option value={5}>5 Marks</option>
-                                <option value={8}>8 Marks</option>
-                              </select>
+                    {/* Render Sub-Topic Groups */}
+                    <div className="space-y-6">
+                      {topicEntries.map(([topicName, group], groupIdx) => (
+                        <div
+                          key={topicName + groupIdx}
+                          className="border-2 border-stone-200/90 rounded-2xl bg-stone-50/50 p-4 space-y-4 shadow-2xs"
+                        >
+                          {/* Topic Group Header */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-stone-200">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 rounded-md bg-stone-800 text-white text-[11px] font-black">
+                                Sub-Topic #{groupIdx + 1}
+                              </span>
+                              <span className="text-xs font-black text-stone-900">
+                                🏷️ {topicName}
+                              </span>
+                              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                {group.questions.length} Question{group.questions.length > 1 ? 's' : ''}
+                              </span>
                             </div>
-
-                            {/* Question Type Selector */}
-                            <select
-                              value={q.type || 'MCQ'}
-                              onChange={(e) => handleUpdateGeneratedQuestion(idx, { type: e.target.value })}
-                              className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 border border-blue-200 cursor-pointer"
-                            >
-                              <option value="MCQ">MCQ (Multiple Choice)</option>
-                              <option value="SAQ">SAQ (Short Answer - 2M)</option>
-                              <option value="SHORT ANSWER (3M)">Short Answer (3M)</option>
-                              <option value="CASE STUDY">Case Study (4M)</option>
-                              <option value="LONG ANSWER">Long Answer (5M)</option>
-                              <option value="NUMERICAL">Numerical</option>
-                              <option value="ASSERTION REASON">Assertion Reason (1M)</option>
-                              <option value="OBJECTIVE">Objective (1M)</option>
-                              <option value="LONG EVALUATIVE">Long Evaluative (8M)</option>
-                            </select>
-
-                            {/* Difficulty Selector */}
-                            <select
-                              value={q.difficulty || 'medium'}
-                              onChange={(e) => handleUpdateGeneratedQuestion(idx, { difficulty: e.target.value })}
-                              className={`text-[10px] font-bold capitalize px-2 py-0.5 rounded-md border cursor-pointer ${
-                                q.difficulty === 'hard'
-                                  ? 'bg-rose-50 text-rose-700 border-rose-200'
-                                  : q.difficulty === 'medium'
-                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              }`}
-                            >
-                              <option value="easy">Easy</option>
-                              <option value="medium">Medium</option>
-                              <option value="hard">Hard</option>
-                            </select>
-
-                            {/* Duplicate Flag Badge */}
-                            {q.is_duplicate ? (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
-                                ⚠️ Duplicate in DB (Will Skip/Update)
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300">
-                                ✨ New Question
-                              </span>
-                            )}
-
-                            {/* Source File Badge */}
-                            {q.source_file && (
-                              <span className="text-[10px] font-medium text-stone-600 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200 truncate max-w-[200px]" title={q.source_file}>
-                                📄 {q.source_file}
-                              </span>
-                            )}
+                            <span className="text-[10px] text-stone-500 font-medium">
+                              {currentBoard} &gt; {currentClass} &gt; {currentSubject} &gt; {currentChapter} &gt; <strong className="text-stone-700">{topicName}</strong>
+                            </span>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveGeneratedQuestion(idx)}
-                            className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-lg transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
-                            title="Remove this question"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
-                          </button>
-                        </div>
-
-                        {/* Editable Question Text */}
-                        <textarea
-                          value={q.question}
-                          onChange={(e) => handleUpdateGeneratedQuestion(idx, { question: e.target.value })}
-                          rows={2}
-                          className="w-full p-2.5 bg-stone-50/70 border border-stone-200 rounded-xl text-xs font-bold text-stone-900 leading-relaxed focus:bg-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
-                          placeholder="Enter question text..."
-                        />
-
-                        {/* Options Display for MCQ vs Direct Answer for SAQ/Numerical/Objective */}
-                        {q.options && q.options.length > 0 ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                            {q.options.map((opt, optIdx) => {
-                              const isCorrect = (q.correct_answer || '').trim().toLowerCase().startsWith(opt.trim().toLowerCase()) ||
-                                opt.trim().toLowerCase().includes((q.correct_answer || '').toLowerCase()) ||
-                                ((q.correct_answer || '').toUpperCase() === String.fromCharCode(65 + optIdx));
+                          {/* Questions within this Topic */}
+                          <div className="space-y-3">
+                            {group.questions.map((q, localIdx) => {
+                              const globalIdx = group.originalIndices[localIdx];
                               return (
                                 <div
-                                  key={optIdx}
-                                  className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center justify-between ${
-                                    isCorrect
-                                      ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-bold'
-                                      : 'bg-stone-50 text-stone-700 border-stone-200/70'
+                                  key={q.id || globalIdx}
+                                  className={`p-4 rounded-2xl bg-white border shadow-2xs space-y-3 transition-colors ${
+                                    q.is_duplicate
+                                      ? 'border-amber-300/80 bg-amber-50/20'
+                                      : 'border-stone-200/90 hover:border-yellow-300'
                                   }`}
                                 >
-                                  <input
-                                    type="text"
-                                    value={opt}
-                                    onChange={(e) => {
-                                      const updatedOpts = [...(q.options || [])];
-                                      updatedOpts[optIdx] = e.target.value;
-                                      handleUpdateGeneratedQuestion(idx, { options: updatedOpts });
-                                    }}
-                                    className="bg-transparent border-none outline-none w-full text-xs font-medium text-stone-800"
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      {/* Question Number */}
+                                      <span className="text-xs font-black text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200">
+                                        Q{localIdx + 1} <span className="text-[10px] text-stone-400 font-normal">(Total #{globalIdx + 1})</span>
+                                      </span>
+
+                                      {/* Marks Selector */}
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-[10px] font-bold text-stone-500">Marks:</span>
+                                        <select
+                                          value={q.marks || (q.type === 'LONG ANSWER' ? 5 : q.type === 'SAQ' ? 2 : q.type === 'SHORT ANSWER (3M)' ? 3 : q.type === 'CASE STUDY' ? 4 : q.type === 'LONG EVALUATIVE' ? 8 : 1)}
+                                          onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { marks: Number(e.target.value) })}
+                                          className="text-[11px] font-black px-2 py-0.5 rounded-md bg-yellow-100 text-yellow-900 border border-yellow-300 font-mono cursor-pointer"
+                                        >
+                                          <option value={1}>1 Mark</option>
+                                          <option value={2}>2 Marks</option>
+                                          <option value={3}>3 Marks</option>
+                                          <option value={4}>4 Marks</option>
+                                          <option value={5}>5 Marks</option>
+                                          <option value={8}>8 Marks</option>
+                                        </select>
+                                      </div>
+
+                                      {/* Question Type Selector */}
+                                      <select
+                                        value={q.type || 'MCQ'}
+                                        onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { type: e.target.value })}
+                                        className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 border border-blue-200 cursor-pointer"
+                                      >
+                                        <option value="MCQ">MCQ (Multiple Choice)</option>
+                                        <option value="SAQ">SAQ (Short Answer - 2M)</option>
+                                        <option value="SHORT ANSWER (3M)">Short Answer (3M)</option>
+                                        <option value="CASE STUDY">Case Study (4M)</option>
+                                        <option value="LONG ANSWER">Long Answer (5M)</option>
+                                        <option value="NUMERICAL">Numerical</option>
+                                        <option value="ASSERTION REASON">Assertion Reason (1M)</option>
+                                        <option value="OBJECTIVE">Objective (1M)</option>
+                                        <option value="LONG EVALUATIVE">Long Evaluative (8M)</option>
+                                      </select>
+
+                                      {/* Difficulty Selector */}
+                                      <select
+                                        value={q.difficulty || 'medium'}
+                                        onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { difficulty: e.target.value })}
+                                        className={`text-[10px] font-bold capitalize px-2 py-0.5 rounded-md border cursor-pointer ${
+                                          q.difficulty === 'hard'
+                                            ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                            : q.difficulty === 'medium'
+                                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                        }`}
+                                      >
+                                        <option value="easy">Easy</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="hard">Hard</option>
+                                      </select>
+
+                                      {/* Subtopic edit inline if user wants to change topic */}
+                                      <div className="flex items-center gap-1">
+                                        <span className="text-[10px] font-bold text-stone-500">Topic:</span>
+                                        <input
+                                          type="text"
+                                          value={q.topic_suggested || topicName}
+                                          onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { topic_suggested: e.target.value })}
+                                          className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-stone-100 text-stone-800 border border-stone-200 w-36 focus:bg-white"
+                                          placeholder="Sub-topic name"
+                                        />
+                                      </div>
+
+                                      {/* Duplicate Flag Badge */}
+                                      {q.is_duplicate ? (
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
+                                          ⚠️ Duplicate in DB (Will Skip/Update)
+                                        </span>
+                                      ) : (
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300">
+                                          ✨ New Question
+                                        </span>
+                                      )}
+
+                                      {/* Source File Badge */}
+                                      {q.source_file && (
+                                        <span className="text-[10px] font-medium text-stone-600 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200 truncate max-w-[160px]" title={q.source_file}>
+                                          📄 {q.source_file}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveGeneratedQuestion(globalIdx)}
+                                      className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-lg transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center shrink-0"
+                                      title="Remove this question"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
+                                    </button>
+                                  </div>
+
+                                  {/* Editable Question Text */}
+                                  <textarea
+                                    value={q.question}
+                                    onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { question: e.target.value })}
+                                    rows={2}
+                                    className="w-full p-2.5 bg-stone-50/70 border border-stone-200 rounded-xl text-xs font-bold text-stone-900 leading-relaxed focus:bg-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                                    placeholder="Enter question text..."
                                   />
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUpdateGeneratedQuestion(idx, { correct_answer: opt })}
-                                    className={`shrink-0 ml-2 p-1 rounded-md text-[10px] font-bold ${
-                                      isCorrect ? 'text-emerald-700 bg-emerald-100' : 'text-stone-400 hover:text-stone-700'
-                                    }`}
-                                    title="Mark as correct answer"
-                                  >
-                                    <Check className="w-3.5 h-3.5" />
-                                  </button>
+
+                                  {/* Options Display for MCQ vs Direct Answer for SAQ/Numerical/Objective */}
+                                  {q.options && q.options.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                                      {q.options.map((opt, optIdx) => {
+                                        const isCorrect = (q.correct_answer || '').trim().toLowerCase().startsWith(opt.trim().toLowerCase()) ||
+                                          opt.trim().toLowerCase().includes((q.correct_answer || '').toLowerCase()) ||
+                                          ((q.correct_answer || '').toUpperCase() === String.fromCharCode(65 + optIdx));
+                                        return (
+                                          <div
+                                            key={optIdx}
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center justify-between ${
+                                              isCorrect
+                                                ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-bold'
+                                                : 'bg-stone-50 text-stone-700 border-stone-200/70'
+                                            }`}
+                                          >
+                                            <input
+                                              type="text"
+                                              value={opt}
+                                              onChange={(e) => {
+                                                const updatedOpts = [...(q.options || [])];
+                                                updatedOpts[optIdx] = e.target.value;
+                                                handleUpdateGeneratedQuestion(globalIdx, { options: updatedOpts });
+                                              }}
+                                              className="bg-transparent border-none outline-none w-full text-xs font-medium text-stone-800"
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => handleUpdateGeneratedQuestion(globalIdx, { correct_answer: opt })}
+                                              className={`shrink-0 ml-2 p-1 rounded-md text-[10px] font-bold ${
+                                                isCorrect ? 'text-emerald-700 bg-emerald-100' : 'text-stone-400 hover:text-stone-700'
+                                              }`}
+                                              title="Mark as correct answer"
+                                            >
+                                              <Check className="w-3.5 h-3.5" />
+                                            </button>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-xs font-semibold text-emerald-900 space-y-1">
+                                      <span className="shrink-0 font-bold text-emerald-800 block text-[11px]">🎯 Correct Answer / Solution:</span>
+                                      <input
+                                        type="text"
+                                        value={q.correct_answer || ''}
+                                        onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { correct_answer: e.target.value })}
+                                        className="w-full bg-white/90 border border-emerald-300 rounded-lg px-2.5 py-1 text-xs font-bold text-emerald-950 focus:outline-none"
+                                        placeholder="Enter correct solution / marking criteria..."
+                                      />
+                                    </div>
+                                  )}
+
+                                  {/* Explanation */}
+                                  <div className="p-2.5 rounded-xl bg-yellow-50/60 border border-yellow-200/60 space-y-1">
+                                    <span className="text-[11px] font-bold text-yellow-900 block">💡 Explanation & Diagnostic Notes:</span>
+                                    <input
+                                      type="text"
+                                      value={q.explanation || ''}
+                                      onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { explanation: e.target.value })}
+                                      className="w-full bg-white/90 border border-yellow-300 rounded-lg px-2.5 py-1 text-xs font-medium text-stone-800 focus:outline-none"
+                                      placeholder="Add explanation or step-by-step resolution..."
+                                    />
+                                  </div>
                                 </div>
                               );
                             })}
                           </div>
-                        ) : (
-                          <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-xs font-semibold text-emerald-900 space-y-1">
-                            <span className="shrink-0 font-bold text-emerald-800 block text-[11px]">🎯 Correct Answer / Solution:</span>
-                            <input
-                              type="text"
-                              value={q.correct_answer || ''}
-                              onChange={(e) => handleUpdateGeneratedQuestion(idx, { correct_answer: e.target.value })}
-                              className="w-full bg-white/90 border border-emerald-300 rounded-lg px-2.5 py-1 text-xs font-bold text-emerald-950 focus:outline-none"
-                              placeholder="Enter correct solution / marking criteria..."
-                            />
-                          </div>
-                        )}
-
-                        {/* Explanation */}
-                        <div className="p-2.5 rounded-xl bg-yellow-50/60 border border-yellow-200/60 space-y-1">
-                          <span className="text-[11px] font-bold text-yellow-900 block">💡 Explanation & Diagnostic Notes:</span>
-                          <input
-                            type="text"
-                            value={q.explanation || ''}
-                            onChange={(e) => handleUpdateGeneratedQuestion(idx, { explanation: e.target.value })}
-                            className="w-full bg-white/90 border border-yellow-300 rounded-lg px-2.5 py-1 text-xs font-medium text-stone-800 focus:outline-none"
-                            placeholder="Add explanation or step-by-step resolution..."
-                          />
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
 
-                  {/* Add Question Button */}
-                  <div className="flex justify-center pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newQ: GeneratedQuestionItem = {
-                          id: `custom_${Date.now()}`,
-                          question: '',
-                          type: 'MCQ',
-                          marks: 1,
-                          difficulty: 'medium',
-                          options: ['Option A', 'Option B', 'Option C', 'Option D'],
-                          correct_answer: 'Option A',
-                          explanation: '',
-                          is_duplicate: false
-                        };
-                        setGeneratedQuestions(prev => [...prev, newQ]);
-                      }}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs border border-stone-300 transition-colors cursor-pointer"
-                    >
-                      <PlusCircle className="w-4 h-4 text-amber-600" />
-                      <span>+ Add Custom Question</span>
-                    </button>
+                    {/* Add Question Button */}
+                    <div className="flex justify-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newQ: GeneratedQuestionItem = {
+                            id: `custom_${Date.now()}`,
+                            question: '',
+                            type: 'MCQ',
+                            marks: 1,
+                            difficulty: 'medium',
+                            topic_suggested: topicEntries.length > 0 ? topicEntries[0][0] : fallbackTopicName,
+                            options: ['Option A', 'Option B', 'Option C', 'Option D'],
+                            correct_answer: 'Option A',
+                            explanation: '',
+                            is_duplicate: false
+                          };
+                          setGeneratedQuestions(prev => [...prev, newQ]);
+                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs border border-stone-300 transition-colors cursor-pointer"
+                      >
+                        <PlusCircle className="w-4 h-4 text-amber-600" />
+                        <span>+ Add Custom Question</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
 
             {/* Modal Footer */}
