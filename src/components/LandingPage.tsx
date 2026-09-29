@@ -29,6 +29,9 @@ import {
   Calendar,
   ShieldCheck,
   Flame,
+  XCircle,
+  FileText,
+  Check,
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
 
@@ -414,6 +417,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         .animate-fade-in-up {
           animation: fade-in-up 0.6s ease-out forwards;
         }
+        @keyframes float-3d {
+          0%, 100% {
+            transform: translateY(0px) rotateY(-3deg) rotateX(2deg);
+          }
+          50% {
+            transform: translateY(-12px) rotateY(3deg) rotateX(-2deg);
+          }
+        }
+        .animate-float-3d {
+          animation: float-3d 6s ease-in-out infinite;
+        }
       `}</style>
       {/* FIXED NAVBAR & MARQUEE TICKER (Guaranteed 100% Viewport Locking) */}
       <div className="fixed top-0 left-0 right-0 z-50 shadow-sm bg-white">
@@ -426,10 +440,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
               <span key={i} className="flex items-center gap-3 pr-12">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-950 text-amber-300 text-[11px] font-black uppercase tracking-wider shadow-sm">
-                  <span>✨</span> NEW
+                  <span>{i % 2 === 0 ? "✨" : "🎯"}</span> {i % 2 === 0 ? "NEW" : "TIPS"}
                 </span>
                 <span className="text-stone-950 font-black text-sm sm:text-base tracking-wide drop-shadow-sm">
-                  Model Test Papers Available for <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span>, <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span> &amp; <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span> Boards
+                  {i % 2 === 0 ? (
+                    <>
+                      Model Test Papers Available for <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span>, <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span> &amp; <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span> Boards
+                    </>
+                  ) : (
+                    <>
+                      Practice smart. Prepare better.
+                    </>
+                  )}
                 </span>
               </span>
             ))}
@@ -1056,6 +1078,61 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
+      {/* 💎 WHY EDUJUNCTION (EDITORIAL STORY & VALUE NARRATIVE) */}
+      <section id="why-edujunction" className="py-16 sm:py-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-36">
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-amber-100/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-yellow-100/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100/80 border border-amber-300 text-amber-900 text-xs font-black uppercase tracking-wider shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+              Why EduJunction
+            </div>
+            <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black text-stone-900 tracking-tight leading-tight">
+              Why Students & Parents Choose <br className="hidden sm:inline" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600">
+                EduJunction Over Other Platforms
+              </span>
+            </h2>
+          </div>
+
+          {/* 2-Column Open / Borderless Layout: Left Description & Right 3D Motion Image */}
+          <div className="mt-12 lg:mt-16 grid lg:grid-cols-12 gap-10 lg:gap-14 items-center reveal-on-scroll">
+            {/* Left Side: Description */}
+            <div className="lg:col-span-6 space-y-4 text-left">
+              <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-left">
+                While traditional platforms offer generic PDFs with zero diagnostic insights, <strong className="text-stone-900 font-bold">EduJunction</strong> brings the exact <span className="text-amber-900 font-semibold bg-amber-100/80 px-2 py-0.5 rounded-md">Upcoming ICSE, ISC &amp; CBSE board blueprints</span> to life with step-by-step scoring rubrics. Our built-in <strong className="text-stone-900 font-bold">Study Buddy</strong> identifies why a student struggled, pinpointing conceptual traps and prerequisite knowledge gaps before exam day.
+              </p>
+              <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-left">
+                Every test submission automatically compiles and emails an authentic <strong className="text-stone-900 font-bold">PDF Diagnostic Dossier</strong> directly to parents with chapter-wise mastery breakdowns, ensuring seamless transparency. Inside the exam interface, students can solve numericals, draft diagrams, and utilize digital scratchpads directly with our <strong className="text-stone-900 font-bold">Interactive STEM Canvas</strong>. We believe quality education should be accessible and student-centric — empowering learners with <span className="text-amber-900 font-semibold bg-amber-100/80 px-2 py-0.5 rounded-md">fair, modular, per-paper pricing</span> and absolutely no forced annual lock-ins, putting students in complete control of their success.
+              </p>
+            </div>
+
+            {/* Right Side: 3D Motion Image (Round & Larger) */}
+            <div className="lg:col-span-6 flex items-center justify-center [perspective:1200px]">
+              <div className="relative group animate-float-3d [transform-style:preserve-3d] w-full max-w-[460px] sm:max-w-[500px]">
+                {/* 3D Background Glow & Gradient Aura */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-amber-400/30 via-yellow-400/35 to-amber-500/30 rounded-full blur-3xl opacity-80 group-hover:opacity-100 transition duration-700 pointer-events-none" />
+
+                {/* 3D Elevated Round Image Frame */}
+                <div className="relative w-full aspect-square rounded-full overflow-hidden shadow-2xl shadow-amber-950/20 border-4 border-white/90 bg-amber-50/50 transition-transform duration-700 ease-out group-hover:[transform:rotateY(-8deg)_rotateX(6deg)_scale(1.04)] flex items-center justify-center">
+                  <img
+                    src="/why-edujunction-student.png"
+                    alt="Student studying with EduJunction"
+                    className="w-full h-full object-cover object-[center_35%]"
+                    loading="lazy"
+                  />
+                  {/* Subtle 3D Glass Light Reflection */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/15 to-white/35 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 🌟 COMING SOON: MODEL TEST PAPERS 2027 & FREE MOCK TEST BANNER */}
       <section id="model-papers-2027" className="py-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden scroll-mt-36">
         <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
@@ -1289,17 +1366,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* PERSONAS */}
-      <section id="roles" className="py-20 bg-stone-50 border-y border-stone-200 scroll-mt-36">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section
+        id="roles"
+        className="py-20 relative bg-cover bg-center bg-no-repeat border-y border-stone-200/80 scroll-mt-36 overflow-hidden"
+        style={{ backgroundImage: `url('/roles-study-bg.jpg')` }}
+      >
+        {/* Crisp & Clear Overlay (No Blur Filter) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-white/20 to-white/40 pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-stone-200 text-stone-700 text-xs font-bold">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/95 backdrop-blur-sm border border-stone-200 text-stone-800 text-xs font-bold shadow-sm">
               <Users className="w-3.5 h-3.5" />
               One Platform, Three Perspectives
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize">
+            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize text-stone-900 drop-shadow-xs">
               Built for everyone around the learner
             </h2>
-            <p className="mt-3 text-stone-600">
+            <p className="mt-3 text-stone-700 font-semibold drop-shadow-xs">
               Students learn, teachers guide, and parents stay connected.
             </p>
           </div>
@@ -1313,7 +1397,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               return (
                 <div
                   key={role}
-                  className="text-left rounded-3xl p-6 border-2 border-yellow-300 bg-white shadow-xl shadow-yellow-100/60 transition-all reveal-on-scroll"
+                  className="text-left rounded-3xl p-6 border-2 border-yellow-300/90 bg-white/95 backdrop-blur-md shadow-xl shadow-stone-900/5 hover:shadow-2xl hover:shadow-yellow-500/15 hover:-translate-y-1 transition-all duration-300 reveal-on-scroll"
                   style={{ transitionDelay: `${i * 100}ms` }}
                 >
                   <div className="flex items-start justify-between">
@@ -1370,16 +1454,66 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ==================== 2-COLUMN WORD BUILDER SECTION ==================== */}
-      <section id="demo" className="py-14 bg-amber-50/60 relative z-20 font-sans select-none px-4 scroll-mt-36">
+      <section id="demo" className="py-16 bg-amber-50/60 relative z-20 font-sans select-none px-4 scroll-mt-36 overflow-hidden">
 
         {/* Background Soft Glows */}
-        <div className="absolute top-5 left-5 w-72 h-72 bg-yellow-200/50 rounded-full blur-3xl animate-pulse pointer-events-none" />
-        <div className="absolute bottom-5 right-5 w-80 h-80 bg-orange-200/50 rounded-full blur-3xl animate-pulse delay-700 pointer-events-none" />
+        <div className="absolute top-5 left-1/4 w-72 h-72 bg-yellow-200/50 rounded-full blur-3xl animate-pulse pointer-events-none" />
+        <div className="absolute bottom-5 right-1/4 w-80 h-80 bg-orange-200/50 rounded-full blur-3xl animate-pulse delay-700 pointer-events-none" />
 
-        <div className="max-w-4xl mx-auto relative z-10">
+        <div className="max-w-6xl mx-auto relative z-10 px-4">
 
-          {/* Section Heading */}
-          <div className="text-center mb-8">
+          {/* 🌟 3D FLOATING ICONS (Balanced Sweet-Spot Positioning - No Card Overlap) */}
+          {/* 1. Top-Left: Smiling Happy Sun */}
+          <img
+            src="/decorations/sun.png"
+            alt="Happy Sun"
+            className="absolute -top-6 left-0 sm:left-4 lg:left-6 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+          />
+
+          {/* 2. Top-Right: Glowing Magic Book */}
+          <img
+            src="/decorations/magic-book.png"
+            alt="Magic Book"
+            className="absolute -top-6 right-0 sm:right-4 lg:right-6 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+            style={{ animationDelay: '1.5s' }}
+          />
+
+          {/* 3. Middle-Left: ABC Alphabet Blocks */}
+          <img
+            src="/decorations/abc-blocks.png"
+            alt="ABC Blocks"
+            className="hidden md:block absolute top-[54%] left-0 sm:left-2 lg:left-4 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
+            style={{ animationDelay: '0.8s' }}
+          />
+
+          {/* 4. Middle-Right: Pencil with Stars */}
+          <img
+            src="/decorations/pencil-stars.png"
+            alt="Pencil & Stars"
+            className="hidden md:block absolute top-[54%] right-0 sm:right-2 lg:right-4 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
+            style={{ animationDelay: '2.2s' }}
+          />
+
+          {/* 5. Bottom-Left: Puzzle Blocks */}
+          <img
+            src="/decorations/puzzle-blocks.png"
+            alt="Puzzle Blocks"
+            className="absolute -bottom-6 left-0 sm:left-4 lg:left-6 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+            style={{ animationDelay: '2.8s' }}
+          />
+
+          {/* 6. Bottom-Right: Blasting Rocket */}
+          <img
+            src="/decorations/rocket-abc.png"
+            alt="ABC Rocket"
+            className="absolute -bottom-6 right-0 sm:right-4 lg:right-6 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+            style={{ animationDelay: '3.4s' }}
+          />
+
+          <div className="max-w-4xl mx-auto">
+
+            {/* Section Heading */}
+            <div className="text-center mb-8">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-200/60 border border-amber-300 text-amber-900 text-xs font-black mb-2 shadow-sm animate-bounce">
               <span>✨</span> Magic Word Arena
             </div>
@@ -1510,7 +1644,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
         </div>
-      </section>
+      </div>
+    </section>
 
 
       {/* PERSONALIZATION EXAMPLE */}

@@ -2,10 +2,17 @@
 
 @theme {
   --font-sans: "Nunito", sans-serif;
+  --font-heading: "Outfit", sans-serif;
 }
 
 body {
   font-family: 'Nunito', sans-serif !important;
+}
+
+/* Global Headings: Outfit Font */
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: 'Outfit', sans-serif !important;
+  letter-spacing: -0.015em;
 }
 
 /* Keep links visibly distinct while editing and in published blog content. */

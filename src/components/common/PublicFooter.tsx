@@ -7,7 +7,10 @@ export interface PublicFooterProps {
   onQuickDemo?: (role: string) => void;
 }
 
-export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQuickDemo }) => (
+export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQuickDemo }) => {
+  const facebookUrl = import.meta.env.VITE_FACEBOOK_URL || "https://www.facebook.com/edujunction.co.in";
+
+  return (
   <footer className="bg-stone-950 text-stone-500 border-t border-stone-800">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -21,6 +24,19 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
           <p className="mt-3 text-xs leading-relaxed max-w-sm">
             Study Buddy-powered adaptive learning that connects students, teachers and parents.
           </p>
+          <div className="mt-3 flex items-center">
+            <a
+              href={facebookUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="EduJunction on Facebook"
+              className="text-stone-400 hover:text-[#1877F2] transition-colors duration-200 inline-flex items-center justify-center"
+            >
+              <svg className="w-6 h-6 fill-current transition-transform hover:scale-110" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+              </svg>
+            </a>
+          </div>
         </div>
         <div>
           <div className="text-white text-xs font-black uppercase tracking-wider">Platform</div>
@@ -63,4 +79,5 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
       </div>
     </div>
   </footer>
-);
+  );
+};
