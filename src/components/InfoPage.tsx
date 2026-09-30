@@ -16,7 +16,9 @@ import {
   Globe,
   ArrowRight,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  Clock,
+  Building
 } from 'lucide-react';
 import { SEO } from './common/SEO';
 
@@ -116,13 +118,13 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
                 <span>Company Info</span>
               </div>
               <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-stone-900 leading-tight">
-                About Us - <span className="bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 bg-clip-text text-transparent">EduJunction</span>
+                About Us - Edu<span className="text-yellow-500">Junction</span>
               </h1>
               <p className="text-lg sm:text-xl font-medium text-stone-600">
                 Building the future of personalized learning.
               </p>
-              <p className="text-stone-600 text-base sm:text-lg leading-relaxed">
-                <strong className="text-stone-900 font-semibold">EduJunction</strong> was founded with a simple mission: to make high-quality, personalized education accessible to every student. We believe that every child learns differently, and our adaptive learning engine adapts to those unique needs. By bridging the gap between students, teachers, and parents, we are creating a holistic ecosystem where learning never stops.
+              <p className="text-stone-600 text-base sm:text-lg leading-relaxed text-justify [text-align-last:left]">
+                <strong className="text-stone-900 font-semibold">Edu<span className="text-yellow-500">Junction</span></strong> was founded with a simple mission: to make high-quality, personalized education accessible to every student. We believe that every child learns differently, and our adaptive learning engine adapts to those unique needs. By bridging the gap between students, teachers, and parents, we are creating a holistic ecosystem where learning never stops.
               </p>
             </div>
 
@@ -134,8 +136,8 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
                 </div>
                 <h2 className="text-2xl font-bold text-stone-900 tracking-tight">Our Story</h2>
               </div>
-              <p className="text-stone-700 leading-relaxed text-base sm:text-lg">
-                EduJunction began as an idea to solve one of education&apos;s oldest problems — the <span className="text-amber-700 font-semibold">&ldquo;one-size-fits-all&rdquo;</span> classroom. Traditional learning systems often leave students behind or fail to challenge them enough. We set out to build a smarter platform that meets every learner exactly where they are, using diagnostic assessments, adaptive content, and gamified engagement to make learning both effective and enjoyable.
+              <p className="text-stone-700 leading-relaxed text-base sm:text-lg text-justify [text-align-last:left]">
+                Edu<span className="text-yellow-500 font-semibold">Junction</span> began as an idea to solve one of education&apos;s oldest problems — the <span className="text-amber-700 font-semibold">&ldquo;one-size-fits-all&rdquo;</span> classroom. Traditional learning systems often leave students behind or fail to challenge them enough. We set out to build a smarter platform that meets every learner exactly where they are, using diagnostic assessments, adaptive content, and gamified engagement to make learning both effective and enjoyable.
               </p>
             </div>
 
@@ -148,7 +150,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
                   <Target className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-black text-stone-900 mb-3 tracking-tight">Our Mission</h3>
-                <p className="text-stone-600 leading-relaxed text-sm sm:text-base">
+                <p className="text-stone-600 leading-relaxed text-sm sm:text-base text-justify [text-align-last:left]">
                   To democratize access to personalized, high-quality education — empowering students to learn at their own pace, teachers to teach smarter, and parents to stay meaningfully involved in their child&apos;s academic journey.
                 </p>
               </div>
@@ -160,7 +162,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
                   <Eye className="w-6 h-6" />
                 </div>
                 <h3 className="text-xl font-black text-stone-900 mb-3 tracking-tight">Our Vision</h3>
-                <p className="text-stone-600 leading-relaxed text-sm sm:text-base">
+                <p className="text-stone-600 leading-relaxed text-sm sm:text-base text-justify [text-align-last:left]">
                   A world where every student has access to a learning experience tailored to their individual needs — one where curiosity is nurtured, gaps are identified early, and no learner is left behind.
                 </p>
               </div>
@@ -185,7 +187,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
                     <Zap className="w-5 h-5" />
                   </div>
                   <h4 className="text-lg font-bold text-stone-900 mb-2">Adaptive Learning</h4>
-                  <p className="text-sm text-stone-600 leading-relaxed">
+                  <p className="text-sm text-stone-600 leading-relaxed text-justify [text-align-last:left]">
                     Our engine continuously adjusts content difficulty and pacing based on real-time performance, ensuring every student stays challenged but never overwhelmed.
                   </p>
                 </div>
@@ -196,7 +198,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
                     <Users className="w-5 h-5" />
                   </div>
                   <h4 className="text-lg font-bold text-stone-900 mb-2">Holistic Ecosystem</h4>
-                  <p className="text-sm text-stone-600 leading-relaxed">
+                  <p className="text-sm text-stone-600 leading-relaxed text-justify [text-align-last:left]">
                     We connect students, educators, and parents on one platform, fostering collaboration and transparency in the learning process.
                   </p>
                 </div>
@@ -207,7 +209,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
                     <BarChart3 className="w-5 h-5" />
                   </div>
                   <h4 className="text-lg font-bold text-stone-900 mb-2">Data-Driven Insights</h4>
-                  <p className="text-sm text-stone-600 leading-relaxed">
+                  <p className="text-sm text-stone-600 leading-relaxed text-justify [text-align-last:left]">
                     Diagnostic assessments and progress tracking give students and teachers clear, actionable insights into strengths and growth areas.
                   </p>
                 </div>
@@ -218,7 +220,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
                     <Globe className="w-5 h-5" />
                   </div>
                   <h4 className="text-lg font-bold text-stone-900 mb-2">Accessibility First</h4>
-                  <p className="text-sm text-stone-600 leading-relaxed">
+                  <p className="text-sm text-stone-600 leading-relaxed text-justify [text-align-last:left]">
                     We&apos;re committed to making quality education tools available to learners across diverse backgrounds and learning environments.
                   </p>
                 </div>
@@ -236,12 +238,12 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
                 <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900">
                   Join Us on This Journey
                 </h3>
-                <p className="text-stone-700 text-sm sm:text-base leading-relaxed">
-                  Whether you&apos;re a student aiming to reach your full potential, a teacher looking for smarter tools, or a parent wanting to stay engaged in your child&apos;s education - <strong className="text-stone-900 font-semibold">EduJunction</strong> is built for you.
+                <p className="text-stone-700 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
+                  Whether you&apos;re a student aiming to reach your full potential, a teacher looking for smarter tools, or a parent wanting to stay engaged in your child&apos;s education - <strong className="text-stone-900 font-semibold">Edu<span className="text-yellow-500">Junction</span></strong> is built for you.
                 </p>
                 <div className="pt-2 flex flex-wrap gap-4">
                   <Link
-                    to="/admin/login"
+                    to="/?auth=register"
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-500 text-stone-950 font-bold text-sm shadow-xs hover:from-yellow-400 hover:to-amber-400 transition-all hover:scale-102"
                   >
                     <span>Get Started</span>
@@ -257,43 +259,143 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
               </div>
             </div>
           </div>
-        ) : (
-          /* ── GENERIC LAYOUT FOR BLOG / CONTACT ── */
-          <div className="max-w-3xl space-y-6">
-            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${current.bg} ${current.color} text-xs font-bold`}>
-              <Icon className="w-3.5 h-3.5" />
-              <span>{current.badge}</span>
+        ) : type === 'contact' ? (
+          /* ── CONTACT US SPECIALIZED RICH LAYOUT ── */
+          <div className="w-full space-y-10">
+            {/* Header Title & Intro */}
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-pink-100/80 border border-pink-200/80 text-pink-800 text-xs font-bold shadow-xs">
+                <Mail className="w-3.5 h-3.5 text-pink-600" />
+                <span>Help & Support</span>
+              </div>
+              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-stone-900 leading-tight">
+                Contact Us - <span className="bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 bg-clip-text text-transparent">EduJunction</span>
+              </h1>
+              <p className="text-lg sm:text-xl font-medium text-stone-600">
+                We would love to hear from you.
+              </p>
+              <p className="text-stone-600 text-base sm:text-lg leading-relaxed text-justify [text-align-last:left]">
+                Whether you are a school looking to integrate our platform, a parent with a question, or a student needing help, our team is here for you. Reach out to us at <a href="https://mail.google.com/mail/u/0/?fs=1&to=support@edujunction.co.in&tf=cm" target="_blank" rel="noreferrer" className="text-amber-600 font-semibold hover:underline">support@edujunction.co.in</a> or explore our direct contact channels below. We aim to respond to all inquiries within 24 hours.
+              </p>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-stone-900">
-              {current.title}
-            </h1>
-            <p className="text-base font-medium text-stone-500">{current.subtitle}</p>
+            {/* Contact Channels Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Channel 1: General & Parent Support */}
+              <div className="p-7 rounded-3xl bg-white border border-stone-200/80 shadow-xs hover:border-amber-300 transition-all flex flex-col justify-between group">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold shadow-xs">
+                    <Mail className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-stone-900 mb-1.5 tracking-tight">Direct Support &amp; Inquiries</h2>
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
+                      For technical assistance, parent inquiries, subscription queries, or feedback, our support team is available every business day.
+                    </p>
+                  </div>
+                </div>
 
-            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-stone-200/80 shadow-xs leading-relaxed text-stone-700 space-y-5">
-              <p className="text-base sm:text-lg leading-relaxed">{current.text}</p>
-              {type === 'contact' && (
-                <div className="pt-2 flex flex-wrap gap-4 items-center">
+                <div className="pt-6 mt-4 border-t border-stone-100 flex flex-wrap gap-3 items-center">
                   <a
                     href="https://mail.google.com/mail/u/0/?fs=1&to=support@edujunction.co.in&tf=cm"
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-500 text-stone-950 font-bold text-sm shadow-xs hover:from-yellow-400 hover:to-amber-400 transition-all cursor-pointer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-500 text-stone-950 font-bold text-sm shadow-xs hover:from-yellow-400 hover:to-amber-400 transition-all cursor-pointer hover:scale-102"
                   >
                     <Mail className="w-4 h-4" />
-                    <span>Send Email via Gmail</span>
+                    <span>Send via Gmail</span>
+                  </a>
+                  <a
+                    href="https://mail.google.com/mail/u/0/?fs=1&to=support@edujunction.co.in&tf=cm"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-sm transition-colors border border-stone-200/80 cursor-pointer"
+                  >
+                    <span>support@edujunction.co.in</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Channel 2: Institutional & School Partnerships */}
+              <div className="p-7 rounded-3xl bg-white border border-stone-200/80 shadow-xs hover:border-orange-300 transition-all flex flex-col justify-between group">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold shadow-xs">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-stone-900 mb-1.5 tracking-tight">School &amp; Institutional Onboarding</h2>
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
+                      Looking to bring EduJunction&apos;s adaptive learning tests and diagnostic reports into your classroom or institution? Let&apos;s discuss custom integrations.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-6 mt-4 border-t border-stone-100 flex flex-wrap gap-3 items-center">
+                  <a
+                    href="https://mail.google.com/mail/u/0/?fs=1&to=support@edujunction.co.in&su=School+Partnership+Inquiry&tf=cm"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-sm shadow-xs transition-all cursor-pointer hover:scale-102"
+                  >
+                    <Building className="w-4 h-4 text-yellow-400" />
+                    <span>Partner with Us</span>
                   </a>
                   <a
                     href="https://edujunction.co.in"
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-sm transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-sm transition-colors border border-stone-200/80"
                   >
                     <Globe className="w-4 h-4 text-amber-500" />
                     <span>edujunction.co.in</span>
                   </a>
                 </div>
-              )}
+              </div>
+            </div>
+
+            {/* Response Time & Guarantees Banner */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-amber-50/70 via-white to-orange-50/50 border border-amber-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+              <div className="space-y-1.5 max-w-2xl">
+                <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-800 uppercase tracking-wider">
+                  <Clock className="w-4 h-4 text-amber-600" />
+                  <span>Prompt Response Guarantee</span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-stone-900">
+                  Every inquiry receives dedicated human review within 24 hours.
+                </h3>
+                <p className="text-stone-600 text-sm leading-relaxed text-justify [text-align-last:left]">
+                  Whether it is troubleshooting an exam session, password reset assistance, or syllabus feedback, our support specialists ensure you are never kept waiting.
+                </p>
+              </div>
+
+              <div className="flex-shrink-0">
+                <Link
+                  to="/about"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white hover:bg-stone-50 text-stone-900 font-bold text-sm border border-stone-200 shadow-2xs hover:border-amber-300 transition-colors"
+                >
+                  <span>Learn About Us</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* ── GENERIC LAYOUT FOR BLOG ── */
+          <div className="w-full space-y-8">
+            <div className="space-y-4">
+              <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full ${current.bg} ${current.color} text-xs font-bold shadow-xs`}>
+                <Icon className="w-3.5 h-3.5" />
+                <span>{current.badge}</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-stone-900 leading-tight">
+                {current.title}
+              </h1>
+              <p className="text-lg sm:text-xl font-medium text-stone-600">{current.subtitle}</p>
+            </div>
+
+            <div className="p-6 sm:p-10 rounded-3xl bg-white border border-stone-200/80 shadow-sm leading-relaxed text-stone-700 space-y-6">
+              <p className="text-base sm:text-lg leading-relaxed text-justify [text-align-last:left]">{current.text}</p>
             </div>
           </div>
         )}

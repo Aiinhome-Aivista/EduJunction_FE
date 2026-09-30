@@ -24,7 +24,7 @@ export const LegalSection: React.FC = () => {
             <AlertCircle className="w-4 h-4 text-sky-600" />
             <h2 className="text-base font-bold text-stone-900">1. Academic & Diagnostic Disclaimer</h2>
           </div>
-          <p>
+          <p className="text-justify [text-align-last:left]">
             EduJunction is a supplementary educational diagnostic assessment platform. All 10-mark sprint examinations, step-by-step model solutions, and topic mastery ratings are generated using curriculum analytics calibrated against published public syllabi of CBSE, ICSE, ISC, Cambridge Assessment International Education, NCERT, and competitive exam guidelines (NEET/IIT-JEE). EduJunction is an independent educational platform and is not officially affiliated with or endorsed by CISCE, CBSE, Cambridge University Press &amp; Assessment, or NTA. Diagnostic scores should be used as formative practice indicators alongside regular school instruction.
           </p>
         </section>
@@ -35,7 +35,7 @@ export const LegalSection: React.FC = () => {
             <Lock className="w-4 h-4 text-yellow-600" />
             <h2 className="text-base font-bold text-stone-900">2. Student Privacy & Parental Oversight</h2>
           </div>
-          <p>
+          <p className="text-justify [text-align-last:left]">
             Protecting school children (Classes 5 to 12) is our foremost priority. Child sub-accounts are strictly created, monitored, and mediated by a verified parent or legal guardian master account. We do not sell student response logs or personal information to third parties. Exam responses are utilized solely to construct student-specific knowledge graph mastery charts and to provide targeted educational reference links.
           </p>
         </section>
@@ -46,7 +46,7 @@ export const LegalSection: React.FC = () => {
             <FileText className="w-4 h-4 text-yellow-600" />
             <h2 className="text-base font-bold text-stone-900">3. Platform Access & Fair Use</h2>
           </div>
-          <p>
+          <p className="text-justify [text-align-last:left]">
             EduJunction provides open diagnostic assessments and adaptive learning paths for students subject to standard fair use guidelines. Parents and educators may utilize all interactive features and analytical tools freely for non-commercial educational enrichment.
           </p>
         </section>

@@ -22,7 +22,7 @@ export const AboutSection: React.FC = () => {
         <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight mb-4">
           Revolutionizing School Exam Preparedness Through Adaptive Diagnostics
         </h1>
-        <p className="text-sm sm:text-base text-stone-600 leading-relaxed">
+        <p className="text-sm sm:text-base text-stone-600 leading-relaxed text-justify [text-align-last:left]">
           EduJunction is engineered for parents and students in Classes 5 to 12 across premier national and international boards. We transform stressful exam preparation into manageable, high-accuracy 10-mark diagnostic sprints grounded in authentic curriculum runbooks.
         </p>
       </div>
@@ -34,7 +34,7 @@ export const AboutSection: React.FC = () => {
             <Layers className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-base text-stone-900 mb-2">RAG-Grounded Runbooks</h3>
-          <p className="text-xs text-stone-600 leading-relaxed">
+          <p className="text-xs text-stone-600 leading-relaxed text-justify [text-align-last:left]">
             Every question and explanation is strictly cross-verified against real board runbooks (CBSE, ICSE, Cambridge, NEET, IIT) to prevent hallucinations and maintain syllabus fidelity.
           </p>
         </div>
@@ -44,7 +44,7 @@ export const AboutSection: React.FC = () => {
             <Zap className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-base text-stone-900 mb-2">The 10-Mark Sprint Model</h3>
-          <p className="text-xs text-stone-600 leading-relaxed">
+          <p className="text-xs text-stone-600 leading-relaxed text-justify [text-align-last:left]">
             Instead of overwhelming students with 3-hour tests, our 10-question sprint pinpoints conceptual gaps in 15 minutes, allowing children to test daily without burnout.
           </p>
         </div>
@@ -54,7 +54,7 @@ export const AboutSection: React.FC = () => {
             <Users className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-base text-stone-900 mb-2">Parent & Child Co-Pilot</h3>
-          <p className="text-xs text-stone-600 leading-relaxed">
+          <p className="text-xs text-stone-600 leading-relaxed text-justify [text-align-last:left]">
             Parents manage a single master account with dedicated sub-accounts for each child. Real-time evolutionary roadmaps empower parents to track learning trajectory with confidence.
           </p>
         </div>

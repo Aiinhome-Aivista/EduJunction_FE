@@ -32,6 +32,8 @@ import {
   XCircle,
   FileText,
   Check,
+  Maximize2,
+  ExternalLink,
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
 
@@ -200,7 +202,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       const scrollToEl = () => {
         const el = document.getElementById(targetId);
         if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const fixedBar = document.querySelector('.fixed.top-0');
+          const fixedHeight = fixedBar ? fixedBar.getBoundingClientRect().height : 116;
+          const y = el.getBoundingClientRect().top + window.pageYOffset - fixedHeight + 20;
+          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
         }
       };
       const scrollTimer1 = setTimeout(scrollToEl, 100);
@@ -483,7 +488,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </span>
               </h1>
 
-              <p className="mt-5 text-base sm:text-lg text-stone-600 leading-relaxed max-w-xl">
+              <p className="mt-5 text-base sm:text-lg text-stone-600 leading-relaxed max-w-xl text-justify [text-align-last:left]">
                 Take an assessment, understand where you need help, and get a
                 learning Path made for you. Learn, practice, play and improve
                 with your Study Buddy.
@@ -585,7 +590,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* FEATURES */}
-      <section id="features" className="pt-10 pb-4 sm:pb-6 bg-stone-50 scroll-mt-36">
+      <section id="features" className="pt-4 sm:pt-6 pb-6 bg-stone-50 scroll-mt-[90px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/80 text-yellow-800 text-xs font-bold shadow-sm">
@@ -1003,17 +1008,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             const ModalIcon = featData.icon;
 
             return (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[90vh]">
+              <div
+                onClick={() => setActiveFeatureModal(null)}
+                className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-white w-full max-w-2xl sm:max-w-3xl rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col"
+                >
                   {/* Header */}
-                  <div className="p-6 border-b border-stone-100 bg-gradient-to-r from-yellow-50 via-amber-50 to-white flex items-center justify-between">
+                  <div className="p-4 sm:p-5 border-b border-stone-100 bg-gradient-to-r from-yellow-50 via-amber-50 to-white flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-md shadow-yellow-200 shrink-0">
-                        <ModalIcon className="w-6 h-6" />
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-md shadow-yellow-200 shrink-0">
+                        <ModalIcon className="w-5 h-5 sm:w-5.5 sm:h-5.5" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-black text-stone-900">{featData.title}</h3>
+                          <h3 className="text-base sm:text-lg font-black text-stone-900">{featData.title}</h3>
                           <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${featData.badgeColor}`}>
                             {featData.badge}
                           </span>
@@ -1030,18 +1041,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
 
                   {/* Body */}
-                  <div className="p-6 overflow-y-auto space-y-5 custom-scrollbar">
-                    <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed">
+                  <div className="p-4 sm:p-6 space-y-3.5 sm:space-y-4">
+                    <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed text-justify [text-align-last:left]">
                       {featData.description}
                     </p>
 
                     {/* Highlights Grid */}
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-black text-stone-900 uppercase tracking-wider">Key Feature Highlights:</h4>
+                    <div className="space-y-1.5">
+                      <h4 className="text-[11px] sm:text-xs font-black text-stone-900 uppercase tracking-wider">Key Feature Highlights:</h4>
                       <div className="grid sm:grid-cols-2 gap-2">
                         {featData.highlights.map((h: string, idx: number) => (
-                          <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl bg-stone-50 border border-stone-200/80 text-xs font-semibold text-stone-800">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <div key={idx} className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 border border-stone-200/80 text-[11px] sm:text-xs font-semibold text-stone-800">
+                            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
                             <span>{h}</span>
                           </div>
                         ))}
@@ -1050,26 +1061,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                     {/* Interactive Demo Widget */}
                     {featData.demoWidget && (
-                      <div className="space-y-2 pt-2 border-t border-stone-100">
-                        <h4 className="text-xs font-black text-stone-900 uppercase tracking-wider">{featData.demoTitle}:</h4>
+                      <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                        <h4 className="text-[11px] sm:text-xs font-black text-stone-900 uppercase tracking-wider">{featData.demoTitle}:</h4>
                         {featData.demoWidget}
                       </div>
                     )}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="p-4 bg-stone-50 border-t border-stone-100 flex items-center justify-between">
-                    <span className="text-xs text-stone-500 font-medium hidden sm:inline">
-                      Experience Study Buddy-powered adaptive learning
-                    </span>
-                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                      <button
-                        onClick={() => setActiveFeatureModal(null)}
-                        className="px-5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition-colors cursor-pointer"
-                      >
-                        Close Preview
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1079,7 +1075,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* 💎 WHY EDUJUNCTION (EDITORIAL STORY & VALUE NARRATIVE) */}
-      <section id="why-edujunction" className="pt-2 sm:pt-4 pb-16 sm:pb-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-36">
+      <section id="why-edujunction" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-[90px]">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-amber-100/30 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-yellow-100/20 rounded-full blur-3xl pointer-events-none" />
 
@@ -1091,22 +1087,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Why EduJunction
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black text-stone-900 tracking-tight leading-tight">
-              Why Students & Parents Choose <br className="hidden sm:inline" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600">
-                EduJunction Over Other Platforms
-              </span>
+              Edu<span className="text-yellow-500">Junction</span> vs <span className="text-yellow-500">Others</span>
             </h2>
           </div>
 
           {/* 2-Column Open / Borderless Layout: Left Description & Right 3D Motion Image */}
           <div className="mt-12 lg:mt-16 grid lg:grid-cols-12 gap-10 lg:gap-14 items-center reveal-on-scroll">
             {/* Left Side: Description */}
-            <div className="lg:col-span-6 space-y-4 text-left">
-              <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-left">
-                While traditional platforms offer generic PDFs with zero diagnostic insights, <strong className="text-stone-900 font-bold">EduJunction</strong> brings the exact <span className="text-amber-900 font-semibold bg-amber-100/80 px-2 py-0.5 rounded-md">Upcoming ICSE, ISC &amp; CBSE board blueprints</span> to life with step-by-step scoring rubrics. Our built-in <strong className="text-stone-900 font-bold">Study Buddy</strong> identifies why a student struggled, pinpointing conceptual traps and prerequisite knowledge gaps before exam day.
+            <div className="lg:col-span-6 space-y-4">
+              <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
+                While traditional platforms offer generic PDFs with zero diagnostic insights, <strong className="text-stone-900 font-bold">EduJunction</strong> brings the exact <strong className="text-amber-800 font-bold">Upcoming ICSE, ISC &amp; CBSE board blueprints</strong> to life with step-by-step scoring rubrics. Our built-in <strong className="text-stone-900 font-bold">Study Buddy</strong> identifies why a student struggled, pinpointing conceptual traps and prerequisite knowledge gaps before exam day.
               </p>
-              <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-left">
-                Every test submission automatically compiles and emails an authentic <strong className="text-stone-900 font-bold">PDF Diagnostic Dossier</strong> directly to parents with chapter-wise mastery breakdowns, ensuring seamless transparency. Inside the exam interface, students can solve numericals, draft diagrams, and utilize digital scratchpads directly with our <strong className="text-stone-900 font-bold">Interactive STEM Canvas</strong>. We believe quality education should be accessible and student-centric — empowering learners with <span className="text-amber-900 font-semibold bg-amber-100/80 px-2 py-0.5 rounded-md">fair, modular, per-paper pricing</span> and absolutely no forced annual lock-ins, putting students in complete control of their success.
+              <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
+                Every test submission automatically compiles and emails an authentic <strong className="text-stone-900 font-bold">PDF Diagnostic Dossier</strong> directly to parents with chapter-wise mastery breakdowns, ensuring seamless transparency. Inside the exam interface, students can solve numericals, draft diagrams, and utilize digital scratchpads directly with our <strong className="text-stone-900 font-bold">Interactive STEM Canvas</strong>. We believe quality education should be accessible and student-centric — empowering learners with <strong className="text-amber-800 font-bold">fair, modular, per-paper pricing</strong> and absolutely no forced annual lock-ins, putting students in complete control of their success.
               </p>
             </div>
 
@@ -1134,7 +1127,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* 🌟 COMING SOON: MODEL TEST PAPERS 2027 & FREE MOCK TEST BANNER */}
-      <section id="model-papers-2027" className="py-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden scroll-mt-36">
+      <section id="model-papers-2027" className="pt-4 sm:pt-6 pb-12 sm:pb-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden scroll-mt-[90px]">
         <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
 
@@ -1154,7 +1147,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     ICSE, CBSE & ISC 2027
                   </span>
                 </h2>
-                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium text-justify [text-align-last:left]">
                   Access full-length authentic specimen model papers tailored to each board: <b>CBSE (3 Hours • 80 Marks)</b>, <b>ICSE (2.5 Hours • 80 Marks)</b> and <b>ISC (3 Hours • 70/80 Marks)</b>. Designed based on 10–15 years of past question patterns, step-by-step marking schemes, and competency-based questions.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1">
@@ -1200,7 +1193,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
                   Free Subject-Wise 10-Mark Mock Test
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed">
+                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed text-justify [text-align-last:left]">
                   Understand your child’s learning level and conceptual strengths in just 15 minutes. <b>Create a free Parent Account</b>, add your child’s Board (CBSE, ICSE, ISC) and Class (5 to 10), and unlock free subject-wise practice tests with step-by-step solutions and a detailed diagnostic report delivered straight to your email.
                 </p>
 
@@ -1297,13 +1290,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 Short on <span className="text-yellow-500">Time?</span> ⏳
               </h2>
 
-              <p className="mt-6 text-stone-600 text-lg max-w-md">
+              <p className="mt-6 text-stone-600 text-lg max-w-md mx-auto lg:mx-0">
                 Exams approaching fast? Study Buddy quickly finds your weak spots so you can focus on what really matters and learn faster.
               </p>
 
               <button
                 onClick={() => openAuth('register')}
-                className="mt-30 px-8 py-3.5 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-white font-black text-base shadow-md shadow-yellow-500/20 hover:shadow-lg hover:shadow-yellow-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
+                className="mt-8 px-8 py-3.5 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-white font-black text-base shadow-md shadow-yellow-500/20 hover:shadow-lg hover:shadow-yellow-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
               >
                 Start Learning
               </button>
@@ -1316,7 +1309,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
 
       {/* HOW IT WORKS */}
-      <section id="how-it-works" className="py-20 bg-white scroll-mt-36">
+      <section id="how-it-works" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white scroll-mt-[90px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold shadow-sm">
@@ -1362,13 +1355,81 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             ))}
           </div>
+
+          {/* INTERACTIVE VIDEO WALKTHROUGH EMBED */}
+          <div className="mt-10 sm:mt-12 w-full reveal-on-scroll">
+            <div className="relative rounded-3xl p-3 sm:p-5 bg-gradient-to-b from-stone-900 via-stone-900 to-black shadow-2xl border border-stone-700/60 overflow-hidden group">
+              {/* Subtle glowing ambient background */}
+              <div className="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
+
+              {/* Player Header Bar */}
+              <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-2.5 mb-2 sm:mb-3 bg-stone-800/80 backdrop-blur-md rounded-2xl border border-stone-700/50">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-rose-500 inline-block shadow-sm" />
+                    <span className="w-3 h-3 rounded-full bg-amber-500 inline-block shadow-sm" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block shadow-sm" />
+                  </div>
+                  <span className="hidden sm:inline-block ml-3 text-xs font-semibold text-stone-300">
+                    EduJunction — Getting Started Interactive Video Guide
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 text-[11px] font-bold border border-amber-500/30">
+                    <Play className="w-3 h-3 fill-amber-300 text-amber-300" />
+                    Interactive Audio-Visual
+                  </span>
+                  <a
+                    href="/EduJunction-Getting-Started.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-lg text-stone-400 hover:text-white hover:bg-stone-700/50 transition-colors"
+                    title="Open Fullscreen in New Tab"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+
+              {/* 16:9 Video Frame with Iframe */}
+              <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-stone-950 border border-stone-800 shadow-inner">
+                <iframe
+                  src="/EduJunction-Getting-Started.html"
+                  title="Getting Started with EduJunction"
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  loading="lazy"
+                />
+              </div>
+
+              {/* Bottom Info Bar */}
+              <div className="mt-3 px-2 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-400 gap-2">
+                <div className="flex items-center gap-2 text-stone-300">
+                  <Sparkles className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+                  <span>Interactive Walkthrough: Auto-playing preview. Click the <b>Speaker / Mute icon</b> inside the player anytime to hear voice narration.</span>
+                </div>
+                <a
+                  href="/EduJunction-Getting-Started.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 font-semibold transition-colors shrink-0"
+                >
+                  <span>Open Fullscreen</span>
+                  <Maximize2 className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* PERSONAS */}
       <section
         id="roles"
-        className="py-20 relative bg-cover bg-center bg-no-repeat border-y border-stone-200/80 scroll-mt-36 overflow-hidden"
+        className="pt-4 sm:pt-6 pb-16 sm:pb-20 relative bg-cover bg-center bg-no-repeat border-y border-stone-200/80 scroll-mt-[90px] overflow-hidden"
         style={{ backgroundImage: `url('/roles-study-bg.jpg')` }}
       >
         {/* Crisp & Clear Overlay (No Blur Filter) */}
@@ -1454,7 +1515,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ==================== 2-COLUMN WORD BUILDER SECTION ==================== */}
-      <section id="demo" className="py-16 bg-amber-50/60 relative z-20 font-sans select-none px-4 scroll-mt-36 overflow-hidden">
+      <section id="demo" className="pt-4 sm:pt-6 pb-16 bg-amber-50/60 relative z-20 font-sans select-none px-4 scroll-mt-[90px] overflow-hidden">
 
         {/* Background Soft Glows */}
         <div className="absolute top-5 left-1/4 w-72 h-72 bg-yellow-200/50 rounded-full blur-3xl animate-pulse pointer-events-none" />
@@ -1720,8 +1781,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
               <div>
                 <h3 className="text-2xl font-black text-stone-900">Advanced students get harder content.</h3>
-                <p className="mt-3 text-stone-600 font-medium text-lg leading-relaxed max-w-3xl">
-                  If a student consistently performs strongly, the platform dynamically adapts, moving them to <span className="font-bold text-amber-700 bg-amber-100/50 rounded-md">HOTS (Higher Order Thinking Skills)</span> questions, challenge quizzes, and advanced mock exams.
+                <p className="mt-3 text-stone-600 font-medium text-lg leading-relaxed max-w-3xl text-justify [text-align-last:left]">
+                  If a student consistently performs strongly, the platform dynamically adapts, moving them to <strong className="font-bold text-amber-700">HOTS (Higher Order Thinking Skills)</strong> questions, challenge quizzes, and advanced mock exams.
                 </p>
               </div>
             </div>
@@ -1743,7 +1804,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize">
                   Rewards that make children want to keep going
                 </h2>
-                <p className="mt-4 text-stone-600 leading-relaxed">
+                <p className="mt-4 text-stone-600 leading-relaxed text-justify [text-align-last:left]">
                   Correct answers earn points. Milestones unlock badges. Daily activity builds streaks. Students can see a friendly leaderboard and take short educational brain breaks.
                 </p>
               </div>
@@ -1980,7 +2041,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <GraduationCap className="w-7 h-7" />
               </div>
               <h3 className="font-black text-xl text-stone-900 relative z-10">Student</h3>
-              <p className="mt-2 text-sm font-semibold text-stone-600 leading-relaxed relative z-10">
+              <p className="mt-2 text-sm font-semibold text-stone-600 leading-relaxed relative z-10 text-justify [text-align-last:left]">
                 Takes tests, follows the learning Path, practices and earns rewards while the Study Buddy adapts the lessons.
               </p>
             </div>
@@ -1991,7 +2052,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <Users className="w-7 h-7" />
               </div>
               <h3 className="font-black text-xl text-stone-900 relative z-10">Parent</h3>
-              <p className="mt-2 text-sm font-semibold text-stone-600 leading-relaxed relative z-10">
+              <p className="mt-2 text-sm font-semibold text-stone-600 leading-relaxed relative z-10 text-justify [text-align-last:left]">
                 Views reports, understands improvement areas, and tracks their child's progress without having to teach.
               </p>
             </div>
@@ -2143,7 +2204,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </button>
 
                   {open && (
-                    <div className="px-6 pb-6 text-stone-600 leading-relaxed pt-2">
+                    <div className="px-6 pb-6 text-stone-600 leading-relaxed pt-2 text-justify [text-align-last:left]">
                       {faq.a}
                     </div>
                   )}

@@ -102,7 +102,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
               <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-stone-900 leading-tight">
                 Privacy Policy - <span className="bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 bg-clip-text text-transparent">EduJunction</span>
               </h1>
-              <p className="text-stone-600 text-base sm:text-lg leading-relaxed">
+              <p className="text-stone-600 text-base sm:text-lg leading-relaxed text-justify [text-align-last:left]">
                 At <strong className="text-stone-900 font-semibold">EduJunction</strong> (&ldquo;we,&rdquo; &ldquo;us,&rdquo; &ldquo;our&rdquo;), accessible at{' '}
                 <a href="https://edujunction.co.in" className="text-amber-600 hover:underline font-semibold">
                   edujunction.co.in
@@ -125,16 +125,16 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       Information We Collect
                     </h2>
                     <ul className="space-y-2.5">
-                      <li className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                      <li className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                         <strong className="text-stone-900 font-semibold">• Personal Information:</strong> Name, email address, phone number, date of birth, and educational details provided during registration.
                       </li>
-                      <li className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                      <li className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                         <strong className="text-stone-900 font-semibold">• Usage Data:</strong> Pages visited, courses accessed, time spent on the platform, quiz/assessment results, and device/browser information.
                       </li>
-                      <li className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                      <li className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                         <strong className="text-stone-900 font-semibold">• Payment Information:</strong> If applicable, billing details processed securely through third-party payment gateways (we do not store full card details).
                       </li>
-                      <li className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                      <li className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                         <strong className="text-stone-900 font-semibold">• Cookies &amp; Tracking:</strong> We use cookies to improve site functionality, remember preferences, and analyze usage patterns.
                       </li>
                     </ul>
@@ -223,7 +223,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <ShieldCheck className="w-5 h-5 text-emerald-600" />
                       Data Security
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       We implement industry-standard technical and organizational safeguards (encryption, access controls, secure servers) to protect your data from unauthorized access, alteration, or loss. However, no method of transmission over the internet is 100% secure.
                     </p>
                   </div>
@@ -241,7 +241,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <GraduationCap className="w-5 h-5 text-blue-600" />
                       Children&apos;s Privacy
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       If our platform is used by minors, we require parental/guardian consent for account creation and limit data collection to what is necessary for educational purposes.
                     </p>
                   </div>
@@ -293,7 +293,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <Clock className="w-5 h-5 text-teal-600" />
                       Data Retention
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       We retain your data only as long as necessary to provide our services or as required by applicable law, after which it is securely deleted or anonymized.
                     </p>
                   </div>
@@ -311,7 +311,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <ExternalLink className="w-5 h-5 text-indigo-600" />
                       Third-Party Links
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       Our platform may contain links to external websites. We are not responsible for the privacy practices or content of these third-party sites.
                     </p>
                   </div>
@@ -329,7 +329,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <RefreshCw className="w-5 h-5 text-amber-600" />
                       Changes to This Policy
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       We may update this Privacy Policy periodically. Continued use of the Service after changes constitutes acceptance of the revised policy. We recommend reviewing this page periodically.
                     </p>
                   </div>
@@ -347,7 +347,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <Mail className="w-6 h-6 text-amber-600" />
                       Contact Us
                     </h2>
-                    <p className="text-stone-700 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-700 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       If you have any questions or concerns about this Privacy Policy or our data practices, please contact our support team at:
                     </p>
                     <div className="pt-2 flex flex-wrap gap-4 items-center text-sm font-semibold">
@@ -389,7 +389,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
               <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-stone-900 leading-tight">
                 Terms of Service - <span className="bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 bg-clip-text text-transparent">EduJunction</span>
               </h1>
-              <p className="text-stone-600 text-base sm:text-lg leading-relaxed">
+              <p className="text-stone-600 text-base sm:text-lg leading-relaxed text-justify [text-align-last:left]">
                 Welcome to <strong className="text-stone-900 font-semibold">EduJunction</strong> (&ldquo;we,&rdquo; &ldquo;us,&rdquo; &ldquo;our&rdquo;), accessible at{' '}
                 <a href="https://edujunction.co.in" className="text-amber-600 hover:underline font-semibold">
                   edujunction.co.in
@@ -411,7 +411,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <CheckCircle2 className="w-5 h-5 text-amber-600" />
                       Acceptance of Terms
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       By registering for, accessing, or using EduJunction, you confirm that you have read, understood, and agree to be bound by these Terms. If you do not agree, please discontinue use of the platform.
                     </p>
                   </div>
@@ -429,7 +429,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <UserPlus className="w-5 h-5 text-blue-600" />
                       Eligibility
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       The Service is intended for students, educators, and institutions. Users under 18 must have parental or guardian consent to create an account and use the platform.
                     </p>
                   </div>
@@ -481,7 +481,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <Key className="w-5 h-5 text-yellow-600" />
                       Account Responsibilities
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       You are responsible for maintaining the confidentiality of your login credentials and for all activities under your account. Notify us immediately of any unauthorized access or security breach.
                     </p>
                   </div>
@@ -529,7 +529,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <Award className="w-5 h-5 text-purple-600" />
                       Intellectual Property
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       All content on EduJunction — including courses, quizzes, videos, graphics, and branding — is owned by or licensed to us and protected under applicable intellectual property laws. You may not copy, reproduce, or redistribute this content without prior written permission.
                     </p>
                   </div>
@@ -547,7 +547,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <CreditCard className="w-5 h-5 text-emerald-600" />
                       Payments &amp; Subscriptions
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       If any part of the Service requires payment, all fees are disclosed prior to purchase. Subscriptions, where applicable, renew automatically unless cancelled, subject to our refund policy (if any).
                     </p>
                   </div>
@@ -565,7 +565,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <ShieldAlert className="w-5 h-5 text-stone-600" />
                       Limitation of Liability
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       EduJunction is provided on an &ldquo;as is&rdquo; basis. We do not guarantee uninterrupted access or error-free performance and are not liable for any indirect, incidental, or consequential damages arising from your use of the platform.
                     </p>
                   </div>
@@ -583,7 +583,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <ShieldCheck className="w-5 h-5 text-red-600" />
                       Termination
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       We reserve the right to suspend or terminate your access to the Service at our discretion, without prior notice, if you violate these Terms or engage in conduct harmful to other users or the platform.
                     </p>
                   </div>
@@ -601,7 +601,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <Clock className="w-5 h-5 text-teal-600" />
                       Changes to These Terms
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       We may update these Terms periodically. Continued use of the Service after changes are posted constitutes your acceptance of the revised Terms. We encourage you to review this page regularly.
                     </p>
                   </div>
@@ -619,7 +619,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <Scale className="w-5 h-5 text-indigo-600" />
                       Governing Law
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       These Terms shall be governed by and construed in accordance with the laws of India, without regard to conflict of law principles.
                     </p>
                   </div>
@@ -637,7 +637,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <Mail className="w-6 h-6 text-amber-600" />
                       Contact Us
                     </h2>
-                    <p className="text-stone-700 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-700 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       If you have any questions or concerns regarding this document, do not hesitate to contact our dedicated support team:
                     </p>
                     <div className="pt-2 flex flex-wrap gap-4 items-center text-sm font-semibold">
@@ -679,7 +679,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
               <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-stone-900 leading-tight">
                 Disclaimer - <span className="bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 bg-clip-text text-transparent">EduJunction</span>
               </h1>
-              <p className="text-stone-600 text-base sm:text-lg leading-relaxed">
+              <p className="text-stone-600 text-base sm:text-lg leading-relaxed text-justify [text-align-last:left]">
                 <strong className="text-stone-900 font-semibold">EduJunction</strong> (&ldquo;we,&rdquo; &ldquo;us,&rdquo; &ldquo;our&rdquo;) provides diagnostic educational assessments and learning tools at{' '}
                 <a href="https://edujunction.co.in" className="text-amber-600 hover:underline font-semibold">
                   edujunction.co.in
@@ -701,7 +701,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <BookOpen className="w-5 h-5 text-amber-600" />
                       Educational Purpose Only
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       EduJunction is designed to supplement, not replace, formal education and professional teacher guidance. Our content, assessments, and recommendations are intended as learning aids and should not be treated as a substitute for structured academic instruction, certified curricula, or professional educational counseling.
                     </p>
                   </div>
@@ -719,7 +719,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <Cpu className="w-5 h-5 text-orange-600" />
                       Accuracy of Automated Assessments
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       While we strive for accuracy, our platform relies on automated evaluation engines to generate diagnostic assessments, feedback, and learning suggestions. These systems may, on occasion:
                     </p>
                     <ul className="space-y-2 pl-2">
@@ -736,7 +736,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                         <span>Fail to account for individual learning contexts or nuances</span>
                       </li>
                     </ul>
-                    <p className="text-stone-700 text-sm font-medium bg-orange-50/70 p-3.5 rounded-xl border border-orange-200/60">
+                    <p className="text-stone-700 text-sm font-medium bg-orange-50/70 p-3.5 rounded-xl border border-orange-200/60 text-justify [text-align-last:left]">
                       Users should treat all automated results as indicative, not definitive, and consult qualified educators for important academic decisions.
                     </p>
                   </div>
@@ -754,7 +754,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <TrendingUp className="w-5 h-5 text-yellow-600" />
                       No Guarantee of Academic Outcomes
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       EduJunction makes no warranties or guarantees regarding academic performance, grades, test scores, or learning outcomes resulting from the use of our platform. Learning progress depends on multiple factors beyond our control, including individual effort, external instruction, and personal circumstances.
                     </p>
                   </div>
@@ -772,7 +772,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <ShieldAlert className="w-5 h-5 text-red-600" />
                       Limitation of Liability
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       EduJunction, its team, and affiliates are not liable for:
                     </p>
                     <ul className="space-y-2 pl-2">
@@ -804,7 +804,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <GraduationCap className="w-5 h-5 text-blue-600" />
                       Professional Guidance Recommended
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       For critical academic decisions — such as exam preparation strategies, subject selection, or addressing learning difficulties — we strongly recommend consulting qualified teachers, academic advisors, or educational institutions in addition to using EduJunction.
                     </p>
                   </div>
@@ -822,7 +822,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <Globe className="w-5 h-5 text-purple-600" />
                       Third-Party Content
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       Where applicable, EduJunction may reference or link to third-party educational resources. We do not control and are not responsible for the accuracy or reliability of such external content.
                     </p>
                   </div>
@@ -840,7 +840,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <Clock className="w-5 h-5 text-teal-600" />
                       Changes to This Disclaimer
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       We may update this Disclaimer periodically to reflect changes in our platform or evaluation methods. Continued use of the Service after updates constitutes acceptance of the revised Disclaimer.
                     </p>
                   </div>
@@ -858,7 +858,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                       Acknowledgment
                     </h2>
-                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       Please read this document carefully. Your access to and use of our platform is conditioned on your acceptance of and compliance with this Disclaimer. These terms apply to all visitors, users, and others who access or use the Service.
                     </p>
                   </div>
@@ -876,7 +876,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
                       <Mail className="w-6 h-6 text-amber-600" />
                       Contact Us
                     </h2>
-                    <p className="text-stone-700 text-sm sm:text-base leading-relaxed">
+                    <p className="text-stone-700 text-sm sm:text-base leading-relaxed text-justify [text-align-last:left]">
                       If you have any questions or concerns regarding this document, do not hesitate to contact our dedicated support team:
                     </p>
                     <div className="pt-2 flex flex-wrap gap-4 items-center text-sm font-semibold">

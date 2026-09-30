@@ -35,7 +35,10 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
       } else {
         const el = document.getElementById(sectionId);
         if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const fixedBar = document.querySelector('.fixed.top-0');
+          const fixedHeight = fixedBar ? fixedBar.getBoundingClientRect().height : 116;
+          const y = el.getBoundingClientRect().top + window.pageYOffset - fixedHeight + 20;
+          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
         }
       }
     } else {
