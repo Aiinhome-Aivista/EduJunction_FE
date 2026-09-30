@@ -214,6 +214,9 @@ class ApiServices {
   getStudentLearningPath() { return this.get(GET_APIS.studentLearningPath); }
   getAssignedExams() { return this.get(GET_APIS.assignedExams); }
   getMyActivityLogs(days: number = 7) { return this.get(GET_APIS.myActivityLog(days)); }
+  submitWellbeingCheckin(body: any) { return this.post(POST_APIS.submitWellbeingCheckin, body); }
+  getWellbeingCheckin(studentId?: string | number) { return this.get(GET_APIS.wellbeingCheckin(studentId)); }
+  getCounselorDialogue(body: any) { return this.post(POST_APIS.counselorDialogue, body); }
 
   // ── Notifications ─────────────────────────
   getNotifications() { return this.get(GET_APIS.notifications); }

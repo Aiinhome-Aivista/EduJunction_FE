@@ -29,6 +29,7 @@ export const GET_APIS = {
   studentLearningPath: `${API_V1}/students/me/learning-path`,
   assignedExams: `${API_V1}/students/assigned-exams`,
   myActivityLog: (days: number = 7) => `${API_V1}/students/activity-log?days=${days}`,
+  wellbeingCheckin: (studentId?: string | number) => `${API_V1}/students/wellbeing-checkin${studentId ? `?student_id=${studentId}` : ''}`,
 
   // Notifications
   notifications: `${API_V1}/notifications`,
@@ -107,8 +108,10 @@ export const POST_APIS = {
   generateQuickTest: `${BASE_URL}/api/v1/exams/quick-test`,
   submitExam: (id: string) => `${BASE_URL}/api/v1/exams/${id}/submit`,
 
-  // Chat
+  // Chat & Wellbeing
   chat: `${API_V1}/chat`,
+  submitWellbeingCheckin: `${API_V1}/students/wellbeing-checkin`,
+  counselorDialogue: `${API_V1}/students/counselor-dialogue`,
 
   // Runbooks
   createRunbook: `${API_V1}/runbooks`,

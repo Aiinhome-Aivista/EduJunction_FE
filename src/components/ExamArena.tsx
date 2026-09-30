@@ -27,9 +27,13 @@ import {
   Zap,
   CalendarClock,
   Loader2,
-  Lock
+  Lock,
+  Heart,
+  Smile
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
+import { StudentWellbeingChatModal } from './StudentWellbeingChatModal';
+import { shouldTriggerWellbeingCheckin, getWellbeingState } from '../utils/wellbeingHelper';
 
 interface ExamArenaProps {
   parentAccount: ParentAccount;
@@ -261,6 +265,23 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
   const [scratchpadNote, setScratchpadNote] = useState('');
   const [generationStep, setGenerationStep] = useState('');
   const autoAdvanceTimerRef = useRef<any>(null);
+
+  // Student Mindset & Wellbeing Check-in State
+  const [showWellbeingModal, setShowWellbeingModal] = useState<boolean>(false);
+  const [pendingStartAssigned, setPendingStartAssigned] = useState<boolean>(false);
+  const wellbeingState = useMemo(() => {
+    return activeChild?.id ? getWellbeingState(activeChild.id) : null;
+  }, [activeChild?.id, showWellbeingModal]);
+
+  const initiateExamStart = (startAssigned: boolean = false) => {
+    const totalExams = activeChild?.totalExamsTaken || 0;
+    if (activeChild?.id && shouldTriggerWellbeingCheckin(activeChild.id, totalExams)) {
+      setPendingStartAssigned(startAssigned);
+      setShowWellbeingModal(true);
+      return;
+    }
+    handleStartExam(startAssigned);
+  };
 
   useEffect(() => {
     return () => {
@@ -520,6 +541,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
           timeSpentPerQuestion,
           timeTakenSeconds: Math.max(10, totalSecondsSpent),
           scheduledExamId: scheduledIdToSubmit,
+          wellbeingData: wellbeingState?.latestData || (activeChild?.id ? getWellbeingState(activeChild.id)?.latestData : undefined),
         }
       );
       onExamComplete(submission);
@@ -1095,13 +1117,41 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
             Grounding Your Test In Authentic Syllabus Runbooks With Instant Misconception Analysis.
           </p>
 
-          {/* Active Candidate Badge */}
-          <div className="inline-flex items-center gap-3 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-yellow-200/80 shadow-xs mt-1">
-            <span className="text-xl p-1 bg-yellow-100/70 rounded-xl border border-yellow-200/60">{activeChild?.avatar || '👦'}</span>
-            <div>
-              <span className="text-stone-500 text-[10px] block font-semibold uppercase tracking-wider">Active Candidate Persona</span>
-              <span className="font-bold text-stone-900 text-xs sm:text-sm">{activeChild?.name} <span className="text-yellow-700 font-semibold">({activeChild?.classGrade} • {activeChild?.targetBoard})</span></span>
+          {/* Active Candidate Badge & Wellbeing Status */}
+          <div className="flex flex-wrap items-center gap-2.5 mt-1">
+            <div className="inline-flex items-center gap-3 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-yellow-200/80 shadow-xs">
+              <span className="text-xl p-1 bg-yellow-100/70 rounded-xl border border-yellow-200/60">{activeChild?.avatar || '👦'}</span>
+              <div>
+                <span className="text-stone-500 text-[10px] block font-semibold uppercase tracking-wider">Active Candidate Persona</span>
+                <span className="font-bold text-stone-900 text-xs sm:text-sm">{activeChild?.name} <span className="text-yellow-700 font-semibold">({activeChild?.classGrade} • {activeChild?.targetBoard})</span></span>
+              </div>
             </div>
+
+            {/* Interactive Mindset & Wellbeing Pill */}
+            <button
+              id="open-wellbeing-checkin-btn"
+              type="button"
+              onClick={() => {
+                setPendingStartAssigned(false);
+                setShowWellbeingModal(true);
+              }}
+              title="Click to check or update your pre-exam mood and mindset"
+              className="inline-flex items-center gap-2 bg-white/95 hover:bg-yellow-50 backdrop-blur-md px-3 py-2 rounded-2xl border border-yellow-300 text-stone-800 text-xs font-semibold shadow-xs hover:shadow-sm transition-all cursor-pointer group"
+            >
+              <span className="w-6 h-6 rounded-xl bg-amber-400 text-stone-900 flex items-center justify-center text-xs group-hover:scale-110 transition-transform">
+                🧠
+              </span>
+              <div className="text-left">
+                <span className="text-[10px] text-amber-800 block font-bold uppercase tracking-wider">
+                  Mindset & Wellbeing
+                </span>
+                <span className="text-xs text-stone-700 font-medium">
+                  {wellbeingState?.latestData
+                    ? `${wellbeingState.latestData.moodEmoji || '😊'} ${wellbeingState.latestData.mood} • ${wellbeingState.latestData.hobbyDetail || wellbeingState.latestData.hobby}`
+                    : 'Take 1-Min Mindset Check'}
+                </span>
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -1143,7 +1193,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
               <button
                 id="start-assigned-challenge-btn"
                 disabled={isGenerating}
-                onClick={() => handleStartExam(true)}
+                onClick={() => initiateExamStart(true)}
                 className="w-full md:w-auto px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-yellow-400 font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer shrink-0 hover:scale-105 transition-all disabled:opacity-60"
               >
                 <Play className="w-4 h-4 fill-current" />
@@ -1349,7 +1399,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
           <button
             id="start-exam-generate-btn"
             disabled={isGenerating}
-            onClick={() => handleStartExam(false)}
+            onClick={() => initiateExamStart(false)}
             className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-900 font-bold text-sm shadow-md shadow-yellow-200 flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
           >
             {isGenerating ? (
@@ -1366,6 +1416,20 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Student Wellbeing & Personality Chat Modal */}
+      <StudentWellbeingChatModal
+        isOpen={showWellbeingModal}
+        onClose={() => setShowWellbeingModal(false)}
+        onProceedToExam={() => {
+          setShowWellbeingModal(false);
+          handleStartExam(pendingStartAssigned);
+        }}
+        studentId={activeChild?.id || activeChildId || ''}
+        studentName={activeChild?.name || 'Student'}
+        studentClassGrade={selectedGrade || activeChild?.classGrade || 'Class 10'}
+        totalExamsTaken={activeChild?.totalExamsTaken || 0}
+      />
     </div>
   );
 };

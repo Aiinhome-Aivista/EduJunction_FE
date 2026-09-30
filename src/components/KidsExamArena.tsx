@@ -26,6 +26,8 @@ import {
   Lock,
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
+import { StudentWellbeingChatModal } from './StudentWellbeingChatModal';
+import { shouldTriggerWellbeingCheckin } from '../utils/wellbeingHelper';
 
 interface KidsExamArenaProps {
   parentAccount: ParentAccount;
@@ -76,6 +78,18 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [generationStep, setGenerationStep] = useState('');
   const autoAdvanceTimerRef = React.useRef<any>(null);
+
+  // Wellbeing check-in
+  const [showWellbeingModal, setShowWellbeingModal] = useState<boolean>(false);
+
+  const initiateExamStart = () => {
+    const totalExams = activeChild?.totalExamsTaken || 0;
+    if (activeChild?.id && shouldTriggerWellbeingCheckin(activeChild.id, totalExams)) {
+      setShowWellbeingModal(true);
+      return;
+    }
+    handleStartExam();
+  };
 
   useEffect(() => {
     return () => {
@@ -221,6 +235,7 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
         answers,
         timeTakenSeconds: sanitizedTime,
         scheduledExamId: (activeExam as any).scheduledExamId || (activeExam as any).scheduled_exam_id || assignedExam?.id,
+        wellbeingData: activeChild?.id ? getWellbeingState(activeChild.id)?.latestData : undefined,
       });
 
       const submission: ExamSubmission = res?.submission || res;
@@ -645,7 +660,7 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
           <button
             type="button"
             disabled={isGenerating}
-            onClick={handleStartExam}
+            onClick={initiateExamStart}
             className="group px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-3 transition-all disabled:opacity-60 cursor-pointer"
           >
             {isGenerating ? (
@@ -662,6 +677,20 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Kids Wellbeing Chat Modal */}
+      <StudentWellbeingChatModal
+        isOpen={showWellbeingModal}
+        onClose={() => setShowWellbeingModal(false)}
+        onProceedToExam={() => {
+          setShowWellbeingModal(false);
+          handleStartExam();
+        }}
+        studentId={activeChild?.id || activeChildId || ''}
+        studentName={activeChild?.name || 'Kid'}
+        studentClassGrade={selectedGrade || activeChild?.classGrade || 'Class 1'}
+        totalExamsTaken={activeChild?.totalExamsTaken || 0}
+      />
     </div>
   );
 };
