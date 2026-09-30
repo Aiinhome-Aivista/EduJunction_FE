@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  RunbookKGraphNode, 
-  Board, 
-  ClassGrade, 
-  Subject, 
-  ParentAccount, 
+import {
+  RunbookKGraphNode,
+  Board,
+  ClassGrade,
+  Subject,
+  ParentAccount,
   ReferenceLink
 } from '../types';
-import { 
-  ShieldCheck, 
-  Plus, 
-  Search, 
-  Filter, 
-  BookOpen, 
-  Sparkles, 
-  Layers, 
-  Trash2, 
-  Edit3, 
-  CheckCircle2, 
-  TrendingUp, 
-  Users, 
-  Settings, 
+import {
+  ShieldCheck,
+  Plus,
+  Search,
+  Filter,
+  BookOpen,
+  Sparkles,
+  Layers,
+  Trash2,
+  Edit3,
+  CheckCircle2,
+  TrendingUp,
+  Users,
+  Settings,
   ExternalLink,
   Code,
   Check
@@ -34,11 +34,11 @@ interface SuperAdminPanelProps {
 const BOARDS: Board[] = ['CBSE', 'ICSE', 'ISC', 'UK-Cambridge', 'NCERT', 'NEET', 'IIT'];
 const GRADES: ClassGrade[] = [
   'Class 1', 'Class 2', 'Class 3', 'Class 4',
-  'Class 5', 'Class 6', 'Class 7', 'Class 8', 
+  'Class 5', 'Class 6', 'Class 7', 'Class 8',
   'Class 9', 'Class 10', 'Class 11', 'Class 12'
 ];
 const SUBJECTS: Subject[] = [
-  'Mathematics', 'Physics', 'Chemistry', 'Biology', 
+  'Mathematics', 'Physics', 'Chemistry', 'Biology',
   'Science', 'Social Studies', 'English', 'Computer Science', 'Logical Reasoning'
 ];
 
@@ -157,7 +157,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({
   // Filtered runbooks
   const filteredRunbooks = runbooks.filter((rb) => {
     const matchesBoard = filterBoard === 'all' || rb.board.toLowerCase() === filterBoard.toLowerCase();
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       rb.chapterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       rb.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       rb.classGrade.toLowerCase().includes(searchQuery.toLowerCase());
@@ -198,9 +198,8 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({
         <div className="flex items-center gap-2 mt-6 pt-4 border-t border-stone-800">
           <button
             onClick={() => setActiveTab('runbooks')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
-              activeTab === 'runbooks' ? 'bg-white text-stone-950' : 'text-stone-400 hover:text-white hover:bg-stone-800'
-            }`}
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${activeTab === 'runbooks' ? 'bg-white text-stone-950' : 'text-stone-400 hover:text-white hover:bg-stone-800'
+              }`}
           >
             <Layers className="w-4 h-4" />
             RAG K-Graph Runbooks ({runbooks.length})
@@ -209,9 +208,8 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({
 
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
-              activeTab === 'analytics' ? 'bg-white text-stone-950' : 'text-stone-400 hover:text-white hover:bg-stone-800'
-            }`}
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${activeTab === 'analytics' ? 'bg-white text-stone-950' : 'text-stone-400 hover:text-white hover:bg-stone-800'
+              }`}
           >
             <TrendingUp className="w-4 h-4" />
             Platform Telemetry
@@ -404,7 +402,7 @@ export const SuperAdminPanel: React.FC<SuperAdminPanelProps> = ({
             <div className="flex items-center justify-between pb-4 border-b border-stone-100 mb-6">
               <div>
                 <h3 className="text-lg font-bold text-stone-900">Add New RAG K-Graph Runbook</h3>
-                <p className="text-xs text-stone-500">Enrich AI exam generator with official board curriculum nodes & reference URLs</p>
+                <p className="text-xs text-stone-500">Enrich exam generator with official board curriculum nodes & reference URLs</p>
               </div>
             </div>
 

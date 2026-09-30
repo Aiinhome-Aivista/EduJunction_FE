@@ -160,11 +160,10 @@ export const SeoAdminManager: React.FC = () => {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`p-4 rounded-2xl flex items-center gap-3 text-sm font-semibold shadow-xl border backdrop-blur-md animate-in fade-in duration-300 ${
-            toast.type === 'success'
+          className={`p-4 rounded-2xl flex items-center gap-3 text-sm font-semibold shadow-xl border backdrop-blur-md animate-in fade-in duration-300 ${toast.type === 'success'
               ? 'bg-emerald-500/95 text-white border-emerald-400'
               : 'bg-rose-500/95 text-white border-rose-400'
-          }`}
+            }`}
         >
           {toast.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
@@ -251,11 +250,10 @@ export const SeoAdminManager: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${
-                          item.is_active !== false
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${item.is_active !== false
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                             : 'bg-stone-100 text-stone-600 border-stone-200'
-                        }`}
+                          }`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${item.is_active !== false ? 'bg-emerald-500' : 'bg-stone-400'}`} />
                         {item.is_active !== false ? 'Active' : 'Disabled'}
@@ -340,7 +338,7 @@ export const SeoAdminManager: React.FC = () => {
                   type="text"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="e.g. About Us – EduJunction | Next-Gen AI Learning"
+                  placeholder="e.g. About Us – EduJunction | Next-Gen Learning"
                   className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400"
                   required
                 />
@@ -363,7 +361,7 @@ export const SeoAdminManager: React.FC = () => {
                   type="text"
                   value={formKeywords}
                   onChange={(e) => setFormKeywords(e.target.value)}
-                  placeholder="e.g. EduJunction, CBSE model papers, AI exam evaluation"
+                  placeholder="e.g. EduJunction, CBSE model papers, exam evaluation"
                   className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 />
               </div>

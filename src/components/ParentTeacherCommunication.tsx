@@ -278,14 +278,14 @@ export const ParentTeacherCommunication: React.FC<ParentTeacherCommunicationProp
   };
 
   const handleCopyLink = (token: string) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://EduJunction.ai';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://EduJunction.co.in';
     navigator.clipboard?.writeText(`${origin}/share/dossier/${token}`);
     setCopiedToken(token);
     setTimeout(() => setCopiedToken(null), 2000);
   };
 
   const handleWhatsAppShare = (dossier: SharedDossier) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://EduJunction.ai';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://EduJunction.co.in';
     const link = `${origin}/share/dossier/${dossier.shareToken}`;
     const text = encodeURIComponent(`Hello! Here is the verified Academic Dossier and 10-mark diagnostic exam report for ${dossier.childName}:\n${link}`);
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
@@ -386,8 +386,8 @@ export const ParentTeacherCommunication: React.FC<ParentTeacherCommunicationProp
         <button
           onClick={() => setActiveTab('messages')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'messages'
-              ? 'bg-yellow-400 text-stone-900 shadow-xs'
-              : 'text-stone-600 hover:bg-stone-100'
+            ? 'bg-yellow-400 text-stone-900 shadow-xs'
+            : 'text-stone-600 hover:bg-stone-100'
             }`}
         >
           <MessageSquare className="w-4 h-4" />
@@ -397,8 +397,8 @@ export const ParentTeacherCommunication: React.FC<ParentTeacherCommunicationProp
         <button
           onClick={() => setActiveTab('dossiers')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'dossiers'
-              ? 'bg-yellow-400 text-stone-900 shadow-xs'
-              : 'text-stone-600 hover:bg-stone-100'
+            ? 'bg-yellow-400 text-stone-900 shadow-xs'
+            : 'text-stone-600 hover:bg-stone-100'
             }`}
         >
           <FileText className="w-4 h-4" />
@@ -408,8 +408,8 @@ export const ParentTeacherCommunication: React.FC<ParentTeacherCommunicationProp
         <button
           onClick={() => setActiveTab('schedule')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'schedule'
-              ? 'bg-yellow-400 text-stone-900 shadow-xs'
-              : 'text-stone-600 hover:bg-stone-100'
+            ? 'bg-yellow-400 text-stone-900 shadow-xs'
+            : 'text-stone-600 hover:bg-stone-100'
             }`}
         >
           <Calendar className="w-4 h-4" />
@@ -434,8 +434,8 @@ export const ParentTeacherCommunication: React.FC<ParentTeacherCommunicationProp
                     key={teacher.id}
                     onClick={() => setSelectedTeacherId(teacher.id)}
                     className={`p-3.5 rounded-xl border transition-all cursor-pointer bg-white ${isSelected
-                        ? 'border-yellow-400 ring-2 ring-yellow-100 shadow-xs'
-                        : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50'
+                      ? 'border-yellow-400 ring-2 ring-yellow-100 shadow-xs'
+                      : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50'
                       }`}
                   >
                     <div className="flex items-start gap-3">
@@ -513,8 +513,8 @@ export const ParentTeacherCommunication: React.FC<ParentTeacherCommunicationProp
 
                       <div
                         className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 text-xs leading-relaxed ${isParent
-                            ? 'bg-yellow-400 text-stone-900 rounded-tr-xs shadow-xs'
-                            : 'bg-white border border-stone-200 text-stone-900 rounded-tl-xs shadow-2xs'
+                          ? 'bg-yellow-400 text-stone-900 rounded-tr-xs shadow-xs'
+                          : 'bg-white border border-stone-200 text-stone-900 rounded-tl-xs shadow-2xs'
                           }`}
                       >
                         <p>{msg.message}</p>
@@ -529,8 +529,8 @@ export const ParentTeacherCommunication: React.FC<ParentTeacherCommunicationProp
                               }
                             }}
                             className={`mt-3 p-2.5 rounded-xl border flex items-center justify-between gap-2 text-[11px] cursor-pointer transition-opacity hover:opacity-90 ${isParent
-                                ? 'bg-yellow-700/80 border-yellow-500 text-white'
-                                : 'bg-stone-50 border-stone-200 text-stone-800'
+                              ? 'bg-yellow-700/80 border-yellow-500 text-white'
+                              : 'bg-stone-50 border-stone-200 text-stone-800'
                               }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">

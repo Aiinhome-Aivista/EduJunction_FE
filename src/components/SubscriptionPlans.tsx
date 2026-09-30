@@ -1535,7 +1535,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 <ul className="space-y-1.5 text-[11px] text-amber-950/90 font-medium list-disc list-inside leading-relaxed">
                   <li><strong>Fresh 180-Minute Stopwatch:</strong> A new countdown timer starts immediately for this practice session.</li>
                   <li><strong>Unlimited Retakes:</strong> You can practice and retake this paper as many times as you want without any restrictions.</li>
-                  <li><strong>Latest Performance Updated:</strong> Your latest scorecard, detailed diagnostic breakdown, and AI grading will be saved upon submission.</li>
+                  <li><strong>Latest Performance Updated:</strong> Your latest scorecard, detailed diagnostic breakdown, and grading will be saved upon submission.</li>
                   <li><strong>Strict Examination Mode:</strong> Please complete your submission before leaving or closing the tab.</li>
                 </ul>
               </div>

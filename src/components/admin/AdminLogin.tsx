@@ -1176,7 +1176,7 @@ const DashboardView: React.FC = () => {
     if (action === 'EXAM_GENERATED' || action === 'QUICK_EXAM_GENERATED') {
       return {
         icon: <FileText className="w-4 h-4 text-violet-600" />,
-        text: log.entityId ? `AI practice test generated (${log.entityId})` : 'New AI assessment generated',
+        text: log.entityId ? `practice test generated (${log.entityId})` : 'New assessment generated',
         bg: 'bg-violet-50',
       };
     }
@@ -1234,7 +1234,7 @@ const DashboardView: React.FC = () => {
             label="Exams Generated"
             value={statsLoading ? '...' : (stats?.totalExamsGenerated ?? 0).toLocaleString()}
             change="Smart Exams"
-            subText="AI Curriculum Tests"
+            subText="Curriculum Tests"
             theme="emerald"
           />
           <StatCard

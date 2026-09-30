@@ -189,27 +189,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   useEffect(() => {
     if (isInitialMountRef.current) {
       isInitialMountRef.current = false;
-      const isReload = (() => {
-        try {
-          const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
-          if (navEntries && navEntries.length > 0) {
-            return navEntries[0].type === 'reload';
-          }
-          return (performance as any)?.navigation?.type === 1;
-        } catch {
-          return false;
-        }
-      })();
-
-      if (isReload) {
-        if ('scrollRestoration' in window.history) {
-          window.history.scrollRestoration = 'manual';
-        }
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-        if (location.pathname !== '/' && location.pathname !== '/home' && location.pathname !== '/landing') {
-          navigate('/home', { replace: true });
-          return;
-        }
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      const landingSubPaths = ['/home', '/features', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/for-everyone'];
+      if (landingSubPaths.includes(location.pathname)) {
+        window.history.replaceState(null, '', '/');
+        navigate('/', { replace: true });
       }
     }
 
@@ -223,14 +212,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       return;
     }
 
-    const pathId = location.pathname.substring(1).split('/')[0];
     const hashTarget = location.hash ? location.hash.replace('#', '') : null;
-    let targetId = hashTarget || pathId;
-    if (targetId === 'roles') targetId = 'for-everyone';
+    const targetId = hashTarget === 'model-papers-2027' ? 'free-mock-papers-2027' : hashTarget;
 
-    if (targetId && targetId !== 'landing' && targetId !== 'hero' && targetId !== 'home' && targetId !== '') {
+    if (targetId && targetId !== 'home' && targetId !== '' && targetId !== 'hero') {
       const scrollToEl = () => {
-        const el = document.getElementById(targetId) || (targetId === 'for-everyone' ? document.getElementById('roles') : null);
+        const el = document.getElementById(targetId) || (targetId === 'features' ? document.getElementById('why-edujunction') : document.getElementById('free-mock-papers-2027'));
         if (el) {
           const header = document.querySelector('header');
           const headerHeight = header ? header.getBoundingClientRect().height : 72;
@@ -238,10 +225,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
         }
       };
-      const scrollTimer = setTimeout(scrollToEl, 60);
+      const scrollTimer = setTimeout(scrollToEl, 80);
       return () => clearTimeout(scrollTimer);
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [location.pathname, location.hash, location.search, navigate]);
 
@@ -476,7 +461,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span className="text-stone-950 font-black text-sm sm:text-base tracking-wide drop-shadow-sm">
                   {i % 2 === 0 ? (
                     <>
-                      Model Test Papers Available for <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span>, <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span> &amp; <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span> Boards
+                      Free Mock Test Papers &amp; Model Papers for <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span>, <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span> &amp; <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span> Boards
                     </>
                   ) : (
                     <>
@@ -528,7 +513,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Get Started For FREE <ArrowRight className="w-5 h-5" />
                 </button>
                 <Link
-                  to="/how-it-works"
+                  to="/actions-demo"
                   className="px-7 py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-yellow-300 text-stone-800 font-bold flex items-center justify-center gap-2"
                 >
                   <Play className="w-4 h-4 fill-current" />
@@ -798,13 +783,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         <button
                           key={idx}
                           onClick={() => setDemoMcqSelected(idx)}
-                          className={`p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
-                            demoMcqSelected === idx
-                              ? opt.correct
-                                ? 'bg-emerald-100 border-emerald-400 text-emerald-900 font-bold'
-                                : 'bg-rose-100 border-rose-400 text-rose-900 font-bold'
-                              : 'bg-white border-stone-200 hover:border-amber-300 text-stone-800'
-                          }`}
+                          className={`p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${demoMcqSelected === idx
+                            ? opt.correct
+                              ? 'bg-emerald-100 border-emerald-400 text-emerald-900 font-bold'
+                              : 'bg-rose-100 border-rose-400 text-rose-900 font-bold'
+                            : 'bg-white border-stone-200 hover:border-amber-300 text-stone-800'
+                            }`}
                         >
                           {opt.label}
                         </button>
@@ -1113,14 +1097,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Why EduJunction
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black text-stone-900 tracking-tight leading-tight">
-              Edu<span className="text-yellow-500">Junction</span> vs <span className="text-yellow-500">Others</span>
+              Edu<span className="text-yellow-500">Junction</span> vs <span className="text-yellow-500">Other</span> Platforms
             </h2>
           </div>
 
           {/* 2-Column Open / Borderless Layout: Left Description & Right 3D Motion Image */}
-          <div className="mt-12 lg:mt-16 grid lg:grid-cols-12 gap-10 lg:gap-14 items-center reveal-on-scroll">
+          <div className="mt-10 lg:mt-12 grid lg:grid-cols-12 gap-6 lg:gap-8 items-center reveal-on-scroll">
             {/* Left Side: Description */}
-            <div className="lg:col-span-6 space-y-4">
+            <div className="lg:col-span-7 space-y-4">
               <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
                 While traditional platforms offer generic PDFs with zero diagnostic insights, <strong className="text-stone-900 font-bold">EduJunction</strong> brings the exact <strong className="text-amber-800 font-bold">Upcoming ICSE, ISC &amp; CBSE board blueprints</strong> to life with step-by-step scoring rubrics. Our built-in <strong className="text-stone-900 font-bold">Study Buddy</strong> identifies why a student struggled, pinpointing conceptual traps and prerequisite knowledge gaps before exam day.
               </p>
@@ -1129,31 +1113,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </p>
             </div>
 
-            {/* Right Side: 3D Motion Image (Round & Larger) */}
-            <div className="lg:col-span-6 flex items-center justify-center [perspective:1200px]">
-              <div className="relative group animate-float-3d [transform-style:preserve-3d] w-full max-w-[460px] sm:max-w-[500px]">
-                {/* 3D Background Glow & Gradient Aura */}
-                <div className="absolute -inset-4 bg-gradient-to-r from-amber-400/30 via-yellow-400/35 to-amber-500/30 rounded-full blur-3xl opacity-80 group-hover:opacity-100 transition duration-700 pointer-events-none" />
+            {/* Right Side: Realistic Student Floating Cutout (Borderless, Transparent PNG) */}
+            <div className="lg:col-span-5 flex items-center justify-center relative">
+              {/* Soft Ambient Glow */}
+              <div className="absolute -inset-4 bg-gradient-to-tr from-amber-300/25 via-yellow-200/30 to-orange-300/15 rounded-full blur-3xl pointer-events-none" />
 
-                {/* 3D Elevated Round Image Frame */}
-                <div className="relative w-full aspect-square rounded-full overflow-hidden shadow-2xl shadow-amber-950/20 border-4 border-white/90 bg-amber-50/50 transition-transform duration-700 ease-out group-hover:[transform:rotateY(-8deg)_rotateX(6deg)_scale(1.04)] flex items-center justify-center">
-                  <img
-                    src="/why-edujunction-student.png"
-                    alt="Student studying with EduJunction"
-                    className="w-full h-full object-cover object-[center_35%]"
-                    loading="lazy"
-                  />
-                  {/* Subtle 3D Glass Light Reflection */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/15 to-white/35 pointer-events-none" />
-                </div>
+              <div className="relative w-full flex items-center justify-center">
+                <img
+                  src="/why-edujunction-student-cutout.png"
+                  alt="Student studying with EduJunction"
+                  className="w-full max-w-[380px] sm:max-w-[420px] lg:max-w-[450px] h-auto max-h-[440px] object-contain select-none drop-shadow-[0_18px_36px_rgba(120,53,15,0.18)] transition-transform duration-500 hover:scale-105"
+                  loading="lazy"
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 🌟 MODEL TEST PAPERS 2027 & FREE MOCK TEST BANNER */}
-      <section id="model-papers-2027" className="pt-4 sm:pt-6 pb-12 sm:pb-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden scroll-mt-[90px]">
+      {/* 🌟 FREE MOCK TEST PAPERS 2027 */}
+      <section id="free-mock-papers-2027" className="pt-4 sm:pt-6 pb-12 sm:pb-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden scroll-mt-[90px]">
         <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
 
@@ -1161,34 +1140,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10 reveal-on-scroll">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/90 border border-yellow-200 text-yellow-800 text-xs font-bold shadow-sm">
               <FileText className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
-              Model Test Papers 2027
+              Free Mock Test Papers 2027
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize tracking-tight text-stone-900">
-              Board Exam Preparation &amp; Mock Tests
+              Free CBSE &amp; ICSE Mock Tests and Model Papers
             </h2>
             <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
-              Curated specimen papers and instant diagnostic tests designed for ICSE, CBSE &amp; ISC board exam readiness.
+              Practice free unlimited CBSE &amp; ICSE mock tests, model question papers and online practice tests. Prepare for exams with EduJunction's student-friendly resources.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6 items-stretch">
-            {/* 1. Model Test Papers - ICSE, CBSE & ISC 2027 Announcement Banner */}
-            <div className="rounded-3xl bg-white border border-amber-300/80 p-6 sm:p-7 shadow-lg shadow-amber-500/5 flex flex-col justify-between relative overflow-hidden group hover:shadow-xl hover:border-amber-400 transition-all">
-              <div className="space-y-3">
+            {/* 1. Free Mock Test Papers - ICSE, CBSE & ISC 2027 (PRIMARY HERO SPOTLIGHT) */}
+            <div className="rounded-3xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-500 text-stone-950 p-6 sm:p-7 shadow-2xl shadow-amber-500/25 border-2 border-amber-300 ring-4 ring-amber-400/20 flex flex-col justify-between relative overflow-hidden group hover:shadow-amber-500/35 hover:-translate-y-1 transition-all duration-300">
+              {/* Shimmer Light Accent */}
+              <div className="absolute -top-24 -right-24 w-60 h-60 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
+
+              <div className="space-y-3 relative z-10">
                 <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-black uppercase tracking-wider">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                    Available Now
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-stone-950 text-yellow-300 text-xs font-black uppercase tracking-wider shadow-md">
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
+                    2027 Flagship Edition
                   </div>
-                  <span className="text-2xl">📝</span>
+                  <span className="text-2xl drop-shadow-sm">📝</span>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
-                  Model Test Papers :{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-yellow-600">
+                <h3 className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight">
+                  Free Mock Test Papers :{' '}
+                  <span className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
                     ICSE, CBSE &amp; ISC 2027
                   </span>
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium text-justify [text-align-last:left]">
+                <p className="text-xs sm:text-sm text-stone-900 leading-relaxed font-semibold text-justify [text-align-last:left]">
                   Access full-length authentic specimen model papers: <b>CBSE (3h • 80m)</b>, <b>ICSE (2.5h • 80m)</b> and <b>ISC (3h • 70/80m)</b>. Built on 10–15 years of past question patterns and step-by-step marking rubrics.
                 </p>
                 <div className="grid grid-cols-2 gap-2 pt-2">
@@ -1200,53 +1182,51 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     '10–15 Yrs Past Trends (2011–2026)',
                     '🎯 Step-by-Step Marking Rules',
                   ].map((tag) => (
-                    <div key={tag} className="px-2.5 py-1.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-stone-700 text-[11px] font-bold flex items-center gap-1.5">
-                      <span className="text-emerald-600 font-bold">✓</span> {tag}
+                    <div key={tag} className="px-2.5 py-1.5 rounded-xl bg-white/90 backdrop-blur-sm border border-amber-900/10 text-stone-950 text-[11px] font-bold flex items-center gap-1.5 shadow-xs">
+                      <span className="text-emerald-700 font-extrabold">✓</span> {tag}
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="pt-6">
+              <div className="pt-6 relative z-10">
                 <button
                   onClick={() => openAuth('register')}
-                  className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-stone-950 font-black text-xs shadow-md transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-sm shadow-xl shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
                 >
-                  Explore Model Papers <ArrowRight className="w-4 h-4" />
+                  Explore Free Mock Test Papers <ArrowRight className="w-4 h-4 text-yellow-400 transition-transform group-hover:translate-x-1" />
                 </button>
               </div>
             </div>
 
-            {/* 2. Free Mock Test: Subject-Wise 10-Mark Diagnostic Mock Test Available */}
-            <div className="rounded-3xl bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 text-white p-6 sm:p-7 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:shadow-2xl transition-all">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
+            {/* 2. Free Mock Test: Subject-Wise 10-Mark Diagnostic Mock Test Available (SUPPORTING CARD) */}
+            <div className="rounded-3xl bg-white/95 backdrop-blur-sm border border-stone-200/90 text-stone-900 p-6 sm:p-7 shadow-lg shadow-stone-900/5 flex flex-col justify-between relative overflow-hidden group hover:shadow-xl hover:border-amber-300/80 transition-all">
               <div className="space-y-3 relative z-10">
                 <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400 text-stone-950 text-xs font-black">
-                    <Zap className="w-3.5 h-3.5 fill-current" /> Free Mock Test Available
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 border border-yellow-300/80 text-amber-950 text-xs font-black">
+                    <Zap className="w-3.5 h-3.5 text-yellow-600 fill-current" /> Free Mock Test Available
                   </div>
                   <span className="text-2xl">⚡</span>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                  Free Subject-Wise 10-Mark Mock Test
+                <h3 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
+                  Free Subject-Wise Mock Test
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed text-justify [text-align-last:left]">
-                  Understand your child’s learning level in just 15 minutes. <b>Create a free Parent Account</b>, choose Board (CBSE, ICSE, ISC) and Class (5-10), and unlock instant diagnostic reports sent straight to your email.
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium text-justify [text-align-last:left]">
+                  Understand your child’s learning level in just 15 minutes. <b>Create a free Parent Account</b>, choose Board (CBSE, ICSE, ISC) and Class (5-12), and unlock instant diagnostic reports sent straight to your email.
                 </p>
 
                 <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="p-2.5 rounded-xl bg-stone-800/90 border border-stone-700/80">
-                    <p className="text-xs font-bold text-yellow-400">📝 Free 10-Mark Test</p>
-                    <p className="text-[10px] text-stone-400 mt-0.5">15-Min timed test</p>
+                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70">
+                    <p className="text-xs font-bold text-amber-900">📝 Free Mock Test</p>
+                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">15-Min timed test</p>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-stone-800/90 border border-stone-700/80">
-                    <p className="text-xs font-bold text-yellow-400">📊 Diagnostic Insights</p>
-                    <p className="text-[10px] text-stone-400 mt-0.5">Concept error detection</p>
+                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70">
+                    <p className="text-xs font-bold text-amber-900">📊 Diagnostic Insights</p>
+                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">Concept error detection</p>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-stone-800/90 border border-stone-700/80 col-span-2">
-                    <p className="text-xs font-bold text-yellow-400">📧 Direct Emailed PDF Report</p>
-                    <p className="text-[10px] text-stone-400 mt-0.5">Delivered to parent inbox upon submission</p>
+                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70 col-span-2">
+                    <p className="text-xs font-bold text-amber-900">📧 Direct Emailed PDF Report</p>
+                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">Delivered to parent inbox upon submission</p>
                   </div>
                 </div>
               </div>
@@ -1254,13 +1234,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="pt-6 relative z-10 flex flex-col sm:flex-row gap-2.5">
                 <button
                   onClick={() => openAuth('register')}
-                  className="flex-1 py-3 px-4 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-black text-xs shadow-lg shadow-yellow-400/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-95"
+                  className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs shadow-md shadow-amber-500/15 flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-95"
                 >
-                  <Users className="w-4 h-4" /> Free Parent Account <ArrowRight className="w-3.5 h-3.5" />
+                  <Users className="w-4 h-4" /> Create Free Parent Account <ArrowRight className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => openAuth('login')}
-                  className="py-3 px-4 rounded-2xl bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs border border-stone-700 transition-all flex items-center justify-center cursor-pointer"
+                  className="py-3 px-4 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs border border-stone-300 transition-all flex items-center justify-center cursor-pointer"
                 >
                   Sign In
                 </button>
@@ -1271,19 +1251,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
 
-      {/* HOW IT WORKS */}
-      <section id="how-it-works" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white scroll-mt-[90px]">
+      {/* ACTIONS & DEMO */}
+      <section id="actions-demo" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white scroll-mt-[90px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold shadow-sm">
               <Lightbulb className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
-              How It Works
+              Actions &amp; Demo
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize">
-              Four simple steps
+            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize text-stone-900">
+              Experience EduJunction in Action 🚀
             </h2>
-            <p className="mt-3 text-stone-600">
-              The platform keeps learning simple: assess, understand, learn and improve.
+            <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
+              Watch our interactive walkthrough video and try our hands-on demo below.
             </p>
           </div>
 
@@ -1317,6 +1297,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             ))}
+          </div>
+
+          {/* INTERACTIVE PLATFORM DEMO VIDEO */}
+          <div className="mt-10 sm:mt-12 w-full reveal-on-scroll">
+            <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-[#fffbeb] border border-stone-200/80 shadow-2xl">
+              <iframe
+                src="/EduJunction-Getting-Started.html"
+                title="Getting Started with EduJunction"
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                loading="lazy"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -1417,220 +1411,191 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="absolute bottom-5 right-1/4 w-80 h-80 bg-orange-200/50 rounded-full blur-3xl animate-pulse delay-700 pointer-events-none" />
 
         <div className="max-w-6xl mx-auto relative z-10 px-4">
+          {/* MAGIC WORD ARENA (With 3D Floating Icons hugging this card) */}
+          <div className="max-w-4xl mx-auto relative z-10 px-4">
 
-        {/* 1. INTERACTIVE PLATFORM DEMO VIDEO */}
-        <div className="max-w-5xl mx-auto relative z-10 px-4 mb-14">
-          <div className="text-center mb-8 reveal-on-scroll">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-200/60 border border-amber-300 text-amber-900 text-xs font-black mb-2 shadow-sm animate-bounce">
-              <span>✨</span> Interactive Platform Demo
-            </div>
-            <h2 className="text-2xl md:text-3xl font-black text-slate-800">
-              Experience EduJunction in Action 🚀
-            </h2>
-            <p className="mt-2 text-stone-600 text-sm max-w-xl mx-auto">
-              Watch our interactive walkthrough video and try our hands-on demo below.
-            </p>
-          </div>
+            {/* 🌟 3D FLOATING ICONS (Positioned directly around Magic Word Arena) */}
+            {/* 1. Top-Left: Smiling Happy Sun */}
+            <img
+              src="/decorations/sun.png"
+              alt="Happy Sun"
+              className="absolute -top-7 -left-2 sm:-left-6 lg:-left-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+            />
 
-          <div className="w-full reveal-on-scroll">
-            <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-[#fffbeb] border border-stone-200/80 shadow-2xl">
-              <iframe
-                src="/EduJunction-Getting-Started.html"
-                title="Getting Started with EduJunction"
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
+            {/* 2. Top-Right: Glowing Magic Book */}
+            <img
+              src="/decorations/magic-book.png"
+              alt="Magic Book"
+              className="absolute -top-7 -right-2 sm:-right-6 lg:-right-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+              style={{ animationDelay: '1.5s' }}
+            />
 
-        {/* 2. MAGIC WORD ARENA (With 3D Floating Icons hugging this card) */}
-        <div className="max-w-4xl mx-auto relative z-10 px-4">
+            {/* 3. Middle-Left: ABC Alphabet Blocks */}
+            <img
+              src="/decorations/abc-blocks.png"
+              alt="ABC Blocks"
+              className="hidden md:block absolute top-[55%] -left-2 sm:-left-6 lg:-left-10 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
+              style={{ animationDelay: '0.8s' }}
+            />
 
-          {/* 🌟 3D FLOATING ICONS (Positioned directly around Magic Word Arena) */}
-          {/* 1. Top-Left: Smiling Happy Sun */}
-          <img
-            src="/decorations/sun.png"
-            alt="Happy Sun"
-            className="absolute -top-7 -left-2 sm:-left-6 lg:-left-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
-          />
+            {/* 4. Middle-Right: Pencil with Stars */}
+            <img
+              src="/decorations/pencil-stars.png"
+              alt="Pencil & Stars"
+              className="hidden md:block absolute top-[55%] -right-2 sm:-right-6 lg:-right-10 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
+              style={{ animationDelay: '2.2s' }}
+            />
 
-          {/* 2. Top-Right: Glowing Magic Book */}
-          <img
-            src="/decorations/magic-book.png"
-            alt="Magic Book"
-            className="absolute -top-7 -right-2 sm:-right-6 lg:-right-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
-            style={{ animationDelay: '1.5s' }}
-          />
+            {/* 5. Bottom-Left: Puzzle Blocks */}
+            <img
+              src="/decorations/puzzle-blocks.png"
+              alt="Puzzle Blocks"
+              className="absolute -bottom-7 -left-2 sm:-left-6 lg:-left-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+              style={{ animationDelay: '2.8s' }}
+            />
 
-          {/* 3. Middle-Left: ABC Alphabet Blocks */}
-          <img
-            src="/decorations/abc-blocks.png"
-            alt="ABC Blocks"
-            className="hidden md:block absolute top-[55%] -left-2 sm:-left-6 lg:-left-10 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
-            style={{ animationDelay: '0.8s' }}
-          />
+            {/* 6. Bottom-Right: Blasting Rocket */}
+            <img
+              src="/decorations/rocket-abc.png"
+              alt="ABC Rocket"
+              className="absolute -bottom-7 -right-2 sm:-right-6 lg:-right-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+              style={{ animationDelay: '3.4s' }}
+            />
 
-          {/* 4. Middle-Right: Pencil with Stars */}
-          <img
-            src="/decorations/pencil-stars.png"
-            alt="Pencil & Stars"
-            className="hidden md:block absolute top-[55%] -right-2 sm:-right-6 lg:-right-10 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
-            style={{ animationDelay: '2.2s' }}
-          />
-
-          {/* 5. Bottom-Left: Puzzle Blocks */}
-          <img
-            src="/decorations/puzzle-blocks.png"
-            alt="Puzzle Blocks"
-            className="absolute -bottom-7 -left-2 sm:-left-6 lg:-left-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
-            style={{ animationDelay: '2.8s' }}
-          />
-
-          {/* 6. Bottom-Right: Blasting Rocket */}
-          <img
-            src="/decorations/rocket-abc.png"
-            alt="ABC Rocket"
-            className="absolute -bottom-7 -right-2 sm:-right-6 lg:-right-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
-            style={{ animationDelay: '3.4s' }}
-          />
-
-          {/* Magic Word Arena Heading */}
-          <div className="text-center mb-8 reveal-on-scroll">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-200/60 border border-amber-300 text-amber-900 text-xs font-black mb-2 shadow-sm animate-bounce">
-              <span>✨</span> Magic Word Arena
-            </div>
-            <h3 className="text-2xl md:text-3xl font-black text-slate-800">
-              Read Clues & Build Words 🚀
-            </h3>
-          </div>
-
-          {/* 2-COLUMN GRID SYSTEM (LEFT CLUE + RIGHT GAME) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-
-            {/* LEFT SIDE: CUTE CLUE CARD & MASCOT LOGO */}
-            <div className="bg-gradient-to-br from-amber-100/80 via-orange-50/70 to-amber-50/90 backdrop-blur-xl border border-amber-200/90 rounded-3xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden">
-
-              {/* Mascot Dialogue Header */}
-              <div className="flex items-start gap-3 mb-4">
-                <div className="bg-white/90 border border-amber-200/80 rounded-2xl rounded-tl-none p-3 shadow-sm flex-1">
-                  <p className="text-sm md:text-base font-extrabold text-slate-800 leading-snug">
-                    {isWordComplete ? "Awesome! You nailed it! Click Next to try another one! 🎉" : activeWordObj.mascotMsg}
-                  </p>
-                </div>
+            {/* Magic Word Arena Heading */}
+            <div className="text-center mb-8 reveal-on-scroll">
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-200/60 border border-amber-300 text-amber-900 text-xs font-black mb-2 shadow-sm animate-bounce">
+                <span>✨</span> Magic Word Arena
               </div>
+              <h3 className="text-2xl md:text-3xl font-black text-slate-800">
+                Read Clues & Build Words 🚀
+              </h3>
+            </div>
 
-              {/* Stylized Logo Badge Box (No Broken Images) */}
-              <div className={`relative my-2 py-6 rounded-2xl bg-gradient-to-r ${activeWordObj.gradient} shadow-inner flex flex-col items-center justify-center text-white border border-white/40`}>
-                <div className="text-5xl drop-shadow-md mb-2 animate-pulse">
-                  {activeWordObj.logo}
-                </div>
-                <span className="text-xs font-black tracking-wider bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 shadow-sm text-center">
-                  {activeWordObj.hint}
-                </span>
-              </div>
+            {/* 2-COLUMN GRID SYSTEM (LEFT CLUE + RIGHT GAME) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
 
-              {/* Secret Hint Revealer Button */}
-              <div className="mt-3">
-                {!showSecretHint ? (
-                  <button
-                    onClick={() => setShowSecretHint(true)}
-                    className="w-full bg-white/80 hover:bg-white text-amber-900 border border-amber-300 text-[11px] font-black py-2 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <span>💡</span> Need Extra Clue?
-                  </button>
-                ) : (
-                  <div className="bg-amber-200/70 border border-amber-300 rounded-xl p-2.5 text-center animate-fade-in">
-                    <p className="text-[11px] font-black text-amber-950">
-                      {activeWordObj.secretHint}
+              {/* LEFT SIDE: CUTE CLUE CARD & MASCOT LOGO */}
+              <div className="bg-gradient-to-br from-amber-100/80 via-orange-50/70 to-amber-50/90 backdrop-blur-xl border border-amber-200/90 rounded-3xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden">
+
+                {/* Mascot Dialogue Header */}
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="bg-white/90 border border-amber-200/80 rounded-2xl rounded-tl-none p-3 shadow-sm flex-1">
+                    <p className="text-sm md:text-base font-extrabold text-slate-800 leading-snug">
+                      {isWordComplete ? "Awesome! You nailed it! Click Next to try another one! 🎉" : activeWordObj.mascotMsg}
                     </p>
                   </div>
-                )}
-              </div>
+                </div>
 
-            </div>
-
-            {/* RIGHT SIDE: GAME BOARD */}
-            <div className="bg-white/90 backdrop-blur-xl border border-amber-200/80 rounded-3xl p-6 shadow-[0_15px_35px_rgba(251,191,36,0.15)] flex flex-col justify-between">
-
-              <div>
-                {/* Top Game Bar */}
-                <div className="flex items-center justify-between pb-3 mb-4 border-b border-amber-100">
-                  <span className="text-xs font-black text-amber-900 tracking-wider flex items-center gap-1 uppercase">
-                    <span>🎮</span> Word Board
+                {/* Stylized Logo Badge Box (No Broken Images) */}
+                <div className={`relative my-2 py-6 rounded-2xl bg-gradient-to-r ${activeWordObj.gradient} shadow-inner flex flex-col items-center justify-center text-white border border-white/40`}>
+                  <div className="text-5xl drop-shadow-md mb-2 animate-pulse">
+                    {activeWordObj.logo}
+                  </div>
+                  <span className="text-xs font-black tracking-wider bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 shadow-sm text-center">
+                    {activeWordObj.hint}
                   </span>
-
-                  <button
-                    onClick={resetCurrentWord}
-                    className="text-[11px] font-bold text-amber-700 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-3 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1"
-                  >
-                    <span>🔄</span> Reset
-                  </button>
                 </div>
 
-                {/* Target Word Slots */}
-                <div className="text-center my-10">
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-10">
-                    Tap correct letters in order
-                  </p>
-
-                  <div className="flex items-center justify-center gap-2">
-                    {activeWordObj.word.split('').map((char, idx) => {
-                      const filledChar = userLetters[idx];
-                      return (
-                        <div
-                          key={idx}
-                          className={`w-10 h-11 rounded-xl flex items-center justify-center text-lg font-black transition-all duration-300 border ${filledChar
-                            ? 'bg-gradient-to-tr from-amber-400 to-orange-400 text-white border-amber-300 shadow-md scale-105'
-                            : 'bg-slate-100/80 border-slate-200 text-slate-300'
-                            }`}
-                        >
-                          {filledChar || '_'}
-                        </div>
-                      );
-                    })}
-                  </div>
+                {/* Secret Hint Revealer Button */}
+                <div className="mt-3">
+                  {!showSecretHint ? (
+                    <button
+                      onClick={() => setShowSecretHint(true)}
+                      className="w-full bg-white/80 hover:bg-white text-amber-900 border border-amber-300 text-[11px] font-black py-2 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>💡</span> Need Extra Clue?
+                    </button>
+                  ) : (
+                    <div className="bg-amber-200/70 border border-amber-300 rounded-xl p-2.5 text-center animate-fade-in">
+                      <p className="text-[11px] font-black text-amber-950">
+                        {activeWordObj.secretHint}
+                      </p>
+                    </div>
+                  )}
                 </div>
+
               </div>
 
-              {/* Option Letters OR Success Screen */}
-              {!isWordComplete ? (
-                <div className="mt-2">
-                  <div className="flex flex-wrap items-center justify-center gap-2">
-                    {shuffledOptions.map((letter, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleLetterClick(letter)}
-                        className="w-10 h-10 rounded-xl bg-gradient-to-br from-white to-amber-50 hover:from-amber-100 hover:to-orange-100 border border-amber-200/80 text-amber-900 font-black text-base shadow-sm hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
-                      >
-                        {letter}
-                      </button>
-                    ))}
+              {/* RIGHT SIDE: GAME BOARD */}
+              <div className="bg-white/90 backdrop-blur-xl border border-amber-200/80 rounded-3xl p-6 shadow-[0_15px_35px_rgba(251,191,36,0.15)] flex flex-col justify-between">
+
+                <div>
+                  {/* Top Game Bar */}
+                  <div className="flex items-center justify-between pb-3 mb-4 border-b border-amber-100">
+                    <span className="text-xs font-black text-amber-900 tracking-wider flex items-center gap-1 uppercase">
+                      <span>🎮</span> Word Board
+                    </span>
+
+                    <button
+                      onClick={resetCurrentWord}
+                      className="text-[11px] font-bold text-amber-700 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-3 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1"
+                    >
+                      <span>🔄</span> Reset
+                    </button>
+                  </div>
+
+                  {/* Target Word Slots */}
+                  <div className="text-center my-10">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-10">
+                      Tap correct letters in order
+                    </p>
+
+                    <div className="flex items-center justify-center gap-2">
+                      {activeWordObj.word.split('').map((char, idx) => {
+                        const filledChar = userLetters[idx];
+                        return (
+                          <div
+                            key={idx}
+                            className={`w-10 h-11 rounded-xl flex items-center justify-center text-lg font-black transition-all duration-300 border ${filledChar
+                              ? 'bg-gradient-to-tr from-amber-400 to-orange-400 text-white border-amber-300 shadow-md scale-105'
+                              : 'bg-slate-100/80 border-slate-200 text-slate-300'
+                              }`}
+                          >
+                            {filledChar || '_'}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <div className="text-center py-2 animate-bounce">
-                  <div className="text-sm font-black text-emerald-600 mb-3">
-                    🎉 Super Star! Word Completed! 🌟
+
+                {/* Option Letters OR Success Screen */}
+                {!isWordComplete ? (
+                  <div className="mt-2">
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      {shuffledOptions.map((letter, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleLetterClick(letter)}
+                          className="w-10 h-10 rounded-xl bg-gradient-to-br from-white to-amber-50 hover:from-amber-100 hover:to-orange-100 border border-amber-200/80 text-amber-900 font-black text-base shadow-sm hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+                        >
+                          {letter}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <button
-                    onClick={nextWord}
-                    className="bg-gradient-to-r from-emerald-400 to-teal-500 hover:opacity-90 text-white font-black text-xs px-6 py-2.5 rounded-2xl shadow-md active:scale-95 transition-all cursor-pointer tracking-wider"
-                  >
-                    Next Challenge ➡️
-                  </button>
-                </div>
-              )}
+                ) : (
+                  <div className="text-center py-2 animate-bounce">
+                    <div className="text-sm font-black text-emerald-600 mb-3">
+                      🎉 Super Star! Word Completed! 🌟
+                    </div>
+                    <button
+                      onClick={nextWord}
+                      className="bg-gradient-to-r from-emerald-400 to-teal-500 hover:opacity-90 text-white font-black text-xs px-6 py-2.5 rounded-2xl shadow-md active:scale-95 transition-all cursor-pointer tracking-wider"
+                    >
+                      Next Challenge ➡️
+                    </button>
+                  </div>
+                )}
+
+              </div>
 
             </div>
 
           </div>
-
         </div>
-      </div>
-    </section>
+      </section>
 
 
       {/* PERSONALIZATION EXAMPLE */}

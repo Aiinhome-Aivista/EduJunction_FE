@@ -153,8 +153,8 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
                 key={sub}
                 onClick={() => setSelectedSubject(sub)}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all capitalize ${selectedSubject === sub
-                    ? 'bg-yellow-400 text-stone-900 shadow-2xs'
-                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  ? 'bg-yellow-400 text-stone-900 shadow-2xs'
+                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                   }`}
               >
                 {sub === 'all' ? 'All Subjects' : sub}
@@ -230,8 +230,8 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
                   key={node.id}
                   onClick={() => setSelectedNode(node)}
                   className={`p-3 rounded-xl border transition-all cursor-pointer bg-white ${isSelected
-                      ? 'border-yellow-400 ring-2 ring-yellow-100 shadow-sm'
-                      : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50/50 shadow-xs'
+                    ? 'border-yellow-400 ring-2 ring-yellow-100 shadow-sm'
+                    : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50/50 shadow-xs'
                     }`}
                 >
                   <div className="flex items-start justify-between gap-3 mb-2">
@@ -275,10 +275,10 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
                       <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${node.masteryPercentage >= 80
+                            ? 'bg-yellow-500'
+                            : node.masteryPercentage >= 60
                               ? 'bg-yellow-500'
-                              : node.masteryPercentage >= 60
-                                ? 'bg-yellow-500'
-                                : 'bg-amber-500'
+                              : 'bg-amber-500'
                             }`}
                           style={{ width: `${node.masteryPercentage}%` }}
                         />
@@ -327,7 +327,7 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
                 </div>
               </div>
 
-              {/* AI Recommendation Reason */}
+              {/* Recommendation Reason */}
               <div className="p-3.5 bg-yellow-50/80 rounded-xl border border-yellow-200">
                 <div className="flex items-center gap-2 text-yellow-900 font-bold text-xs mb-1">
                   <Sparkles className="w-3.5 h-3.5 text-yellow-600" />

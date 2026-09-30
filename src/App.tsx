@@ -153,10 +153,27 @@ export default function App() {
   const [examHistory, setExamHistory] = useState<ExamSubmission[]>([]);
   const [activeSubmissionReport, setActiveSubmissionReport] = useState<ExamSubmission | null>(null);
 
+  // Global Mount/Reload Handler: Whenever user refreshes or visits landing sub-routes, normalize to / at top (0, 0)
+  useEffect(() => {
+    try {
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      const landingPaths = ['/home', '/features', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/for-everyone'];
+      if (landingPaths.includes(location.pathname)) {
+        window.history.replaceState(null, '', '/');
+        navigate('/', { replace: true });
+      }
+    } catch { }
+  }, []);
+
   // Automatically dismiss active report view and scroll to top whenever the route changes
   useEffect(() => {
     setActiveSubmissionReport(null);
-    const landingPaths = ['/', '/home', '/landing', '/features', '/model-papers-2027', '/how-it-works', '/for-everyone', '/roles', '/demo', '/hero'];
+    const landingPaths = ['/', '/home', '/features', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/for-everyone'];
     if (!location.hash && !landingPaths.includes(location.pathname)) {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       document.documentElement.scrollTop = 0;
@@ -950,7 +967,7 @@ export default function App() {
             }}
           />
         </div>
-        {/* Floating AI Chat Widget */}
+        {/* Floating Chat Widget */}
         <AIChatWidget activeChild={activeChild} isStudent={false} role="admin" />
       </div>
     );
@@ -993,14 +1010,14 @@ export default function App() {
             </button>
           </div>
         </div>
-        {/* Floating AI Chat Widget */}
+        {/* Floating Chat Widget */}
         <AIChatWidget activeChild={activeChild} isStudent={false} role="teacher" />
       </div>
     );
   }
 
 
-  if (['landing', 'features', 'model-papers-2027', 'how-it-works', 'roles', 'demo', 'hero'].includes(activeTab)) {
+  if (['home', 'features', 'free-mock-papers-2027', 'model-papers-2027', 'actions-demo', 'for-everyone'].includes(activeTab)) {
     return (
       <div className="relative w-full h-full min-h-screen overflow-x-hidden">
         <LandingPage
@@ -1544,7 +1561,7 @@ export default function App() {
         parentEmail={currentParentAccount?.email}
       />
 
-      {/* Floating AI Chat Widget - Hidden during live exams to prevent cheating */}
+      {/* Floating Chat Widget - Hidden during live exams to prevent cheating */}
       {activeTab !== 'arena' && activeTab !== 'exam' && activeTab !== 'kids-arena' && (
         <AIChatWidget
           activeChild={activeChild}

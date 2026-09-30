@@ -5,41 +5,43 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Primary Meta Tags -->
-  <title>EduJunction – AI-Powered Adaptive Learning & Board Model Test Papers</title>
-  <meta name="title" content="EduJunction – AI-Powered Adaptive Learning & Board Model Test Papers" />
+  <title>Free CBSE & ICSE Mock Tests Online | Practice Tests & Model Papers</title>
+  <meta name="title" content="Free CBSE & ICSE Mock Tests Online | Practice Tests & Model Papers" />
   <meta name="description"
-    content="Prepare for CBSE, ICSE, ISC Board Exams with authentic 2027 Model Question Papers and instant AI evaluation." />
+    content="Practice free unlimited CBSE & ICSE mock tests, model question papers and online practice tests. Prepare for exams with EduJunction's student-friendly resources." />
   <meta name="keywords"
-    content="EduJunction, CBSE model papers, ICSE model question papers, ISC board exams, class 10 mock test, class 12 test series, AI exam evaluation" />
+    content="free online mock tests for students, CBSE mock test, CBSE online mock test, CBSE practice test, CBSE model question paper, CBSE sample papers, ICSE mock test, ICSE online mock test, ICSE practice test, ICSE model question papers, ICSE sample papers, free mock tests for students, online practice tests, school exam practice tests, model test papers, exam practice papers, free model papers, online test series for students, free mock test papers" />
   <meta name="author" content="EduJunction" />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#d97706" />
 
   <!-- Canonical URL -->
-  <link rel="canonical" href="https://www.edujunction.co.in/" />
+  <link rel="canonical" href="https://edujunction.co.in/" />
 
   <!-- Open Graph / Facebook / WhatsApp -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.edujunction.co.in/" />
-  <meta property="og:title" content="EduJunction – AI-Powered Adaptive Learning Platform" />
+  <meta property="og:url" content="https://edujunction.co.in/" />
+  <meta property="og:site_name" content="EduJunction" />
+  <meta property="og:title" content="Free CBSE & ICSE Mock Tests Online | Practice Tests & Model Papers" />
   <meta property="og:description"
-    content="Prepare for CBSE, ICSE, ISC Board Exams with authentic 2027 Model Question Papers and instant AI evaluation." />
-  <meta property="og:image" content="https://www.edujunction.co.in/og-banner.png" />
+    content="Practice free unlimited CBSE & ICSE mock tests, model question papers and online practice tests with EduJunction." />
+  <meta property="og:image" content="https://edujunction.co.in/og-banner.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content="https://www.edujunction.co.in/" />
-  <meta name="twitter:title" content="EduJunction – AI-Powered Adaptive Learning Platform" />
+  <meta name="twitter:url" content="https://edujunction.co.in/" />
+  <meta name="twitter:title" content="Free CBSE & ICSE Mock Tests Online | EduJunction" />
   <meta name="twitter:description"
-    content="Prepare for CBSE, ICSE, ISC Board Exams with authentic 2027 Model Question Papers and instant AI evaluation." />
-  <meta name="twitter:image" content="https://www.edujunction.co.in/og-banner.png" />
+    content="Practice free unlimited mock tests, model papers and online practice tests for CBSE & ICSE students." />
+  <meta name="twitter:image" content="https://edujunction.co.in/og-banner.png" />
   <meta name="twitter:image:alt" content="EduJunction Learning Platform" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&display=swap"
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&display=swap"
     rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -52,6 +54,23 @@
     gtag('js', new Date());
 
     gtag('config', 'G-XSCN9EQ20N');
+
+    // Force browser to always restore scroll position to top and reset route to / on refresh
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    var landingSubPaths = ['/home', '/features', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/for-everyone'];
+    if (landingSubPaths.indexOf(window.location.pathname) !== -1) {
+      window.history.replaceState(null, '', '/');
+    }
+    window.scrollTo(0, 0);
+
+    window.addEventListener('beforeunload', function () {
+      window.scrollTo(0, 0);
+      if (landingSubPaths.indexOf(window.location.pathname) !== -1) {
+        window.history.replaceState(null, '', '/');
+      }
+    });
   </script>
 </head>
 

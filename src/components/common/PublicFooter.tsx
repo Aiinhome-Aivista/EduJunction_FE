@@ -14,15 +14,28 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
   const supportEmail = "support@edujunction.co.in";
   const supportMailto = "https://mail.google.com/mail/u/0/?fs=1&to=support@edujunction.co.in&tf=cm";
 
-  const handleFooterNav = (path: string, sectionId: string, e: React.MouseEvent) => {
+  const handleFooterNav = (sectionId: string, e: React.MouseEvent) => {
     e.preventDefault();
-    if (location.pathname !== path) {
-      navigate(path);
+
+    const isLanding =
+      location.pathname === "/" ||
+      location.pathname === "/home" ||
+      location.pathname === "/landing" ||
+      location.pathname === "/features" ||
+      location.pathname === "/free-mock-papers-2027" ||
+      location.pathname === "/model-papers-2027" ||
+      location.pathname === "/actions-demo" ||
+      location.pathname === "/for-everyone";
+
+    if (!isLanding) {
+      navigate(sectionId === 'hero' ? '/' : `/${sectionId}`);
+      return;
     }
+
     if (sectionId === 'hero' || sectionId === 'top' || sectionId === '' || sectionId === 'home') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      const el = document.getElementById(sectionId) || (sectionId === 'for-everyone' ? document.getElementById('roles') : null);
+      const el = document.getElementById(sectionId) || (sectionId === 'features' ? document.getElementById('why-edujunction') : (sectionId === 'for-everyone' ? document.getElementById('roles') : null));
       if (el) {
         const header = document.querySelector('header');
         const headerHeight = header ? header.getBoundingClientRect().height : 72;
@@ -63,10 +76,10 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
           <div>
             <div className="text-white text-xs font-black uppercase tracking-wider">Platform</div>
             <div className="mt-3 space-y-2 text-xs">
-              <Link to="/features" onClick={(e) => handleFooterNav('/features', 'features', e)} className="block hover:text-white transition-colors">Features</Link>
-              <Link to="/how-it-works" onClick={(e) => handleFooterNav('/how-it-works', 'how-it-works', e)} className="block hover:text-white transition-colors">How It Works</Link>
-              <Link to="/for-everyone" onClick={(e) => handleFooterNav('/for-everyone', 'for-everyone', e)} className="block hover:text-white transition-colors">For Everyone</Link>
-              <Link to="/demo" onClick={(e) => handleFooterNav('/demo', 'demo', e)} className="block hover:text-white transition-colors">Demo</Link>
+              <button type="button" onClick={(e) => handleFooterNav('features', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">Features</button>
+              <button type="button" onClick={(e) => handleFooterNav('free-mock-papers-2027', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">Free Mock Papers 2027</button>
+              <button type="button" onClick={(e) => handleFooterNav('actions-demo', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">Actions &amp; Demo</button>
+              <button type="button" onClick={(e) => handleFooterNav('for-everyone', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">For Everyone</button>
               <Link to="/blog" className="block hover:text-white transition-colors">Blogs</Link>
             </div>
           </div>
