@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { PublicHeader } from './common/PublicHeader';
 import { PublicFooter } from './common/PublicFooter';
@@ -184,8 +184,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const location = useLocation();
   const navigate = useNavigate();
+  const isInitialMountRef = useRef(true);
 
   useEffect(() => {
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      const isReload = (() => {
+        try {
+          const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+          if (navEntries && navEntries.length > 0) {
+            return navEntries[0].type === 'reload';
+          }
+          return (performance as any)?.navigation?.type === 1;
+        } catch {
+          return false;
+        }
+      })();
+
+      if (isReload) {
+        if ('scrollRestoration' in window.history) {
+          window.history.scrollRestoration = 'manual';
+        }
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        if (location.pathname !== '/' && location.pathname !== '/home' && location.pathname !== '/landing') {
+          navigate('/home', { replace: true });
+          return;
+        }
+      }
+    }
+
     if (location.search.includes('auth=login')) {
       openAuth('login');
       navigate('/', { replace: true });
@@ -196,26 +223,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       return;
     }
 
-    const pathId = location.pathname.substring(1);
-    const targetId = location.hash ? location.hash.replace('#', '') : pathId;
-    if (targetId && targetId !== 'landing' && targetId !== 'hero') {
+    const pathId = location.pathname.substring(1).split('/')[0];
+    const hashTarget = location.hash ? location.hash.replace('#', '') : null;
+    let targetId = hashTarget || pathId;
+    if (targetId === 'roles') targetId = 'for-everyone';
+
+    if (targetId && targetId !== 'landing' && targetId !== 'hero' && targetId !== 'home' && targetId !== '') {
       const scrollToEl = () => {
-        const el = document.getElementById(targetId);
+        const el = document.getElementById(targetId) || (targetId === 'for-everyone' ? document.getElementById('roles') : null);
         if (el) {
-          const fixedBar = document.querySelector('.fixed.top-0');
-          const fixedHeight = fixedBar ? fixedBar.getBoundingClientRect().height : 116;
-          const y = el.getBoundingClientRect().top + window.pageYOffset - fixedHeight + 20;
+          const header = document.querySelector('header');
+          const headerHeight = header ? header.getBoundingClientRect().height : 72;
+          const y = el.getBoundingClientRect().top + window.pageYOffset - headerHeight - 16;
           window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
         }
       };
-      const scrollTimer1 = setTimeout(scrollToEl, 100);
-      const scrollTimer2 = setTimeout(scrollToEl, 300);
-      return () => {
-        clearTimeout(scrollTimer1);
-        clearTimeout(scrollTimer2);
-      };
+      const scrollTimer = setTimeout(scrollToEl, 60);
+      return () => clearTimeout(scrollTimer);
     } else {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [location.pathname, location.hash, location.search, navigate]);
 
@@ -1126,183 +1152,120 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* 🌟 COMING SOON: MODEL TEST PAPERS 2027 & FREE MOCK TEST BANNER */}
+      {/* 🌟 MODEL TEST PAPERS 2027 & FREE MOCK TEST BANNER */}
       <section id="model-papers-2027" className="pt-4 sm:pt-6 pb-12 sm:pb-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden scroll-mt-[90px]">
         <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10 reveal-on-scroll">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/90 border border-yellow-200 text-yellow-800 text-xs font-bold shadow-sm">
+              <FileText className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
+              Model Test Papers 2027
+            </div>
+            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize tracking-tight text-stone-900">
+              Board Exam Preparation &amp; Mock Tests
+            </h2>
+            <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
+              Curated specimen papers and instant diagnostic tests designed for ICSE, CBSE &amp; ISC board exam readiness.
+            </p>
+          </div>
 
-          {/* 1. Model Test Papers - ICSE, CBSE & ISC 2027 Announcement Banner */}
-          <div className="rounded-3xl bg-white border border-amber-300/80 p-6 sm:p-8 shadow-lg shadow-amber-500/5 relative overflow-hidden">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-              <div className="space-y-3 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-black uppercase tracking-wider">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                  Available Now
+          <div className="grid lg:grid-cols-2 gap-6 items-stretch">
+            {/* 1. Model Test Papers - ICSE, CBSE & ISC 2027 Announcement Banner */}
+            <div className="rounded-3xl bg-white border border-amber-300/80 p-6 sm:p-7 shadow-lg shadow-amber-500/5 flex flex-col justify-between relative overflow-hidden group hover:shadow-xl hover:border-amber-400 transition-all">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-black uppercase tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    Available Now
+                  </div>
+                  <span className="text-2xl">📝</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-tight">
+                <h3 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
                   Model Test Papers :{' '}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-yellow-600">
-                    ICSE, CBSE & ISC 2027
+                    ICSE, CBSE &amp; ISC 2027
                   </span>
-                </h2>
+                </h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium text-justify [text-align-last:left]">
-                  Access full-length authentic specimen model papers tailored to each board: <b>CBSE (3 Hours • 80 Marks)</b>, <b>ICSE (2.5 Hours • 80 Marks)</b> and <b>ISC (3 Hours • 70/80 Marks)</b>. Designed based on 10–15 years of past question patterns, step-by-step marking schemes, and competency-based questions.
+                  Access full-length authentic specimen model papers: <b>CBSE (3h • 80m)</b>, <b>ICSE (2.5h • 80m)</b> and <b>ISC (3h • 70/80m)</b>. Built on 10–15 years of past question patterns and step-by-step marking rubrics.
                 </p>
-                <div className="flex flex-wrap gap-2 pt-1">
+                <div className="grid grid-cols-2 gap-2 pt-2">
                   {[
                     '⏱️ CBSE: 3 Hours (80 Marks)',
                     '⏱️ ICSE: 2.5 Hours (80 Marks)',
                     '⏱️ ISC: 3 Hours (70/80 Marks)',
                     '📄 PDF & Word Downloads',
                     '10–15 Yrs Past Trends (2011–2026)',
+                    '🎯 Step-by-Step Marking Rules',
                   ].map((tag) => (
-                    <span key={tag} className="px-2.5 py-1 rounded-lg bg-stone-100 border border-stone-200 text-stone-700 text-[11px] font-bold">
-                      ✓ {tag}
-                    </span>
+                    <div key={tag} className="px-2.5 py-1.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-stone-700 text-[11px] font-bold flex items-center gap-1.5">
+                      <span className="text-emerald-600 font-bold">✓</span> {tag}
+                    </div>
                   ))}
                 </div>
               </div>
 
-              <div className="shrink-0 bg-gradient-to-br from-amber-500 to-yellow-500 text-white p-6 rounded-2xl shadow-md text-center space-y-3 w-full lg:w-64 flex flex-col justify-between">
-                <div>
-                  <span className="text-3xl">📝</span>
-                  <h3 className="font-black text-lg">Model Papers 2027</h3>
-                  <p className="text-xs text-amber-100 font-bold">ICSE • CBSE • ISC</p>
-                </div>
+              <div className="pt-6">
                 <button
-                  onClick={() => onOpenAuth('register')}
-                  className="w-full py-2.5 px-4 rounded-xl bg-stone-950 hover:bg-stone-800 text-yellow-400 font-black text-xs shadow-md transition-all cursor-pointer hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1.5"
+                  onClick={() => openAuth('register')}
+                  className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-stone-950 font-black text-xs shadow-md transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2"
                 >
-                  Explore Model Papers <ArrowRight className="w-3.5 h-3.5" />
+                  Explore Model Papers <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
-          </div>
 
-          {/* 2. Free Mock Test: Subject-Wise 10-Mark Diagnostic Mock Test Available */}
-          <div className="rounded-3xl bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 text-white p-6 sm:p-10 shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+            {/* 2. Free Mock Test: Subject-Wise 10-Mark Diagnostic Mock Test Available */}
+            <div className="rounded-3xl bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 text-white p-6 sm:p-7 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:shadow-2xl transition-all">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="grid lg:grid-cols-12 gap-8 items-center">
-              <div className="lg:col-span-8 space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400 text-stone-950 text-xs font-black">
-                  <Zap className="w-3.5 h-3.5 fill-current" /> Free Mock Test Available
+              <div className="space-y-3 relative z-10">
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400 text-stone-950 text-xs font-black">
+                    <Zap className="w-3.5 h-3.5 fill-current" /> Free Mock Test Available
+                  </div>
+                  <span className="text-2xl">⚡</span>
                 </div>
-                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                   Free Subject-Wise 10-Mark Mock Test
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-300 leading-relaxed text-justify [text-align-last:left]">
-                  Understand your child’s learning level and conceptual strengths in just 15 minutes. <b>Create a free Parent Account</b>, add your child’s Board (CBSE, ICSE, ISC) and Class (5 to 10), and unlock free subject-wise practice tests with step-by-step solutions and a detailed diagnostic report delivered straight to your email.
+                  Understand your child’s learning level in just 15 minutes. <b>Create a free Parent Account</b>, choose Board (CBSE, ICSE, ISC) and Class (5-10), and unlock instant diagnostic reports sent straight to your email.
                 </p>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
-                  <div className="p-3.5 rounded-2xl bg-stone-800/90 border border-stone-700/80">
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <div className="p-2.5 rounded-xl bg-stone-800/90 border border-stone-700/80">
                     <p className="text-xs font-bold text-yellow-400">📝 Free 10-Mark Test</p>
-                    <p className="text-[11px] text-stone-400 mt-0.5">15-Minute timed assessment</p>
+                    <p className="text-[10px] text-stone-400 mt-0.5">15-Min timed test</p>
                   </div>
-                  <div className="p-3.5 rounded-2xl bg-stone-800/90 border border-stone-700/80">
+                  <div className="p-2.5 rounded-xl bg-stone-800/90 border border-stone-700/80">
                     <p className="text-xs font-bold text-yellow-400">📊 Diagnostic Insights</p>
-                    <p className="text-[11px] text-stone-400 mt-0.5">Concept & error analysis</p>
+                    <p className="text-[10px] text-stone-400 mt-0.5">Concept error detection</p>
                   </div>
-                  <div className="p-3.5 rounded-2xl bg-stone-800/90 border border-stone-700/80 col-span-2 sm:col-span-1">
-                    <p className="text-xs font-bold text-yellow-400">📧 Emailed Report</p>
-                    <p className="text-[11px] text-stone-400 mt-0.5">Sent directly to parent's inbox</p>
+                  <div className="p-2.5 rounded-xl bg-stone-800/90 border border-stone-700/80 col-span-2">
+                    <p className="text-xs font-bold text-yellow-400">📧 Direct Emailed PDF Report</p>
+                    <p className="text-[10px] text-stone-400 mt-0.5">Delivered to parent inbox upon submission</p>
                   </div>
                 </div>
               </div>
 
-              <div className="lg:col-span-4 flex flex-col gap-3 justify-center">
+              <div className="pt-6 relative z-10 flex flex-col sm:flex-row gap-2.5">
                 <button
                   onClick={() => openAuth('register')}
-                  className="w-full py-4 px-6 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-black text-sm shadow-xl shadow-yellow-400/20 flex items-center justify-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-95"
+                  className="flex-1 py-3 px-4 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-black text-xs shadow-lg shadow-yellow-400/20 flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-95"
                 >
-                  <Users className="w-4 h-4" /> Create Free Parent Account <ArrowRight className="w-4 h-4" />
+                  <Users className="w-4 h-4" /> Free Parent Account <ArrowRight className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => openAuth('login')}
-                  className="w-full py-3 px-6 rounded-2xl bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs border border-stone-700 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="py-3 px-4 rounded-2xl bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs border border-stone-700 transition-all flex items-center justify-center cursor-pointer"
                 >
-                  Already Registered? Sign In
+                  Sign In
                 </button>
               </div>
             </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* KNOW THE TIME */}
-      <section className="py-8 bg-gradient-to-br from-yellow-50 via-amber-50/50 to-white border-y border-yellow-200 overflow-hidden relative">
-        <style>{`
-    @keyframes float-gentle {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-14px); }
-    }
-    @keyframes tick-pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-    @keyframes wiggle {
-      0%, 100% { transform: rotate(0deg); }
-      25% { transform: rotate(3deg); }
-      75% { transform: rotate(-3deg); }
-    }
-    @keyframes fade-slide-up {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-float-gentle { animation: float-gentle 4s ease-in-out infinite; }
-    .animate-tick-pulse { animation: tick-pulse 2s ease-in-out infinite; }
-    .animate-wiggle { animation: wiggle 3s ease-in-out infinite; }
-    .animate-fade-slide { animation: fade-slide-up 0.8s ease-out forwards; }
-  `}</style>
-
-        {/* Floating decorations */}
-        <div className="absolute inset-0 pointer-events-none">
-          <span className="absolute top-8 left-[5%] text-5xl opacity-15 animate-wiggle">⏰</span>
-          <span className="absolute top-16 right-[8%] text-4xl opacity-15 animate-bounce" style={{ animationDuration: '3s' }}>🕐</span>
-          <span className="absolute bottom-12 left-[15%] text-4xl opacity-15 animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }}>📐</span>
-          <span className="absolute bottom-8 right-[10%] text-5xl opacity-15 animate-wiggle" style={{ animationDelay: '1.5s' }}>🌟</span>
-        </div>
-
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
-
-            {/* Image - animated floating */}
-            <div className="flex-1 flex justify-center animate-float-gentle">
-              <div className="relative">
-                <div className="absolute -inset-4 bg-yellow-200/30 rounded-[2rem] blur-2xl"></div>
-                <img
-                  src="/child-learning-clock.jpg"
-                  alt="Child learning to tell time with a clock"
-                  className="relative w-full max-w-md rounded-3xl border-2 border-yellow-300 shadow-2xl shadow-yellow-200/40"
-                />
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 text-center lg:text-left reveal-on-scroll">
-
-              {/* <h2 className="text-4xl sm:text-5xl font-black text-stone-900 leading-tight"> */}
-              <h2 className="text-4xl sm:text-5xl font-black text-stone-900 leading-normal tracking-tight flex-shrink-0">
-                Short on <span className="text-yellow-500">Time?</span> ⏳
-              </h2>
-
-              <p className="mt-6 text-stone-600 text-lg max-w-md mx-auto lg:mx-0">
-                Exams approaching fast? Study Buddy quickly finds your weak spots so you can focus on what really matters and learn faster.
-              </p>
-
-              <button
-                onClick={() => openAuth('register')}
-                className="mt-8 px-8 py-3.5 rounded-xl bg-yellow-500 hover:bg-yellow-600 text-white font-black text-base shadow-md shadow-yellow-500/20 hover:shadow-lg hover:shadow-yellow-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
-              >
-                Start Learning
-              </button>
-
-            </div>
-
           </div>
         </div>
       </section>
@@ -1355,80 +1318,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             ))}
           </div>
-
-          {/* INTERACTIVE VIDEO WALKTHROUGH EMBED */}
-          <div className="mt-10 sm:mt-12 w-full reveal-on-scroll">
-            <div className="relative rounded-3xl p-3 sm:p-5 bg-gradient-to-b from-stone-900 via-stone-900 to-black shadow-2xl border border-stone-700/60 overflow-hidden group">
-              {/* Subtle glowing ambient background */}
-              <div className="absolute -top-24 -left-24 w-72 h-72 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
-
-              {/* Player Header Bar */}
-              <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-2.5 mb-2 sm:mb-3 bg-stone-800/80 backdrop-blur-md rounded-2xl border border-stone-700/50">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-rose-500 inline-block shadow-sm" />
-                    <span className="w-3 h-3 rounded-full bg-amber-500 inline-block shadow-sm" />
-                    <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block shadow-sm" />
-                  </div>
-                  <span className="hidden sm:inline-block ml-3 text-xs font-semibold text-stone-300">
-                    EduJunction — Getting Started Interactive Video Guide
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 text-[11px] font-bold border border-amber-500/30">
-                    <Play className="w-3 h-3 fill-amber-300 text-amber-300" />
-                    Interactive Audio-Visual
-                  </span>
-                  <a
-                    href="/EduJunction-Getting-Started.html"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1.5 rounded-lg text-stone-400 hover:text-white hover:bg-stone-700/50 transition-colors"
-                    title="Open Fullscreen in New Tab"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
-
-              {/* 16:9 Video Frame with Iframe */}
-              <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-stone-950 border border-stone-800 shadow-inner">
-                <iframe
-                  src="/EduJunction-Getting-Started.html"
-                  title="Getting Started with EduJunction"
-                  className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  loading="lazy"
-                />
-              </div>
-
-              {/* Bottom Info Bar */}
-              <div className="mt-3 px-2 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-400 gap-2">
-                <div className="flex items-center gap-2 text-stone-300">
-                  <Sparkles className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
-                  <span>Interactive Walkthrough: Auto-playing preview. Click the <b>Speaker / Mute icon</b> inside the player anytime to hear voice narration.</span>
-                </div>
-                <a
-                  href="/EduJunction-Getting-Started.html"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 font-semibold transition-colors shrink-0"
-                >
-                  <span>Open Fullscreen</span>
-                  <Maximize2 className="w-3 h-3" />
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* PERSONAS */}
+      {/* PERSONAS / FOR EVERYONE */}
       <section
-        id="roles"
+        id="for-everyone"
         className="pt-4 sm:pt-6 pb-16 sm:pb-20 relative bg-cover bg-center bg-no-repeat border-y border-stone-200/80 scroll-mt-[90px] overflow-hidden"
         style={{ backgroundImage: `url('/roles-study-bg.jpg')` }}
       >
@@ -1523,19 +1418,50 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         <div className="max-w-6xl mx-auto relative z-10 px-4">
 
-          {/* 🌟 3D FLOATING ICONS (Balanced Sweet-Spot Positioning - No Card Overlap) */}
+        {/* 1. INTERACTIVE PLATFORM DEMO VIDEO */}
+        <div className="max-w-5xl mx-auto relative z-10 px-4 mb-14">
+          <div className="text-center mb-8 reveal-on-scroll">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-200/60 border border-amber-300 text-amber-900 text-xs font-black mb-2 shadow-sm animate-bounce">
+              <span>✨</span> Interactive Platform Demo
+            </div>
+            <h2 className="text-2xl md:text-3xl font-black text-slate-800">
+              Experience EduJunction in Action 🚀
+            </h2>
+            <p className="mt-2 text-stone-600 text-sm max-w-xl mx-auto">
+              Watch our interactive walkthrough video and try our hands-on demo below.
+            </p>
+          </div>
+
+          <div className="w-full reveal-on-scroll">
+            <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-[#fffbeb] border border-stone-200/80 shadow-2xl">
+              <iframe
+                src="/EduJunction-Getting-Started.html"
+                title="Getting Started with EduJunction"
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 2. MAGIC WORD ARENA (With 3D Floating Icons hugging this card) */}
+        <div className="max-w-4xl mx-auto relative z-10 px-4">
+
+          {/* 🌟 3D FLOATING ICONS (Positioned directly around Magic Word Arena) */}
           {/* 1. Top-Left: Smiling Happy Sun */}
           <img
             src="/decorations/sun.png"
             alt="Happy Sun"
-            className="absolute -top-6 left-0 sm:left-4 lg:left-6 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+            className="absolute -top-7 -left-2 sm:-left-6 lg:-left-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
           />
 
           {/* 2. Top-Right: Glowing Magic Book */}
           <img
             src="/decorations/magic-book.png"
             alt="Magic Book"
-            className="absolute -top-6 right-0 sm:right-4 lg:right-6 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+            className="absolute -top-7 -right-2 sm:-right-6 lg:-right-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
             style={{ animationDelay: '1.5s' }}
           />
 
@@ -1543,7 +1469,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <img
             src="/decorations/abc-blocks.png"
             alt="ABC Blocks"
-            className="hidden md:block absolute top-[54%] left-0 sm:left-2 lg:left-4 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
+            className="hidden md:block absolute top-[55%] -left-2 sm:-left-6 lg:-left-10 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
             style={{ animationDelay: '0.8s' }}
           />
 
@@ -1551,7 +1477,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <img
             src="/decorations/pencil-stars.png"
             alt="Pencil & Stars"
-            className="hidden md:block absolute top-[54%] right-0 sm:right-2 lg:right-4 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
+            className="hidden md:block absolute top-[55%] -right-2 sm:-right-6 lg:-right-10 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
             style={{ animationDelay: '2.2s' }}
           />
 
@@ -1559,7 +1485,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <img
             src="/decorations/puzzle-blocks.png"
             alt="Puzzle Blocks"
-            className="absolute -bottom-6 left-0 sm:left-4 lg:left-6 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+            className="absolute -bottom-7 -left-2 sm:-left-6 lg:-left-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
             style={{ animationDelay: '2.8s' }}
           />
 
@@ -1567,20 +1493,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <img
             src="/decorations/rocket-abc.png"
             alt="ABC Rocket"
-            className="absolute -bottom-6 right-0 sm:right-4 lg:right-6 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
+            className="absolute -bottom-7 -right-2 sm:-right-6 lg:-right-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
             style={{ animationDelay: '3.4s' }}
           />
 
-          <div className="max-w-4xl mx-auto">
-
-            {/* Section Heading */}
-            <div className="text-center mb-8">
+          {/* Magic Word Arena Heading */}
+          <div className="text-center mb-8 reveal-on-scroll">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-200/60 border border-amber-300 text-amber-900 text-xs font-black mb-2 shadow-sm animate-bounce">
               <span>✨</span> Magic Word Arena
             </div>
-            <h2 className="text-2xl md:text-3xl font-black text-slate-800">
+            <h3 className="text-2xl md:text-3xl font-black text-slate-800">
               Read Clues & Build Words 🚀
-            </h2>
+            </h3>
           </div>
 
           {/* 2-COLUMN GRID SYSTEM (LEFT CLUE + RIGHT GAME) */}
@@ -2015,50 +1939,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
 
 
-      {/* PARENT TEACHER CONNECTION */}
-      <section className="relative py-24 bg-gradient-to-br from-indigo-50 via-white to-purple-50 overflow-hidden">
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-200/40 blur-[120px] rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-200/40 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-100/80 border border-indigo-200 text-indigo-800 text-xs font-bold shadow-sm">
-              <MessageSquare className="w-4 h-4 text-indigo-600" />
-              Connected Learning
-            </div>
-            <h2 className="mt-6 text-4xl sm:text-5xl font-black tracking-tight text-stone-900 leading-tight capitalize">
-              Parents & <span className="text-stone-900">Edu</span><span className="text-yellow-500">Junction</span>: Guiding Your Child Together
-            </h2>
-            <p className="mt-4 text-lg text-stone-600 font-medium">
-              The Study Buddy handles the teaching, while the parent stays fully informed.
-            </p>
-          </div>
-
-          <div className="mt-10 grid md:grid-cols-2 gap-6 items-stretch max-w-5xl mx-auto">
-            <div className="relative bg-gradient-to-br from-white to-blue-50/50 rounded-[2rem] border-2 border-blue-300 p-8 shadow-xl shadow-blue-200/50 overflow-hidden group hover:-translate-y-1 hover:border-blue-400 transition-all reveal-on-scroll">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-200 rounded-full blur-3xl opacity-40 -mr-10 -mt-10 group-hover:opacity-60 transition-opacity"></div>
-              <div className="relative z-10 w-14 h-14 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shadow-inner border border-blue-200 mb-6">
-                <GraduationCap className="w-7 h-7" />
-              </div>
-              <h3 className="font-black text-xl text-stone-900 relative z-10">Student</h3>
-              <p className="mt-2 text-sm font-semibold text-stone-600 leading-relaxed relative z-10 text-justify [text-align-last:left]">
-                Takes tests, follows the learning Path, practices and earns rewards while the Study Buddy adapts the lessons.
-              </p>
-            </div>
-
-            <div className="relative bg-gradient-to-br from-white to-purple-50/50 rounded-[2rem] border-2 border-purple-300 p-8 shadow-xl shadow-purple-200/50 overflow-hidden group hover:-translate-y-1 hover:border-purple-400 transition-all reveal-on-scroll">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-200 rounded-full blur-3xl opacity-40 -mr-10 -mt-10 group-hover:opacity-60 transition-opacity"></div>
-              <div className="relative z-10 w-14 h-14 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shadow-inner border border-purple-200 mb-6">
-                <Users className="w-7 h-7" />
-              </div>
-              <h3 className="font-black text-xl text-stone-900 relative z-10">Parent</h3>
-              <p className="mt-2 text-sm font-semibold text-stone-600 leading-relaxed relative z-10 text-justify [text-align-last:left]">
-                Views reports, understands improvement areas, and tracks their child's progress without having to teach.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CURRICULUM */}
       <section className="py-20 pb-8 bg-white">
@@ -2215,35 +2096,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         </div>
       </section>
-      {/* FINAL CTA */}
-      <section className="relative py-24 overflow-hidden bg-stone-950 text-white">
-        <div className="absolute inset-0">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-yellow-600/20 to-amber-900/40 blur-[100px] rounded-full"></div>
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        </div>
-        <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <div className="mx-auto w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-2xl shadow-yellow-500/20 border border-white/10">
-            <GraduationCap className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="mt-8 text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight capitalize">
-            Ready to make<br />learning smarter?
-          </h2>
-          <p className="mt-6 text-stone-300 max-w-xl mx-auto text-lg font-medium">
-            Start with an assessment and let Edu<span className="text-yellow-500">Junction</span> guide the next step.
-          </p>
-          <a
-            href={supportComposeUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-10 px-8 py-4 rounded-[1.25rem] bg-white text-stone-900 font-black inline-flex items-center gap-2 hover:scale-105 hover:bg-stone-50 transition-all duration-300 shadow-xl shadow-white/10"
-          >
-            Get Support <ArrowRight className="w-5 h-5" />
-          </a>
-          <div className="mt-3 leading-tight">
-            <a href={supportComposeUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-yellow-400 hover:text-yellow-300 hover:underline">support@edujunction.co.in</a>
-          </div>
-        </div>
-      </section>
+
 
       {/* FOOTER */}
       <PublicFooter isBackendOnline={isBackendOnline ?? undefined} onQuickDemo={onQuickDemo} />

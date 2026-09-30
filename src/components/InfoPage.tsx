@@ -356,10 +356,6 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
             {/* Response Time & Guarantees Banner */}
             <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-amber-50/70 via-white to-orange-50/50 border border-amber-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
               <div className="space-y-1.5 max-w-2xl">
-                <div className="inline-flex items-center gap-2 text-xs font-bold text-amber-800 uppercase tracking-wider">
-                  <Clock className="w-4 h-4 text-amber-600" />
-                  <span>Prompt Response Guarantee</span>
-                </div>
                 <h3 className="text-lg sm:text-xl font-bold text-stone-900">
                   Every inquiry receives dedicated human review within 24 hours.
                 </h3>

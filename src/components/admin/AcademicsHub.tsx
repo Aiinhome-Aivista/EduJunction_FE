@@ -82,6 +82,30 @@ interface QuestionItem {
   created_at: string;
 }
 
+export const formatCleanDisplay = (val: any): string => {
+  if (!val) return '';
+  if (Array.isArray(val)) {
+    return val.map((item) => formatCleanDisplay(item)).filter(Boolean).join('\n');
+  }
+  let text = String(val).trim();
+  if ((text.startsWith('[') && text.endsWith(']')) || (text.startsWith('{') && text.endsWith('}'))) {
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        return parsed.map((item) => formatCleanDisplay(item)).filter(Boolean).join('\n');
+      }
+    } catch {
+      // ignore
+    }
+  }
+  // Strip markdown bold/italic
+  text = text.replace(/\*{1,3}(.*?)\*{1,3}/g, '$1');
+  text = text.replace(/_{1,3}(.*?)_{1,3}/g, '$1');
+  // Strip leading array brackets quotes fragments
+  text = text.replace(/^[\[\]"'\s]+/, '').replace(/[\[\]"'\s]+$/, '');
+  return text;
+};
+
 export const AcademicsHub: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'curriculum' | 'questions'>('curriculum');
   
@@ -923,28 +947,48 @@ export const AcademicsHub: React.FC = () => {
                     {q.options && Array.isArray(q.options) && q.options.length > 0 && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                         {q.options.map((opt: string, optIdx: number) => {
-                          const isCorrect = opt.trim().toLowerCase().startsWith(q.correct_answer.toLowerCase()) ||
-                                            opt.trim().toLowerCase().includes(q.correct_answer.toLowerCase());
+                          const cleanOpt = formatCleanDisplay(opt);
+                          const isCorrect = cleanOpt.trim().toLowerCase().startsWith((q.correct_answer || '').toLowerCase()) ||
+                                            cleanOpt.trim().toLowerCase().includes((q.correct_answer || '').toLowerCase());
                           return (
                             <div
                               key={optIdx}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-medium border ${
+                              className={`px-3 py-2 rounded-xl text-xs font-medium border ${
                                 isCorrect
-                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200 font-semibold'
-                                  : 'bg-stone-50/50 text-stone-600 border-stone-200/60'
+                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold shadow-2xs'
+                                  : 'bg-stone-50/70 text-stone-600 border-stone-200/80'
                               }`}
                             >
-                              {opt}
+                              {cleanOpt}
                             </div>
                           );
                         })}
                       </div>
                     )}
 
+                    {/* Model Answer for Descriptive Questions (Non-MCQ) */}
+                    {(!q.options || !Array.isArray(q.options) || q.options.length === 0) && q.correct_answer && (
+                      <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-xs text-emerald-950 font-medium space-y-1 shadow-2xs">
+                        <div className="flex items-center gap-1.5 font-bold text-emerald-800">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>Model Answer / Solution:</span>
+                        </div>
+                        <div className="whitespace-pre-line text-emerald-900 leading-relaxed pl-5 font-normal">
+                          {formatCleanDisplay(q.correct_answer)}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Explanation */}
                     {q.explanation && (
-                      <div className="p-2.5 rounded-xl bg-yellow-50/50 border border-yellow-200/50 text-xs text-yellow-900 font-medium">
-                        💡 <strong>Explanation:</strong> {q.explanation}
+                      <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/70 text-xs text-amber-950 font-medium space-y-1 shadow-2xs">
+                        <div className="flex items-center gap-1.5 font-bold text-amber-800">
+                          <span>💡</span>
+                          <span>Explanation & Marking Breakdown:</span>
+                        </div>
+                        <div className="whitespace-pre-line text-amber-900 leading-relaxed pl-5 font-normal">
+                          {formatCleanDisplay(q.explanation)}
+                        </div>
                       </div>
                     )}
                   </div>

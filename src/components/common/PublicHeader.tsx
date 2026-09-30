@@ -16,42 +16,42 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
 
   const isLandingRoute =
     location.pathname === "/" ||
+    location.pathname === "/home" ||
     location.pathname === "/landing" ||
     location.pathname === "/features" ||
     location.pathname === "/model-papers-2027" ||
     location.pathname === "/how-it-works" ||
+    location.pathname === "/for-everyone" ||
     location.pathname === "/roles" ||
     location.pathname === "/demo";
 
   const handleNavClick = (path: string, sectionId: string, e: React.MouseEvent) => {
     e.preventDefault();
 
-    if (isLandingRoute) {
-      if (location.pathname !== path) {
-        navigate(path);
-      }
-      if (sectionId === 'hero' || sectionId === 'top' || sectionId === '') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        const el = document.getElementById(sectionId);
-        if (el) {
-          const fixedBar = document.querySelector('.fixed.top-0');
-          const fixedHeight = fixedBar ? fixedBar.getBoundingClientRect().height : 116;
-          const y = el.getBoundingClientRect().top + window.pageYOffset - fixedHeight + 20;
-          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
-        }
-      }
-    } else {
-      // Coming from other routes (e.g. /blog, /about, /privacy, etc.)
+    if (location.pathname !== path) {
       navigate(path);
     }
+
+    if (sectionId === 'hero' || sectionId === 'top' || sectionId === '' || sectionId === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const el = document.getElementById(sectionId) || (sectionId === 'for-everyone' ? document.getElementById('roles') : null);
+      if (el) {
+        const header = document.querySelector('header');
+        const headerHeight = header ? header.getBoundingClientRect().height : 72;
+        const y = el.getBoundingClientRect().top + window.pageYOffset - headerHeight - 16;
+        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+      }
+    }
   };
+
+  const isHomeActive = location.pathname === "/" || location.pathname === "/home" || location.pathname === "/landing";
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[72px] flex items-center justify-between">
         {/* Logo */}
-        <Link to={isLoggedIn ? "/landing" : "/"} onClick={(e) => handleNavClick(isLoggedIn ? "/landing" : "/", 'hero', e)} className="flex items-center gap-3">
+        <Link to="/home" onClick={(e) => handleNavClick(isLoggedIn ? "/landing" : "/home", 'hero', e)} className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-lg shadow-yellow-200">
             <GraduationCap className="w-5 h-5" />
           </div>
@@ -66,14 +66,46 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
 
         {/* Desktop nav */}
         <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-stone-600">
-          <Link to={isLoggedIn ? "/landing" : "/"} onClick={(e) => handleNavClick(isLoggedIn ? "/landing" : "/", 'hero', e)} className="hover:text-yellow-600 transition-colors">Home</Link>
-          <Link to="/features" onClick={(e) => handleNavClick('/features', 'features', e)} className="hover:text-yellow-600 transition-colors">Features</Link>
-          <Link to="/model-papers-2027" onClick={(e) => handleNavClick('/model-papers-2027', 'model-papers-2027', e)} className="hover:text-yellow-600 flex items-center gap-1.5 transition-colors">
+          <Link
+            to="/home"
+            onClick={(e) => handleNavClick('/home', 'hero', e)}
+            className={isHomeActive ? "text-yellow-600 font-bold" : "hover:text-yellow-600 transition-colors"}
+          >
+            Home
+          </Link>
+          <Link
+            to="/features"
+            onClick={(e) => handleNavClick('/features', 'features', e)}
+            className={location.pathname === "/features" ? "text-yellow-600 font-bold" : "hover:text-yellow-600 transition-colors"}
+          >
+            Features
+          </Link>
+          <Link
+            to="/model-papers-2027"
+            onClick={(e) => handleNavClick('/model-papers-2027', 'model-papers-2027', e)}
+            className={`flex items-center gap-1.5 transition-colors ${location.pathname === "/model-papers-2027" ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
+          >
             Model Papers <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">2027</span>
           </Link>
-          <Link to="/how-it-works" onClick={(e) => handleNavClick('/how-it-works', 'how-it-works', e)} className="hover:text-yellow-600 transition-colors">How It Works</Link>
-          <Link to="/roles" onClick={(e) => handleNavClick('/roles', 'roles', e)} className="hover:text-yellow-600 transition-colors">For Everyone</Link>
-          <Link to="/demo" onClick={(e) => handleNavClick('/demo', 'demo', e)} className="hover:text-yellow-600 flex items-center gap-1.5 transition-colors">
+          <Link
+            to="/how-it-works"
+            onClick={(e) => handleNavClick('/how-it-works', 'how-it-works', e)}
+            className={location.pathname === "/how-it-works" ? "text-yellow-600 font-bold" : "hover:text-yellow-600 transition-colors"}
+          >
+            How It Works
+          </Link>
+          <Link
+            to="/for-everyone"
+            onClick={(e) => handleNavClick('/for-everyone', 'for-everyone', e)}
+            className={(location.pathname === "/for-everyone" || location.pathname === "/roles") ? "text-yellow-600 font-bold" : "hover:text-yellow-600 transition-colors"}
+          >
+            For Everyone
+          </Link>
+          <Link
+            to="/demo"
+            onClick={(e) => handleNavClick('/demo', 'demo', e)}
+            className={`flex items-center gap-1.5 transition-colors ${location.pathname === "/demo" ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
+          >
             Demo <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700">LIVE</span>
           </Link>
           <Link to="/blog" className={isBlogActive ? "text-yellow-600 font-black" : "hover:text-yellow-600 transition-colors"}>Blogs</Link>
@@ -115,8 +147,15 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
       {/* Mobile drawer */}
       {mob && (
         <div className="lg:hidden bg-white border-t border-stone-100 px-4 py-4 space-y-2">
-          {[["/", "hero", "Home"], ["/features", "features", "Features"], ["/model-papers-2027", "model-papers-2027", "Model Papers 2027"], ["/how-it-works", "how-it-works", "How It Works"], ["/roles", "roles", "For Everyone"], ["/demo", "demo", "Demo"]].map(([path, sectionId, label]) => (
-            <Link key={path} to={path} onClick={(e) => { setMob(false); handleNavClick(path, sectionId, e); }} className="block py-2.5 text-sm font-semibold text-stone-700 hover:text-yellow-600">{label}</Link>
+          {[["/home", "hero", "Home"], ["/features", "features", "Features"], ["/model-papers-2027", "model-papers-2027", "Model Papers 2027"], ["/how-it-works", "how-it-works", "How It Works"], ["/for-everyone", "for-everyone", "For Everyone"], ["/demo", "demo", "Demo"]].map(([path, sectionId, label]) => (
+            <Link
+              key={path}
+              to={path}
+              onClick={(e) => { setMob(false); handleNavClick(path, sectionId, e); }}
+              className={`block py-2.5 text-sm ${(path === "/home" ? isHomeActive : (path === "/for-everyone" ? (location.pathname === "/for-everyone" || location.pathname === "/roles") : location.pathname === path)) ? "font-bold text-yellow-600" : "font-semibold text-stone-700 hover:text-yellow-600"}`}
+            >
+              {label}
+            </Link>
           ))}
           <Link to="/blog" onClick={() => setMob(false)} className={isBlogActive ? "block py-2.5 text-sm font-black text-yellow-600" : "block py-2.5 text-sm font-semibold text-stone-700 hover:text-yellow-600"}>Blogs</Link>
           <div className="pt-3 border-t border-stone-100 flex gap-2">

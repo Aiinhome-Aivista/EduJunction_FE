@@ -156,7 +156,8 @@ export default function App() {
   // Automatically dismiss active report view and scroll to top whenever the route changes
   useEffect(() => {
     setActiveSubmissionReport(null);
-    if (!location.hash) {
+    const landingPaths = ['/', '/home', '/landing', '/features', '/model-papers-2027', '/how-it-works', '/for-everyone', '/roles', '/demo', '/hero'];
+    if (!location.hash && !landingPaths.includes(location.pathname)) {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
