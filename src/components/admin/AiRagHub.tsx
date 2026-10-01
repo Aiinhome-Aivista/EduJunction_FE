@@ -49,6 +49,9 @@ interface RagDocument {
   status: 'PENDING' | 'PROCESSED' | 'FAILED';
   chunk_count: number;
   created_at?: string;
+  core_concepts?: string[];
+  key_formulas_or_rules?: string[];
+  common_traps?: string[];
 }
 
 interface RagStatusData {
@@ -116,6 +119,7 @@ export const AiRagHub: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ingestion' | 'playground' | 'kgraph'>('ingestion');
   const [ragStatus, setRagStatus] = useState<RagStatusData | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
+  const questionsSectionRef = React.useRef<HTMLDivElement>(null);
 
   // Master Data Dynamic State (from DB /api/v1/master/board_class_dropdown and /api/v1/master/curriculum-options)
   const [activeBoards, setActiveBoards] = useState<MasterBoard[]>([]);
@@ -231,7 +235,7 @@ export const AiRagHub: React.FC = () => {
   const [generatorModalOpen, setGeneratorModalOpen] = useState(false);
   const [activeDocForGen, setActiveDocForGen] = useState<RagDocument | null>(null);
   const [extractedPreviewData, setExtractedPreviewData] = useState<PreviewExtractionData | null>(null);
-  const [genCount, setGenCount] = useState<number>(5);
+  const [genCount, setGenCount] = useState<number | ''>(5);
   const [genType, setGenType] = useState<string>('ALL');
   const [genDifficulty, setGenDifficulty] = useState<string>('ALL');
   const [genInstructions, setGenInstructions] = useState<string>('');
@@ -262,19 +266,41 @@ export const AiRagHub: React.FC = () => {
 
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Vector Repository Documents Pagination (10 per page)
+  // Vector Repository Documents Search & Pagination (10 per page)
+  const [docSearchQuery, setDocSearchQuery] = useState<string>('');
   const [docPage, setDocPage] = useState<number>(1);
   const DOCS_PER_PAGE = 10;
 
-  const totalDocs = ragStatus?.documents?.length || 0;
+  useEffect(() => {
+    setDocPage(1);
+  }, [docSearchQuery]);
+
+  const filteredDocuments = useMemo(() => {
+    if (!ragStatus?.documents || ragStatus.documents.length === 0) return [];
+    if (!docSearchQuery.trim()) return ragStatus.documents;
+    const q = docSearchQuery.toLowerCase().trim();
+    return ragStatus.documents.filter((doc) => {
+      const filename = (doc.filename || '').toLowerCase();
+      const board = (doc.board || '').toLowerCase();
+      const classGrade = (doc.classGrade || '').toLowerCase();
+      const subject = (doc.subject || '').toLowerCase();
+      return (
+        filename.includes(q) ||
+        board.includes(q) ||
+        classGrade.includes(q) ||
+        subject.includes(q)
+      );
+    });
+  }, [ragStatus?.documents, docSearchQuery]);
+
+  const totalDocs = filteredDocuments.length;
   const totalDocPages = Math.max(1, Math.ceil(totalDocs / DOCS_PER_PAGE));
   const currentDocPage = Math.min(Math.max(1, docPage), totalDocPages);
 
   const paginatedDocuments = useMemo(() => {
-    if (!ragStatus?.documents || ragStatus.documents.length === 0) return [];
     const start = (currentDocPage - 1) * DOCS_PER_PAGE;
-    return ragStatus.documents.slice(start, start + DOCS_PER_PAGE);
-  }, [ragStatus?.documents, currentDocPage]);
+    return filteredDocuments.slice(start, start + DOCS_PER_PAGE);
+  }, [filteredDocuments, currentDocPage]);
 
   const showNotify = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -334,7 +360,7 @@ export const AiRagHub: React.FC = () => {
     const gLower = selectedGrade.toLowerCase().trim();
     const sLower = selectedSubject.toLowerCase().trim();
 
-    const matched = flatTopics.find(t => 
+    const matched = flatTopics.find(t =>
       t.boardName.toLowerCase().trim() === bLower &&
       (t.className.toLowerCase().trim() === gLower || t.className.toLowerCase().replace('class ', '').trim() === gLower.replace('class ', '')) &&
       (t.subjectName.toLowerCase().trim() === sLower || (sLower === 'science' && ['physics', 'chemistry', 'biology', 'science'].includes(t.subjectName.toLowerCase().trim())))
@@ -664,6 +690,65 @@ export const AiRagHub: React.FC = () => {
     return matching.length > 0 ? matching : flatTopics;
   }, [flatTopics, activeDocForGen, extractedPreviewData]);
 
+  // Dynamically compute intelligent prompt suggestion chips using stored DB/ArangoDB pedagogical analysis
+  const dynamicPromptPresets = useMemo(() => {
+    const doc = activeDocForGen;
+    const preview = extractedPreviewData;
+
+    const subject = (preview?.subject || doc?.subject || '').toLowerCase();
+    const coreConcepts = preview?.core_concepts || doc?.core_concepts || [];
+    const formulas = preview?.key_formulas_or_rules || doc?.key_formulas_or_rules || [];
+    const traps = preview?.common_traps || doc?.common_traps || [];
+    const detectedTopics = preview?.detected_topics || [];
+
+    const chips: string[] = [];
+
+    // 1. Primary: Use actual stored Pedagogical Analysis (Concepts / Formulas / Traps) from DB / Runbook / ArangoDB
+    if (coreConcepts.length > 0) {
+      chips.push(`Focus deeply on: ${coreConcepts[0]}`);
+      if (coreConcepts[1]) {
+        chips.push(`Conceptual breakdown: ${coreConcepts[1]}`);
+      }
+    }
+
+    if (formulas.length > 0) {
+      chips.push(`Problems applying: ${formulas[0]}`);
+    }
+
+    if (traps.length > 0) {
+      chips.push(`Test common trap: ${traps[0]}`);
+    }
+
+    if (detectedTopics.length > 0 && chips.length < 4) {
+      const topTopic = typeof detectedTopics[0] === 'string' ? detectedTopics[0] : (detectedTopics[0]?.name || detectedTopics[0]?.topic);
+      if (topTopic) chips.push(`HOTS & Analysis on: ${topTopic}`);
+    }
+
+    // 2. Fallback / Enrichment: Subject-aware contextual directives
+    if (chips.length < 3) {
+      if (subject.includes('math') || subject.includes('physic')) {
+        chips.push('Step-by-step Numerical & Formula derivations');
+        chips.push('Graph & calculation-based application problems');
+      } else if (subject.includes('bio') || subject.includes('chem') || subject.includes('science')) {
+        chips.push('Diagram-based & Labeling / Reaction questions');
+        chips.push('Comparison tables & 3-Mark SAQ differences');
+      } else if (subject.includes('geograph') || subject.includes('histor') || subject.includes('social')) {
+        chips.push('Map-pointing & Case Study Source-based questions');
+        chips.push('Cause & Consequence 5-Mark long answers');
+      } else {
+        chips.push('Focus on Case-based & HOTS Questions');
+        chips.push('Extract Formula-based & Numerical Problems');
+      }
+    }
+
+    // Always ensure high-yield universal board exam pattern
+    if (!chips.includes('Generate Board Exam Pattern with Step Marks')) {
+      chips.push('Generate Board Exam Pattern with Step Marks');
+    }
+
+    return Array.from(new Set(chips)).slice(0, 5);
+  }, [activeDocForGen, extractedPreviewData]);
+
   // Trigger AI Question Generation
   const handleGenerateQuestions = async () => {
     if (!activeDocForGen) return;
@@ -671,16 +756,23 @@ export const AiRagHub: React.FC = () => {
     try {
       const res = await ApiServices.generateRagQuestions({
         document_id: activeDocForGen.id,
-        count: genCount,
+        count: genCount === '' ? null : Number(genCount),
         type: genType,
         difficulty: genDifficulty,
         instructions: genInstructions
       });
 
       const questionsList = res?.questions || res?.data?.questions || [];
+      const msg = res?.message || res?.data?.message;
       if (Array.isArray(questionsList) && questionsList.length > 0) {
         setGeneratedQuestions(questionsList);
-        showNotify('success', `✨ Generated ${questionsList.length} questions from ${activeDocForGen.filename}!`);
+        showNotify('success', msg || `✨ Generated ${questionsList.length} questions from ${activeDocForGen.filename}!`);
+        // Smooth auto-scroll down to the questions review section
+        setTimeout(() => {
+          if (questionsSectionRef.current) {
+            questionsSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 150);
       } else {
         showNotify('error', 'No questions were returned. Please try with different instructions.');
       }
@@ -926,11 +1018,10 @@ export const AiRagHub: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setDocumentType('textbook')}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-bold border text-left flex items-center gap-2 transition-all ${
-                      documentType === 'textbook'
+                    className={`px-3 py-2.5 rounded-xl text-xs font-bold border text-left flex items-center gap-2 transition-all ${documentType === 'textbook'
                         ? 'bg-amber-500/10 border-amber-400 text-amber-900 ring-2 ring-amber-400/20'
                         : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
-                    }`}
+                      }`}
                   >
                     <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
                     <div>
@@ -942,11 +1033,10 @@ export const AiRagHub: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setDocumentType('old_question_paper')}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-bold border text-left flex items-center gap-2 transition-all ${
-                      documentType === 'old_question_paper'
+                    className={`px-3 py-2.5 rounded-xl text-xs font-bold border text-left flex items-center gap-2 transition-all ${documentType === 'old_question_paper'
                         ? 'bg-blue-500/10 border-blue-400 text-blue-900 ring-2 ring-blue-400/20'
                         : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
-                    }`}
+                      }`}
                   >
                     <FileText className="w-4 h-4 text-blue-600 shrink-0" />
                     <div>
@@ -1073,15 +1163,14 @@ export const AiRagHub: React.FC = () => {
                         return (
                           <div
                             key={idx}
-                            className={`flex items-center justify-between px-3 py-2 rounded-xl border text-xs transition-all ${
-                              isSuccess
+                            className={`flex items-center justify-between px-3 py-2 rounded-xl border text-xs transition-all ${isSuccess
                                 ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-2xs'
                                 : isFailed
-                                ? 'bg-rose-50/90 border-rose-300 text-rose-950'
-                                : isCurrent
-                                ? 'bg-amber-50 border-amber-400 text-amber-950 shadow-xs ring-2 ring-amber-300/60 animate-pulse'
-                                : 'bg-white border-stone-200 text-stone-800'
-                            }`}
+                                  ? 'bg-rose-50/90 border-rose-300 text-rose-950'
+                                  : isCurrent
+                                    ? 'bg-amber-50 border-amber-400 text-amber-950 shadow-xs ring-2 ring-amber-300/60 animate-pulse'
+                                    : 'bg-white border-stone-200 text-stone-800'
+                              }`}
                           >
                             <div className="flex items-center gap-2 truncate max-w-[280px]">
                               {isSuccess ? (
@@ -1143,38 +1232,35 @@ export const AiRagHub: React.FC = () => {
 
               {/* Multi-File Progress Bar Card (Modern Theme) */}
               {(batchProgress.isRunning || batchProgress.results.length > 0 || batchProgress.lastError || batchProgress.logs.length > 0) && (
-                <div className={`p-4 rounded-2xl border transition-all duration-300 shadow-xs space-y-3 ${
-                  batchProgress.lastError
+                <div className={`p-4 rounded-2xl border transition-all duration-300 shadow-xs space-y-3 ${batchProgress.lastError
                     ? 'bg-rose-50/50 border-rose-200'
                     : 'bg-stone-50 border-stone-200'
-                }`}>
+                  }`}>
                   {/* Header Row */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <RefreshCw className={`w-4 h-4 ${
-                        batchProgress.lastError
+                      <RefreshCw className={`w-4 h-4 ${batchProgress.lastError
                           ? 'text-rose-600'
                           : batchProgress.percent === 100 && !batchProgress.isRunning
-                          ? 'text-emerald-600'
-                          : 'text-amber-600'
-                      } ${batchProgress.isRunning ? 'animate-spin' : ''}`} />
+                            ? 'text-emerald-600'
+                            : 'text-amber-600'
+                        } ${batchProgress.isRunning ? 'animate-spin' : ''}`} />
                       <span className="text-xs font-bold text-stone-800">
                         {batchProgress.isRunning
                           ? `Processing File ${batchProgress.current} of ${batchProgress.total}`
                           : batchProgress.lastError
-                          ? 'Validation Blocked'
-                          : batchProgress.percent === 100
-                          ? 'Preview Extraction Complete'
-                          : 'Batch Ingestion Complete'}
+                            ? 'Validation Blocked'
+                            : batchProgress.percent === 100
+                              ? 'Preview Extraction Complete'
+                              : 'Batch Ingestion Complete'}
                       </span>
                     </div>
-                    <span className={`text-xs font-mono font-black px-2 py-0.5 rounded-md ${
-                      batchProgress.lastError
+                    <span className={`text-xs font-mono font-black px-2 py-0.5 rounded-md ${batchProgress.lastError
                         ? 'bg-rose-100 text-rose-700'
                         : batchProgress.percent === 100 && !batchProgress.isRunning
-                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300/60'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}>
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300/60'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>
                       {batchProgress.percent}%
                     </span>
                   </div>
@@ -1182,11 +1268,10 @@ export const AiRagHub: React.FC = () => {
                   {/* Clean Modern Progress Bar */}
                   <div className="w-full bg-stone-200/80 h-2.5 rounded-full overflow-hidden border border-stone-300/50">
                     <div
-                      className={`h-full transition-all duration-300 ease-out ${
-                        batchProgress.lastError
+                      className={`h-full transition-all duration-300 ease-out ${batchProgress.lastError
                           ? 'bg-rose-500'
                           : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-emerald-500'
-                      }`}
+                        }`}
                       style={{ width: `${Math.max(batchProgress.percent, batchProgress.lastError ? 100 : 0)}%` }}
                     />
                   </div>
@@ -1218,11 +1303,10 @@ export const AiRagHub: React.FC = () => {
                   )}
 
                   {/* Current Active Step Pill */}
-                  <p className={`text-[11px] font-mono truncate px-3 py-1.5 rounded-xl border ${
-                    batchProgress.lastError
+                  <p className={`text-[11px] font-mono truncate px-3 py-1.5 rounded-xl border ${batchProgress.lastError
                       ? 'text-rose-900 bg-rose-100/70 border-rose-200/80 font-medium'
                       : 'text-stone-800 bg-amber-50/80 border-amber-200/80 font-medium'
-                  }`}>
+                    }`}>
                     {batchProgress.currentStepName}
                   </p>
 
@@ -1234,13 +1318,12 @@ export const AiRagHub: React.FC = () => {
                       return (
                         <div
                           key={lIdx}
-                          className={`leading-relaxed whitespace-pre-wrap text-[11px] ${
-                            isErr
+                          className={`leading-relaxed whitespace-pre-wrap text-[11px] ${isErr
                               ? 'text-rose-700 font-bold bg-rose-50/90 p-1.5 rounded-lg border border-rose-200/60'
                               : isSuccess
-                              ? 'text-emerald-800 font-bold bg-emerald-50/90 p-1.5 rounded-lg border border-emerald-200/60'
-                              : 'text-stone-600'
-                          }`}
+                                ? 'text-emerald-800 font-bold bg-emerald-50/90 p-1.5 rounded-lg border border-emerald-200/60'
+                                : 'text-stone-600'
+                            }`}
                         >
                           {log}
                         </div>
@@ -1341,19 +1424,52 @@ export const AiRagHub: React.FC = () => {
 
           {/* Right Column: Ingested Documents Table */}
           <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-stone-100 gap-3">
               <div>
-                <h2 className="text-base font-black text-stone-900">Vector Repository Documents</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-black text-stone-900">Vector Repository Documents</h2>
+                  {ragStatus?.documents && ragStatus.documents.length > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-stone-600 border border-stone-200">
+                      {docSearchQuery.trim()
+                        ? `${filteredDocuments.length} of ${ragStatus.documents.length}`
+                        : `${ragStatus.documents.length} Total`}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-stone-400">Curriculum materials parsed into ChromaDB vector chunks with 1-click Question Synthesis</p>
               </div>
               <button
                 onClick={fetchRagStatus}
-                className="p-2 hover:bg-stone-100 rounded-xl text-stone-500 transition-colors"
+                className="p-2 hover:bg-stone-100 rounded-xl text-stone-500 transition-colors self-end sm:self-center cursor-pointer"
                 title="Refresh Status"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
             </div>
+
+            {/* Global Search Bar */}
+            {ragStatus?.documents && ragStatus.documents.length > 0 && (
+              <div className="relative">
+                <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={docSearchQuery}
+                  onChange={(e) => setDocSearchQuery(e.target.value)}
+                  placeholder="Search documents by filename, board, class, or subject..."
+                  className="w-full h-10 pl-10 pr-9 bg-stone-50/80 hover:bg-stone-50 focus:bg-white border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 rounded-xl text-xs font-medium text-stone-800 placeholder:text-stone-400 transition-all outline-hidden"
+                />
+                {docSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setDocSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 rounded-full transition-colors cursor-pointer"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            )}
 
             {loadingStatus ? (
               <div className="py-20 text-center text-stone-400 font-medium text-xs animate-pulse">
@@ -1364,6 +1480,22 @@ export const AiRagHub: React.FC = () => {
                 <Database className="w-12 h-12 mx-auto text-stone-300" />
                 <p className="text-sm font-bold text-stone-600">No documents ingested in ChromaDB yet.</p>
                 <p className="text-xs text-stone-400">Upload your first chapter textbook or notes on the left to start vectorizing.</p>
+              </div>
+            ) : filteredDocuments.length === 0 ? (
+              <div className="py-16 text-center text-stone-400 space-y-3">
+                <Search className="w-10 h-10 mx-auto text-stone-300" />
+                <div>
+                  <p className="text-sm font-bold text-stone-700">No documents found</p>
+                  <p className="text-xs text-stone-400 mt-0.5">No curriculum files matching "{docSearchQuery}"</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDocSearchQuery('')}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Clear Search</span>
+                </button>
               </div>
             ) : (
               <>
@@ -1390,7 +1522,7 @@ export const AiRagHub: React.FC = () => {
                           ✓ Synced
                         </span>
 
-                        {/* ⚡ Inspect / Synthesize Questions Action Button */}
+                        {/* ⚡ Re-Generate Questions Action Button */}
                         <button
                           type="button"
                           onClick={() => openQuestionGenerator(doc)}
@@ -1398,7 +1530,7 @@ export const AiRagHub: React.FC = () => {
                           title="Inspect or synthesize AI Questions from this document into question_master"
                         >
                           <Zap className="w-4 h-4 text-amber-600 stroke-[2.2]" />
-                          <span>Inspect / Synthesize Questions</span>
+                          <span>Re-Generate Questions</span>
                         </button>
 
                         <button
@@ -1447,11 +1579,10 @@ export const AiRagHub: React.FC = () => {
                                 key={p}
                                 type="button"
                                 onClick={() => setDocPage(p)}
-                                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                                  p === currentDocPage
+                                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${p === currentDocPage
                                     ? 'bg-amber-400 text-stone-900 shadow-2xs'
                                     : 'bg-stone-50 hover:bg-stone-100 text-stone-600 border border-stone-200/80'
-                                }`}
+                                  }`}
                               >
                                 {p}
                               </button>
@@ -1577,73 +1708,153 @@ export const AiRagHub: React.FC = () => {
             <div className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
               {/* If Active Doc Synthesis Mode: Show Controls */}
               {activeDocForGen && (
-                <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-4">
-                  <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
-                    <Sliders className="w-4 h-4 text-amber-600" />
-                    <span>Configure Question Synthesis Parameters</span>
+                <div className="p-5 rounded-3xl bg-stone-50/90 border border-stone-200/90 space-y-4 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-black text-stone-800">
+                      <Sliders className="w-4 h-4 text-amber-600" />
+                      <span>Configure Question Synthesis Parameters</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-stone-500 bg-stone-200/60 px-2 py-0.5 rounded-md">
+                      Interactive RAG Studio
+                    </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-bold text-stone-600 mb-1">Number of Questions</label>
-                      <select
-                        value={genCount}
-                        onChange={(e) => setGenCount(Number(e.target.value))}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800"
-                      >
-                        <option value={3}>3 Questions</option>
-                        <option value={5}>5 Questions</option>
-                        <option value={10}>10 Questions</option>
-                        <option value={15}>15 Questions</option>
-                      </select>
-                    </div>
+                    {(() => {
+                      const docChunkCount = activeDocForGen?.chunk_count || 5;
+                      const docSafeCap = Math.min(250, Math.max(15, docChunkCount * 5));
+                      const isOverCapacity = genCount !== '' && Number(genCount) > docSafeCap;
+
+                      return (
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-[11px] font-bold text-stone-700">Number of Questions</label>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isOverCapacity ? 'bg-amber-100 text-amber-900' : 'text-amber-700'}`}>
+                              {genCount === '' ? 'Auto Mode' : `${genCount} Qs`}
+                            </span>
+                          </div>
+                          <input
+                            type="number"
+                            min={1}
+                            max={Math.max(60, docSafeCap)}
+                            value={genCount}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '') {
+                                setGenCount('');
+                              } else {
+                                const num = parseInt(val, 10);
+                                setGenCount(isNaN(num) ? '' : Math.max(1, Math.min(Math.max(60, docSafeCap), num)));
+                              }
+                            }}
+                            placeholder={`Auto (~${Math.min(docSafeCap, 30)} max)`}
+                            className={`w-full h-10 px-3.5 bg-white border ${isOverCapacity ? 'border-amber-400 ring-2 ring-amber-300/30' : 'border-stone-200'} focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 rounded-xl text-xs font-semibold text-stone-800 placeholder:text-stone-400 placeholder:font-normal outline-hidden transition-all`}
+                          />
+                          <p className="text-[10px] mt-1 leading-snug">
+                            {isOverCapacity ? (
+                              <span className="text-amber-700 font-semibold">
+                                ⚠️ {docChunkCount} chunks detected. Recommended safe cap: ~{docSafeCap} questions.
+                              </span>
+                            ) : genCount === '' ? (
+                              <span className="text-stone-400">
+                                ✨ Auto: Extracts ~{Math.min(docSafeCap, 35)} questions from {docChunkCount} chunks
+                              </span>
+                            ) : (
+                              <span className="text-stone-400">
+                                Capacity: up to ~{docSafeCap} questions supported by {docChunkCount} chunks
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      );
+                    })()}
 
                     <div>
-                      <label className="block text-[11px] font-bold text-stone-600 mb-1">Question Type</label>
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Question Type</label>
                       <select
                         value={genType}
                         onChange={(e) => setGenType(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800"
+                        className="w-full h-10 px-3 bg-white border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 rounded-xl text-xs font-semibold text-stone-800 outline-hidden transition-all cursor-pointer"
                       >
-                        <option value="ALL">All Types</option>
-                        <option value="MCQ">MCQ (Multiple Choice)</option>
-                        <option value="SAQ">SAQ (Short Answer Question - 2M)</option>
-                        <option value="SHORT ANSWER (3M)">Short Answer (3M)</option>
-                        <option value="CASE STUDY">Case Study (4M)</option>
-                        <option value="LONG ANSWER">Long Answer (5M)</option>
-                        <option value="NUMERICAL">Numerical (Calculation Based)</option>
-                        <option value="ASSERTION REASON">Assertion Reason (1M)</option>
-                        <option value="OBJECTIVE">Objective (One-word / Fill-in / Direct)</option>
+                        <option value="ALL">All Types (Standard Mix)</option>
+                        <option value="MCQ">MCQ (Multiple Choice - 4 Options)</option>
+                        <option value="SAQ">SAQ (Short Answer - 2M)</option>
+                        <option value="SHORT ANSWER (3M)">Short Answer (3M Conceptual)</option>
+                        <option value="CASE STUDY">Case Study (4M Passage Based)</option>
+                        <option value="LONG ANSWER">Long Answer (5M Analytical)</option>
+                        <option value="NUMERICAL">Numerical (Formula & Calculation)</option>
+                        <option value="ASSERTION REASON">Assertion Reason (1M Standard)</option>
+                        <option value="OBJECTIVE">Objective (One-word / Definition)</option>
                       </select>
+                      <p className="text-[10px] text-stone-400 mt-1">Select specific pattern or balanced mix</p>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-stone-600 mb-1">Difficulty Calibration</label>
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Difficulty Calibration</label>
                       <select
                         value={genDifficulty}
                         onChange={(e) => setGenDifficulty(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800"
+                        className="w-full h-10 px-3 bg-white border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 rounded-xl text-xs font-semibold text-stone-800 outline-hidden transition-all cursor-pointer"
                       >
-                        <option value="ALL">All Levels</option>
-                        <option value="easy">Easy / Foundation</option>
-                        <option value="medium">Medium / Standard</option>
+                        <option value="ALL">All Levels (Harmonious Mix)</option>
+                        <option value="easy">Easy / Foundational Recall</option>
+                        <option value="medium">Medium / Standard Application</option>
                         <option value="hard">Hard / Analytical (HOTS)</option>
                       </select>
+                      <p className="text-[10px] text-stone-400 mt-1">Calibrate difficulty across taxonomy</p>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-stone-600 mb-1">Custom Focus Instructions (Optional)</label>
-                    <input
-                      type="text"
+                  {/* AI Dynamic Prompt Studio Section */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[11px] font-bold text-stone-700">
+                        AI Custom Prompt &amp; Synthesis Directives
+                      </label>
+                      <span className="text-[10px] font-medium text-stone-400">
+                        Instruct LLM with specific guidelines, topics, or question styles
+                      </span>
+                    </div>
+                    <textarea
+                      rows={4}
                       value={genInstructions}
                       onChange={(e) => setGenInstructions(e.target.value)}
-                      placeholder="e.g., Focus heavily on core definitions, formulas, and conceptual traps from the PDF..."
-                      className="w-full px-3.5 py-2 bg-white border border-stone-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      placeholder="e.g., Focus heavily on core definitions, formulas, real-world case studies, and common conceptual traps from the PDF chunks. Emphasize multi-step calculation problems with detailed step marks..."
+                      className="w-full p-3.5 bg-white border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 rounded-2xl text-xs font-medium text-stone-800 placeholder:text-stone-400 outline-hidden transition-all resize-y leading-relaxed"
                     />
+
+                    {/* Quick Prompt Suggestion Chips (Dynamically Sourced from Document DB / ArangoDB Analysis) */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <span className="text-[10px] font-bold text-stone-400 mr-1 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-500" />
+                        <span>Quick Directives:</span>
+                      </span>
+                      {dynamicPromptPresets.map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => setGenInstructions((prev) => (prev ? `${prev.trim()} | ${preset}` : preset))}
+                          className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/80 transition-colors cursor-pointer"
+                        >
+                          + {preset}
+                        </button>
+                      ))}
+                      {genInstructions && (
+                        <button
+                          type="button"
+                          onClick={() => setGenInstructions('')}
+                          className="px-2 py-1 rounded-lg text-[10px] font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer ml-auto"
+                        >
+                          Clear Directives
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex justify-end">
+                  <div className="flex items-center justify-between pt-2 border-t border-stone-200/60">
+                    <p className="text-[11px] text-stone-500">
+                      RAG Context: <strong className="text-stone-800">{activeDocForGen.chunk_count} vector chunks</strong> indexed in ChromaDB
+                    </p>
                     <button
                       onClick={handleGenerateQuestions}
                       disabled={isGenerating}
@@ -1652,7 +1863,7 @@ export const AiRagHub: React.FC = () => {
                       {isGenerating ? (
                         <>
                           <RefreshCw className="w-4 h-4 animate-spin" />
-                          Analyzing Chunks & Synthesizing Questions...
+                          Analyzing Chunks &amp; Synthesizing Questions...
                         </>
                       ) : (
                         <>
@@ -1693,7 +1904,9 @@ export const AiRagHub: React.FC = () => {
               )}
 
               {/* Generated / Extracted Questions Preview & Review List */}
-              {generatedQuestions.length > 0 && (() => {
+              {generatedQuestions.length > 0 && (
+                <div ref={questionsSectionRef} className="space-y-4 pt-2 scroll-mt-6 animate-in fade-in duration-200">
+                  {(() => {
                 const currentBoard = extractedPreviewData?.board || activeDocForGen?.board || selectedBoard || 'CBSE';
                 const currentClass = extractedPreviewData?.classGrade || activeDocForGen?.classGrade || selectedGrade || 'Class 10';
                 const currentSubject = extractedPreviewData?.subject || activeDocForGen?.subject || selectedSubject || 'General';
@@ -1701,7 +1914,7 @@ export const AiRagHub: React.FC = () => {
 
                 // Group questions by their topic_suggested or fallback to selectedTargetTopic
                 const fallbackTopicName = modalDisplayTopics.find(t => t.id === selectedTargetTopicId)?.name || 'General Topic';
-                
+
                 const groups: { [topicName: string]: { originalIndices: number[]; questions: GeneratedQuestionItem[] } } = {};
                 generatedQuestions.forEach((q, idx) => {
                   const topicKey = (q.topic_suggested && q.topic_suggested.trim() !== '') ? q.topic_suggested.trim() : fallbackTopicName;
@@ -1786,11 +1999,10 @@ export const AiRagHub: React.FC = () => {
                               return (
                                 <div
                                   key={q.id || globalIdx}
-                                  className={`p-4 rounded-2xl bg-white border shadow-2xs space-y-3 transition-colors ${
-                                    q.is_duplicate
+                                  className={`p-4 rounded-2xl bg-white border shadow-2xs space-y-3 transition-colors ${q.is_duplicate
                                       ? 'border-amber-300/80 bg-amber-50/20'
                                       : 'border-stone-200/90 hover:border-yellow-300'
-                                  }`}
+                                    }`}
                                 >
                                   <div className="flex items-start justify-between gap-3">
                                     <div className="flex flex-wrap items-center gap-2">
@@ -1837,13 +2049,12 @@ export const AiRagHub: React.FC = () => {
                                       <select
                                         value={q.difficulty || 'medium'}
                                         onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { difficulty: e.target.value })}
-                                        className={`text-[10px] font-bold capitalize px-2 py-0.5 rounded-md border cursor-pointer ${
-                                          q.difficulty === 'hard'
+                                        className={`text-[10px] font-bold capitalize px-2 py-0.5 rounded-md border cursor-pointer ${q.difficulty === 'hard'
                                             ? 'bg-rose-50 text-rose-700 border-rose-200'
                                             : q.difficulty === 'medium'
-                                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                            : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                        }`}
+                                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                          }`}
                                       >
                                         <option value="easy">Easy</option>
                                         <option value="medium">Medium</option>
@@ -1968,11 +2179,10 @@ export const AiRagHub: React.FC = () => {
                                         return (
                                           <div
                                             key={optIdx}
-                                            className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center justify-between ${
-                                              isCorrect
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center justify-between ${isCorrect
                                                 ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-bold'
                                                 : 'bg-stone-50 text-stone-700 border-stone-200/70'
-                                            }`}
+                                              }`}
                                           >
                                             <input
                                               type="text"
@@ -1987,9 +2197,8 @@ export const AiRagHub: React.FC = () => {
                                             <button
                                               type="button"
                                               onClick={() => handleUpdateGeneratedQuestion(globalIdx, { correct_answer: optLetter })}
-                                              className={`shrink-0 ml-2 p-1 rounded-md text-[10px] font-bold ${
-                                                isCorrect ? 'text-emerald-700 bg-emerald-100' : 'text-stone-400 hover:text-stone-700'
-                                              }`}
+                                              className={`shrink-0 ml-2 p-1 rounded-md text-[10px] font-bold ${isCorrect ? 'text-emerald-700 bg-emerald-100' : 'text-stone-400 hover:text-stone-700'
+                                                }`}
                                               title={`Mark option ${optLetter} as correct answer`}
                                             >
                                               <Check className="w-3.5 h-3.5" />
@@ -2064,6 +2273,8 @@ export const AiRagHub: React.FC = () => {
                   </div>
                 );
               })()}
+                </div>
+              )}
             </div>
 
             {/* Modal Footer */}
