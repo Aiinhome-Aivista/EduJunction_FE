@@ -557,13 +557,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
   return (
     <div className="h-full w-full flex flex-col bg-white overflow-y-auto relative shadow-2xl">
-      <div className="w-full max-w-md mx-auto px-6 pt-8 pb-6 sm:px-8 flex-1 flex flex-col justify-start relative">
+      <div className="w-full max-w-lg mx-auto px-6 py-6 sm:px-8 sm:py-8 flex-1 flex flex-col justify-start relative">
 
-        {/* Header with Logo and Close Button */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-lg shadow-yellow-400/30">
-              <GraduationCap size={20} />
+        {/* Header with Logo, Persona Switcher on right, and Close Button */}
+        <div className="flex items-center justify-between mb-4 sm:mb-5 pb-1">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-yellow-400 text-stone-900 flex items-center justify-center shadow-xs shadow-yellow-400/30">
+              <GraduationCap size={18} />
             </div>
             <div>
               <div className="text-xl font-black tracking-tight">
@@ -572,50 +572,49 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={handleBack}
-            className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-colors -mr-2 cursor-pointer"
-            aria-label="Close"
-          >
-            <X size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Minimal Bullet/Pill Persona Switcher in Header */}
+            {mode !== 'forgot-password' && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handlePersonaChange('parent')}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${selectedPersona === 'parent'
+                    ? 'bg-yellow-400 text-stone-950 shadow-xs font-black ring-1 ring-yellow-500/40'
+                    : 'bg-stone-100 text-stone-600 hover:text-stone-900 border border-stone-200 hover:bg-stone-200/60'
+                    }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full transition-colors ${selectedPersona === 'parent' ? 'bg-stone-950' : 'bg-stone-300'}`} />
+                  <Users size={12} className={selectedPersona === 'parent' ? 'text-stone-950' : 'text-stone-400'} />
+                  <span>Parent</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handlePersonaChange('student')}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${selectedPersona === 'student'
+                    ? 'bg-yellow-400 text-stone-950 shadow-xs font-black ring-1 ring-yellow-500/40'
+                    : 'bg-stone-100 text-stone-600 hover:text-stone-900 border border-stone-200 hover:bg-stone-200/60'
+                    }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full transition-colors ${selectedPersona === 'student' ? 'bg-stone-950' : 'bg-stone-300'}`} />
+                  <GraduationCap size={12} className={selectedPersona === 'student' ? 'text-stone-950' : 'text-stone-400'} />
+                  <span>Student</span>
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={handleBack}
+              className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-colors -mr-1 cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
-        {/* Persona Switcher Tabs */}
-        {mode !== 'forgot-password' && (
-          <div className="mb-4">
-            <div className="text-[11px] font-extrabold uppercase tracking-wider text-stone-400 mb-1.5 px-0.5">
-              Select Account Type
-            </div>
-            <div className="grid grid-cols-2 p-1 bg-stone-100 rounded-2xl border border-stone-200/80 gap-1.5">
-              <button
-                type="button"
-                onClick={() => handlePersonaChange('parent')}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all cursor-pointer ${selectedPersona === 'parent'
-                    ? 'bg-white text-stone-900 shadow-md shadow-stone-200/60 border border-yellow-300'
-                    : 'text-stone-500 hover:text-stone-800 hover:bg-white/40'
-                  }`}
-              >
-                <Users size={16} className={selectedPersona === 'parent' ? 'text-yellow-600' : 'text-stone-400'} />
-                <span>Parent</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handlePersonaChange('student')}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-black transition-all cursor-pointer ${selectedPersona === 'student'
-                    ? 'bg-white text-stone-900 shadow-md shadow-stone-200/60 border border-yellow-300'
-                    : 'text-stone-500 hover:text-stone-800 hover:bg-white/40'
-                  }`}
-              >
-                <GraduationCap size={16} className={selectedPersona === 'student' ? 'text-yellow-600' : 'text-stone-400'} />
-                <span>Student</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="mb-4">
+        <div className="mb-4 sm:mb-5">
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900 mb-1.5">
             {mode === 'forgot-password'
               ? resetStep === 'VERIFY_OTP'
@@ -627,7 +626,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   ? 'Parent Login'
                   : 'Create Parent Account'}
           </h2>
-          <p className="text-stone-500 font-medium text-xs sm:text-sm leading-relaxed">
+          <p className="text-stone-600 font-medium text-xs sm:text-sm leading-relaxed">
             {mode === 'forgot-password'
               ? resetStep === 'VERIFY_OTP'
                 ? 'Enter the 6-digit verification code and your new password.'
@@ -642,11 +641,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
         {/* Mode Switcher (Parent Only) */}
         {mode !== 'forgot-password' && selectedPersona === 'parent' && (
-          <div className="flex p-1 bg-stone-200/60 rounded-xl mb-4">
+          <div className="flex p-1 bg-stone-200/60 rounded-xl mb-3 sm:mb-3.5">
             <button
               type="button"
               onClick={() => handleModeChange('login')}
-              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${mode === 'login' ? 'bg-white text-yellow-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'
+              className={`flex-1 py-1.5 text-xs sm:text-[13px] font-bold rounded-lg transition-all duration-200 ${mode === 'login' ? 'bg-white text-yellow-700 shadow-sm font-extrabold' : 'text-stone-500 hover:text-stone-700'
                 }`}
             >
               Login
@@ -654,7 +653,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <button
               type="button"
               onClick={() => handleModeChange('register')}
-              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all duration-200 ${mode === 'register' ? 'bg-white text-yellow-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'
+              className={`flex-1 py-1.5 text-xs sm:text-[13px] font-bold rounded-lg transition-all duration-200 ${mode === 'register' ? 'bg-white text-yellow-700 shadow-sm font-extrabold' : 'text-stone-500 hover:text-stone-700'
                 }`}
             >
               Sign Up
@@ -961,7 +960,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </div>
         ) : (
           /* Form */
-          <form onSubmit={handleSubmit} className="space-y-3" noValidate>
+          <form onSubmit={handleSubmit} className={`flex-1 flex flex-col justify-start ${mode === 'login' ? 'space-y-4 sm:space-y-5' : 'space-y-3'}`} noValidate>
 
             {/* Google Button available for Parent */}
             {selectedPersona === 'parent' && (
@@ -970,7 +969,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   type="button"
                   onClick={handleGoogleClick}
                   disabled={isSubmitting || isGoogleSubmitting}
-                  className="w-full h-11 flex items-center justify-center gap-3 bg-white border-2 border-stone-200 hover:border-yellow-300 hover:bg-stone-50 text-stone-700 text-sm font-bold rounded-xl transition-all shadow-sm active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full h-9.5 sm:h-10 flex items-center justify-center gap-2.5 bg-white border-2 border-stone-200 hover:border-yellow-300 hover:bg-stone-50 text-stone-700 text-xs sm:text-[13px] font-bold rounded-xl transition-all shadow-xs active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isGoogleSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin text-yellow-600" />
@@ -997,93 +996,86 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   {isGoogleSubmitting ? 'Connecting with Google...' : 'Continue with Google'}
                 </button>
 
-                <div className="relative flex items-center justify-center pb-1">
+                <div className="relative flex items-center justify-center py-0.5">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-stone-200"></div>
                   </div>
-                  <div className="relative bg-white px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider">
+                  <div className="relative bg-white px-3 text-[10px] sm:text-[11px] font-bold text-stone-400 uppercase tracking-wider">
                     {mode === 'register' ? 'Or register with details' : 'Or login with password'}
                   </div>
                 </div>
               </>
             )}
 
-            {/* Full Name (Sign Up Only) */}
+            {/* Full Name & Username Row (Sign Up Only) */}
             {mode === 'register' && (
-              <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1 ml-1">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <div className="relative group">
-                  <User
-                    size={18}
-                    className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${fieldErrors.name ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'
-                      }`}
-                  />
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      clearFieldError('name');
-                    }}
-                    placeholder="e.g. Rahul Sharma"
-                    className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.name
-                      ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
-                      : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
-                      }`}
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Full Name */}
+                <div>
+                  <label className="block text-xs sm:text-[13px] font-bold text-stone-800 mb-1 ml-1">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative group">
+                    <User
+                      size={18}
+                      className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${fieldErrors.name ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'
+                        }`}
+                    />
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        clearFieldError('name');
+                      }}
+                      placeholder="e.g. Rahul Sharma"
+                      className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-xs sm:text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.name
+                        ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                        : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
+                        }`}
+                    />
+                  </div>
+                  {fieldErrors.name && (
+                    <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{fieldErrors.name}</p>
+                  )}
                 </div>
-                {fieldErrors.name && (
-                  <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{fieldErrors.name}</p>
-                )}
+
+                {/* Parent Username */}
+                <div>
+                  <label className="block text-xs sm:text-[13px] font-bold text-stone-800 mb-1 ml-1">
+                    Parent Username <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative group">
+                    <User
+                      size={18}
+                      className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${fieldErrors.username ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'
+                        }`}
+                    />
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        clearFieldError('username');
+                      }}
+                      placeholder="e.g. rahul_parent"
+                      className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-xs sm:text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.username
+                        ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                        : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
+                        }`}
+                    />
+                  </div>
+                  {fieldErrors.username && (
+                    <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{fieldErrors.username}</p>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Username or Email Field (Login & Register) */}
-            <div>
-              <label className="block text-xs font-bold text-stone-700 mb-1 ml-1">
-                {selectedPersona === 'student'
-                  ? 'Student Username or ID'
-                  : mode === 'login'
-                    ? 'Parent Username or Email'
-                    : 'Parent Username'} <span className="text-red-500">*</span>
-              </label>
-              <div className="relative group">
-                <User
-                  size={18}
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${fieldErrors.username ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'
-                    }`}
-                />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => {
-                    setUsername(e.target.value);
-                    clearFieldError('username');
-                  }}
-                  placeholder={
-                    selectedPersona === 'student'
-                      ? 'e.g. riya001 or student ID'
-                      : mode === 'login'
-                        ? 'e.g. rahul_parent or parent@example.com'
-                        : 'e.g. rahul_parent'
-                  }
-                  className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.username
-                    ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
-                    : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
-                    }`}
-                />
-              </div>
-              {fieldErrors.username && (
-                <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{fieldErrors.username}</p>
-              )}
-            </div>
-
-            {/* Email Address (Sign Up Only) */}
-            {mode === 'register' && (
+            {/* Email Address (Full width in Sign Up) or Username/Email in Login */}
+            {mode === 'register' ? (
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1 ml-1">
+                <label className="block text-xs sm:text-[13px] font-bold text-stone-800 mb-1 ml-1">
                   Parent Email Address <span className="text-red-500">*</span>
                 </label>
                 <div className="relative group">
@@ -1100,7 +1092,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       clearFieldError('email');
                     }}
                     placeholder="parent@example.com"
-                    className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.email
+                    className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-xs sm:text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.email
                       ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
                       : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
                       }`}
@@ -1110,49 +1102,180 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{fieldErrors.email}</p>
                 )}
               </div>
+            ) : (
+              /* Username or Email Field (Login) */
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-stone-800 mb-1.5 ml-1">
+                  {selectedPersona === 'student'
+                    ? 'Student Username or ID'
+                    : 'Parent Username or Email'} <span className="text-red-500">*</span>
+                </label>
+                <div className="relative group">
+                  <User
+                    size={19}
+                    className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${fieldErrors.username ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'
+                      }`}
+                  />
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      clearFieldError('username');
+                    }}
+                    placeholder={
+                      selectedPersona === 'student'
+                        ? 'e.g. riya001 or student ID'
+                        : 'e.g. rahul_parent or parent@example.com'
+                    }
+                    className={`w-full h-11 sm:h-12 pl-11 pr-4 bg-white border-2 rounded-xl text-xs sm:text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.username
+                      ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                      : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
+                      }`}
+                  />
+                </div>
+                {fieldErrors.username && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{fieldErrors.username}</p>
+                )}
+              </div>
             )}
 
-            {/* Password Field */}
-            <div>
-              <div className="flex items-center justify-between mb-1 ml-1 mr-1">
-                <label className="text-xs font-bold text-stone-700">
-                  {mode === 'login' ? 'Password' : 'Create Password'} <span className="text-red-500">*</span>
-                </label>
-              </div>
-              <div className="relative group">
-                <Lock
-                  size={18}
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${fieldErrors.password ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'
-                    }`}
-                />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    clearFieldError('password');
-                  }}
-                  placeholder="••••••••"
-                  className={`w-full h-11 pl-11 pr-12 bg-white border-2 rounded-xl text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.password
-                    ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
-                    : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
-                    }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              {fieldErrors.password && (
-                <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 leading-tight">{fieldErrors.password}</p>
-              )}
+            {/* Password & Confirm Password Row: Side-by-side in Sign Up, Single row in Login */}
+            {mode === 'register' ? (
+              <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Create Password */}
+                  <div>
+                    <label className="block text-xs sm:text-[13px] font-bold text-stone-800 mb-1 ml-1">
+                      Create Password <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative group">
+                      <Lock
+                        size={18}
+                        className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${fieldErrors.password ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'
+                          }`}
+                      />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          clearFieldError('password');
+                        }}
+                        placeholder="••••••••"
+                        className={`w-full h-11 pl-11 pr-11 bg-white border-2 rounded-xl text-xs sm:text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.password
+                          ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                          : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
+                          }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {fieldErrors.password && (
+                      <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 leading-tight">{fieldErrors.password}</p>
+                    )}
+                  </div>
 
-              {/* Forgot Password Link - positioned right below the password field (Admin Style) */}
-              {mode === 'login' && (
-                <div className="flex justify-end pt-2.5 pb-1.5">
+                  {/* Confirm Password */}
+                  <div>
+                    <label className="block text-xs sm:text-[13px] font-bold text-stone-800 mb-1 ml-1">
+                      Confirm Password <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative group">
+                      <Lock
+                        size={18}
+                        className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${fieldErrors.confirmPassword ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'
+                          }`}
+                      />
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          clearFieldError('confirmPassword');
+                        }}
+                        placeholder="••••••••"
+                        className={`w-full h-11 pl-11 pr-11 bg-white border-2 rounded-xl text-xs sm:text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.confirmPassword
+                          ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                          : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
+                          }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+                      >
+                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {fieldErrors.confirmPassword && (
+                      <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 leading-tight">{fieldErrors.confirmPassword}</p>
+                    )}
+                  </div>
+                </div>
+
+                {password.length > 0 && (
+                  <div className="mt-1.5 flex gap-1.5">
+                    {[1, 2, 3, 4].map((step) => (
+                      <div
+                        key={step}
+                        className={`h-1 flex-1 rounded-full transition-colors ${step <= passwordStrength
+                          ? passwordStrength < 3
+                            ? 'bg-amber-400'
+                            : 'bg-yellow-500'
+                          : 'bg-stone-200'
+                          }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Password Field (Login) */
+              <div>
+                <div className="flex items-center justify-between mb-1.5 ml-1 mr-1">
+                  <label className="text-xs sm:text-sm font-bold text-stone-800">
+                    Password <span className="text-red-500">*</span>
+                  </label>
+                </div>
+                <div className="relative group">
+                  <Lock
+                    size={19}
+                    className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${fieldErrors.password ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'
+                      }`}
+                  />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      clearFieldError('password');
+                    }}
+                    placeholder="••••••••"
+                    className={`w-full h-11 sm:h-12 pl-11 pr-12 bg-white border-2 rounded-xl text-xs sm:text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.password
+                      ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                      : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
+                      }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {fieldErrors.password && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 leading-tight">{fieldErrors.password}</p>
+                )}
+
+                {/* Forgot Password Link */}
+                <div className="flex justify-end pt-1 pb-0">
                   <button
                     type="button"
                     onClick={() => {
@@ -1167,82 +1290,27 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       setResetConfirmPassword('');
                       setMode('forgot-password');
                     }}
-                    className="text-xs font-bold text-yellow-600 hover:text-yellow-700 hover:underline transition-all cursor-pointer"
+                    className="text-xs sm:text-sm font-bold text-yellow-600 hover:text-yellow-700 hover:underline transition-all cursor-pointer"
                   >
                     Forgot Password?
                   </button>
                 </div>
-              )}
-
-              {mode === 'register' && password.length > 0 && (
-                <div className="mt-2 flex gap-1.5">
-                  {[1, 2, 3, 4].map((step) => (
-                    <div
-                      key={step}
-                      className={`h-1.5 flex-1 rounded-full transition-colors ${step <= passwordStrength
-                        ? passwordStrength < 3
-                          ? 'bg-amber-400'
-                          : 'bg-yellow-500'
-                        : 'bg-stone-200'
-                        }`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Confirm Password (Sign Up Only) */}
-            {mode === 'register' && (
-              <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1 ml-1">
-                  Confirm Password <span className="text-red-500">*</span>
-                </label>
-                <div className="relative group">
-                  <Lock
-                    size={18}
-                    className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${fieldErrors.confirmPassword ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'
-                      }`}
-                  />
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => {
-                      setConfirmPassword(e.target.value);
-                      clearFieldError('confirmPassword');
-                    }}
-                    placeholder="••••••••"
-                    className={`w-full h-11 pl-11 pr-12 bg-white border-2 rounded-xl text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.confirmPassword
-                      ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
-                      : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
-                      }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                  >
-                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                {fieldErrors.confirmPassword && (
-                  <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{fieldErrors.confirmPassword}</p>
-                )}
               </div>
             )}
 
             {/* Math Security Captcha */}
-            <div className="pt-1">
+            <div className="pt-0 -mt-1.5 sm:-mt-2">
               <div className="flex items-center justify-between mb-1 ml-1 mr-1">
-                <label className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
-                  <Calculator size={14} className="text-yellow-600" />
+                <label className="text-xs sm:text-sm font-bold text-stone-800 flex items-center gap-1.5">
+                  <Calculator size={15} className="text-yellow-600" />
                   <span>Security Captcha</span> <span className="text-red-500">*</span>
                 </label>
-                <span className="text-[10px] text-stone-400 font-medium">Solve the math challenge</span>
+                <span className="text-[10px] sm:text-xs text-stone-400 font-medium">Solve the math challenge</span>
               </div>
 
               <div className="flex items-center gap-2">
                 {/* Math Question Box */}
-                <div className="h-11 px-3.5 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-yellow-200/80 rounded-xl flex items-center justify-center gap-2 text-sm font-black text-stone-900 tracking-wider select-none shadow-xs min-w-[110px]">
+                <div className="h-11 sm:h-12 px-4 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-yellow-200/80 rounded-xl flex items-center justify-center gap-2 text-sm sm:text-base font-black text-stone-900 tracking-wider select-none shadow-xs min-w-[110px] sm:min-w-[120px]">
                   {isCaptchaLoading ? (
                     <Loader2 size={16} className="animate-spin text-yellow-600" />
                   ) : (
@@ -1256,7 +1324,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   onClick={fetchCaptcha}
                   disabled={isCaptchaLoading}
                   title="Generate new question"
-                  className="w-11 h-11 flex items-center justify-center rounded-xl bg-stone-100 hover:bg-yellow-100 text-stone-600 hover:text-yellow-800 transition-colors border border-stone-200 active:scale-95 disabled:opacity-50 cursor-pointer flex-shrink-0"
+                  className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl bg-stone-100 hover:bg-yellow-100 text-stone-600 hover:text-yellow-800 transition-colors border border-stone-200 active:scale-95 disabled:opacity-50 cursor-pointer shrink-0"
                 >
                   <RefreshCw size={16} className={isCaptchaLoading ? 'animate-spin' : ''} />
                 </button>
@@ -1272,7 +1340,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       clearFieldError('captcha');
                     }}
                     placeholder="Enter result"
-                    className={`w-full h-11 px-3.5 bg-white border-2 rounded-xl text-sm font-semibold text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.captcha
+                    className={`w-full h-11 sm:h-12 px-4 bg-white border-2 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.captcha
                       ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
                       : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
                       }`}
@@ -1286,8 +1354,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
             {/* Error Banner */}
             {errorMessage && (
-              <div className="p-3 mt-3 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-600 flex items-start gap-2">
-                <AlertCircle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+              <div className="p-3 mt-2 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-600 flex items-start gap-2">
+                <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
                 <span>{errorMessage}</span>
               </div>
             )}
@@ -1296,7 +1364,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-11 mt-3 flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 active:scale-[0.98] text-stone-900 text-sm font-bold rounded-xl transition-all shadow-lg shadow-yellow-400/25 disabled:opacity-70 disabled:pointer-events-none cursor-pointer"
+              className="w-full h-11 sm:h-12 mt-1 sm:mt-1.5 flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 active:scale-[0.98] text-stone-900 text-xs sm:text-sm font-black rounded-xl transition-all shadow-lg shadow-yellow-400/25 disabled:opacity-70 disabled:pointer-events-none cursor-pointer"
             >
               {isSubmitting ? (
                 <Loader2 size={18} className="animate-spin text-stone-900" />

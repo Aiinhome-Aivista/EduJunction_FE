@@ -153,7 +153,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
             onClick={(e) => handleNavClick('free-mock-papers-2027', e)}
             className={`cursor-pointer flex items-center gap-1.5 transition-colors ${(!isBlogActive && activeSection === 'free-mock-papers-2027') ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
           >
-            Free Mock Papers <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">2027</span>
+            Free Mock Test <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">2027</span>
           </button>
           <button
             type="button"
@@ -208,7 +208,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
       {/* Mobile drawer */}
       {mob && (
         <div className="lg:hidden bg-white border-t border-stone-100 px-4 py-4 space-y-2">
-          {[["hero", "Home"], ["features", "Features"], ["free-mock-papers-2027", "Free Mock Papers 2027"], ["actions-demo", "Actions & Demo"], ["for-everyone", "For Everyone"]].map(([sectionId, label]) => (
+          {[["hero", "Home"], ["features", "Features"], ["free-mock-papers-2027", "Free Mock Test 2027"], ["actions-demo", "Actions & Demo"], ["for-everyone", "For Everyone"]].map(([sectionId, label]) => (
             <button
               key={sectionId}
               type="button"

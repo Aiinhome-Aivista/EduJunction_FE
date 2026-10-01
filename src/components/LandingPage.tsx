@@ -461,7 +461,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span className="text-stone-950 font-black text-sm sm:text-base tracking-wide drop-shadow-sm">
                   {i % 2 === 0 ? (
                     <>
-                      Free Mock Test Papers &amp; Model Papers for <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span>, <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span> &amp; <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span> Boards
+                      Free Mock Test &amp; Model Test Papers for <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span>, <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span> &amp; <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span> Boards
                     </>
                   ) : (
                     <>
@@ -1143,10 +1143,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Free Mock Test Papers 2027
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize tracking-tight text-stone-900">
-              Free CBSE &amp; ICSE Mock Tests and Model Papers
+              <span className="text-yellow-500">Free</span> Mock Test &amp; <span className="text-yellow-500">Model Test Papers</span> for CBSE, ICSE &amp; ISC
             </h2>
             <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
-              Practice free unlimited CBSE &amp; ICSE mock tests, model question papers and online practice tests. Prepare for exams with EduJunction's student-friendly resources.
+              Practice free unlimited CBSE, ICSE & ISC mock tests, model question papers and online practice tests. Prepare for exams with EduJunction's student-friendly resources.
             </p>
           </div>
 
@@ -1165,9 +1165,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="text-2xl drop-shadow-sm">📝</span>
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight">
-                  Free Mock Test Papers :{' '}
+                  Model Test Papers Available For :{' '}
                   <span className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
-                    ICSE, CBSE &amp; ISC 2027
+                    CBSE, ICSE &amp; ISC 2027
                   </span>
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-900 leading-relaxed font-semibold text-justify [text-align-last:left]">
@@ -1194,7 +1194,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   onClick={() => openAuth('register')}
                   className="w-full py-3.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-sm shadow-xl shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
                 >
-                  Explore Free Mock Test Papers <ArrowRight className="w-4 h-4 text-yellow-400 transition-transform group-hover:translate-x-1" />
+                  Explore Model Test Papers <ArrowRight className="w-4 h-4 text-yellow-400 transition-transform group-hover:translate-x-1" />
                 </button>
               </div>
             </div>
@@ -1259,8 +1259,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Lightbulb className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
               Actions &amp; Demo
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize text-stone-900">
-              Experience EduJunction in Action 🚀
+            <h2 className="mt-4 text-3xl sm:text-4xl font-black text-stone-900">
+              Experience Edu<span className="text-yellow-500">Junction</span> in Action 🚀
             </h2>
             <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
               Watch our interactive walkthrough video and try our hands-on demo below.
@@ -1300,8 +1300,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* INTERACTIVE PLATFORM DEMO VIDEO */}
-          <div className="mt-10 sm:mt-12 w-full reveal-on-scroll">
-            <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-[#fffbeb] border border-stone-200/80 shadow-2xl">
+          <div className="mt-10 sm:mt-12 w-full flex justify-center reveal-on-scroll">
+            <div className="relative w-full max-w-4xl aspect-video rounded-3xl overflow-hidden bg-[#fffbeb] border border-stone-200/80 shadow-xl ring-1 ring-stone-900/5">
               <iframe
                 src="/EduJunction-Getting-Started.html"
                 title="Getting Started with EduJunction"

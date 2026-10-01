@@ -877,7 +877,7 @@ export default function App() {
 
         {/* Slide-over panel for LoginPage */}
         <div
-          className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[480px] bg-white shadow-2xl transform transition-transform duration-500 ease-in-out ${authModalMode ? 'translate-x-0' : 'translate-x-full'
+          className={`fixed inset-y-0 right-0 z-50 w-full sm:w-[540px] bg-white shadow-2xl transform transition-transform duration-500 ease-in-out ${authModalMode ? 'translate-x-0' : 'translate-x-full'
             }`}
         >
           {authModalMode && (

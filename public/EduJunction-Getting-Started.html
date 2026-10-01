@@ -208,55 +208,141 @@ window.render = render; render(0);
         seek=document.getElementById('seek'), tm=document.getElementById('time');
   const PLAY='<svg width="22" height="22" viewBox="0 0 24 24" fill="#16161d"><path d="M7 4l13 8-13 8z"/></svg>', PAUSE='<svg width="22" height="22" viewBox="0 0 24 24" fill="#16161d"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>';
   const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
-  let seeking=false;
-  function tick(){ const t=Math.min(a.currentTime,T); render(t);
-    if(!seeking) seek.value=Math.round(t/T*1000);
-    tm.textContent=fmt(t)+' / '+fmt(T);
-    if(!a.paused) requestAnimationFrame(tick); }
-  function play(){
-    if(a.ended||a.currentTime>=T-0.05) a.currentTime=0;
+  
+  let isPlaying = true;
+  let animTime = 0;
+  let lastNow = performance.now();
+  let seeking = false;
+
+  // Always hide large play button for seamless background playback
+  if (big) big.classList.add('hide');
+  pp.innerHTML = PAUSE;
+  pp.setAttribute('aria-label', 'Pause');
+
+  function tryStartAudio() {
+    if (!a) return;
+    a.muted = true;
     const p = a.play();
-    if(p && p.catch) {
-      p.catch(()=>{
-        a.muted=true;
-        setMute(true);
-        a.play().catch(()=>{});
-      });
+    if (p && p.catch) {
+      p.catch(() => {});
     }
   }
-  function toggle(){ a.paused?play():a.pause(); }
-  a.addEventListener('play',()=>{ big.classList.add('hide'); pp.innerHTML=PAUSE; pp.setAttribute('aria-label','Pause'); requestAnimationFrame(tick); });
-  a.addEventListener('pause',()=>{ pp.innerHTML=PLAY; pp.setAttribute('aria-label','Play'); tick(); });
-  a.addEventListener('ended',()=>{ a.currentTime=0; play(); });
-  pp.onclick=toggle; big.onclick=play; stage.onclick=toggle;
-  document.getElementById('rs').onclick=()=>{ a.currentTime=0; play(); };
-  seek.addEventListener('input',()=>{ seeking=true; const t=seek.value/1000*T; render(t); tm.textContent=fmt(t)+' / '+fmt(T); });
-  seek.addEventListener('change',()=>{ a.currentTime=seek.value/1000*T; seeking=false; tick(); });
-  addEventListener('keydown',e=>{ if(e.code==='Space'&&e.target.tagName!=='BUTTON'){e.preventDefault();toggle();} });
-  const mb=document.getElementById('mute'),
-        ON='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16161d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#16161d"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>',
-        OFF='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16161d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#16161d"/><path d="M16 9l6 6"/><path d="M22 9l-6 6"/></svg>';
-  function setMute(m){
-    a.muted=m;
-    mb.innerHTML=m?OFF:ON;
-    mb.setAttribute('aria-label',m?'Unmute':'Mute');
-    mb.setAttribute('aria-pressed',m);
-    mb.title=m?'Unmute (M)':'Mute (M)';
+
+  // 60fps Continuous Resilient Animation Loop (Runs always in background even if audio is restricted)
+  function animLoop(now) {
+    const delta = Math.min((now - lastNow) / 1000, 0.1);
+    lastNow = now;
+
+    if (isPlaying && !seeking) {
+      if (!a.paused && a.currentTime > 0) {
+        animTime = Math.min(a.currentTime, T);
+      } else {
+        animTime += delta;
+      }
+
+      if (animTime >= T - 0.05) {
+        animTime = 0;
+        if (!a.paused) {
+          a.currentTime = 0;
+        }
+      }
+
+      render(animTime);
+      seek.value = Math.round((animTime / T) * 1000);
+      tm.textContent = fmt(animTime) + ' / ' + fmt(T);
+    }
+    requestAnimationFrame(animLoop);
   }
-  mb.onclick=()=>setMute(!a.muted);
-  addEventListener('keydown',e=>{ if(e.key==='m'||e.key==='M') setMute(!a.muted); });
-  
-  // Background Autoplay & Endless Loop Trigger (Like video ads)
-  setMute(true);
-  play();
-  window.addEventListener('load', () => { if(a.paused) play(); });
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && a.paused) play();
+  requestAnimationFrame(animLoop);
+
+  function resumePlay() {
+    isPlaying = true;
+    lastNow = performance.now();
+    pp.innerHTML = PAUSE;
+    pp.setAttribute('aria-label', 'Pause');
+    if (big) big.classList.add('hide');
+    if (a.paused) {
+      a.currentTime = animTime;
+      tryStartAudio();
+    }
+  }
+
+  function pausePlay() {
+    isPlaying = false;
+    pp.innerHTML = PLAY;
+    pp.setAttribute('aria-label', 'Play');
+    a.pause();
+  }
+
+  function toggle() {
+    if (isPlaying) {
+      pausePlay();
+    } else {
+      resumePlay();
+    }
+  }
+
+  pp.onclick = toggle;
+  if (big) big.onclick = resumePlay;
+  stage.onclick = toggle;
+
+  document.getElementById('rs').onclick = () => {
+    animTime = 0;
+    a.currentTime = 0;
+    resumePlay();
+  };
+
+  seek.addEventListener('input', () => {
+    seeking = true;
+    animTime = (seek.value / 1000) * T;
+    render(animTime);
+    tm.textContent = fmt(animTime) + ' / ' + fmt(T);
   });
-  // Auto-play on initial user interaction if blocked by browser
-  document.addEventListener('scroll', () => { if(a.paused) play(); }, { once: true, passive: true });
-  document.addEventListener('click', () => { if(a.paused) play(); }, { once: true });
-  tick();
+
+  seek.addEventListener('change', () => {
+    animTime = (seek.value / 1000) * T;
+    if (!a.paused) {
+      a.currentTime = animTime;
+    }
+    seeking = false;
+  });
+
+  addEventListener('keydown', e => {
+    if (e.code === 'Space' && e.target.tagName !== 'BUTTON') {
+      e.preventDefault();
+      toggle();
+    }
+  });
+
+  const mb = document.getElementById('mute'),
+        ON = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16161d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#16161d"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>',
+        OFF = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16161d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#16161d"/><path d="M16 9l6 6"/><path d="M22 9l-6 6"/></svg>';
+
+  function setMute(m) {
+    a.muted = m;
+    mb.innerHTML = m ? OFF : ON;
+    mb.setAttribute('aria-label', m ? 'Unmute' : 'Mute');
+    mb.setAttribute('aria-pressed', m);
+    mb.title = m ? 'Unmute (M)' : 'Mute (M)';
+    if (!m && a.paused && isPlaying) {
+      a.currentTime = animTime;
+      a.play().catch(() => {});
+    }
+  }
+
+  mb.onclick = () => setMute(!a.muted);
+  addEventListener('keydown', e => {
+    if (e.key === 'm' || e.key === 'M') setMute(!a.muted);
+  });
+
+  // Start background playback immediately and bind interaction hooks
+  setMute(true);
+  tryStartAudio();
+  window.addEventListener('load', () => { tryStartAudio(); });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && isPlaying) tryStartAudio();
+  });
+  document.addEventListener('click', () => { if (isPlaying && a.paused) tryStartAudio(); }, { once: true });
 })();
 </script>
 </body></html>
