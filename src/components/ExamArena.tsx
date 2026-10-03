@@ -76,7 +76,7 @@ export const getExamBlueprint = (grade: string = 'Class 10') => {
       breakdown: 'Structured HOTS & Competitive Multi-Mark Problems',
       badgeText: '10 Questions • 20 Marks • Competitive Drill',
       titleLabel: '20-Mark Competitive Exam',
-      buttonText: 'Start 20-Mark Diagnostic Exam',
+      buttonText: 'Start Test',
     };
   }
   if (['class 9', 'class 10'].some(c => g.includes(c))) {
@@ -87,7 +87,7 @@ export const getExamBlueprint = (grade: string = 'Class 10') => {
       breakdown: '5 Questions (1-Mark MCQ) + 5 Questions (2-Mark SAQ)',
       badgeText: '10 Questions • 15 Marks • Board Readiness',
       titleLabel: '15-Mark Board Readiness Exam',
-      buttonText: 'Start 15-Mark Diagnostic Exam',
+      buttonText: 'Start Test',
     };
   }
   // Class 5 to 8 (e.g. Class 8 = 15 Marks)
@@ -96,9 +96,9 @@ export const getExamBlueprint = (grade: string = 'Class 10') => {
     totalMarks: 15,
     durationMinutes: 15,
     breakdown: '5 Questions (1-Mark MCQ) + 5 Questions (2-Mark SAQ)',
-    badgeText: '10 Questions • 15 Marks • Adaptive Diagnostic',
-    titleLabel: '15-Mark Diagnostic Exam',
-    buttonText: 'Start 15-Mark Diagnostic Exam',
+    badgeText: '10 Questions • 15 Marks ',
+    titleLabel: 'Exam',
+    buttonText: 'Start Test',
   };
 };
 
@@ -123,7 +123,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
   const [selectedGrade, setSelectedGrade] = useState<ClassGrade>(activeChild?.classGrade || 'Class 10');
   const [dbSubjects, setDbSubjects] = useState<string[]>([]);
   const [isLoadingSubjects, setIsLoadingSubjects] = useState<boolean>(false);
-  const [selectedSubject, setSelectedSubject] = useState<Subject>(presetSubject || 'Mathematics');
+  const [selectedSubject, setSelectedSubject] = useState<Subject | ''>(presetSubject || '');
   const [selectedDifficulty, setSelectedDifficulty] = useState<ExamDifficulty>(presetDifficulty || 'medium');
   const [activeTopic, setActiveTopic] = useState<string | null>(presetTopic || null);
 
@@ -158,13 +158,19 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
 
         if (subjectNames.length > 0) {
           setSelectedSubject((prev) => {
-            if (prev && subjectNames.includes(prev)) {
-              return prev;
+            if (presetSubject) {
+              const matchedPreset = subjectNames.find(
+                (s) => s.toLowerCase() === presetSubject.toLowerCase()
+              );
+              if (matchedPreset) return matchedPreset as Subject;
             }
-            if (presetSubject && subjectNames.includes(presetSubject)) {
-              return presetSubject;
+            if (prev) {
+              const matchedPrev = subjectNames.find(
+                (s) => s.toLowerCase() === prev.toLowerCase()
+              );
+              if (matchedPrev) return matchedPrev as Subject;
             }
-            return subjectNames[0] as Subject;
+            return '';
           });
         }
       })
@@ -181,10 +187,19 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
   }, [selectedBoard, selectedGrade, activeChild?.id]);
 
   useEffect(() => {
-    if (presetSubject) {
+    if (presetSubject && dbSubjects.length > 0) {
+      const matched = dbSubjects.find(
+        (s) => s.toLowerCase() === presetSubject.toLowerCase()
+      );
+      if (matched) {
+        setSelectedSubject(matched as Subject);
+      } else {
+        setSelectedSubject(presetSubject);
+      }
+    } else if (presetSubject) {
       setSelectedSubject(presetSubject);
     }
-  }, [presetSubject]);
+  }, [presetSubject, dbSubjects]);
 
   useEffect(() => {
     if (presetTopic) {
@@ -220,7 +235,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
         breakdown: 'Structured HOTS & Competitive Multi-Mark Problems',
         badgeText: '10 Questions • 20 Marks • Competitive Drill',
         titleLabel: '20-Mark Competitive Exam',
-        buttonText: 'Start 20-Mark Diagnostic Exam',
+        buttonText: 'Start Test',
       };
     }
     if (['class 9', 'class 10'].some(c => g.includes(c))) {
@@ -231,7 +246,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
         breakdown: '5 Questions (1-Mark MCQ) + 5 Questions (2-Mark SAQ)',
         badgeText: '10 Questions • 15 Marks • Board Readiness',
         titleLabel: '15-Mark Board Readiness Exam',
-        buttonText: 'Start 15-Mark Diagnostic Exam',
+        buttonText: 'Start Test',
       };
     }
     // Class 5 to 8
@@ -240,9 +255,9 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
       totalMarks: 15,
       durationMinutes: 15,
       breakdown: '5 Questions (1-Mark MCQ) + 5 Questions (2-Mark SAQ)',
-      badgeText: '10 Questions • 15 Marks • Adaptive Diagnostic',
-      titleLabel: '15-Mark Diagnostic Exam',
-      buttonText: 'Start 15-Mark Diagnostic Exam',
+      badgeText: '10 Questions • 15 Marks ',
+      titleLabel: 'Exam',
+      buttonText: 'Start Test',
     };
   }, [selectedGrade]);
 
@@ -339,13 +354,21 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
 
   const handleStartExam = async (startAssigned: boolean = false) => {
     setIsGenerating(true);
-    setGenerationStep(presetTopic ? `Building Remedial Sprint for ${presetTopic}...` : 'Generating Diagnostic Exam...');
+    setGenerationStep(presetTopic ? `Building Remedial Sprint for ${presetTopic}...` : 'Generating Exam...');
 
     try {
       if (!activeChildId) return;
 
       const isAssignedTest = Boolean(startAssigned && assignedExam);
       const targetSub = isAssignedTest ? (assignedExam.subject as Subject) : (presetSubject || selectedSubject);
+
+      if (!targetSub) {
+        alert('Please select a subject for practice before starting the test.');
+        setIsGenerating(false);
+        setGenerationStep('');
+        return;
+      }
+
       const targetDiff = isAssignedTest ? (assignedExam.difficulty as ExamDifficulty) : selectedDifficulty;
       const targetQCount = isAssignedTest ? (assignedExam.questionCount || 10) : blueprint.questionCount;
       const targetDuration = isAssignedTest ? (assignedExam.timeLimitMinutes || 15) : blueprint.durationMinutes;
@@ -1202,7 +1225,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
               </div>
               <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between gap-1.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-yellow-200">
                 <span className="text-[11px] font-semibold text-yellow-700 bg-yellow-50 px-2.5 py-0.5 rounded-full border border-yellow-300">
-                  ✓ Self-Practice Diagnostic
+                  ✓ Self-Practice
                 </span>
                 <span className="text-[10px] text-stone-400">Adaptive {blueprint.totalMarks}-Mark Challenge</span>
               </div>
@@ -1289,9 +1312,12 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
               ) : dbSubjects.length === 0 ? (
                 <option value="">No subjects mapped in database for {selectedGrade} ({selectedBoard})</option>
               ) : (
-                dbSubjects.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))
+                <>
+                  <option value="">Select your subject</option>
+                  {dbSubjects.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </>
               )}
             </select>
           </div>
@@ -1336,7 +1362,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
         {/* RAG Knowledge Blueprint Preview */}
         <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 mb-8">
           <p className="text-xs text-stone-600 leading-relaxed">
-            Generating <strong className="text-stone-900">{blueprint.questionCount} questions ({blueprint.totalMarks} Marks)</strong> for <strong className="text-stone-900">{selectedGrade} {selectedBoard} {selectedSubject} ({selectedDifficulty.toUpperCase()})</strong> — {blueprint.breakdown}.
+            Generating <strong className="text-stone-900">{blueprint.questionCount} questions ({blueprint.totalMarks} Marks)</strong> for <strong className="text-stone-900">{selectedGrade} {selectedBoard}{selectedSubject ? ` • ${selectedSubject}` : ''} ({selectedDifficulty.toUpperCase()})</strong> — {blueprint.breakdown}.
           </p>
         </div>
 
@@ -1355,7 +1381,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
             {isGenerating ? (
               <>
                 <div className="w-4 h-4 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
-                <span>{generationStep || 'Building RAG Diagnostic...'}</span>
+                <span>{generationStep || 'Building Exam...'}</span>
               </>
             ) : (
               <>

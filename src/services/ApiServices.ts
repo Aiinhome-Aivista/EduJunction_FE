@@ -214,6 +214,9 @@ class ApiServices {
   getStudentLearningPath() { return this.get(GET_APIS.studentLearningPath); }
   getAssignedExams() { return this.get(GET_APIS.assignedExams); }
   getMyActivityLogs(days: number = 7) { return this.get(GET_APIS.myActivityLog(days)); }
+  completeStudentOnboarding(body: { username?: string; targetBoard: string; classGrade: string; schoolName?: string }) {
+    return this.post('/api/v1/students/complete-onboarding', body);
+  }
 
   // ── Notifications ─────────────────────────
   getNotifications() { return this.get(GET_APIS.notifications); }

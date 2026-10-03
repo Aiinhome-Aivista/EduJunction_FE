@@ -162,14 +162,14 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({ activeChild, childre
         "Can you explain a difficult concept in simple words?"
       ]
       : [
-        "How do I start a 10-Mark diagnostic practice test?",
+        "How do I start a 10-Mark practice test?",
         "Can you explain a difficult topic in simple words?",
         "What is the best way to earn badges and level up?",
         "Give me 3 smart tips to study faster!"
       ])
     : (role === 'teacher' || role === 'admin'
       ? [
-        "How can I generate dynamic diagnostic question papers?",
+        "How can I generate dynamic question papers?",
         "Show summary of class mastery and average scores",
         "What topics need remediation across students?",
         "How does curriculum grounding work?"

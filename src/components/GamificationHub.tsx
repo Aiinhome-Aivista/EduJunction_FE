@@ -219,8 +219,8 @@ export const GamificationHub: React.FC<GamificationHubProps> = ({
         <button
           onClick={() => setActiveTab('leaderboard')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'leaderboard'
-              ? 'bg-yellow-400 text-stone-900 shadow-xs'
-              : 'text-stone-600 hover:bg-stone-100'
+            ? 'bg-yellow-400 text-stone-900 shadow-xs'
+            : 'text-stone-600 hover:bg-stone-100'
             }`}
         >
           <Trophy className="w-4 h-4" />
@@ -230,8 +230,8 @@ export const GamificationHub: React.FC<GamificationHubProps> = ({
         <button
           onClick={() => setActiveTab('badges')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'badges'
-              ? 'bg-yellow-400 text-stone-900 shadow-xs'
-              : 'text-stone-600 hover:bg-stone-100'
+            ? 'bg-yellow-400 text-stone-900 shadow-xs'
+            : 'text-stone-600 hover:bg-stone-100'
             }`}
         >
           <Award className="w-4 h-4" />
@@ -435,7 +435,7 @@ export const GamificationHub: React.FC<GamificationHubProps> = ({
 
               <div className="p-3 bg-stone-50 rounded-xl border border-stone-100">
                 <span className="font-bold text-stone-900 block mb-1">🔥 Daily Streak Power</span>
-                <p className="text-stone-500">+30 XP daily multiplier for consecutive diagnostic test days.</p>
+                <p className="text-stone-500">+30 XP daily multiplier for consecutive test.</p>
               </div>
 
               <div className="p-3 bg-stone-50 rounded-xl border border-stone-100">
@@ -457,8 +457,8 @@ export const GamificationHub: React.FC<GamificationHubProps> = ({
                 key={cat}
                 onClick={() => setBadgeFilter(cat)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${badgeFilter === cat
-                    ? 'bg-yellow-400 text-stone-900 shadow-2xs'
-                    : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
+                  ? 'bg-yellow-400 text-stone-900 shadow-2xs'
+                  : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
                   }`}
               >
                 {cat === 'all' ? 'All Trophies' : cat}
@@ -497,8 +497,8 @@ export const GamificationHub: React.FC<GamificationHubProps> = ({
                 <div
                   key={badge.id}
                   className={`bg-white rounded-xl border p-4 shadow-xs flex flex-col justify-between transition-all ${isUnlocked
-                      ? tierStyle.card
-                      : 'border-dashed border-stone-300 bg-stone-50/40 opacity-75'
+                    ? tierStyle.card
+                    : 'border-dashed border-stone-300 bg-stone-50/40 opacity-75'
                     }`}
                 >
                   <div>
@@ -534,8 +534,8 @@ export const GamificationHub: React.FC<GamificationHubProps> = ({
                     </span>
 
                     <span className={`font-bold px-2 py-0.5 rounded-md border shrink-0 ${isUnlocked
-                        ? 'text-amber-700 bg-amber-50 border-amber-200'
-                        : 'text-stone-500 bg-stone-100 border-stone-200'
+                      ? 'text-amber-700 bg-amber-50 border-amber-200'
+                      : 'text-stone-500 bg-stone-100 border-stone-200'
                       }`}>
                       {isUnlocked ? 'Unlocked 🏆' : 'Milestone'}
                     </span>

@@ -975,37 +975,7 @@ export const LlmConfigManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* Modal Connection Test Button (When editing existing provider) */}
-              {editingConfig && (
-                <div className="flex items-center justify-end pt-1">
-                  <button
-                    type="button"
-                    onClick={handleTestModal}
-                    disabled={modalTesting}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-200 transition-colors cursor-pointer"
-                  >
-                    {modalTesting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
-                    <span>Test Connection</span>
-                  </button>
-                </div>
-              )}
 
-              {/* Modal Test Result Banner */}
-              {modalTestResult && (
-                <div
-                  className={`p-3 rounded-xl border text-xs font-medium flex items-center gap-2 ${modalTestResult.success
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-rose-50 border-rose-200 text-rose-800'
-                    }`}
-                >
-                  {modalTestResult.success ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                  ) : (
-                    <XCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
-                  )}
-                  <span className="truncate">{modalTestResult.message}</span>
-                </div>
-              )}
 
               {/* Footer Buttons */}
               <div className="flex items-center justify-end gap-2 pt-4 border-t border-stone-100">

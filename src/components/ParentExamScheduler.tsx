@@ -139,15 +139,15 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
     }
   }, [presetTopic]);
 
-  const isKidGrade = ['Class 1', 'Class 2', 'Class 3', 'Class 4', '1', '2', '3', '4'].some(c =>
-    (activeChild?.classGrade || '').includes(c)
+  const isKidGrade = ['Class 1', 'Class 2', 'Class 3', 'Class 4', '1', '2', '3', '4', 'Class 1st', 'Class 2nd', 'Class 3rd', 'Class 4th', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4'].includes(
+    (activeChild?.classGrade || '').trim()
   );
 
   const handleSelectChild = (child: ChildAccount) => {
     setSelectedStudentId(child.id);
     onChildSelect?.(child.id);
-    const isKid = ['Class 1', 'Class 2', 'Class 3', 'Class 4', '1', '2', '3', '4'].some(c =>
-      (child.classGrade || '').includes(c)
+    const isKid = ['Class 1', 'Class 2', 'Class 3', 'Class 4', '1', '2', '3', '4', 'Class 1st', 'Class 2nd', 'Class 3rd', 'Class 4th', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4'].includes(
+      (child.classGrade || '').trim()
     );
 
     setSubject('');

@@ -91,19 +91,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         setDbBoards(fetchedBoards);
         setDbClasses(fetchedClasses);
         if (fetchedMap) setBoardClassesMap(fetchedMap);
-
-        if (fetchedBoards.length > 0) {
-          setTargetBoard((prev) => {
-            const exists = fetchedBoards.some((b) => b.name === prev);
-            return exists && prev ? prev : fetchedBoards[0].name;
-          });
-        }
-        if (fetchedClasses.length > 0) {
-          setClassGrade((prev) => {
-            const exists = fetchedClasses.some((c) => c.name === prev);
-            return exists && prev ? prev : fetchedClasses[0].name;
-          });
-        }
       })
       .catch((err) => {
         console.error('Failed to fetch dynamic board/class masters:', err);
@@ -125,11 +112,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     return dbClasses;
   }, [targetBoard, boardClassesMap, dbClasses]);
 
+  // If selected targetBoard changes, check if classGrade is still valid
   useEffect(() => {
-    if (availableClasses.length > 0) {
+    if (classGrade && availableClasses.length > 0) {
       const exists = availableClasses.some((c) => c.name === classGrade);
       if (!exists) {
-        setClassGrade(availableClasses[0].name);
+        setClassGrade('');
       }
     }
   }, [availableClasses, classGrade]);
@@ -195,39 +183,44 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     };
   }, [resendCountdown]);
 
-  // Google Registration Username Modal State
+  // Google Registration Modal State
   const [googleModal, setGoogleModal] = useState<{
     isOpen: boolean;
     token: string;
     email: string;
     name: string;
     username: string;
+    role: 'parent' | 'student';
+    targetBoard?: string;
+    classGrade?: string;
     error?: string;
     isSubmitting?: boolean;
   } | null>(null);
 
-  // Google Login Handler (Only used during Registration)
+  // Google Login Handler (Supported for both Parent & Student)
   const googleLoginHandler = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
         setIsGoogleSubmitting(true);
         setErrorMessage(null);
 
+        const currentRoleParam = selectedPersona === 'student' ? 'STUDENT' : 'PARENT';
         const response = await ApiServices.googleLogin({
           token: tokenResponse.access_token,
-          role: 'PARENT',
+          role: currentRoleParam,
         });
 
-        const result = response.data?.data || response.data;
+        const result = response.data?.data || response.data || response;
 
-        // If backend reports new user requires a username
-        if (result?.requiresUsername) {
+        // If backend reports new parent user requires a username
+        if (selectedPersona === 'parent' && result?.requiresUsername) {
           setGoogleModal({
             isOpen: true,
             token: tokenResponse.access_token,
             email: result.email || '',
             name: result.name || '',
             username: (result.email || '').split('@')[0].replace(/[^a-zA-Z0-9_-]/g, ''),
+            role: 'parent',
           });
           return;
         }
@@ -246,13 +239,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           payload?.role ||
           result.user?.role ||
           result.user?.roleName ||
-          'Parent';
+          (selectedPersona === 'student' ? 'Student' : 'Parent');
 
         const normalizedRole = (userRole || '').toString().toUpperCase();
 
-        if (normalizedRole === 'STUDENT') {
+        if (selectedPersona === 'parent' && normalizedRole === 'STUDENT') {
           clearTokens();
-          setErrorMessage('This Google account is registered as a Student. Please switch to the "Student" tab and sign in using your student credentials.');
+          setErrorMessage('This Google account is registered as a Student. Please switch to the "Student" tab to sign in.');
+          return;
+        }
+
+        if (selectedPersona === 'student' && normalizedRole === 'PARENT') {
+          clearTokens();
+          setErrorMessage('This Google account is registered as a Parent. Please switch to the "Parent" tab or sign in with your student credentials.');
           return;
         }
 
@@ -266,7 +265,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       } catch (error: any) {
         console.error('Google Auth Error:', error);
         setErrorMessage(
-          error?.message || 'Unable to sign in with Google. Please try again.'
+          error?.message || error?.response?.data?.message || 'Unable to sign in with Google. Please try again.'
         );
       } finally {
         setIsGoogleSubmitting(false);
@@ -299,13 +298,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       return;
     }
 
+    if (googleModal.role === 'student') {
+      if (!googleModal.targetBoard) {
+        setGoogleModal({ ...googleModal, error: 'Please select your board to continue.' });
+        return;
+      }
+      if (!googleModal.classGrade) {
+        setGoogleModal({ ...googleModal, error: 'Please select your class / grade to continue.' });
+        return;
+      }
+    }
+
     setGoogleModal({ ...googleModal, isSubmitting: true, error: undefined });
 
     try {
       const response = await ApiServices.googleLogin({
         token: googleModal.token,
         username: trimmedUsername,
-        role: 'PARENT',
+        role: googleModal.role === 'student' ? 'STUDENT' : 'PARENT',
+        targetBoard: googleModal.targetBoard,
+        classGrade: googleModal.classGrade,
       });
 
       const result = response.data?.data || response.data;
@@ -329,7 +341,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         payload?.role ||
         result.user?.role ||
         result.user?.roleName ||
-        'Parent';
+        (googleModal.role === 'student' ? 'Student' : 'Parent');
 
       setGoogleModal(null);
       onAuthenticated(userRole);
@@ -338,7 +350,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       setGoogleModal({
         ...googleModal,
         isSubmitting: false,
-        error: err?.message || 'Failed to complete registration with this username.',
+        error: err?.message || err?.response?.data?.message || 'Failed to complete registration with this username.',
       });
     }
   };
@@ -383,9 +395,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setSelectedPersona(persona);
     setErrorMessage(null);
     setFieldErrors({});
-    if (persona === 'student' && mode === 'register') {
-      setMode('login');
-    }
+    setTargetBoard('');
+    setClassGrade('');
   };
 
   const handleModeChange = (nextMode: 'login' | 'register') => {
@@ -397,6 +408,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setTargetBoard('');
+    setClassGrade('');
     setCaptchaAnswer('');
     fetchCaptcha();
   };
@@ -463,6 +476,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           hasError = true;
         } else if (password !== confirmPassword) {
           newFieldErrors.confirmPassword = 'Passwords do not match.';
+          hasError = true;
+        }
+      }
+
+      if (selectedPersona === 'student') {
+        if (!targetBoard) {
+          newFieldErrors.targetBoard = 'Please select your board.';
+          hasError = true;
+        }
+        if (!classGrade) {
+          newFieldErrors.classGrade = 'Please select your class / grade.';
           hasError = true;
         }
       }
@@ -1056,50 +1080,46 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           /* Form */
           <form onSubmit={handleSubmit} className={`flex-1 flex flex-col justify-start ${mode === 'login' ? 'space-y-4 sm:space-y-5' : 'space-y-3'}`} noValidate>
 
-            {/* Google Button available for Parent */}
-            {selectedPersona === 'parent' && (
-              <>
-                <button
-                  type="button"
-                  onClick={handleGoogleClick}
-                  disabled={isSubmitting || isGoogleSubmitting}
-                  className="w-full h-9.5 sm:h-10 flex items-center justify-center gap-2.5 bg-white border-2 border-stone-200 hover:border-yellow-300 hover:bg-stone-50 text-stone-700 text-xs sm:text-[13px] font-bold rounded-xl transition-all shadow-xs active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {isGoogleSubmitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-yellow-600" />
-                  ) : (
-                    <svg viewBox="0 0 24 24" className="w-4 h-4">
-                      <path
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                        fill="#4285F4"
-                      />
-                      <path
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                        fill="#34A853"
-                      />
-                      <path
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                        fill="#FBBC05"
-                      />
-                      <path
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                        fill="#EA4335"
-                      />
-                    </svg>
-                  )}
-                  {isGoogleSubmitting ? 'Connecting with Google...' : 'Continue with Google'}
-                </button>
+            {/* Google Button available for both Parent and Student */}
+            <button
+              type="button"
+              onClick={handleGoogleClick}
+              disabled={isSubmitting || isGoogleSubmitting}
+              className="w-full h-9.5 sm:h-10 flex items-center justify-center gap-2.5 bg-white border-2 border-stone-200 hover:border-yellow-300 hover:bg-stone-50 text-stone-700 text-xs sm:text-[13px] font-bold rounded-xl transition-all shadow-xs active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {isGoogleSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin text-yellow-600" />
+              ) : (
+                <svg viewBox="0 0 24 24" className="w-4 h-4">
+                  <path
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    fill="#4285F4"
+                  />
+                  <path
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    fill="#34A853"
+                  />
+                  <path
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    fill="#FBBC05"
+                  />
+                  <path
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    fill="#EA4335"
+                  />
+                </svg>
+              )}
+              {isGoogleSubmitting ? 'Connecting with Google...' : 'Continue with Google'}
+            </button>
 
-                <div className="relative flex items-center justify-center py-0.5">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-stone-200"></div>
-                  </div>
-                  <div className="relative bg-white px-3 text-[10px] sm:text-[11px] font-bold text-stone-400 uppercase tracking-wider">
-                    {mode === 'register' ? 'Or register with details' : 'Or login with password'}
-                  </div>
-                </div>
-              </>
-            )}
+            <div className="relative flex items-center justify-center py-0.5">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-stone-200"></div>
+              </div>
+              <div className="relative bg-white px-3 text-[10px] sm:text-[11px] font-bold text-stone-400 uppercase tracking-wider">
+                {mode === 'register' ? 'Or register with details' : 'Or login with password'}
+              </div>
+            </div>
 
             {/* Full Name & Username Row (Sign Up Only) */}
             {mode === 'register' && (
@@ -1152,7 +1172,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                         setUsername(e.target.value);
                         clearFieldError('username');
                       }}
-                      placeholder={selectedPersona === 'student' ? 'e.g. riya_student' : 'e.g. rahul_parent'}
+                      placeholder={selectedPersona === 'student' ? 'e.g. rahul_student' : 'e.g. rahul_parent'}
                       className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-xs sm:text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.username
                         ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
                         : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
@@ -1177,25 +1197,31 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <div className="relative group">
                     <BookOpen
                       size={18}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-yellow-600 transition-colors pointer-events-none"
+                      className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none ${fieldErrors.targetBoard ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'}`}
                     />
                     <select
                       value={targetBoard}
-                      onChange={(e) => setTargetBoard(e.target.value)}
+                      onChange={(e) => {
+                        setTargetBoard(e.target.value);
+                        clearFieldError('targetBoard');
+                      }}
                       disabled={isLoadingMasters && dbBoards.length === 0}
-                      className="w-full h-11 pl-11 pr-4 bg-white border-2 border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 outline-none transition-all focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10 cursor-pointer disabled:bg-stone-50 disabled:text-stone-400"
+                      className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-xs sm:text-sm font-semibold outline-none transition-all focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10 cursor-pointer disabled:bg-stone-50 disabled:text-stone-400 ${!targetBoard ? 'text-stone-400' : 'text-stone-900'} ${fieldErrors.targetBoard
+                        ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                        : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
+                        }`}
                     >
-                      {dbBoards.length > 0 ? (
-                        dbBoards.map((b) => (
-                          <option key={b.id || b.name} value={b.name}>
-                            {b.name}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="">{isLoadingMasters ? 'Loading Boards...' : 'Select Board'}</option>
-                      )}
+                      <option value="">Select your board</option>
+                      {dbBoards.map((b) => (
+                        <option key={b.id || b.name} value={b.name} className="text-stone-900">
+                          {b.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
+                  {fieldErrors.targetBoard && (
+                    <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 leading-tight">{fieldErrors.targetBoard}</p>
+                  )}
                 </div>
 
                 {/* Class Grade Selection */}
@@ -1206,25 +1232,31 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <div className="relative group">
                     <GraduationCap
                       size={18}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-yellow-600 transition-colors pointer-events-none"
+                      className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors pointer-events-none ${fieldErrors.classGrade ? 'text-red-400' : 'text-stone-400 group-focus-within:text-yellow-600'}`}
                     />
                     <select
                       value={classGrade}
-                      onChange={(e) => setClassGrade(e.target.value)}
-                      disabled={isLoadingMasters && availableClasses.length === 0}
-                      className="w-full h-11 pl-11 pr-4 bg-white border-2 border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 outline-none transition-all focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10 cursor-pointer disabled:bg-stone-50 disabled:text-stone-400"
+                      onChange={(e) => {
+                        setClassGrade(e.target.value);
+                        clearFieldError('classGrade');
+                      }}
+                      disabled={!targetBoard || (isLoadingMasters && availableClasses.length === 0)}
+                      className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-xs sm:text-sm font-semibold outline-none transition-all focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10 cursor-pointer disabled:bg-stone-50 disabled:text-stone-400 ${!classGrade ? 'text-stone-400' : 'text-stone-900'} ${fieldErrors.classGrade
+                        ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                        : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
+                        }`}
                     >
-                      {availableClasses.length > 0 ? (
-                        availableClasses.map((c) => (
-                          <option key={c.id || c.name} value={c.name}>
-                            {c.name}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="">{isLoadingMasters ? 'Loading Classes...' : 'Select Class'}</option>
-                      )}
+                      <option value="">{targetBoard ? "Select your class" : "Select board first"}</option>
+                      {availableClasses.map((c) => (
+                        <option key={c.id || c.name} value={c.name} className="text-stone-900">
+                          {c.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
+                  {fieldErrors.classGrade && (
+                    <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 leading-tight">{fieldErrors.classGrade}</p>
+                  )}
                 </div>
               </div>
             )}
@@ -1282,7 +1314,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     }}
                     placeholder={
                       selectedPersona === 'student'
-                        ? 'e.g. riya001 or student ID'
+                        ? 'e.g. rahul001 or student ID'
                         : 'e.g. rahul_parent or parent@example.com'
                     }
                     className={`w-full h-11 sm:h-12 pl-11 pr-4 bg-white border-2 rounded-xl text-xs sm:text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.username
@@ -1562,23 +1594,28 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <User size={18} />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-stone-900">Choose your Username</h3>
+                  <h3 className="text-base font-bold text-stone-900">
+                    {googleModal.role === 'student' ? 'Complete Student Setup' : 'Choose your Username'}
+                  </h3>
                   <p className="text-[11px] text-stone-500">Google Account: {googleModal.email}</p>
                 </div>
               </div>
               <button
                 onClick={() => setGoogleModal(null)}
-                className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full"
+                className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
             <p className="text-xs text-stone-600 mb-4">
-              To log in easily from any device using username & password, please choose a unique username for your EduJunction account:
+              {googleModal.role === 'student'
+                ? 'To personalize your learning path and enable easy login, please choose your username, target board, and class grade:'
+                : 'To log in easily from any device using username & password, please choose a unique username for your EduJunction account:'}
             </p>
 
             <div className="space-y-3 mb-5">
+              {/* Username Field */}
               <div>
                 <label className="block text-xs font-bold text-stone-700 mb-1">
                   Desired Username <span className="text-red-500">*</span>
@@ -1591,12 +1628,71 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     onChange={(e) =>
                       setGoogleModal({ ...googleModal, username: e.target.value, error: undefined })
                     }
-                    placeholder="e.g. Rahul_2026"
+                    placeholder={googleModal.role === 'student' ? 'e.g. rahul_student' : 'e.g. Rahul_2026'}
                     className="w-full h-10 pl-10 pr-3 bg-white border-2 border-stone-200 focus:border-yellow-400 rounded-xl text-sm font-medium outline-hidden"
                   />
                 </div>
                 <p className="text-[10px] text-stone-400 mt-1">3-30 characters, no dots (.), no spaces.</p>
               </div>
+
+              {/* Student Board & Class Selectors */}
+              {googleModal.role === 'student' && (
+                <div className="space-y-3">
+                  {/* Board Selector */}
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 mb-1">
+                      Board <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <BookOpen size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                      <select
+                        value={googleModal.targetBoard || ''}
+                        onChange={(e) =>
+                          setGoogleModal({ ...googleModal, targetBoard: e.target.value, classGrade: '', error: undefined })
+                        }
+                        className={`w-full h-10 pl-10 pr-3 bg-white border-2 border-stone-200 focus:border-yellow-400 rounded-xl text-xs sm:text-sm font-medium outline-hidden cursor-pointer ${!googleModal.targetBoard ? 'text-stone-400' : 'text-stone-900'}`}
+                      >
+                        <option value="">Select your board</option>
+                        {dbBoards.map((b) => (
+                          <option key={b.id || b.name} value={b.name} className="text-stone-900">
+                            {b.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Class Selector */}
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 mb-1">
+                      Class / Grade <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <GraduationCap size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                      <select
+                        value={googleModal.classGrade || ''}
+                        onChange={(e) =>
+                          setGoogleModal({ ...googleModal, classGrade: e.target.value, error: undefined })
+                        }
+                        disabled={!googleModal.targetBoard}
+                        className={`w-full h-10 pl-10 pr-3 bg-white border-2 border-stone-200 focus:border-yellow-400 rounded-xl text-xs sm:text-sm font-medium outline-hidden cursor-pointer disabled:bg-stone-50 disabled:text-stone-400 ${!googleModal.classGrade ? 'text-stone-400' : 'text-stone-900'}`}
+                      >
+                        <option value="">
+                          {googleModal.targetBoard ? 'Select your class' : 'Select board first'}
+                        </option>
+                        {(googleModal.targetBoard && boardClassesMap[googleModal.targetBoard] && boardClassesMap[googleModal.targetBoard].length > 0
+                          ? dbClasses.filter((c) => boardClassesMap[googleModal.targetBoard!].includes(c.name))
+                          : dbClasses
+                        ).map((c) => (
+                          <option key={c.id || c.name} value={c.name} className="text-stone-900">
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {googleModal.error && (
                 <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs font-medium text-red-600">
@@ -1609,7 +1705,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               <button
                 type="button"
                 onClick={() => setGoogleModal(null)}
-                className="flex-1 h-10 rounded-xl border border-stone-200 text-xs font-bold text-stone-600 hover:bg-stone-50"
+                className="flex-1 h-10 rounded-xl border border-stone-200 text-xs font-bold text-stone-600 hover:bg-stone-50 cursor-pointer"
               >
                 Cancel
               </button>
@@ -1617,7 +1713,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 type="button"
                 onClick={handleCompleteGoogleRegistration}
                 disabled={googleModal.isSubmitting}
-                className="flex-1 h-10 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-yellow-400/20"
+                className="flex-1 h-10 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-yellow-400/20 cursor-pointer disabled:opacity-60"
               >
                 {googleModal.isSubmitting ? (
                   <Loader2 size={16} className="animate-spin" />

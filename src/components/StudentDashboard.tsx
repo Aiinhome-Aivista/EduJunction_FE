@@ -33,6 +33,8 @@ import {
   X,
   ExternalLink,
   GraduationCap,
+  User,
+  Loader2,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -85,6 +87,92 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 }) => {
   const [timeframe, setTimeframe] = useState<'week' | 'month'>('week');
 
+  // Onboarding Setup Modal for new Google students / students with missing board/class
+  const needsOnboarding = useMemo(() => {
+    return (
+      !activeChild.targetBoard ||
+      activeChild.targetBoard === 'PENDING' ||
+      !activeChild.classGrade ||
+      activeChild.classGrade === 'PENDING'
+    );
+  }, [activeChild.targetBoard, activeChild.classGrade]);
+
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingUsername, setOnboardingUsername] = useState(activeChild.username || '');
+  const [onboardingBoard, setOnboardingBoard] = useState('');
+  const [onboardingClass, setOnboardingClass] = useState('');
+  const [onboardingError, setOnboardingError] = useState<string | null>(null);
+  const [isOnboardingSubmitting, setIsOnboardingSubmitting] = useState(false);
+  const [dbBoards, setDbBoards] = useState<{ id: number; name: string }[]>([]);
+  const [dbClasses, setDbClasses] = useState<{ id: number; name: string }[]>([]);
+  const [boardClassesMap, setBoardClassesMap] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    if (needsOnboarding) {
+      setShowOnboarding(true);
+      setOnboardingUsername(activeChild.username || '');
+      ApiServices.getBoardClassDropdown()
+        .then((res: any) => {
+          const fetchedBoards = res?.boards || res?.data?.boards || [];
+          const fetchedClasses = res?.classes || res?.classGrades || res?.data?.classes || [];
+          const fetchedMap = res?.boardClassesMap || res?.data?.boardClassesMap || {};
+          setDbBoards(fetchedBoards);
+          setDbClasses(fetchedClasses);
+          if (fetchedMap) setBoardClassesMap(fetchedMap);
+        })
+        .catch((err) => console.error('Failed to load board/class masters for onboarding:', err));
+    }
+  }, [needsOnboarding, activeChild.username]);
+
+  const availableOnboardingClasses = useMemo(() => {
+    if (onboardingBoard && boardClassesMap[onboardingBoard] && boardClassesMap[onboardingBoard].length > 0) {
+      const allowed = boardClassesMap[onboardingBoard];
+      return dbClasses.filter((c) => allowed.includes(c.name));
+    }
+    return dbClasses;
+  }, [onboardingBoard, boardClassesMap, dbClasses]);
+
+  const handleCompleteOnboarding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOnboardingError(null);
+
+    const trimmedUsername = onboardingUsername.trim();
+    if (!trimmedUsername) {
+      setOnboardingError('Please enter your student username.');
+      return;
+    }
+    if (!onboardingBoard) {
+      setOnboardingError('Please select your board.');
+      return;
+    }
+    if (!onboardingClass) {
+      setOnboardingError('Please select your class / grade.');
+      return;
+    }
+
+    try {
+      setIsOnboardingSubmitting(true);
+      await ApiServices.completeStudentOnboarding({
+        username: trimmedUsername,
+        targetBoard: onboardingBoard,
+        classGrade: onboardingClass,
+      });
+
+      activeChild.targetBoard = onboardingBoard;
+      activeChild.classGrade = onboardingClass;
+      activeChild.username = trimmedUsername;
+      setShowOnboarding(false);
+      window.location.reload();
+    } catch (err: any) {
+      console.error('Failed to complete onboarding:', err);
+      setOnboardingError(
+        err?.message || err?.response?.data?.message || 'Failed to complete profile setup. Please try again.'
+      );
+    } finally {
+      setIsOnboardingSubmitting(false);
+    }
+  };
+
   // Unified Student Analytics Metrics (SSOT)
   const metrics = useMemo(() => {
     return calculateStudentMetrics(activeChild, examHistory);
@@ -95,8 +183,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const readinessPct = metrics.readinessScore;
 
   // Check if student is in Junior Grade (Class 1 - Class 4)
-  const isKid = ['Class 1', 'Class 2', 'Class 3', 'Class 4', '1', '2', '3', '4'].some((c) =>
-    (activeChild.classGrade || '').includes(c)
+  const isKid = ['Class 1', 'Class 2', 'Class 3', 'Class 4', '1', '2', '3', '4', 'Class 1st', 'Class 2nd', 'Class 3rd', 'Class 4th', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4'].includes(
+    (activeChild.classGrade || '').trim()
   );
   const defaultTotalMarks = isKid ? 5 : 15;
 
@@ -323,8 +411,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 <p className="text-xs text-stone-900 font-bold mt-0.5">
                   {firstExam.questionCount} Questions • {firstExam.timeLimitMinutes} Mins • {firstExam.difficulty.toUpperCase()}
                   {firstExam.dueDate ? ` • Due: ${new Date(firstExam.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}${new Date(firstExam.dueDate).getHours() !== 0 || new Date(firstExam.dueDate).getMinutes() !== 0
-                      ? ` at ${new Date(firstExam.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                      : ''
+                    ? ` at ${new Date(firstExam.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                    : ''
                     }` : ''}
                   {firstExam.parentInstructions ? ` • "${firstExam.parentInstructions}"` : ''}
                 </p>
@@ -498,18 +586,26 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         {/* Left 2 Cols: Quick Launch & Adaptive Learning Path Quest */}
         <div className="lg:col-span-2 flex flex-col gap-5">
-          {/* Active Diagnostic Launch Card */}
-          <div className="flex-1 rounded-3xl border border-stone-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 font-black text-sm">
+          {/* Active Diagnostic Launch Card - Highlighted */}
+          <div className="rounded-3xl border-2 border-amber-400/90 bg-gradient-to-br from-amber-500/10 via-amber-100/30 to-white p-5 sm:p-6 shadow-lg shadow-amber-500/10 hover:shadow-xl hover:shadow-amber-500/20 hover:border-amber-500 transition-all flex flex-col justify-between gap-5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-44 h-44 bg-amber-400/20 rounded-full blur-3xl pointer-events-none -mr-12 -mt-12" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-400/15 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10" />
+
+            <div className="flex items-center justify-between relative z-10">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500 text-stone-950 flex items-center justify-center font-black text-lg shadow-md shadow-amber-400/30 ring-4 ring-amber-200/80 shrink-0">
                   ⚡
                 </div>
                 <div>
-                  <h3 className="font-black text-stone-900 text-base">
-                    {isKid ? 'Fun Adventure Practice' : 'Quick Diagnostic Practice'}
-                  </h3>
-                  <p className="text-xs text-stone-500 font-medium">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-stone-900 text-base sm:text-lg tracking-tight">
+                      {isKid ? 'Fun Adventure Practice' : 'Quick Practice'}
+                    </h3>
+                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-amber-500 text-stone-950 font-black text-[9px] uppercase tracking-wider shadow-2xs">
+                      Featured
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-600 font-medium mt-0.5">
                     {isKid
                       ? '5 Questions • 5 Marks • ~10 Minutes'
                       : ['Class 11', 'Class 12', 'NEET', 'IIT'].some(c => (activeChild.classGrade || '').includes(c))
@@ -518,15 +614,18 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   </p>
                 </div>
               </div>
-              <span className="px-3 py-1 rounded-full bg-amber-100 text-stone-900 border border-amber-300 text-xs font-bold flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-amber-700" /> Ready
+              <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-800 border border-emerald-300 text-xs font-black flex items-center gap-1.5 shadow-2xs shrink-0">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Ready
               </span>
             </div>
 
-            <div className="flex-1 rounded-2xl bg-stone-50 border border-stone-200/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <div className="text-xs font-bold text-stone-500 uppercase tracking-wider">Configured Target:</div>
-                <div className="font-black text-stone-900 text-sm">
+            <div className="w-full rounded-2xl bg-gradient-to-r from-amber-100/90 via-white to-amber-50/80 border-2 border-amber-300/90 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm relative z-10">
+              <div className="space-y-1.5">
+                <div className="text-[11px] font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  Configured Target:
+                </div>
+                <div className="font-black text-stone-950 text-sm sm:text-base">
                   {activeChild.classGrade} &bull; {activeChild.curriculumBoard} (All Core Subjects)
                 </div>
                 <p className="text-xs text-stone-600 font-medium">
@@ -535,57 +634,74 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
               <button
                 onClick={onNavigateToArena}
-                className="shrink-0 px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-black transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                className="shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-stone-950 text-xs sm:text-sm font-black transition-all shadow-md shadow-amber-400/40 flex items-center justify-center gap-2 cursor-pointer active:scale-95 hover:scale-[1.02] group-hover:shadow-lg group-hover:shadow-amber-400/50"
               >
                 {isKid ? 'Start Adventure Quest' : 'Launch Challenge'} <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* Adaptive Learning Path Quest */}
-          <div className="flex-1 rounded-3xl border border-stone-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-stone-900 text-amber-400 flex items-center justify-center font-black text-sm">
+          {/* Suggested Assessment Card - Highlighted Yellow Theme */}
+          <div className="rounded-3xl border-2 border-amber-400/90 bg-gradient-to-br from-amber-500/10 via-amber-100/30 to-white p-5 sm:p-6 shadow-lg shadow-amber-500/10 hover:shadow-xl hover:shadow-amber-500/20 hover:border-amber-500 transition-all flex flex-col justify-between gap-5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-44 h-44 bg-amber-400/20 rounded-full blur-3xl pointer-events-none -mr-12 -mt-12" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-400/15 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10" />
+
+            <div className="flex items-center justify-between relative z-10">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500 text-stone-950 flex items-center justify-center font-black text-lg shadow-md shadow-amber-400/30 ring-4 ring-amber-200/80 shrink-0">
                   🧭
                 </div>
                 <div>
-                  <h3 className="font-black text-stone-900 text-base">Next in Adaptive Learning Path</h3>
-                  <p className="text-xs text-stone-500 font-medium">Curriculum mastery sequence for your class</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-stone-900 text-base sm:text-lg tracking-tight">Suggested Assessment For You</h3>
+                  </div>
+                  <p className="text-xs text-stone-600 font-medium mt-0.5">Based On Your Earlier Performance</p>
                 </div>
               </div>
-              {/* <button
-                onClick={onNavigateToLearningPath}
-                className="text-xs font-bold text-amber-700 hover:text-amber-900 flex items-center gap-1 cursor-pointer"
-              >
-                View Full Path <ChevronRight className="w-3.5 h-3.5" />
-              </button> */}
             </div>
 
             {nextRecommendedTopic ? (
-              <div className="flex-1 rounded-2xl border border-amber-200/80 bg-gradient-to-r from-stone-50 via-white to-amber-50/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-stone-900 border border-amber-200 text-[10px] font-black uppercase">
-                    <span>{nextRecommendedTopic.subject}</span> &bull; <span>Node {nextRecommendedTopic.nodeId}</span>
+              <div className="w-full rounded-2xl bg-gradient-to-r from-amber-100/90 via-white to-amber-50/80 border-2 border-amber-300/90 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm relative z-10">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-200/80 text-amber-950 border border-amber-300 font-black text-[10px] uppercase">
+                    <span>{nextRecommendedTopic.subject}</span> &bull;{' '}
+                    <span>
+                      {String((nextRecommendedTopic as any).nodeId || nextRecommendedTopic.id || '').length > 8
+                        ? 'Priority Node'
+                        : `Node ${(nextRecommendedTopic as any).nodeId || nextRecommendedTopic.id || '1'}`}
+                    </span>
                   </div>
-                  <h4 className="font-black text-stone-900 text-sm sm:text-base">{nextRecommendedTopic.topicName}</h4>
-                  <p className="text-xs text-stone-600 font-medium line-clamp-1">{nextRecommendedTopic.description}</p>
+                  <h4 className="font-black text-stone-900 text-sm sm:text-base">
+                    {(nextRecommendedTopic as any).topic || (nextRecommendedTopic as any).topicName || (nextRecommendedTopic as any).chapterName || 'Adaptive Practice Topic'}
+                  </h4>
+                  <p className="text-xs text-stone-600 font-medium line-clamp-1">
+                    {(nextRecommendedTopic as any).recommendedReason || (nextRecommendedTopic as any).description || 'Personalized AI focus area generated from your diagnostic exam.'}
+                  </p>
                 </div>
                 <button
-                  onClick={onNavigateToLearningPath}
-                  className="shrink-0 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 hover:text-stone-950 text-xs font-black transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  onClick={() => {
+                    const focusTopic =
+                      (nextRecommendedTopic as any).topic ||
+                      (nextRecommendedTopic as any).topicName ||
+                      (nextRecommendedTopic as any).chapterName;
+                    onNavigateToArena({
+                      subject: nextRecommendedTopic.subject,
+                      topic: focusTopic,
+                    });
+                  }}
+                  className="shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-stone-950 text-xs sm:text-sm font-black transition-all shadow-md shadow-amber-400/40 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 hover:scale-[1.02] group-hover:shadow-lg group-hover:shadow-amber-400/50"
                 >
-                  Continue Quest <ChevronRight className="w-3.5 h-3.5" />
+                  Start Test <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <div className="flex-1 rounded-2xl bg-stone-50 border border-stone-200/60 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-xs text-stone-500">
-                <p>No active learning nodes yet. Take your first diagnostic exam to generate your personalized learning path!</p>
+              <div className="w-full rounded-2xl bg-gradient-to-r from-amber-50/60 via-white to-amber-50/50 border-2 border-dashed border-amber-300/90 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-xs text-stone-600 shadow-sm relative z-10">
+                <p className="font-bold text-stone-800">No active learning nodes yet. Take your first exam to generate your personalized learning path!</p>
                 <button
                   onClick={() => onNavigateToArena()}
-                  className="shrink-0 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-black transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-stone-950 text-xs sm:text-sm font-black transition-all shadow-md shadow-amber-400/40 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 hover:scale-[1.02] group-hover:shadow-lg group-hover:shadow-amber-400/50"
                 >
-                  Start Diagnostic Test <ChevronRight className="w-3.5 h-3.5" />
+                  Start Test <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             )}
@@ -697,7 +813,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="font-black text-stone-900 text-base">Learning Progress Over Time</h3>
-              <p className="text-xs text-stone-500 font-medium">Diagnostic accuracy trend</p>
+              <p className="text-xs text-stone-500 font-medium">Accuracy trend</p>
             </div>
             <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-xl">
               <button
@@ -1033,7 +1149,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   <div>
                     <h4 className="text-sm font-bold text-stone-800">Start Your Learning Journey!</h4>
                     <p className="text-xs text-stone-500 mt-1 max-w-sm mx-auto">
-                      Take a 10-mark diagnostic test or play a Fun Zone game to start logging your day-by-day progress.
+                      Take a 10-mark test or play a Fun Zone game to start logging your day-by-day progress.
                     </p>
                   </div>
                 </div>
@@ -1049,35 +1165,35 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       <div key={item.id} className="relative group">
                         {/* Dot Icon on Vertical Line */}
                         <div className={`absolute -left-6 top-3 w-5 h-5 rounded-full flex items-center justify-center text-[10px] border-2 border-white shadow-xs ${isParentExam
-                            ? 'bg-stone-900 text-amber-400'
-                            : isExam
-                              ? 'bg-amber-500 text-stone-950'
-                              : isMindBreak
-                                ? 'bg-amber-400 text-stone-950'
-                                : 'bg-stone-700 text-amber-300'
+                          ? 'bg-stone-900 text-amber-400'
+                          : isExam
+                            ? 'bg-amber-500 text-stone-950'
+                            : isMindBreak
+                              ? 'bg-amber-400 text-stone-950'
+                              : 'bg-stone-700 text-amber-300'
                           }`}>
                           {isParentExam ? '🎯' : isExam ? '📝' : isMindBreak ? '🎮' : '🏆'}
                         </div>
 
                         {/* Card Item */}
                         <div className={`p-3.5 rounded-2xl border transition-all ${isParentExam
-                            ? 'bg-stone-50 border-stone-300 hover:border-amber-400'
-                            : isExam
-                              ? 'bg-amber-50/40 border-amber-200/70 hover:border-amber-400'
-                              : isMindBreak
-                                ? 'bg-stone-50 border-amber-200/80 hover:border-amber-300'
-                                : 'bg-amber-50/40 border-amber-200/80 hover:border-amber-300'
+                          ? 'bg-stone-50 border-stone-300 hover:border-amber-400'
+                          : isExam
+                            ? 'bg-amber-50/40 border-amber-200/70 hover:border-amber-400'
+                            : isMindBreak
+                              ? 'bg-stone-50 border-amber-200/80 hover:border-amber-300'
+                              : 'bg-amber-50/40 border-amber-200/80 hover:border-amber-300'
                           }`}>
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider ${isParentExam
-                                    ? 'bg-stone-900 text-amber-300'
-                                    : isExam
-                                      ? 'bg-amber-400 text-stone-950'
-                                      : isMindBreak
-                                        ? 'bg-amber-200 text-stone-900'
-                                        : 'bg-stone-200 text-stone-800'
+                                  ? 'bg-stone-900 text-amber-300'
+                                  : isExam
+                                    ? 'bg-amber-400 text-stone-950'
+                                    : isMindBreak
+                                      ? 'bg-amber-200 text-stone-900'
+                                      : 'bg-stone-200 text-stone-800'
                                   }`}>
                                   {isParentExam
                                     ? 'Parent Assignment'
@@ -1114,10 +1230,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                               <div className="flex items-center justify-end gap-1.5 mt-1.5 flex-wrap">
                                 {item.scorePct !== undefined && item.scorePct !== null && (
                                   <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${item.scorePct >= 70
-                                      ? 'bg-amber-400 text-stone-950 shadow-2xs'
-                                      : item.scorePct >= 50
-                                        ? 'bg-stone-200 text-stone-900'
-                                        : 'bg-stone-900 text-amber-300'
+                                    ? 'bg-amber-400 text-stone-950 shadow-2xs'
+                                    : item.scorePct >= 50
+                                      ? 'bg-stone-200 text-stone-900'
+                                      : 'bg-stone-900 text-amber-300'
                                     }`}>
                                     {item.marksObtained !== undefined && item.marksObtained !== null && item.totalMarks
                                       ? `${item.marksObtained}/${item.totalMarks}`
@@ -1145,6 +1261,125 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Onboarding Welcome Modal directly on Student Dashboard */}
+      {showOnboarding && (
+        <div className="fixed inset-0 z-50 bg-stone-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-stone-200 animate-in fade-in zoom-in-95 duration-200">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold mb-3 border border-amber-200">
+                <Sparkles size={14} className="text-amber-600" />
+                <span>Welcome to EduJunction!</span>
+              </div>
+              <h2 className="text-2xl font-black text-stone-900 tracking-tight">Complete Your Profile</h2>
+              <p className="text-xs sm:text-sm text-stone-500 mt-1 max-w-sm mx-auto">
+                Set up your board & class to unlock your personalized exams, study buddy, and learning quests.
+              </p>
+            </div>
+
+            <form onSubmit={handleCompleteOnboarding} className="space-y-4" noValidate>
+              {/* Student Username */}
+              <div>
+                <label className="block text-xs font-bold text-stone-800 mb-1 ml-1">
+                  Student Username <span className="text-red-500">*</span>
+                </label>
+                <div className="relative group">
+                  <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-yellow-600 transition-colors" />
+                  <input
+                    type="text"
+                    value={onboardingUsername}
+                    onChange={(e) => {
+                      setOnboardingUsername(e.target.value);
+                      setOnboardingError(null);
+                    }}
+                    placeholder="e.g. rahul_student"
+                    className="w-full h-11 pl-11 pr-4 bg-white border-2 border-stone-200 focus:border-yellow-400 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 outline-none transition-all"
+                  />
+                </div>
+                <p className="text-[10px] text-stone-400 mt-1 ml-1">3-30 characters, letters, numbers, and underscores.</p>
+              </div>
+
+              {/* Board Selection */}
+              <div>
+                <label className="block text-xs font-bold text-stone-800 mb-1 ml-1">
+                  Target Board <span className="text-red-500">*</span>
+                </label>
+                <div className="relative group">
+                  <BookOpen size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                  <select
+                    value={onboardingBoard}
+                    onChange={(e) => {
+                      setOnboardingBoard(e.target.value);
+                      setOnboardingClass('');
+                      setOnboardingError(null);
+                    }}
+                    className={`w-full h-11 pl-11 pr-4 bg-white border-2 border-stone-200 focus:border-yellow-400 rounded-xl text-xs sm:text-sm font-semibold outline-none transition-all cursor-pointer ${!onboardingBoard ? 'text-stone-400' : 'text-stone-900'}`}
+                  >
+                    <option value="">Select your board</option>
+                    {dbBoards.map((b) => (
+                      <option key={b.id || b.name} value={b.name} className="text-stone-900">
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Class / Grade Selection */}
+              <div>
+                <label className="block text-xs font-bold text-stone-800 mb-1 ml-1">
+                  Class / Grade <span className="text-red-500">*</span>
+                </label>
+                <div className="relative group">
+                  <GraduationCap size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                  <select
+                    value={onboardingClass}
+                    onChange={(e) => {
+                      setOnboardingClass(e.target.value);
+                      setOnboardingError(null);
+                    }}
+                    disabled={!onboardingBoard}
+                    className={`w-full h-11 pl-11 pr-4 bg-white border-2 border-stone-200 focus:border-yellow-400 rounded-xl text-xs sm:text-sm font-semibold outline-none transition-all cursor-pointer disabled:bg-stone-50 disabled:text-stone-400 ${!onboardingClass ? 'text-stone-400' : 'text-stone-900'}`}
+                  >
+                    <option value="">
+                      {onboardingBoard ? 'Select your class' : 'Select board first'}
+                    </option>
+                    {availableOnboardingClasses.map((c) => (
+                      <option key={c.id || c.name} value={c.name} className="text-stone-900">
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Error Notice */}
+              {onboardingError && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-600 flex items-start gap-2">
+                  <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                  <span>{onboardingError}</span>
+                </div>
+              )}
+
+              {/* Action Button: Start Learning */}
+              <button
+                type="submit"
+                disabled={isOnboardingSubmitting}
+                className="w-full h-12 mt-2 flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 active:scale-[0.98] text-stone-950 text-sm font-black rounded-xl transition-all shadow-lg shadow-yellow-400/30 cursor-pointer disabled:opacity-70 disabled:pointer-events-none group"
+              >
+                {isOnboardingSubmitting ? (
+                  <Loader2 size={18} className="animate-spin text-stone-950" />
+                ) : (
+                  <>
+                    <span>Start Learning</span>
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </button>
+            </form>
           </div>
         </div>
       )}

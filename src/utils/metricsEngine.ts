@@ -49,8 +49,8 @@ export function calculateStudentMetrics(
     ? child.recentExams
     : examHistory.filter(e => String(e.studentId) === String(child.id));
 
-  const isKids = ['Class 1', 'Class 2', 'Class 3', 'Class 4', '1', '2', '3', '4'].some(c =>
-    (child.classGrade || '').includes(c)
+  const isKids = ['Class 1', 'Class 2', 'Class 3', 'Class 4', '1', '2', '3', '4', 'Class 1st', 'Class 2nd', 'Class 3rd', 'Class 4th', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4'].includes(
+    (child.classGrade || '').trim()
   );
   const defaultTotalMarks = isKids ? 5 : 15;
 

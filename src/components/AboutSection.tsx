@@ -20,10 +20,10 @@ export const AboutSection: React.FC = () => {
           About EduJunction Platform
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight mb-4">
-          Revolutionizing School Exam Preparedness Through Adaptive Diagnostics
+          Revolutionizing School Exam Preparedness Through Adaptive Paths
         </h1>
         <p className="text-sm sm:text-base text-stone-600 leading-relaxed text-justify [text-align-last:left]">
-          EduJunction is engineered for parents and students in Classes 5 to 12 across premier national and international boards. We transform stressful exam preparation into manageable, high-accuracy 10-mark diagnostic sprints grounded in authentic curriculum runbooks.
+          EduJunction is engineered for parents and students in Classes 5 to 12 across premier national and international boards. We transform stressful exam preparation into manageable, high-accuracy 10-mark sprints grounded in authentic curriculum runbooks.
         </p>
       </div>
 
