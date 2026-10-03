@@ -99,6 +99,9 @@ export const POST_APIS = {
   addChild: `${API_V1}/parents/add-child`,
   scheduleExam: `${API_V1}/parents/schedule-exam`,
 
+  // Student
+  completeStudentOnboarding: `${API_V1}/students/complete-onboarding`,
+
   // Notifications
   markAllNotificationsRead: `${API_V1}/notifications/read-all`,
 
