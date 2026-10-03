@@ -61,6 +61,7 @@ interface StudentDashboardProps {
   onNavigateToGamification: () => void;
   onNavigateToFunZone: () => void;
   onViewSubmissionReport: (submission: ExamSubmission) => void;
+  onRefresh?: () => Promise<any> | void;
 }
 
 const DYNAMIC_PALETTE = [
@@ -84,6 +85,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   onNavigateToGamification,
   onNavigateToFunZone,
   onViewSubmissionReport,
+  onRefresh,
 }) => {
   const [timeframe, setTimeframe] = useState<'week' | 'month'>('week');
 
@@ -162,7 +164,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       activeChild.classGrade = onboardingClass;
       activeChild.username = trimmedUsername;
       setShowOnboarding(false);
-      window.location.reload();
+
+      if (onRefresh) {
+        await onRefresh();
+      }
     } catch (err: any) {
       console.error('Failed to complete onboarding:', err);
       setOnboardingError(

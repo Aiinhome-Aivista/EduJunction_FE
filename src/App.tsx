@@ -1414,6 +1414,7 @@ export default function App() {
                         setActiveTab('fun-zone');
                       }}
                       onViewSubmissionReport={handleOpenSubmissionReport}
+                      onRefresh={loadStudentData}
                     />
                   ) : null
                 )}
