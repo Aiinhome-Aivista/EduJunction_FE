@@ -579,8 +579,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 </button>
               </div>
             ) : (
-              <div className="flex-1 rounded-2xl bg-stone-50 border border-stone-200/60 p-4 sm:p-5 flex items-center justify-center text-center text-xs text-stone-500">
+              <div className="flex-1 rounded-2xl bg-stone-50 border border-stone-200/60 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-xs text-stone-500">
                 <p>No active learning nodes yet. Take your first diagnostic exam to generate your personalized learning path!</p>
+                <button
+                  onClick={() => onNavigateToArena()}
+                  className="shrink-0 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-black transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  Start Diagnostic Test <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
           </div>

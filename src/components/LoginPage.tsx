@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -28,11 +28,17 @@ import ApiServices, {
 } from '../services/ApiServices';
 import { useGoogleLogin } from '@react-oauth/google';
 
+interface MasterOption {
+  id: number;
+  name: string;
+}
+
 interface LoginPageProps {
   onAuthenticated: (role: string) => void;
   onBackToLanding?: () => void;
   onClose?: () => void;
   initialMode?: 'login' | 'register';
+  initialPersona?: 'parent' | 'student';
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({
@@ -40,9 +46,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onBackToLanding,
   onClose,
   initialMode = 'login',
+  initialPersona = 'parent',
 }) => {
-  const [selectedPersona, setSelectedPersona] = useState<'parent' | 'student'>('parent');
+  const [selectedPersona, setSelectedPersona] = useState<'parent' | 'student'>(initialPersona);
   const [mode, setMode] = useState<'login' | 'register' | 'forgot-password'>(initialMode);
+
+  useEffect(() => {
+    if (initialPersona) {
+      setSelectedPersona(initialPersona);
+    }
+  }, [initialPersona]);
+
+  useEffect(() => {
+    if (initialMode) {
+      setMode(initialMode);
+    }
+  }, [initialMode]);
 
   // Form Fields
   const [username, setUsername] = useState('');
@@ -50,6 +69,70 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [targetBoard, setTargetBoard] = useState('');
+  const [classGrade, setClassGrade] = useState('');
+
+  // Dynamic Database Masters
+  const [dbBoards, setDbBoards] = useState<MasterOption[]>([]);
+  const [dbClasses, setDbClasses] = useState<MasterOption[]>([]);
+  const [boardClassesMap, setBoardClassesMap] = useState<Record<string, string[]>>({});
+  const [isLoadingMasters, setIsLoadingMasters] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoadingMasters(true);
+    ApiServices.getBoardClassDropdown()
+      .then((res: any) => {
+        if (!isMounted) return;
+        const fetchedBoards: MasterOption[] = res?.boards || res?.data?.boards || [];
+        const fetchedClasses: MasterOption[] = res?.classes || res?.classGrades || res?.data?.classes || res?.data?.classGrades || [];
+        const fetchedMap = res?.boardClassesMap || res?.data?.boardClassesMap || {};
+
+        setDbBoards(fetchedBoards);
+        setDbClasses(fetchedClasses);
+        if (fetchedMap) setBoardClassesMap(fetchedMap);
+
+        if (fetchedBoards.length > 0) {
+          setTargetBoard((prev) => {
+            const exists = fetchedBoards.some((b) => b.name === prev);
+            return exists && prev ? prev : fetchedBoards[0].name;
+          });
+        }
+        if (fetchedClasses.length > 0) {
+          setClassGrade((prev) => {
+            const exists = fetchedClasses.some((c) => c.name === prev);
+            return exists && prev ? prev : fetchedClasses[0].name;
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch dynamic board/class masters:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingMasters(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const availableClasses = useMemo(() => {
+    if (targetBoard && boardClassesMap[targetBoard] && boardClassesMap[targetBoard].length > 0) {
+      const allowed = boardClassesMap[targetBoard];
+      return dbClasses.filter((c) => allowed.includes(c.name));
+    }
+    return dbClasses;
+  }, [targetBoard, boardClassesMap, dbClasses]);
+
+  useEffect(() => {
+    if (availableClasses.length > 0) {
+      const exists = availableClasses.some((c) => c.name === classGrade);
+      if (!exists) {
+        setClassGrade(availableClasses[0].name);
+      }
+    }
+  }, [availableClasses, classGrade]);
 
   // Captcha State
   const [captchaData, setCaptchaData] = useState<{ captchaId: string; question: string } | null>(null);
@@ -399,6 +482,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setIsSubmitting(true);
 
     try {
+      const roleToSend = selectedPersona === 'student' ? 'STUDENT' : 'PARENT';
+      const registerPayload: any = {
+        name: name.trim(),
+        username: username.trim(),
+        email: email.trim(),
+        password,
+        role: roleToSend,
+        captchaId: captchaData?.captchaId,
+        captchaAnswer: captchaAnswer.trim(),
+      };
+      if (selectedPersona === 'student') {
+        registerPayload.targetBoard = targetBoard;
+        registerPayload.classGrade = classGrade;
+      }
+
       const response =
         mode === 'login'
           ? await ApiServices.login({
@@ -407,15 +505,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             captchaId: captchaData?.captchaId,
             captchaAnswer: captchaAnswer.trim(),
           })
-          : await ApiServices.register({
-            name: name.trim(),
-            username: username.trim(),
-            email: email.trim(),
-            password,
-            role: 'Parent',
-            captchaId: captchaData?.captchaId,
-            captchaAnswer: captchaAnswer.trim(),
-          });
+          : await ApiServices.register(registerPayload);
 
       const result = response.data?.data || response.data || response;
 
@@ -621,7 +711,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 ? 'Verify OTP'
                 : 'Reset Password'
               : selectedPersona === 'student'
-                ? 'Student Login'
+                ? mode === 'login'
+                  ? 'Student Login'
+                  : 'Create Student Account'
                 : mode === 'login'
                   ? 'Parent Login'
                   : 'Create Parent Account'}
@@ -632,20 +724,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 ? 'Enter the 6-digit verification code and your new password.'
                 : 'Enter your account username to receive a verification OTP.'
               : selectedPersona === 'student'
-                ? 'Sign in with your student credentials to practice tests & chat with Study Buddy.'
+                ? mode === 'login'
+                  ? 'Sign in with your student credentials to practice tests & chat with Study Buddy.'
+                  : 'Register as an independent student to practice tests and build your mastery.'
                 : mode === 'login'
                   ? 'Sign in to track your child\'s learning, diagnostic dossiers & tests.'
                   : 'Register as a Parent to track assessments and empower your kids.'}
           </p>
         </div>
 
-        {/* Mode Switcher (Parent Only) */}
-        {mode !== 'forgot-password' && selectedPersona === 'parent' && (
+        {/* Mode Switcher (Login / Sign Up for both Parent & Student) */}
+        {mode !== 'forgot-password' && (
           <div className="flex p-1 bg-stone-200/60 rounded-xl mb-3 sm:mb-3.5">
             <button
               type="button"
               onClick={() => handleModeChange('login')}
-              className={`flex-1 py-1.5 text-xs sm:text-[13px] font-bold rounded-lg transition-all duration-200 ${mode === 'login' ? 'bg-white text-yellow-700 shadow-sm font-extrabold' : 'text-stone-500 hover:text-stone-700'
+              className={`flex-1 py-1.5 text-xs sm:text-[13px] font-bold rounded-lg transition-all duration-200 cursor-pointer ${mode === 'login' ? 'bg-white text-yellow-700 shadow-sm font-extrabold' : 'text-stone-500 hover:text-stone-700'
                 }`}
             >
               Login
@@ -653,7 +747,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <button
               type="button"
               onClick={() => handleModeChange('register')}
-              className={`flex-1 py-1.5 text-xs sm:text-[13px] font-bold rounded-lg transition-all duration-200 ${mode === 'register' ? 'bg-white text-yellow-700 shadow-sm font-extrabold' : 'text-stone-500 hover:text-stone-700'
+              className={`flex-1 py-1.5 text-xs sm:text-[13px] font-bold rounded-lg transition-all duration-200 cursor-pointer ${mode === 'register' ? 'bg-white text-yellow-700 shadow-sm font-extrabold' : 'text-stone-500 hover:text-stone-700'
                 }`}
             >
               Sign Up
@@ -1040,10 +1134,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   )}
                 </div>
 
-                {/* Parent Username */}
+                {/* Username */}
                 <div>
                   <label className="block text-xs sm:text-[13px] font-bold text-stone-800 mb-1 ml-1">
-                    Parent Username <span className="text-red-500">*</span>
+                    {selectedPersona === 'student' ? 'Student Username' : 'Parent Username'} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative group">
                     <User
@@ -1058,7 +1152,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                         setUsername(e.target.value);
                         clearFieldError('username');
                       }}
-                      placeholder="e.g. rahul_parent"
+                      placeholder={selectedPersona === 'student' ? 'e.g. riya_student' : 'e.g. rahul_parent'}
                       className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-xs sm:text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.username
                         ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
                         : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
@@ -1072,11 +1166,74 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               </div>
             )}
 
+            {/* Student Board & Class Grade Selection (Dynamic from Database) */}
+            {mode === 'register' && selectedPersona === 'student' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Board Selection */}
+                <div>
+                  <label className="block text-xs sm:text-[13px] font-bold text-stone-800 mb-1 ml-1">
+                    Board <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative group">
+                    <BookOpen
+                      size={18}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-yellow-600 transition-colors pointer-events-none"
+                    />
+                    <select
+                      value={targetBoard}
+                      onChange={(e) => setTargetBoard(e.target.value)}
+                      disabled={isLoadingMasters && dbBoards.length === 0}
+                      className="w-full h-11 pl-11 pr-4 bg-white border-2 border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 outline-none transition-all focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10 cursor-pointer disabled:bg-stone-50 disabled:text-stone-400"
+                    >
+                      {dbBoards.length > 0 ? (
+                        dbBoards.map((b) => (
+                          <option key={b.id || b.name} value={b.name}>
+                            {b.name}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">{isLoadingMasters ? 'Loading Boards...' : 'Select Board'}</option>
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Class Grade Selection */}
+                <div>
+                  <label className="block text-xs sm:text-[13px] font-bold text-stone-800 mb-1 ml-1">
+                    Class / Grade <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative group">
+                    <GraduationCap
+                      size={18}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 group-focus-within:text-yellow-600 transition-colors pointer-events-none"
+                    />
+                    <select
+                      value={classGrade}
+                      onChange={(e) => setClassGrade(e.target.value)}
+                      disabled={isLoadingMasters && availableClasses.length === 0}
+                      className="w-full h-11 pl-11 pr-4 bg-white border-2 border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 outline-none transition-all focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10 cursor-pointer disabled:bg-stone-50 disabled:text-stone-400"
+                    >
+                      {availableClasses.length > 0 ? (
+                        availableClasses.map((c) => (
+                          <option key={c.id || c.name} value={c.name}>
+                            {c.name}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">{isLoadingMasters ? 'Loading Classes...' : 'Select Class'}</option>
+                      )}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Email Address (Full width in Sign Up) or Username/Email in Login */}
             {mode === 'register' ? (
               <div>
                 <label className="block text-xs sm:text-[13px] font-bold text-stone-800 mb-1 ml-1">
-                  Parent Email Address <span className="text-red-500">*</span>
+                  {selectedPersona === 'student' ? 'Student Email Address' : 'Parent Email Address'} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative group">
                   <Mail
@@ -1091,7 +1248,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       setEmail(e.target.value);
                       clearFieldError('email');
                     }}
-                    placeholder="parent@example.com"
+                    placeholder={selectedPersona === 'student' ? 'student@example.com' : 'parent@example.com'}
                     className={`w-full h-11 pl-11 pr-4 bg-white border-2 rounded-xl text-xs sm:text-sm font-medium text-stone-900 outline-none transition-all placeholder:text-stone-400 ${fieldErrors.email
                       ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
                       : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-600/10'
@@ -1371,7 +1528,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               ) : (
                 <>
                   {selectedPersona === 'student'
-                    ? 'Log In as Student'
+                    ? mode === 'login'
+                      ? 'Log In as Student'
+                      : 'Create Student Account'
                     : mode === 'login'
                       ? 'Log In as Parent'
                       : 'Create Parent Account'}
@@ -1381,11 +1540,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </button>
 
             {/* Student Account Notice */}
-            {selectedPersona === 'student' && (
+            {selectedPersona === 'student' && mode === 'login' && (
               <div className="mt-4 p-3 rounded-xl bg-amber-50/80 border border-amber-200/70 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
                 <Info size={16} className="text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold">Student Notice:</span> Student accounts are registered and managed by Parents. If you do not have login credentials, please ask your parent to add you.
+                  <span className="font-bold">Student Notice:</span> Independent students can sign in directly or click "Sign Up" above to create an account. If added by a parent, use your parent-provided credentials.
                 </div>
               </div>
             )}

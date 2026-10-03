@@ -1538,7 +1538,7 @@ export const ModelExamPage: React.FC = () => {
               <div className="absolute inset-0 rounded-full bg-amber-400/20 animate-ping opacity-75" />
               <div className="absolute inset-0 rounded-full border-2 border-amber-400/40 border-t-amber-400 animate-spin" />
               <div className="w-14 h-14 rounded-2xl bg-amber-400 text-stone-950 flex items-center justify-center shadow-lg relative z-10">
-                <Sparkles className="w-7 h-7 text-stone-950 animate-pulse" />
+                <GraduationCap className="w-8 h-8 text-stone-950" />
               </div>
             </div>
 

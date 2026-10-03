@@ -132,6 +132,7 @@ export default function App() {
     return payload?.role ?? null;
   });
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | null>(null);
+  const [authModalPersona, setAuthModalPersona] = useState<'parent' | 'student'>('parent');
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [pageAccess, setPageAccess] = useState<PageAccess[]>([]);
   const [bootstrapError, setBootstrapError] = useState<string | null>(null);
@@ -872,7 +873,10 @@ export default function App() {
       <div className="relative w-full h-full min-h-screen overflow-x-hidden">
         {/* Main Landing Page */}
         <LandingPage
-          onOpenAuth={(mode) => setAuthModalMode(mode || 'login')}
+          onOpenAuth={(mode, persona) => {
+            setAuthModalPersona(persona || 'parent');
+            setAuthModalMode(mode || 'login');
+          }}
         />
 
         {/* Slide-over panel for LoginPage */}
@@ -884,6 +888,7 @@ export default function App() {
             <LoginPage
               onAuthenticated={handleAuthenticated}
               initialMode={authModalMode}
+              initialPersona={authModalPersona}
               onClose={() => setAuthModalMode(null)}
             />
           )}

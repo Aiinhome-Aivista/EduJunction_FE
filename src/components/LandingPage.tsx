@@ -38,7 +38,7 @@ import {
 import ApiServices from '../services/ApiServices';
 
 interface LandingPageProps {
-  onOpenAuth: (mode?: 'login' | 'register') => void;
+  onOpenAuth: (mode?: 'login' | 'register', persona?: 'parent' | 'student') => void;
   onQuickDemo?: (role?: 'admin' | 'parent') => void;
 }
 
@@ -178,8 +178,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
 
 
-  const openAuth = (mode: 'login' | 'register' = 'login') => {
-    onOpenAuth(mode);
+  const openAuth = (mode: 'login' | 'register' = 'login', persona: 'parent' | 'student' = 'parent') => {
+    onOpenAuth(mode, persona);
   };
 
   const location = useLocation();
@@ -478,34 +478,82 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* HERO SECTION (Padded for Fixed Header Height) */}
       <section
         id="hero"
-        className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-white to-stone-50 pt-28 sm:pt-32"
+        className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-white to-stone-50 pt-27 sm:pt-30"
       >
 
         <div className="absolute -top-28 -right-28 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl" />
         <div className="absolute top-40 -left-32 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-4 sm:pb-6">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-3 pb-6 sm:pb-8">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+            <div className="space-y-6">
 
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-yellow-200 text-yellow-700 text-xs font-bold shadow-sm">
-                Study Buddy-powered learning for students, teachers & parents
+              {/* Top Badges (Quick Test & Study Buddy) */}
+              <div className="space-y-3.5">
+                {/* Floating Glowing Quick Test Badge (React Bits Style) */}
+                <div className="flex items-center justify-start">
+                  <style>{`
+                    @keyframes float-badge {
+                      0%, 100% { transform: translateY(0px); }
+                      50% { transform: translateY(-5px); }
+                    }
+                    @keyframes surface-flow {
+                      0% { background-position: 0% 50%; }
+                      50% { background-position: 100% 50%; }
+                      100% { background-position: 0% 50%; }
+                    }
+                    .animate-float-badge {
+                      animation: float-badge 4s ease-in-out infinite;
+                    }
+                    .animate-surface-flow {
+                      background: linear-gradient(135deg, #ffffff 0%, #fef3c7 30%, #fde68a 50%, #fffbeb 70%, #ffffff 100%);
+                      background-size: 300% 300%;
+                      animation: surface-flow 6s ease infinite;
+                    }
+                  `}</style>
+                  <button
+                    type="button"
+                    onClick={() => openAuth('register', 'student')}
+                    className="group relative inline-flex items-center animate-float-badge cursor-pointer"
+                  >
+                    {/* Ambient Blurred Glow Aura (React Bits Style) */}
+                    <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 opacity-60 blur-md group-hover:opacity-100 group-hover:blur-lg transition-all duration-500 animate-pulse pointer-events-none" />
+
+                    {/* Button Surface with Animated Color Flow */}
+                    <span className="relative inline-flex items-center gap-3 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full animate-surface-flow backdrop-blur-md border border-amber-300/90 shadow-md group-hover:border-amber-400 group-hover:shadow-2xl group-hover:shadow-amber-300/50 transition-all duration-300 overflow-hidden">
+                      <span className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 text-stone-950 shadow-2xs group-hover:rotate-12 transition-transform duration-300">
+                        <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-stone-950 stroke-stone-950" />
+                      </span>
+                      <span className="text-sm sm:text-base font-black tracking-wide text-stone-900 group-hover:text-amber-700 transition-colors">
+                        Quick Test
+                      </span>
+                      <ArrowRight className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-stone-400 group-hover:text-amber-700 group-hover:translate-x-1 transition-all" />
+                    </span>
+                  </button>
+                </div>
+
+                {/* <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-yellow-200 text-yellow-700 text-xs font-bold shadow-sm">
+                  Study Buddy-powered learning for students, teachers & parents
+                </div> */}
               </div>
 
-              <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.08] tracking-tight capitalize">
+              {/* Main Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.12] tracking-tight capitalize">
                 Learn Smarter.
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-500">
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-500 mt-1">
                   Grow Better.
                 </span>
               </h1>
 
-              <p className="mt-5 text-base sm:text-lg text-stone-600 leading-relaxed max-w-xl text-justify [text-align-last:left]">
+              {/* Subheading Description */}
+              <p className="text-base sm:text-lg text-stone-600 leading-relaxed max-w-xl text-justify [text-align-last:left] pt-1">
                 Take an assessment, understand where you need help, and get a
                 learning Path made for you. Learn, practice, play and improve
                 with your Study Buddy.
               </p>
 
-              <div className="mt-7 flex flex-col sm:flex-row gap-3">
+              {/* CTA Action Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row gap-3.5">
                 <button
                   onClick={() => openAuth('register')}
                   className="px-7 py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-extrabold shadow-xl shadow-yellow-200 flex items-center justify-center gap-2 cursor-pointer"
@@ -521,7 +569,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </Link>
               </div>
 
-              <div className="mt-7 flex flex-wrap gap-3 text-xs font-bold text-stone-600">
+              {/* Process Steps */}
+              <div className="pt-2 flex flex-wrap gap-3 text-xs font-bold text-stone-600">
                 {['Assess', 'Analyze', 'Learn', 'Improve'].map((item, i) => (
                   <React.Fragment key={item}>
                     <span className="px-3 py-1.5 rounded-full bg-yellow-50 border border-yellow-300 text-yellow-800 shadow-sm shadow-yellow-100/50">
@@ -564,7 +613,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <img
                 src="/hero-illustration.png"
                 alt="Animated Hero Illustration"
-                className="w-full max-w-[550px] object-contain animate-float-hero filter drop-shadow-xl"
+                className="w-full max-w-[530px] lg:max-w-[560px] object-contain animate-float-hero filter drop-shadow-xl"
               />
             </div>
           </div>
