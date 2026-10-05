@@ -194,6 +194,7 @@ export default function App() {
   const [isQuickTestLoading, setIsQuickTestLoading] = useState(false);
   const [preloadedExam, setPreloadedExam] = useState<Exam | null>(null);
   const [arenaPresetSubject, setArenaPresetSubject] = useState<Subject | undefined>(undefined);
+  const [arenaPresetDifficulty, setArenaPresetDifficulty] = useState<ExamDifficulty | undefined>(undefined);
   const [arenaPresetTopic, setArenaPresetTopic] = useState<string | undefined>(undefined);
   const [schedulerPresetSubject, setSchedulerPresetSubject] = useState<string | undefined>(undefined);
   const [schedulerPresetTopic, setSchedulerPresetTopic] = useState<string | undefined>(undefined);
@@ -723,13 +724,18 @@ export default function App() {
     }
   };
 
-  const handleLaunchTopicExam = (_config: {
+  const handleLaunchTopicExam = (config: {
     board: Board;
     classGrade: ClassGrade;
     subject: Subject;
     difficulty: ExamDifficulty;
     topic: string;
   }) => {
+    setActiveSubmissionReport(null);
+    setPreloadedExam(null);
+    if (config.subject) setArenaPresetSubject(config.subject);
+    if (config.difficulty) setArenaPresetDifficulty(config.difficulty);
+    if (config.topic) setArenaPresetTopic(config.topic);
     setActiveTab('arena');
   };
 
@@ -1061,7 +1067,12 @@ export default function App() {
           setMobileSidebarOpen={setMobileSidebarOpen}
           onToggleSidebar={toggleSidebar}
           onLogout={handleLogout}
-          onNavigate={() => setActiveSubmissionReport(null)}
+          onNavigate={() => {
+            setActiveSubmissionReport(null);
+            setArenaPresetSubject(undefined);
+            setArenaPresetDifficulty(undefined);
+            setArenaPresetTopic(undefined);
+          }}
           activePersona={activePersona}
           activeChildName={activeChild?.name}
         />
@@ -1498,6 +1509,7 @@ export default function App() {
                       initialExam={preloadedExam}
                       onClearInitialExam={() => setPreloadedExam(null)}
                       presetSubject={arenaPresetSubject}
+                      presetDifficulty={arenaPresetDifficulty}
                       presetTopic={arenaPresetTopic}
                     />
                   )

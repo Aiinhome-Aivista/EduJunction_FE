@@ -187,24 +187,32 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
   }, [selectedBoard, selectedGrade, activeChild?.id]);
 
   useEffect(() => {
-    if (presetSubject && dbSubjects.length > 0) {
-      const matched = dbSubjects.find(
-        (s) => s.toLowerCase() === presetSubject.toLowerCase()
-      );
-      if (matched) {
-        setSelectedSubject(matched as Subject);
+    if (presetSubject) {
+      if (dbSubjects.length > 0) {
+        const normPreset = presetSubject.trim().toLowerCase();
+        const matched = dbSubjects.find((s) => {
+          const normS = s.trim().toLowerCase();
+          return normS === normPreset || normS.includes(normPreset) || normPreset.includes(normS);
+        });
+        if (matched) {
+          setSelectedSubject(matched as Subject);
+        } else {
+          setSelectedSubject(presetSubject);
+        }
       } else {
         setSelectedSubject(presetSubject);
       }
-    } else if (presetSubject) {
-      setSelectedSubject(presetSubject);
     }
   }, [presetSubject, dbSubjects]);
 
   useEffect(() => {
-    if (presetTopic) {
-      setActiveTopic(presetTopic);
+    if (presetDifficulty) {
+      setSelectedDifficulty(presetDifficulty);
     }
+  }, [presetDifficulty]);
+
+  useEffect(() => {
+    setActiveTopic(presetTopic || null);
   }, [presetTopic]);
 
   const [assignedExam, setAssignedExam] = useState<any>(null);
@@ -353,14 +361,15 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
   }, [activeExam, currentQuestionIdx, showConfirmSubmit, isSubmitting]);
 
   const handleStartExam = async (startAssigned: boolean = false) => {
+    const isAssignedTest = Boolean(startAssigned && assignedExam);
+    const targetTopic = isAssignedTest ? assignedExam?.chapterTopic : (activeTopic || undefined);
+    const targetSub = isAssignedTest ? (assignedExam.subject as Subject) : (selectedSubject || presetSubject);
+
     setIsGenerating(true);
-    setGenerationStep(presetTopic ? `Building Remedial Sprint for ${presetTopic}...` : 'Generating Exam...');
+    setGenerationStep(targetTopic ? `Building Remedial Sprint for ${targetTopic}...` : 'Generating Exam...');
 
     try {
       if (!activeChildId) return;
-
-      const isAssignedTest = Boolean(startAssigned && assignedExam);
-      const targetSub = isAssignedTest ? (assignedExam.subject as Subject) : (presetSubject || selectedSubject);
 
       if (!targetSub) {
         alert('Please select a subject for practice before starting the test.');
@@ -374,7 +383,6 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
       const targetDuration = isAssignedTest ? (assignedExam.timeLimitMinutes || 15) : blueprint.durationMinutes;
 
       const targetScheduledId = isAssignedTest ? assignedExam?.id : undefined;
-      const targetTopic = isAssignedTest ? assignedExam?.chapterTopic : (presetTopic || activeTopic || undefined);
 
       const { exam } = await ApiServices.generateExam({
         studentId: activeChildId,
@@ -393,6 +401,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
       }
 
       setActiveExam(exam);
+      setActiveTopic(null);
       setCurrentQuestionIdx(0);
       setAnswers({});
       setFlaggedQuestions({});
@@ -1304,7 +1313,13 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
               id="subject-dropdown-select"
               value={selectedSubject}
               disabled={isLoadingSubjects || dbSubjects.length === 0}
-              onChange={(e) => setSelectedSubject(e.target.value as Subject)}
+              onChange={(e) => {
+                const newSub = e.target.value as Subject;
+                setSelectedSubject(newSub);
+                if (activeTopic) {
+                  setActiveTopic(null);
+                }
+              }}
               className="w-full px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-800 text-sm font-medium focus:ring-2 focus:ring-yellow-500 focus:outline-hidden disabled:bg-stone-100 disabled:text-stone-400"
             >
               {isLoadingSubjects ? (
@@ -1317,6 +1332,9 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                   {dbSubjects.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
+                  {selectedSubject && !dbSubjects.some(s => s.toLowerCase() === selectedSubject.toLowerCase()) && (
+                    <option key={selectedSubject} value={selectedSubject}>{selectedSubject}</option>
+                  )}
                 </>
               )}
             </select>

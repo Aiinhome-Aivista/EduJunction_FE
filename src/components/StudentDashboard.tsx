@@ -684,19 +684,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   </p>
                 </div>
                 <button
-                  onClick={() => {
-                    const focusTopic =
-                      (nextRecommendedTopic as any).topic ||
-                      (nextRecommendedTopic as any).topicName ||
-                      (nextRecommendedTopic as any).chapterName;
-                    onNavigateToArena({
-                      subject: nextRecommendedTopic.subject,
-                      topic: focusTopic,
-                    });
-                  }}
+                  onClick={onNavigateToLearningPath}
                   className="shrink-0 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-400 text-stone-950 text-xs sm:text-sm font-black transition-all shadow-md shadow-amber-400/40 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 hover:scale-[1.02] group-hover:shadow-lg group-hover:shadow-amber-400/50"
                 >
-                  Start Test <ChevronRight className="w-4 h-4" />
+                  Continue Learning Path <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             ) : (

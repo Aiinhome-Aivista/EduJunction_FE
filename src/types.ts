@@ -275,8 +275,10 @@ export interface LearningPathNode {
     subject: Subject;
     difficulty: ExamDifficulty;
     focusTopic: string;
+    recommendedAction?: string;
   };
   recommendedReason: string;
+  recommendedAction?: string;
 }
 
 // Parent-Teacher Communication Models

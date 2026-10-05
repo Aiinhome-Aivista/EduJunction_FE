@@ -1,22 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Compass,
   Sparkles,
   CheckCircle2,
   AlertTriangle,
-  Lock,
   Play,
   BookOpen,
   ExternalLink,
   Award,
   Filter,
-  Flame,
-  ArrowRight,
   Zap,
   Layers,
-  ChevronRight,
   TrendingUp,
-  GraduationCap
+  X
 } from 'lucide-react';
 import {
   LearningPathNode,
@@ -25,8 +21,7 @@ import {
   ClassGrade,
   Board,
   ExamDifficulty,
-  LearningLevel,
-  LearningPathStatus
+  LearningLevel
 } from '../types';
 
 interface AdaptiveLearningPathProps {
@@ -46,30 +41,29 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
   learningNodes,
   onLaunchTopicExam
 }) => {
-  const [selectedSubject, setSelectedSubject] = useState<Subject | 'all'>('all');
+  const [selectedSubject, setSelectedSubject] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<LearningLevel | 'all'>('all');
-  const [selectedNode, setSelectedNode] = useState<LearningPathNode | null>(learningNodes[0] || null);
+  const [selectedNode, setSelectedNode] = useState<LearningPathNode | null>(null);
+
+  // Dynamic Subject list extracted directly from actual student learning nodes
+  const subjectsList = useMemo(() => {
+    const subjects = new Set<string>();
+    learningNodes.forEach((node) => {
+      if (node.subject) subjects.add(node.subject);
+    });
+    return ['all', ...Array.from(subjects)];
+  }, [learningNodes]);
 
   // Filter nodes according to subject and level
-  const filteredNodes = learningNodes.filter((node) => {
-    const matchSubject = selectedSubject === 'all' || node.subject === selectedSubject;
-    const matchLevel = selectedLevel === 'all' || node.level === selectedLevel;
-    return matchSubject && matchLevel;
-  });
-
-  const masteredCount = learningNodes.filter(n => n.status === 'mastered').length;
-  const remedialCount = learningNodes.filter(n => n.status === 'remedial_needed').length;
-  const inProgressCount = learningNodes.filter(n => n.status === 'in_progress').length;
-  const hotsCount = learningNodes.filter(n => n.level === 'advanced_hots').length;
-
-  const subjectsList: (Subject | 'all')[] = [
-    'all',
-    'Mathematics',
-    'Physics',
-    'Chemistry',
-    'Biology',
-    'Logical Reasoning'
-  ];
+  const filteredNodes = useMemo(() => {
+    return learningNodes.filter((node) => {
+      const matchSubject =
+        selectedSubject === 'all' ||
+        (node.subject && node.subject.toLowerCase() === selectedSubject.toLowerCase());
+      const matchLevel = selectedLevel === 'all' || node.level === selectedLevel;
+      return matchSubject && matchLevel;
+    });
+  }, [learningNodes, selectedSubject, selectedLevel]);
 
   return (
     <div className="space-y-4">
@@ -79,14 +73,14 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xl sm:text-2xl">{activeChild.avatar}</span>
             <h1 className="text-xl sm:text-2xl font-bold text-stone-900">
-              Adaptive Learning Junction: <span className="text-yellow-600">{activeChild.name}</span>
+              Learning Junction: <span className="text-yellow-600">{activeChild.name}</span>
             </h1>
             <span className="text-xs font-semibold px-2.5 py-0.5 bg-yellow-50 text-yellow-700 rounded-full border border-yellow-300">
               {activeChild.classGrade} • {activeChild.targetBoard}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-stone-500 mt-1 max-w-2xl">
-            Dynamic RAG-driven curriculum that evolves based on real 10-mark diagnostic sprint performance. Remedial gaps are automatically reinforced while high-performing topics unlock Olympiad & HOTS challenges.
+            Personalized learning roadmap that adapts to your exam performance. Strengthen your weak topics step-by-step while unlocking advanced challenges as you master each concept.
           </p>
         </div>
 
@@ -102,45 +96,7 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
         </div>
       </div>
 
-      {/* Summary KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white p-3 rounded-xl border border-stone-200 shadow-xs">
-          <div className="flex items-center justify-between text-stone-400 mb-1">
-            <span className="text-xs font-semibold">Mastered Topics</span>
-            <CheckCircle2 className="w-4 h-4 text-yellow-500" />
-          </div>
-          <p className="text-2xl font-bold text-stone-900">{masteredCount}</p>
-          <span className="text-[10px] text-yellow-600 font-semibold">85%+ score retention</span>
-        </div>
-
-        <div className="bg-white p-3 rounded-xl border border-stone-200 shadow-xs">
-          <div className="flex items-center justify-between text-stone-400 mb-1">
-            <span className="text-xs font-semibold">In Active Practice</span>
-            <TrendingUp className="w-4 h-4 text-yellow-500" />
-          </div>
-          <p className="text-2xl font-bold text-yellow-600">{inProgressCount}</p>
-          <span className="text-[10px] text-yellow-600 font-semibold">Dynamic sprints queued</span>
-        </div>
-
-        <div className="bg-white p-3 rounded-xl border border-stone-200 shadow-xs">
-          <div className="flex items-center justify-between text-stone-400 mb-1">
-            <span className="text-xs font-semibold">Remedial Focus</span>
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
-          </div>
-          <p className="text-2xl font-bold text-amber-600">{remedialCount}</p>
-          <span className="text-[10px] text-amber-600 font-semibold">Targeted misconceptions</span>
-        </div>
-
-        <div className="bg-white p-3 rounded-xl border border-stone-200 shadow-xs">
-          <div className="flex items-center justify-between text-stone-400 mb-1">
-            <span className="text-xs font-semibold">HOTS / Advanced</span>
-            <Award className="w-4 h-4 text-amber-500" />
-          </div>
-          <p className="text-2xl font-bold text-amber-600">{hotsCount}</p>
-          <span className="text-[10px] text-amber-600 font-semibold">Olympiad & IIT track</span>
-        </div>
-      </div>
-
+      {/* Filter Toolbar */}
       <div className="bg-white border border-stone-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-bold text-stone-700 flex items-center gap-1">
@@ -152,7 +108,7 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
               <button
                 key={sub}
                 onClick={() => setSelectedSubject(sub)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all capitalize ${selectedSubject === sub
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all capitalize cursor-pointer ${selectedSubject === sub
                   ? 'bg-yellow-400 text-stone-900 shadow-2xs'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                   }`}
@@ -168,7 +124,7 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
           <select
             value={selectedLevel}
             onChange={(e) => setSelectedLevel(e.target.value as any)}
-            className="px-2.5 py-1 rounded-lg border border-stone-300 text-xs bg-white text-stone-800 focus:outline-hidden focus:ring-1 focus:ring-yellow-500"
+            className="px-2.5 py-1 rounded-lg border border-stone-300 text-xs bg-white text-stone-800 focus:outline-hidden focus:ring-1 focus:ring-yellow-500 cursor-pointer"
           >
             <option value="all">All Tracks</option>
             <option value="foundational">Foundational (Remedial)</option>
@@ -178,253 +134,266 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
         </div>
       </div>
 
-      {/* 2-Column Main Layout: Roadmap List (Left) & Topic Detail Dossier (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left 7 Columns: Topic Roadmap Nodes */}
-        <div className="lg:col-span-7 space-y-3">
-          <h2 className="text-sm font-bold text-stone-800 flex items-center justify-between">
-            <span>Adaptive Topic Milestones ({filteredNodes.length})</span>
-            <span className="text-xs text-stone-400 font-normal">Click a node to view RAG diagnostic analysis</span>
-          </h2>
+      {/* Section Header */}
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-stone-800 uppercase tracking-wider">
+          <Compass className="w-4 h-4 text-amber-500" />
+          <span>Topic Milestones ({filteredNodes.length})</span>
+        </div>
+        <span className="text-[11px] text-stone-400 font-medium">Click any card to view blueprint & practice</span>
+      </div>
 
-          {filteredNodes.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center">
-              <Compass className="w-8 h-8 text-stone-300 mx-auto mb-2" />
-              <p className="text-xs font-semibold text-stone-700">No topic nodes match the current filter</p>
-              <p className="text-[11px] text-stone-400 mt-1">Try resetting the subject or track filters above.</p>
-            </div>
-          ) : (
-            filteredNodes.map((node, index) => {
-              const isSelected = selectedNode?.id === node.id;
+      {/* Modern Individual Square Cards Grid */}
+      {filteredNodes.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-stone-200 p-12 text-center shadow-xs">
+          <Compass className="w-10 h-10 text-stone-300 mx-auto mb-2" />
+          <p className="text-sm font-semibold text-stone-700">No topic nodes match the current filter</p>
+          <p className="text-xs text-stone-400 mt-1">Try resetting the subject or track filters above.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+          {filteredNodes.map((node, index) => {
+            let statusBadge = {
+              bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+              label: 'Mastered',
+              icon: CheckCircle2
+            };
 
-              let statusBadge = {
+            if (node.status === 'remedial_needed') {
+              statusBadge = {
+                bg: 'bg-amber-50 text-amber-800 border-amber-300',
+                label: 'Remedial Priority',
+                icon: AlertTriangle
+              };
+            } else if (node.status === 'in_progress') {
+              statusBadge = {
                 bg: 'bg-yellow-50 text-yellow-700 border-yellow-300',
                 label: 'In Progress',
                 icon: TrendingUp
               };
+            } else if (node.status === 'available') {
+              statusBadge = {
+                bg: 'bg-blue-50 text-blue-700 border-blue-200',
+                label: 'Unlocked',
+                icon: Zap
+              };
+            }
 
-              if (node.status === 'mastered') {
-                statusBadge = {
-                  bg: 'bg-yellow-50 text-yellow-700 border-yellow-300',
-                  label: 'Mastered',
-                  icon: CheckCircle2
-                };
-              } else if (node.status === 'remedial_needed') {
-                statusBadge = {
-                  bg: 'bg-amber-50 text-amber-700 border-amber-200',
-                  label: 'Remedial Priority',
-                  icon: AlertTriangle
-                };
-              } else if (node.status === 'available') {
-                statusBadge = {
-                  bg: 'bg-amber-50 text-amber-700 border-amber-200',
-                  label: 'Unlocked Challenge',
-                  icon: Zap
-                };
-              }
+            const StatusIcon = statusBadge.icon;
 
-              const StatusIcon = statusBadge.icon;
-
-              return (
-                <div
-                  key={node.id}
-                  onClick={() => setSelectedNode(node)}
-                  className={`p-3 rounded-xl border transition-all cursor-pointer bg-white ${isSelected
-                    ? 'border-yellow-400 ring-2 ring-yellow-100 shadow-sm'
-                    : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50/50 shadow-xs'
-                    }`}
-                >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-stone-100 text-stone-700 font-bold text-xs flex items-center justify-center">
+            return (
+              <div
+                key={node.id}
+                onClick={() => setSelectedNode(node)}
+                className="bg-white p-4.5 rounded-2xl border border-stone-200 shadow-2xs hover:shadow-md hover:border-amber-400 hover:bg-amber-50/20 transition-all cursor-pointer flex flex-col justify-between space-y-3 group active:scale-98"
+              >
+                {/* Top Row: Index + Subject & Status Badge */}
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2.5">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="w-6 h-6 rounded-lg bg-stone-100 text-stone-700 font-bold text-xs flex items-center justify-center shrink-0 group-hover:bg-amber-200 group-hover:text-amber-950 transition-colors">
                         {index + 1}
                       </span>
-                      <span className="text-[11px] font-bold text-stone-500 uppercase tracking-tight">
+                      <span className="text-[10px] font-bold text-stone-500 uppercase tracking-tight truncate">
                         {node.subject} • {node.board}
                       </span>
                     </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${statusBadge.bg}`}>
-                        <StatusIcon className="w-3 h-3" />
-                        {statusBadge.label}
-                      </span>
-                      {node.level === 'advanced_hots' && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
-                          HOTS
-                        </span>
-                      )}
-                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 shrink-0 ${statusBadge.bg}`}>
+                      <StatusIcon className="w-3 h-3" />
+                      {statusBadge.label}
+                    </span>
                   </div>
 
-                  <h3 className="font-bold text-sm text-stone-900 mb-1 leading-snug">
+                  {/* Topic Title */}
+                  <h3 className="font-bold text-sm text-stone-900 group-hover:text-amber-900 transition-colors line-clamp-2 leading-snug">
                     {node.topic}
                   </h3>
 
-                  <p className="text-xs text-stone-500 line-clamp-2 mb-3">
-                    {node.recommendedReason}
-                  </p>
-
-                  {/* Progress Bar & Sprint Trigger */}
-                  <div className="flex items-center justify-between gap-4 pt-2 border-t border-stone-100">
-                    <div className="flex-1 max-w-[200px]">
-                      <div className="flex justify-between text-[11px] mb-1">
-                        <span className="text-stone-400">Mastery Level</span>
-                        <span className="font-bold text-stone-800">{node.masteryPercentage}%</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${node.masteryPercentage >= 80
-                            ? 'bg-yellow-500'
-                            : node.masteryPercentage >= 60
-                              ? 'bg-yellow-500'
-                              : 'bg-amber-500'
-                            }`}
-                          style={{ width: `${node.masteryPercentage}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onLaunchTopicExam({
-                          board: node.practiceExamConfig.board,
-                          classGrade: node.practiceExamConfig.classGrade,
-                          subject: node.practiceExamConfig.subject,
-                          difficulty: node.practiceExamConfig.difficulty,
-                          topic: node.practiceExamConfig.focusTopic
-                        });
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors shrink-0"
-                    >
-                      <Play className="w-3 h-3 fill-white" />
-                      <span>Start 10-Mark Sprint</span>
-                    </button>
+                  {/* Subtitle / Chapter & HOTS badge */}
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <p className="text-[11px] text-stone-400 line-clamp-1">
+                      {node.chapterName || `${node.classGrade} (${node.board})`}
+                    </p>
+                    {node.level === 'advanced_hots' && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 border border-amber-200 shrink-0">
+                        HOTS
+                      </span>
+                    )}
                   </div>
                 </div>
-              );
-            })
-          )}
+              </div>
+            );
+          })}
         </div>
+      )}
 
-        {/* Right 5 Columns: Detailed RAG Dossier for Selected Topic */}
-        <div className="lg:col-span-5">
-          {selectedNode ? (
-            <div className="bg-white border border-stone-200 rounded-xl p-4 shadow-xs sticky top-20 space-y-4">
-              <div className="flex items-start justify-between gap-2 pb-3 border-b border-stone-100">
-                <div>
-                  <span className="text-[10px] font-bold text-yellow-600 uppercase tracking-wider">
-                    RAG Diagnostic Blueprint
+      {/* Topic Learning Blueprint Modal Dialog */}
+      {selectedNode && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/60 backdrop-blur-xs overflow-y-auto animate-fadeIn"
+          onClick={() => setSelectedNode(null)}
+        >
+          <div
+            className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden my-8 max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-5 py-4 border-b border-stone-100 flex items-start justify-between gap-3 bg-gradient-to-r from-amber-50/70 via-white to-amber-50/30">
+              <div>
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className="text-[10px] font-extrabold text-amber-800 uppercase tracking-wider px-2 py-0.5 bg-amber-100 rounded-md border border-amber-200">
+                    Topic Learning Blueprint
                   </span>
-                  <h3 className="font-bold text-base text-stone-900 mt-0.5">{selectedNode.topic}</h3>
-                  <p className="text-xs text-stone-400">{selectedNode.chapterName} • {selectedNode.classGrade} ({selectedNode.board})</p>
+                  <span className="text-xs text-stone-500 font-semibold">
+                    {selectedNode.subject} • {selectedNode.classGrade} ({selectedNode.board})
+                  </span>
                 </div>
-
-                <div className="text-right shrink-0">
-                  <span className="text-2xl font-bold text-yellow-600">{selectedNode.masteryPercentage}%</span>
-                  <span className="text-[10px] text-stone-400 block">Mastery Score</span>
-                </div>
+                <h3 className="font-bold text-lg text-stone-900 leading-tight">
+                  {selectedNode.topic}
+                </h3>
+                {selectedNode.chapterName && (
+                  <p className="text-xs text-stone-500 mt-0.5">{selectedNode.chapterName}</p>
+                )}
               </div>
 
-              {/* Recommendation Reason */}
-              <div className="p-3.5 bg-yellow-50/80 rounded-xl border border-yellow-200">
-                <div className="flex items-center gap-2 text-yellow-900 font-bold text-xs mb-1">
-                  <Sparkles className="w-3.5 h-3.5 text-yellow-600" />
-                  <span>Adaptive RAG Diagnosis</span>
+              <div className="flex items-center gap-4 sm:gap-5 shrink-0 ml-4">
+                <div className="text-right bg-white/80 px-3 py-1.5 rounded-xl border border-stone-200/80 shadow-2xs">
+                  <span className={`text-xl sm:text-2xl font-black block leading-none ${selectedNode.masteryPercentage >= 75 ? 'text-emerald-600' : selectedNode.masteryPercentage > 0 ? 'text-amber-600' : 'text-rose-600'}`}>
+                    {selectedNode.masteryPercentage}%
+                  </span>
+                  <span className="text-[10px] text-stone-400 block font-bold mt-0.5">Mastery Score</span>
                 </div>
-                <p className="text-xs text-yellow-950 font-medium leading-relaxed">
+
+                <button
+                  onClick={() => setSelectedNode(null)}
+                  className="w-9 h-9 rounded-full bg-white hover:bg-rose-50 text-stone-400 hover:text-rose-600 border border-stone-200 hover:border-rose-200 flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-90 shrink-0"
+                  title="Close Modal"
+                >
+                  <X className="w-4.5 h-4.5 stroke-[2.5]" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body (Scrollable) */}
+            <div className="p-5 space-y-4 overflow-y-auto flex-1">
+              {/* Topic Performance Insights (Warm student-friendly feedback) */}
+              <div className="p-4 bg-amber-50/90 rounded-xl border border-amber-200 shadow-2xs">
+                <div className="flex items-center gap-2 text-amber-900 font-bold text-xs mb-1.5">
+                  <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Topic Performance Insights</span>
+                </div>
+                <p className="text-xs text-amber-950 font-medium leading-relaxed">
                   {selectedNode.recommendedReason}
                 </p>
               </div>
 
-              {/* Core Concepts to Review */}
-              <div>
-                <h4 className="text-xs font-bold text-stone-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 text-stone-500" />
-                  <span>Key Concepts in Syllabus</span>
-                </h4>
-                <ul className="space-y-1.5 text-xs text-stone-600">
-                  {selectedNode.keyConcepts.map((concept, idx) => (
-                    <li key={idx} className="flex items-start gap-2 bg-stone-50 p-2 rounded-lg border border-stone-100">
-                      <span className="text-yellow-600 font-bold text-xs mt-0.5">•</span>
-                      <span>{concept}</span>
-                    </li>
-                  ))}
-                </ul>
+              {/* Actionable Next Step (LLM Controlled) */}
+              <div className="p-4 bg-gradient-to-r from-amber-100/70 via-white to-amber-50 rounded-xl border border-amber-300 shadow-2xs">
+                <div className="flex items-center gap-2 text-stone-900 font-black text-xs mb-1.5">
+                  <TrendingUp className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Recommended Next Step</span>
+                </div>
+                <p className="text-xs text-stone-800 font-semibold leading-relaxed">
+                  {selectedNode.recommendedAction || selectedNode.practiceExamConfig?.recommendedAction || 'Launch the targeted practice test below to maintain and advance your mastery.'}
+                </p>
               </div>
 
-              {/* Common Traps / Misconceptions */}
-              <div>
-                <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Frequent Board Traps to Avoid</span>
-                </h4>
-                <ul className="space-y-1.5 text-xs text-stone-600">
-                  {selectedNode.commonMisconceptions.map((mis, idx) => (
-                    <li key={idx} className="flex items-start gap-2 bg-amber-50/60 p-2 rounded-lg border border-amber-100 text-amber-950">
-                      <span className="text-amber-600 font-bold text-xs mt-0.5">⚠️</span>
-                      <span>{mis}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {/* Key Concepts in Syllabus */}
+              {selectedNode.keyConcepts && selectedNode.keyConcepts.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold text-stone-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-stone-500" />
+                    <span>Key Concepts in Syllabus</span>
+                  </h4>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-stone-600">
+                    {selectedNode.keyConcepts.map((concept, idx) => (
+                      <li key={idx} className="flex items-start gap-2 bg-stone-50 p-2.5 rounded-lg border border-stone-100">
+                        <span className="text-amber-600 font-bold text-xs mt-0.5">•</span>
+                        <span>{concept}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Frequent Board Traps to Avoid */}
+              {selectedNode.commonMisconceptions && selectedNode.commonMisconceptions.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Frequent Board Traps to Avoid</span>
+                  </h4>
+                  <ul className="space-y-2 text-xs text-stone-600">
+                    {selectedNode.commonMisconceptions.map((mis, idx) => (
+                      <li key={idx} className="flex items-start gap-2 bg-amber-50/60 p-2.5 rounded-lg border border-amber-100 text-amber-950">
+                        <span className="text-amber-600 font-bold text-xs mt-0.5">⚠️</span>
+                        <span>{mis}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Curated Official Study Links & Videos */}
-              <div>
-                <h4 className="text-xs font-bold text-stone-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <BookOpen className="w-3.5 h-3.5 text-yellow-600" />
-                  <span>Curated Syllabus Resources</span>
-                </h4>
-                <div className="space-y-2">
-                  {selectedNode.curatedResources.map((res, idx) => (
-                    <a
-                      key={idx}
-                      href={res.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block p-2.5 bg-stone-50 hover:bg-yellow-50/50 rounded-xl border border-stone-200 hover:border-yellow-300 transition-colors group"
-                    >
-                      <div className="flex items-center justify-between text-xs font-bold text-stone-900 group-hover:text-yellow-700 mb-0.5">
-                        <span className="truncate pr-2">{res.title}</span>
-                        <ExternalLink className="w-3 h-3 text-stone-400 group-hover:text-yellow-600 shrink-0" />
-                      </div>
-                      <p className="text-[11px] text-stone-500 line-clamp-1">{res.description}</p>
-                      <span className="text-[10px] text-yellow-600 font-semibold mt-1 inline-block">
-                        Source: {res.source}
-                      </span>
-                    </a>
-                  ))}
+              {selectedNode.curatedResources && selectedNode.curatedResources.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold text-stone-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Curated Syllabus Resources</span>
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {selectedNode.curatedResources.map((res, idx) => (
+                      <a
+                        key={idx}
+                        href={res.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block p-3 bg-stone-50 hover:bg-amber-50/50 rounded-xl border border-stone-200 hover:border-amber-300 transition-colors group"
+                      >
+                        <div className="flex items-center justify-between text-xs font-bold text-stone-900 group-hover:text-amber-700 mb-0.5">
+                          <span className="truncate pr-2">{res.title}</span>
+                          <ExternalLink className="w-3 h-3 text-stone-400 group-hover:text-amber-600 shrink-0" />
+                        </div>
+                        <p className="text-[11px] text-stone-500 line-clamp-1">{res.description}</p>
+                        <span className="text-[10px] text-amber-600 font-semibold mt-1 inline-block">
+                          Source: {res.source}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
 
-              {/* Launch Sprint Action Button */}
-              <div className="pt-2">
-                <button
-                  onClick={() => {
-                    onLaunchTopicExam({
-                      board: selectedNode.practiceExamConfig.board,
-                      classGrade: selectedNode.practiceExamConfig.classGrade,
-                      subject: selectedNode.practiceExamConfig.subject,
-                      difficulty: selectedNode.practiceExamConfig.difficulty,
-                      topic: selectedNode.practiceExamConfig.focusTopic
-                    });
-                  }}
-                  className="w-full py-2.5 px-4 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all"
-                >
-                  <Play className="w-3.5 h-3.5 fill-white" />
-                  <span>Launch 10-Mark Diagnostic Test ({selectedNode.practiceExamConfig.difficulty.toUpperCase()})</span>
-                </button>
-              </div>
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-stone-100 bg-stone-50/80 flex items-center justify-end">
+              <button
+                onClick={() => {
+                  const node = selectedNode;
+                  setSelectedNode(null);
+                  const targetSubject = node.practiceExamConfig?.subject || node.subject;
+                  const targetBoard = node.practiceExamConfig?.board || node.board;
+                  const targetClassGrade = node.practiceExamConfig?.classGrade || node.classGrade;
+                  const targetDifficulty = node.practiceExamConfig?.difficulty || (node.status === 'remedial_needed' ? 'simple' : node.level === 'advanced_hots' ? 'hard' : 'medium');
+                  const targetTopic = node.practiceExamConfig?.focusTopic || node.topic;
+
+                  onLaunchTopicExam({
+                    board: targetBoard as Board,
+                    classGrade: targetClassGrade as ClassGrade,
+                    subject: targetSubject as Subject,
+                    difficulty: targetDifficulty as ExamDifficulty,
+                    topic: targetTopic
+                  });
+                }}
+                className="w-full sm:w-auto py-3 px-6 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-98"
+              >
+                <Play className="w-3.5 h-3.5 fill-white" />
+                <span>Launch 10-Mark Practice Test ({(selectedNode.practiceExamConfig?.difficulty || (selectedNode.status === 'remedial_needed' ? 'simple' : selectedNode.level === 'advanced_hots' ? 'hard' : 'medium')).toUpperCase()})</span>
+              </button>
             </div>
-          ) : (
-            <div className="bg-white border border-stone-200 rounded-2xl p-8 text-center text-stone-400">
-              <Compass className="w-8 h-8 mx-auto mb-2 text-stone-300" />
-              <p className="text-xs font-semibold">Select a topic from the roadmap to view details</p>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

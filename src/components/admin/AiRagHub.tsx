@@ -115,6 +115,29 @@ interface FlatTopic {
   boardName: string;
 }
 
+export const cleanHtmlTags = (str?: string): string => {
+  if (!str) return '';
+  return str
+    .replace(/<\s*br\s*\/?>/gi, '\n')
+    .replace(/<\s*\/?p\s*>/gi, '\n\n')
+    .replace(/<\s*\/?div\s*>/gi, '\n')
+    .replace(/<\s*\/?span[^>]*>/gi, '')
+    .replace(/<\s*\/?b\s*>/gi, '')
+    .replace(/<\s*\/?strong\s*>/gi, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+
+export const sanitizeQuestionsList = (list: GeneratedQuestionItem[]): GeneratedQuestionItem[] => {
+  return (list || []).map((q) => ({
+    ...q,
+    question: cleanHtmlTags(q.question),
+    correct_answer: cleanHtmlTags(q.correct_answer),
+    explanation: cleanHtmlTags(q.explanation),
+    options: Array.isArray(q.options) ? q.options.map((opt) => cleanHtmlTags(opt)) : q.options,
+  }));
+};
+
 export const AiRagHub: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ingestion' | 'playground' | 'kgraph'>('ingestion');
   const [ragStatus, setRagStatus] = useState<RagStatusData | null>(null);
@@ -505,27 +528,42 @@ export const AiRagHub: React.FC = () => {
           questions: questionsList
         });
 
+        const resultItem = {
+          filename: file.name,
+          status: 'SUCCESS',
+          total_extracted: questionsList.length,
+          new_count: newCount,
+          dupe_count: dupeCount,
+          title: data?.title || file.name,
+        };
+
         setBatchProgress((prev) => ({
           ...prev,
           completed: successFileCount,
           remaining: totalFiles - successFileCount,
           percent: Math.round((fileNum / totalFiles) * 80),
+          results: [...prev.results.filter(r => r.filename !== file.name), resultItem],
           logs: [
             ...prev.logs,
-            `  ↳ [Subject Match] Verified: "${data?.subject || selectedSubject}" | Title: "${data?.title || file.name}"`,
-            `  ↳ [Extracted] ${questionsList.length} questions (${newCount} new, ${dupeCount} duplicates).`
+            `  ✔ [FILE ${fileNum}/${totalFiles} SUCCESS - ${file.name}] Verified: "${data?.subject || selectedSubject}" | Extracted: ${questionsList.length} questions (${newCount} new, ${dupeCount} duplicates).`
           ]
         }));
       } catch (err: any) {
         console.error(`Error extracting preview for ${file.name}:`, err);
         const errMsg = err?.response?.data?.error?.message || err?.response?.data?.message || err?.message || 'Processing failed';
         lastErrorOccurred = errMsg;
+        const failedItem = {
+          filename: file.name,
+          status: 'FAILED',
+          error: errMsg
+        };
         setBatchProgress((prev) => ({
           ...prev,
-          lastError: errMsg,
+          lastError: `[${file.name}] ${errMsg}`,
+          results: [...prev.results.filter(r => r.filename !== file.name), failedItem],
           logs: [
             ...prev.logs,
-            `  ❌ [ERROR] ${file.name}: ${errMsg}`
+            `  ❌ [FILE ${fileNum}/${totalFiles} FAILED - ${file.name}]: ${errMsg}`
           ]
         }));
       }
@@ -550,7 +588,7 @@ export const AiRagHub: React.FC = () => {
         filesData: allPreviewFiles,
       });
 
-      setGeneratedQuestions(allExtractedQuestions);
+      setGeneratedQuestions(sanitizeQuestionsList(allExtractedQuestions));
       setActiveDocForGen(null);
 
       setBatchProgress((prev) => ({
@@ -765,7 +803,7 @@ export const AiRagHub: React.FC = () => {
       const questionsList = res?.questions || res?.data?.questions || [];
       const msg = res?.message || res?.data?.message;
       if (Array.isArray(questionsList) && questionsList.length > 0) {
-        setGeneratedQuestions(questionsList);
+        setGeneratedQuestions(sanitizeQuestionsList(questionsList));
         showNotify('success', msg || `✨ Generated ${questionsList.length} questions from ${activeDocForGen.filename}!`);
         // Smooth auto-scroll down to the questions review section
         setTimeout(() => {
@@ -808,7 +846,7 @@ export const AiRagHub: React.FC = () => {
           documentType: extractedPreviewData.documentType,
           cleanedText: extractedPreviewData.cleaned_text,
           topicId: selectedTargetTopicId,
-          questions: generatedQuestions,
+          questions: sanitizeQuestionsList(generatedQuestions),
           detectedTopics: extractedPreviewData.detected_topics,
           title: extractedPreviewData.title,
           summary: extractedPreviewData.summary,
@@ -818,7 +856,7 @@ export const AiRagHub: React.FC = () => {
       } else {
         const res = await ApiServices.saveRagQuestions({
           topic_id: selectedTargetTopicId,
-          questions: generatedQuestions
+          questions: sanitizeQuestionsList(generatedQuestions)
         });
         data = res?.data || res;
       }
@@ -1196,25 +1234,33 @@ export const AiRagHub: React.FC = () => {
 
                             <div className="flex items-center gap-2">
                               {isSuccess && (
-                                <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100/90 px-2.5 py-1 rounded-lg border border-emerald-300 flex items-center gap-1">
-                                  <Check className="w-3 h-3 text-emerald-600" /> {qCount > 0 ? `${qCount} Questions` : 'Extracted'}
+                                <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100/90 px-2.5 py-1 rounded-lg border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" /> {qCount > 0 ? `${qCount} Questions` : 'Success'}
                                 </span>
                               )}
                               {isCurrent && (
-                                <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-1 rounded-lg border border-amber-300 flex items-center gap-1">
+                                <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300 flex items-center gap-1 shadow-2xs">
                                   <RefreshCw className="w-3 h-3 animate-spin text-amber-600" /> Extracting...
                                 </span>
                               )}
                               {isFailed && (
-                                <span className="text-[10px] font-bold text-rose-800 bg-rose-100 px-2 py-1 rounded-lg border border-rose-300">
-                                  Failed
+                                <span
+                                  className="text-[10px] font-bold text-rose-800 bg-rose-100/90 px-2.5 py-1 rounded-lg border border-rose-300 flex items-center gap-1 shadow-2xs cursor-help"
+                                  title={fileRes?.error || 'Extraction failed for this file'}
+                                >
+                                  <X className="w-3.5 h-3.5 text-rose-600" /> Failed
+                                </span>
+                              )}
+                              {!isSuccess && !isCurrent && !isFailed && batchProgress.isRunning && (
+                                <span className="text-[10px] font-medium text-stone-400 bg-stone-50 px-2 py-1 rounded-lg border border-stone-200/80">
+                                  Queued
                                 </span>
                               )}
                               {!batchProgress.isRunning && (
                                 <button
                                   type="button"
                                   onClick={() => setUploadFiles((prev) => prev.filter((_, i) => i !== idx))}
-                                  className="text-stone-400 hover:text-rose-500 p-1 rounded-md transition-colors"
+                                  className="text-stone-400 hover:text-rose-500 p-1 rounded-md transition-colors cursor-pointer"
                                   title="Remove file"
                                 >
                                   <X className="w-3.5 h-3.5" />
@@ -1239,28 +1285,30 @@ export const AiRagHub: React.FC = () => {
                   {/* Header Row */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <RefreshCw className={`w-4 h-4 ${batchProgress.lastError
-                          ? 'text-rose-600'
-                          : batchProgress.percent === 100 && !batchProgress.isRunning
-                            ? 'text-emerald-600'
-                            : 'text-amber-600'
-                        } ${batchProgress.isRunning ? 'animate-spin' : ''}`} />
+                      <RefreshCw className={`w-4 h-4 ${
+                        batchProgress.percent === 100 && !batchProgress.isRunning
+                          ? 'text-emerald-600'
+                          : batchProgress.isRunning
+                            ? 'text-amber-600 animate-spin'
+                            : batchProgress.results.some(r => r.status === 'SUCCESS')
+                              ? 'text-emerald-600'
+                              : 'text-rose-600'
+                      }`} />
                       <span className="text-xs font-bold text-stone-800">
                         {batchProgress.isRunning
                           ? `Processing File ${batchProgress.current} of ${batchProgress.total}`
-                          : batchProgress.lastError
-                            ? 'Validation Blocked'
-                            : batchProgress.percent === 100
-                              ? 'Preview Extraction Complete'
-                              : 'Batch Ingestion Complete'}
+                          : batchProgress.percent === 100
+                            ? 'Preview Extraction Complete'
+                            : batchProgress.results.some(r => r.status === 'SUCCESS')
+                              ? 'Batch Extraction Finished'
+                              : 'Extraction Stopped'}
                       </span>
                     </div>
-                    <span className={`text-xs font-mono font-black px-2 py-0.5 rounded-md ${batchProgress.lastError
-                        ? 'bg-rose-100 text-rose-700'
-                        : batchProgress.percent === 100 && !batchProgress.isRunning
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300/60'
-                          : 'bg-amber-100 text-amber-800'
-                      }`}>
+                    <span className={`text-xs font-mono font-black px-2 py-0.5 rounded-md ${
+                      batchProgress.percent === 100 && !batchProgress.isRunning
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300/60'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}>
                       {batchProgress.percent}%
                     </span>
                   </div>
@@ -1268,11 +1316,8 @@ export const AiRagHub: React.FC = () => {
                   {/* Clean Modern Progress Bar */}
                   <div className="w-full bg-stone-200/80 h-2.5 rounded-full overflow-hidden border border-stone-300/50">
                     <div
-                      className={`h-full transition-all duration-300 ease-out ${batchProgress.lastError
-                          ? 'bg-rose-500'
-                          : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-emerald-500'
-                        }`}
-                      style={{ width: `${Math.max(batchProgress.percent, batchProgress.lastError ? 100 : 0)}%` }}
+                      className="h-full transition-all duration-300 ease-out bg-gradient-to-r from-amber-400 via-yellow-400 to-emerald-500"
+                      style={{ width: `${Math.max(batchProgress.percent, 0)}%` }}
                     />
                   </div>
 
@@ -1293,11 +1338,11 @@ export const AiRagHub: React.FC = () => {
 
                   {/* Inline Compact Error Box inside Card */}
                   {batchProgress.lastError && (
-                    <div className="p-3 bg-rose-100/80 border border-rose-300/70 rounded-xl text-xs flex items-start gap-2.5 animate-in fade-in">
+                    <div className="p-3 bg-rose-50 border border-rose-300/80 rounded-xl text-xs flex items-start gap-2.5 animate-in fade-in">
                       <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                       <div className="space-y-0.5 overflow-hidden">
-                        <span className="font-bold text-rose-900 block text-xs">Content Mismatch Error</span>
-                        <p className="text-[11px] text-rose-800 leading-snug">{batchProgress.lastError}</p>
+                        <span className="font-bold text-rose-900 block text-xs">File Extraction Notice</span>
+                        <p className="text-[11px] text-rose-800 leading-snug font-mono">{batchProgress.lastError}</p>
                       </div>
                     </div>
                   )}
@@ -2104,7 +2149,7 @@ export const AiRagHub: React.FC = () => {
 
                                   {/* Editable Question Text */}
                                   <textarea
-                                    value={q.question}
+                                    value={cleanHtmlTags(q.question)}
                                     onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { question: e.target.value })}
                                     rows={2}
                                     className="w-full p-2.5 bg-stone-50/70 border border-stone-200 rounded-xl text-xs font-bold text-stone-900 leading-relaxed focus:bg-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
@@ -2179,9 +2224,9 @@ export const AiRagHub: React.FC = () => {
                                         return (
                                           <div
                                             key={optIdx}
-                                            className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center justify-between ${isCorrect
-                                                ? 'bg-emerald-50 text-emerald-900 border-emerald-300 font-bold'
-                                                : 'bg-stone-50 text-stone-700 border-stone-200/70'
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center justify-between transition-all ${isCorrect
+                                                ? 'bg-emerald-50 text-emerald-950 border-emerald-400 ring-1 ring-emerald-300 font-bold shadow-2xs'
+                                                : 'bg-stone-50 text-stone-700 border-stone-200/70 hover:bg-stone-100/60'
                                               }`}
                                           >
                                             <input
@@ -2189,19 +2234,29 @@ export const AiRagHub: React.FC = () => {
                                               value={opt}
                                               onChange={(e) => {
                                                 const updatedOpts = [...(q.options || [])];
-                                                updatedOpts[optIdx] = e.target.value;
-                                                handleUpdateGeneratedQuestion(globalIdx, { options: updatedOpts });
+                                                const newText = e.target.value;
+                                                updatedOpts[optIdx] = newText;
+                                                const cleanNew = newText.replace(/^[A-D][\)\.\:\-\s]+/i, '').trim();
+                                                handleUpdateGeneratedQuestion(globalIdx, {
+                                                  options: updatedOpts,
+                                                  ...(isCorrect ? { correct_answer: cleanNew || optLetter } : {})
+                                                });
                                               }}
                                               className="bg-transparent border-none outline-none w-full text-xs font-medium text-stone-800"
                                             />
                                             <button
                                               type="button"
-                                              onClick={() => handleUpdateGeneratedQuestion(globalIdx, { correct_answer: optLetter })}
-                                              className={`shrink-0 ml-2 p-1 rounded-md text-[10px] font-bold ${isCorrect ? 'text-emerald-700 bg-emerald-100' : 'text-stone-400 hover:text-stone-700'
-                                                }`}
+                                              onClick={() => {
+                                                const cleanText = opt.replace(/^[A-D][\)\.\:\-\s]+/i, '').trim();
+                                                handleUpdateGeneratedQuestion(globalIdx, { correct_answer: cleanText || optLetter });
+                                              }}
+                                              className={`shrink-0 ml-2 px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all flex items-center gap-1 ${
+                                                isCorrect ? 'text-emerald-900 bg-emerald-200 shadow-2xs font-extrabold' : 'text-stone-500 hover:text-stone-900 bg-white border border-stone-200 hover:bg-stone-100'
+                                              }`}
                                               title={`Mark option ${optLetter} as correct answer`}
                                             >
                                               <Check className="w-3.5 h-3.5" />
+                                              {isCorrect ? 'Correct' : 'Set Answer'}
                                             </button>
                                           </div>
                                         );
@@ -2214,8 +2269,8 @@ export const AiRagHub: React.FC = () => {
                                         <span>Model Answer / Solution:</span>
                                       </span>
                                       <textarea
-                                        rows={Math.max(2, Math.min(8, (q.correct_answer || '').split('\n').length))}
-                                        value={q.correct_answer || ''}
+                                        rows={Math.max(2, Math.min(8, (cleanHtmlTags(q.correct_answer) || '').split('\n').length))}
+                                        value={cleanHtmlTags(q.correct_answer)}
                                         onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { correct_answer: e.target.value })}
                                         className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs font-semibold text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-400 leading-relaxed"
                                         placeholder="Enter correct solution / marking criteria..."
@@ -2230,8 +2285,8 @@ export const AiRagHub: React.FC = () => {
                                       <span>Explanation & Marking Breakdown:</span>
                                     </span>
                                     <textarea
-                                      rows={Math.max(2, Math.min(6, (q.explanation || '').split('\n').length))}
-                                      value={q.explanation || ''}
+                                      rows={Math.max(2, Math.min(6, (cleanHtmlTags(q.explanation) || '').split('\n').length))}
+                                      value={cleanHtmlTags(q.explanation)}
                                       onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { explanation: e.target.value })}
                                       className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-medium text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-400 leading-relaxed"
                                       placeholder="Add explanation or step-by-step resolution..."

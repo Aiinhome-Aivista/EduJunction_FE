@@ -98,12 +98,19 @@ export const formatCleanDisplay = (val: any): string => {
       // ignore
     }
   }
+  // Strip HTML line break and paragraph tags
+  text = text.replace(/<\s*br\s*\/?>/gi, '\n');
+  text = text.replace(/<\s*\/?p\s*>/gi, '\n\n');
+  text = text.replace(/<\s*\/?div\s*>/gi, '\n');
+  text = text.replace(/<\s*\/?span[^>]*>/gi, '');
+  text = text.replace(/<\s*\/?b\s*>/gi, '');
+  text = text.replace(/<\s*\/?strong\s*>/gi, '');
   // Strip markdown bold/italic
   text = text.replace(/\*{1,3}(.*?)\*{1,3}/g, '$1');
   text = text.replace(/_{1,3}(.*?)_{1,3}/g, '$1');
   // Strip leading array brackets quotes fragments
   text = text.replace(/^[\[\]"'\s]+/, '').replace(/[\[\]"'\s]+$/, '');
-  return text;
+  return text.replace(/\n{3,}/g, '\n\n').trim();
 };
 
 export const AcademicsHub: React.FC = () => {
@@ -458,6 +465,24 @@ export const AcademicsHub: React.FC = () => {
       ...prev,
       type: newType,
       marks: defMarks
+    }));
+  };
+
+  const isOptCorrect = (letter: string, text: string) => {
+    if (!formData.correct_answer) return false;
+    const ans = formData.correct_answer.trim();
+    const ansUpper = ans.toUpperCase();
+    if (ansUpper === letter || ansUpper.startsWith(`${letter})`) || ansUpper.startsWith(`${letter}.`) || ansUpper.startsWith(`(${letter})`)) return true;
+    const cleanAns = ans.replace(/^[A-D][\)\.\:\-\s]+/i, '').trim().toLowerCase();
+    const cleanText = (text || '').replace(/^[A-D][\)\.\:\-\s]+/i, '').trim().toLowerCase();
+    return cleanText.length > 0 && cleanAns.length > 0 && (cleanText === cleanAns || cleanAns === cleanText);
+  };
+
+  const setCorrectOption = (letter: string, optText: string) => {
+    const cleanVal = (optText || '').replace(/^[A-D][\)\.\:\-\s]+/i, '').trim();
+    setFormData(prev => ({
+      ...prev,
+      correct_answer: cleanVal || letter
     }));
   };
 
@@ -1423,59 +1448,209 @@ export const AcademicsHub: React.FC = () => {
               </div>
 
               {/* SECTION 4: MCQ OPTIONS (Only when Question Type is MCQ) */}
-              {formData.type === 'MCQ' && (
-                <div className="space-y-2 p-3.5 bg-stone-50 rounded-2xl border border-stone-200/70">
-                  <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">
-                    Multiple Choice Options (A, B, C, D)
-                  </span>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      required
-                      placeholder="Option A text..."
-                      value={formData.option_a}
-                      onChange={(e) => setFormData({ ...formData, option_a: e.target.value })}
-                      className="px-3 py-1.5 bg-white border border-stone-200 rounded-xl text-xs font-medium"
-                    />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Option B text..."
-                      value={formData.option_b}
-                      onChange={(e) => setFormData({ ...formData, option_b: e.target.value })}
-                      className="px-3 py-1.5 bg-white border border-stone-200 rounded-xl text-xs font-medium"
-                    />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Option C text..."
-                      value={formData.option_c}
-                      onChange={(e) => setFormData({ ...formData, option_c: e.target.value })}
-                      className="px-3 py-1.5 bg-white border border-stone-200 rounded-xl text-xs font-medium"
-                    />
-                    <input
-                      type="text"
-                      required
-                      placeholder="Option D text..."
-                      value={formData.option_d}
-                      onChange={(e) => setFormData({ ...formData, option_d: e.target.value })}
-                      className="px-3 py-1.5 bg-white border border-stone-200 rounded-xl text-xs font-medium"
-                    />
+              {formData.type === 'MCQ' && (() => {
+                const isOptA = isOptCorrect('A', formData.option_a);
+                const isOptB = isOptCorrect('B', formData.option_b);
+                const isOptC = isOptCorrect('C', formData.option_c);
+                const isOptD = isOptCorrect('D', formData.option_d);
+                const hasMatch = isOptA || isOptB || isOptC || isOptD;
+
+                return (
+                  <div className="space-y-3 p-3.5 bg-stone-50 rounded-2xl border border-stone-200/70">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-stone-600 uppercase tracking-wider flex items-center gap-1.5">
+                        <span>Multiple Choice Options (A, B, C, D)</span>
+                      </span>
+                      <span className="text-[10px] text-stone-400 font-medium">
+                        Click badge or button to select the correct answer
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {/* Option A */}
+                      <div className={`p-2 rounded-xl border flex items-center gap-2 transition-all ${isOptA ? 'bg-emerald-50/90 border-emerald-400 ring-1 ring-emerald-400' : 'bg-white border-stone-200'}`}>
+                        <button
+                          type="button"
+                          onClick={() => setCorrectOption('A', formData.option_a)}
+                          className={`w-6 h-6 rounded-lg text-xs font-bold shrink-0 flex items-center justify-center cursor-pointer transition-colors ${isOptA ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                          title="Click to set Option A as Correct Answer"
+                        >
+                          A
+                        </button>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Option A text..."
+                          value={formData.option_a}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData(prev => ({
+                              ...prev,
+                              option_a: val,
+                              ...(isOptA ? { correct_answer: val } : {})
+                            }));
+                          }}
+                          className="w-full bg-transparent border-none outline-none text-xs font-medium text-stone-800"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setCorrectOption('A', formData.option_a)}
+                          className={`text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 cursor-pointer ${isOptA ? 'text-emerald-700 bg-emerald-100' : 'text-stone-400 hover:text-stone-700 bg-stone-50'}`}
+                        >
+                          {isOptA ? '✓ Correct' : 'Set Answer'}
+                        </button>
+                      </div>
+
+                      {/* Option B */}
+                      <div className={`p-2 rounded-xl border flex items-center gap-2 transition-all ${isOptB ? 'bg-emerald-50/90 border-emerald-400 ring-1 ring-emerald-400' : 'bg-white border-stone-200'}`}>
+                        <button
+                          type="button"
+                          onClick={() => setCorrectOption('B', formData.option_b)}
+                          className={`w-6 h-6 rounded-lg text-xs font-bold shrink-0 flex items-center justify-center cursor-pointer transition-colors ${isOptB ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                          title="Click to set Option B as Correct Answer"
+                        >
+                          B
+                        </button>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Option B text..."
+                          value={formData.option_b}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData(prev => ({
+                              ...prev,
+                              option_b: val,
+                              ...(isOptB ? { correct_answer: val } : {})
+                            }));
+                          }}
+                          className="w-full bg-transparent border-none outline-none text-xs font-medium text-stone-800"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setCorrectOption('B', formData.option_b)}
+                          className={`text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 cursor-pointer ${isOptB ? 'text-emerald-700 bg-emerald-100' : 'text-stone-400 hover:text-stone-700 bg-stone-50'}`}
+                        >
+                          {isOptB ? '✓ Correct' : 'Set Answer'}
+                        </button>
+                      </div>
+
+                      {/* Option C */}
+                      <div className={`p-2 rounded-xl border flex items-center gap-2 transition-all ${isOptC ? 'bg-emerald-50/90 border-emerald-400 ring-1 ring-emerald-400' : 'bg-white border-stone-200'}`}>
+                        <button
+                          type="button"
+                          onClick={() => setCorrectOption('C', formData.option_c)}
+                          className={`w-6 h-6 rounded-lg text-xs font-bold shrink-0 flex items-center justify-center cursor-pointer transition-colors ${isOptC ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                          title="Click to set Option C as Correct Answer"
+                        >
+                          C
+                        </button>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Option C text..."
+                          value={formData.option_c}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData(prev => ({
+                              ...prev,
+                              option_c: val,
+                              ...(isOptC ? { correct_answer: val } : {})
+                            }));
+                          }}
+                          className="w-full bg-transparent border-none outline-none text-xs font-medium text-stone-800"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setCorrectOption('C', formData.option_c)}
+                          className={`text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 cursor-pointer ${isOptC ? 'text-emerald-700 bg-emerald-100' : 'text-stone-400 hover:text-stone-700 bg-stone-50'}`}
+                        >
+                          {isOptC ? '✓ Correct' : 'Set Answer'}
+                        </button>
+                      </div>
+
+                      {/* Option D */}
+                      <div className={`p-2 rounded-xl border flex items-center gap-2 transition-all ${isOptD ? 'bg-emerald-50/90 border-emerald-400 ring-1 ring-emerald-400' : 'bg-white border-stone-200'}`}>
+                        <button
+                          type="button"
+                          onClick={() => setCorrectOption('D', formData.option_d)}
+                          className={`w-6 h-6 rounded-lg text-xs font-bold shrink-0 flex items-center justify-center cursor-pointer transition-colors ${isOptD ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
+                          title="Click to set Option D as Correct Answer"
+                        >
+                          D
+                        </button>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Option D text..."
+                          value={formData.option_d}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData(prev => ({
+                              ...prev,
+                              option_d: val,
+                              ...(isOptD ? { correct_answer: val } : {})
+                            }));
+                          }}
+                          className="w-full bg-transparent border-none outline-none text-xs font-medium text-stone-800"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setCorrectOption('D', formData.option_d)}
+                          className={`text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 cursor-pointer ${isOptD ? 'text-emerald-700 bg-emerald-100' : 'text-stone-400 hover:text-stone-700 bg-stone-50'}`}
+                        >
+                          {isOptD ? '✓ Correct' : 'Set Answer'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {!hasMatch && formData.correct_answer && (
+                      <div className="p-2.5 bg-amber-50 border border-amber-300/80 rounded-xl flex items-start gap-2 text-[11px] text-amber-900 font-medium">
+                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span><strong>Answer Mismatch:</strong> Current Answer Key does not match any of the 4 options. Click <strong>Set Answer</strong> on option A, B, C, or D to select it as the correct answer, or switch Question Type to <strong>Short Answer (SAQ)</strong>.</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* SECTION 5: CORRECT ANSWER */}
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1">
-                  Correct Answer Key <span className="text-amber-700 font-extrabold">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-stone-700">
+                    Correct Answer Key <span className="text-amber-700 font-extrabold">*</span>
+                  </label>
+                  {formData.type === 'MCQ' && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-stone-500 font-medium">Pick Option:</span>
+                      {(['A', 'B', 'C', 'D'] as const).map((letter) => {
+                        const optKey = `option_${letter.toLowerCase()}` as 'option_a' | 'option_b' | 'option_c' | 'option_d';
+                        const optText = formData[optKey];
+                        const isMatch = isOptCorrect(letter, optText);
+                        return (
+                          <button
+                            key={letter}
+                            type="button"
+                            onClick={() => setCorrectOption(letter, optText)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors ${
+                              isMatch ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'
+                            }`}
+                          >
+                            {letter}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
                 <input
                   type="text"
                   required
                   placeholder={
                     formData.type === 'MCQ'
-                      ? 'e.g. A) Option Text or exact option prefix'
+                      ? 'Click option A/B/C/D above or enter exact matching option text'
                       : formData.type === 'Numerical'
                       ? 'e.g. 5 or 300'
                       : formData.type === 'Objective'
