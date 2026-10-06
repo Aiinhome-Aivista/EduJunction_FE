@@ -1957,6 +1957,14 @@ export const AiRagHub: React.FC = () => {
                 const currentSubject = extractedPreviewData?.subject || activeDocForGen?.subject || selectedSubject || 'General';
                 const currentChapter = extractedPreviewData?.title || activeDocForGen?.chapterName || modalDisplayTopics.find(t => t.id === selectedTargetTopicId)?.chapterName || 'Main Chapter';
 
+                const uniqueChapters = Array.from(
+                  new Set(
+                    generatedQuestions
+                      .map(q => q.chapter_name || (q as any).chapter_title)
+                      .filter(Boolean)
+                  )
+                );
+
                 // Group questions by their topic_suggested or fallback to selectedTargetTopic
                 const fallbackTopicName = modalDisplayTopics.find(t => t.id === selectedTargetTopicId)?.name || 'General Topic';
 
@@ -2006,9 +2014,19 @@ export const AiRagHub: React.FC = () => {
                           📘 {currentSubject}
                         </span>
                         <span className="text-stone-400 font-bold">&gt;</span>
-                        <span className="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-2xs">
-                          📖 Chapter: {currentChapter}
-                        </span>
+                        {uniqueChapters.length === 1 ? (
+                          <span className="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-2xs">
+                            📖 Chapter: {uniqueChapters[0]}
+                          </span>
+                        ) : uniqueChapters.length > 1 ? (
+                          <span className="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-2xs">
+                            📚 Source: {extractedPreviewData?.title || activeDocForGen?.chapterName || 'Curriculum Book'} ({uniqueChapters.length} Chapters)
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-2xs">
+                            📖 Chapter: {currentChapter}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -2033,7 +2051,7 @@ export const AiRagHub: React.FC = () => {
                               </span>
                             </div>
                             <span className="text-[10px] text-stone-500 font-medium">
-                              {currentBoard} &gt; {currentClass} &gt; {currentSubject} &gt; {group.questions[0]?.chapter_name || currentChapter} &gt; <strong className="text-stone-700">{topicName}</strong>
+                              {currentBoard} &gt; {currentClass} &gt; {currentSubject} &gt; <span className="font-bold text-stone-700">{group.questions[0]?.chapter_name || currentChapter}</span> &gt; <strong className="text-amber-900 bg-amber-100/70 px-1.5 py-0.5 rounded">{topicName}</strong>
                             </span>
                           </div>
 
