@@ -115,7 +115,7 @@ export const formatCleanDisplay = (val: any): string => {
 
 export const AcademicsHub: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'curriculum' | 'questions'>('curriculum');
-  
+
   // Curriculum Tree State
   const [tree, setTree] = useState<BoardNode[]>([]);
   const [loadingTree, setLoadingTree] = useState(false);
@@ -549,11 +549,10 @@ export const AcademicsHub: React.FC = () => {
     <div className="space-y-6">
       {/* Toast Notification */}
       {notification && (
-        <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md transition-all animate-bounce ${
-          notification.type === 'success'
+        <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border backdrop-blur-md transition-all animate-bounce ${notification.type === 'success'
             ? 'bg-emerald-500/90 text-white border-emerald-400'
             : 'bg-rose-500/90 text-white border-rose-400'
-        }`}>
+          }`}>
           {notification.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span className="text-sm font-semibold">{notification.message}</span>
         </div>
@@ -577,22 +576,20 @@ export const AcademicsHub: React.FC = () => {
         <div className="flex items-center gap-1.5 p-1.5 bg-stone-100 rounded-2xl border border-stone-200/60 w-full md:w-auto">
           <button
             onClick={() => setActiveTab('curriculum')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'curriculum'
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'curriculum'
                 ? 'bg-white text-stone-900 shadow-xs border border-stone-200/80'
                 : 'text-stone-500 hover:text-stone-800'
-            }`}
+              }`}
           >
             <Layers className="w-4 h-4 text-yellow-600" />
             Curriculum Tree
           </button>
           <button
             onClick={() => setActiveTab('questions')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'questions'
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'questions'
                 ? 'bg-white text-stone-900 shadow-xs border border-stone-200/80'
                 : 'text-stone-500 hover:text-stone-800'
-            }`}
+              }`}
           >
             <HelpCircle className="w-4 h-4 text-yellow-600" />
             Question Bank ({totalQuestions})
@@ -634,11 +631,10 @@ export const AcademicsHub: React.FC = () => {
                         setSelectedSubjectId(null);
                       }
                     }}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-bold text-left transition-all border ${
-                      selectedBoardId === b.id
+                    className={`px-3 py-2.5 rounded-xl text-xs font-bold text-left transition-all border ${selectedBoardId === b.id
                         ? 'bg-yellow-400 text-stone-900 border-yellow-500 shadow-xs font-black scale-[1.02]'
                         : 'bg-stone-50 text-stone-600 border-stone-200/60 hover:bg-stone-100'
-                    }`}
+                      }`}
                   >
                     {b.board_name}
                   </button>
@@ -667,11 +663,10 @@ export const AcademicsHub: React.FC = () => {
                           setSelectedSubjectId(null);
                         }
                       }}
-                      className={`px-3 py-2 rounded-xl text-xs font-semibold text-center transition-all border ${
-                        activeClass?.id === c.id
+                      className={`px-3 py-2 rounded-xl text-xs font-semibold text-center transition-all border ${activeClass?.id === c.id
                           ? 'bg-stone-900 text-white border-stone-900 shadow-xs font-bold'
                           : 'bg-stone-50 text-stone-600 border-stone-200/60 hover:bg-stone-100'
-                      }`}
+                        }`}
                     >
                       {c.class_name}
                     </button>
@@ -689,11 +684,10 @@ export const AcademicsHub: React.FC = () => {
                     <button
                       key={s.id}
                       onClick={() => setSelectedSubjectId(s.id)}
-                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                        selectedSubjectId === s.id
+                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all border ${selectedSubjectId === s.id
                           ? 'bg-yellow-50 text-yellow-900 border-yellow-300 font-bold'
                           : 'bg-stone-50 text-stone-600 border-stone-200/60 hover:bg-stone-100'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2">
                         <BookOpen className="w-3.5 h-3.5 text-yellow-600" />
@@ -779,11 +773,10 @@ export const AcademicsHub: React.FC = () => {
                               <span className="text-xs font-semibold text-stone-800">{top.topic_name}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                                top.question_count > 0
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${top.question_count > 0
                                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                   : 'bg-amber-50 text-amber-700 border-amber-200'
-                              }`}>
+                                }`}>
                                 {top.question_count} Questions
                               </span>
                             </div>
@@ -805,9 +798,70 @@ export const AcademicsHub: React.FC = () => {
       {activeTab === 'questions' && (
         <div className="space-y-6">
           {/* Action Bar */}
-          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-xs flex items-center justify-between flex-wrap gap-2">
-            {/* Filter Dropdowns & Action Buttons */}
-            <div className="flex flex-wrap items-center gap-2 w-full">
+          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-xs flex flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+              {/* Global Search Bar */}
+              <div className="relative flex-1 min-w-[240px] max-w-md">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Search (question, topic, keyword, answer)..."
+                  className="w-full pl-9 pr-8 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-xs font-semibold text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-white transition-all shadow-2xs"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setPage(1);
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-0.5 rounded-md hover:bg-stone-200/60 transition-colors cursor-pointer"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Action Buttons (Right Aligned) */}
+              <div className="flex items-center gap-2 flex-wrap ml-auto">
+                <button
+                  onClick={() => setShowBulkUploadModal(true)}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-stone-900 text-white hover:bg-stone-800 transition-all cursor-pointer shadow-xs"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-yellow-400" />
+                  CSV Upload
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowHistoryModal(true);
+                    fetchUploadHistory();
+                  }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-200/80 transition-all cursor-pointer shadow-2xs"
+                  title="View past question bulk upload batches & logs"
+                >
+                  <History className="w-3.5 h-3.5 text-amber-600" />
+                  Upload History
+                </button>
+
+                <button
+                  onClick={openAddQuestionModal}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-yellow-400 text-stone-900 hover:bg-yellow-300 transition-all cursor-pointer shadow-xs"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Question
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Dropdowns Row */}
+            <div className="flex flex-wrap items-center gap-2 w-full pt-1 border-t border-stone-100">
               {/* Board Filter */}
               <select
                 value={filterBoard}
@@ -815,6 +869,7 @@ export const AcademicsHub: React.FC = () => {
                   setFilterBoard(e.target.value);
                   setFilterClass('');
                   setFilterSubject('');
+                  setPage(1);
                 }}
                 className="px-3 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-xs font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
@@ -824,12 +879,13 @@ export const AcademicsHub: React.FC = () => {
                 ))}
               </select>
 
-              {/* Class Filter (Replaces All Difficulties position) */}
+              {/* Class Filter */}
               <select
                 value={filterClass}
                 onChange={(e) => {
                   setFilterClass(e.target.value);
                   setFilterSubject('');
+                  setPage(1);
                 }}
                 className="px-3 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-xs font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
@@ -839,10 +895,13 @@ export const AcademicsHub: React.FC = () => {
                 ))}
               </select>
 
-              {/* Subject Filter (Replaces All Types position) */}
+              {/* Subject Filter */}
               <select
                 value={filterSubject}
-                onChange={(e) => setFilterSubject(e.target.value)}
+                onChange={(e) => {
+                  setFilterSubject(e.target.value);
+                  setPage(1);
+                }}
                 className="px-3 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-xs font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 <option value="" className="text-stone-900 bg-white">All Subjects</option>
@@ -854,7 +913,10 @@ export const AcademicsHub: React.FC = () => {
               {/* Difficulty Filter */}
               <select
                 value={filterDifficulty}
-                onChange={(e) => setFilterDifficulty(e.target.value)}
+                onChange={(e) => {
+                  setFilterDifficulty(e.target.value);
+                  setPage(1);
+                }}
                 className="px-3 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-xs font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 <option value="" className="bg-white text-stone-900 font-medium">All Difficulties</option>
@@ -866,7 +928,10 @@ export const AcademicsHub: React.FC = () => {
               {/* Type Filter */}
               <select
                 value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
+                onChange={(e) => {
+                  setFilterType(e.target.value);
+                  setPage(1);
+                }}
                 className="px-3 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-xs font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 cursor-pointer"
               >
                 <option value="" className="bg-white text-stone-900 font-medium">All Types</option>
@@ -876,33 +941,23 @@ export const AcademicsHub: React.FC = () => {
                 <option value="Logical" className="bg-white text-stone-900 font-medium">Logical</option>
               </select>
 
-              <button
-                onClick={() => setShowBulkUploadModal(true)}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-stone-900 text-white hover:bg-stone-800 transition-all cursor-pointer shadow-xs"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-yellow-400" />
-                CSV Upload
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowHistoryModal(true);
-                  fetchUploadHistory();
-                }}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-200/80 transition-all cursor-pointer shadow-2xs"
-                title="View past question bulk upload batches & logs"
-              >
-                <History className="w-3.5 h-3.5 text-amber-600" />
-                Upload History
-              </button>
-
-              <button
-                onClick={openAddQuestionModal}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-yellow-400 text-stone-900 hover:bg-yellow-300 transition-all cursor-pointer shadow-xs"
-              >
-                <Plus className="w-4 h-4" />
-                Add Question
-              </button>
+              {(searchQuery || filterBoard || filterClass || filterSubject || filterDifficulty || filterType) && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilterBoard('');
+                    setFilterClass('');
+                    setFilterSubject('');
+                    setFilterDifficulty('');
+                    setFilterType('');
+                    setPage(1);
+                  }}
+                  className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-xl text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ml-auto sm:ml-0"
+                >
+                  <RefreshCw className="w-3 h-3 text-stone-500" />
+                  Reset Filters
+                </button>
+              )}
             </div>
           </div>
 
@@ -931,13 +986,12 @@ export const AcademicsHub: React.FC = () => {
                             <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 border border-stone-200">
                               #{q.id} &bull; {q.type}
                             </span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                              normalizedDiff === 'hard'
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${normalizedDiff === 'hard'
                                 ? 'bg-rose-50 text-rose-700 border-rose-200'
                                 : normalizedDiff === 'medium'
-                                ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            }`}>
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              }`}>
                               {diffLabel}
                             </span>
                             <span className="text-[10px] font-semibold text-stone-400">
@@ -947,77 +1001,76 @@ export const AcademicsHub: React.FC = () => {
                           <p className="text-sm font-bold text-stone-900 leading-relaxed">{q.question}</p>
                         </div>
 
-                      {/* Action buttons */}
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => openEditQuestionModal(q)}
-                          className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
-                          title="Edit Question"
-                        >
-                          <Edit2 className="w-4 h-4 stroke-[2.2]" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteQuestion(q.id)}
-                          className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
-                          title="Deactivate Question"
-                        >
-                          <Trash2 className="w-4 h-4 stroke-[2.2]" />
-                        </button>
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => openEditQuestionModal(q)}
+                            className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
+                            title="Edit Question"
+                          >
+                            <Edit2 className="w-4 h-4 stroke-[2.2]" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteQuestion(q.id)}
+                            className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all shadow-2xs cursor-pointer inline-flex items-center justify-center"
+                            title="Deactivate Question"
+                          >
+                            <Trash2 className="w-4 h-4 stroke-[2.2]" />
+                          </button>
+                        </div>
                       </div>
+
+                      {/* MCQ Options Display */}
+                      {q.options && Array.isArray(q.options) && q.options.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                          {q.options.map((opt: string, optIdx: number) => {
+                            const cleanOpt = formatCleanDisplay(opt);
+                            const isCorrect = cleanOpt.trim().toLowerCase().startsWith((q.correct_answer || '').toLowerCase()) ||
+                              cleanOpt.trim().toLowerCase().includes((q.correct_answer || '').toLowerCase());
+                            return (
+                              <div
+                                key={optIdx}
+                                className={`px-3 py-2 rounded-xl text-xs font-medium border ${isCorrect
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold shadow-2xs'
+                                    : 'bg-stone-50/70 text-stone-600 border-stone-200/80'
+                                  }`}
+                              >
+                                {cleanOpt}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Model Answer for Descriptive Questions (Non-MCQ) */}
+                      {(!q.options || !Array.isArray(q.options) || q.options.length === 0) && q.correct_answer && (
+                        <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-xs text-emerald-950 font-medium space-y-1 shadow-2xs">
+                          <div className="flex items-center gap-1.5 font-bold text-emerald-800">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>Model Answer / Solution:</span>
+                          </div>
+                          <div className="whitespace-pre-line text-emerald-900 leading-relaxed pl-5 font-normal">
+                            {formatCleanDisplay(q.correct_answer)}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Explanation */}
+                      {q.explanation && (
+                        <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/70 text-xs text-amber-950 font-medium space-y-1 shadow-2xs">
+                          <div className="flex items-center gap-1.5 font-bold text-amber-800">
+                            <span>💡</span>
+                            <span>Explanation & Marking Breakdown:</span>
+                          </div>
+                          <div className="whitespace-pre-line text-amber-900 leading-relaxed pl-5 font-normal">
+                            {formatCleanDisplay(q.explanation)}
+                          </div>
+                        </div>
+                      )}
                     </div>
-
-                    {/* MCQ Options Display */}
-                    {q.options && Array.isArray(q.options) && q.options.length > 0 && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                        {q.options.map((opt: string, optIdx: number) => {
-                          const cleanOpt = formatCleanDisplay(opt);
-                          const isCorrect = cleanOpt.trim().toLowerCase().startsWith((q.correct_answer || '').toLowerCase()) ||
-                                            cleanOpt.trim().toLowerCase().includes((q.correct_answer || '').toLowerCase());
-                          return (
-                            <div
-                              key={optIdx}
-                              className={`px-3 py-2 rounded-xl text-xs font-medium border ${
-                                isCorrect
-                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold shadow-2xs'
-                                  : 'bg-stone-50/70 text-stone-600 border-stone-200/80'
-                              }`}
-                            >
-                              {cleanOpt}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Model Answer for Descriptive Questions (Non-MCQ) */}
-                    {(!q.options || !Array.isArray(q.options) || q.options.length === 0) && q.correct_answer && (
-                      <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-xs text-emerald-950 font-medium space-y-1 shadow-2xs">
-                        <div className="flex items-center gap-1.5 font-bold text-emerald-800">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span>Model Answer / Solution:</span>
-                        </div>
-                        <div className="whitespace-pre-line text-emerald-900 leading-relaxed pl-5 font-normal">
-                          {formatCleanDisplay(q.correct_answer)}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Explanation */}
-                    {q.explanation && (
-                      <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/70 text-xs text-amber-950 font-medium space-y-1 shadow-2xs">
-                        <div className="flex items-center gap-1.5 font-bold text-amber-800">
-                          <span>💡</span>
-                          <span>Explanation & Marking Breakdown:</span>
-                        </div>
-                        <div className="whitespace-pre-line text-amber-900 leading-relaxed pl-5 font-normal">
-                          {formatCleanDisplay(q.explanation)}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
+                  );
                 })}
               </div>
             )}
@@ -1072,11 +1125,10 @@ export const AcademicsHub: React.FC = () => {
                           {showEllipsis && <span className="px-1 text-stone-400">...</span>}
                           <button
                             onClick={() => setPage(pNum)}
-                            className={`min-w-[28px] h-7 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                              page === pNum
+                            className={`min-w-[28px] h-7 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${page === pNum
                                 ? 'bg-yellow-400 text-stone-900 border border-yellow-500 shadow-2xs font-extrabold'
                                 : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-100'
-                            }`}
+                              }`}
                           >
                             {pNum}
                           </button>
@@ -1180,7 +1232,7 @@ export const AcademicsHub: React.FC = () => {
                     </div>
                     <span className="text-amber-700 font-extrabold">{uploadProgress}%</span>
                   </div>
-                  
+
                   {/* Visual Progress Bar */}
                   <div className="w-full bg-amber-200/50 rounded-full h-2.5 overflow-hidden">
                     <div
@@ -1634,9 +1686,8 @@ export const AcademicsHub: React.FC = () => {
                             key={letter}
                             type="button"
                             onClick={() => setCorrectOption(letter, optText)}
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors ${
-                              isMatch ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'
-                            }`}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors ${isMatch ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-stone-200 hover:bg-stone-300 text-stone-700'
+                              }`}
                           >
                             {letter}
                           </button>
@@ -1652,10 +1703,10 @@ export const AcademicsHub: React.FC = () => {
                     formData.type === 'MCQ'
                       ? 'Click option A/B/C/D above or enter exact matching option text'
                       : formData.type === 'Numerical'
-                      ? 'e.g. 5 or 300'
-                      : formData.type === 'Objective'
-                      ? 'e.g. Chlorophyll or single keyword'
-                      : 'e.g. Expected answer summary or definition...'
+                        ? 'e.g. 5 or 300'
+                        : formData.type === 'Objective'
+                          ? 'e.g. Chlorophyll or single keyword'
+                          : 'e.g. Expected answer summary or definition...'
                   }
                   value={formData.correct_answer}
                   onChange={(e) => setFormData({ ...formData, correct_answer: e.target.value })}

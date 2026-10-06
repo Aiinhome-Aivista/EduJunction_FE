@@ -57,6 +57,7 @@ interface DbTopic {
 interface DbChapter {
   id: number;
   name: string;
+  branch?: string | null;
   topics: DbTopic[];
 }
 
@@ -122,6 +123,8 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
   const [selectedBoard, setSelectedBoard] = useState<Board>(activeChild?.targetBoard || 'CBSE');
   const [selectedGrade, setSelectedGrade] = useState<ClassGrade>(activeChild?.classGrade || 'Class 10');
   const [dbSubjects, setDbSubjects] = useState<string[]>([]);
+  const [fullCurriculumSubjects, setFullCurriculumSubjects] = useState<DbSubject[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState<'all' | 'Physics' | 'Chemistry' | 'Biology'>('all');
   const [isLoadingSubjects, setIsLoadingSubjects] = useState<boolean>(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject | ''>(presetSubject || '');
   const [selectedDifficulty, setSelectedDifficulty] = useState<ExamDifficulty>(presetDifficulty || 'medium');
@@ -153,6 +156,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
       .then((res: any) => {
         if (!isMounted) return;
         const fetched: DbSubject[] = res?.subjects || res?.data?.subjects || [];
+        setFullCurriculumSubjects(fetched);
         const subjectNames = fetched.map((s) => s.name).filter(Boolean);
         setDbSubjects(subjectNames);
 
@@ -384,11 +388,15 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
 
       const targetScheduledId = isAssignedTest ? assignedExam?.id : undefined;
 
+      const isScience = String(targetSub).toLowerCase().includes('science');
+      const scienceBranch = isScience && selectedBranch !== 'all' ? selectedBranch : undefined;
+
       const { exam } = await ApiServices.generateExam({
         studentId: activeChildId,
         board: selectedBoard,
         classGrade: selectedGrade,
         subject: targetSub,
+        branch: scienceBranch,
         difficulty: targetDiff,
         questionCount: targetQCount,
         timeLimitMinutes: targetDuration,
@@ -1338,6 +1346,52 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                 </>
               )}
             </select>
+
+            {/* Science Domain / Sub-Branch Selector (CBSE & General Science) */}
+            {String(selectedSubject || '').toLowerCase().includes('science') && (
+              <div className="mt-3 p-3.5 bg-gradient-to-r from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-2xl border border-yellow-200/90 shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="text-[11px] font-extrabold text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    Science Domain Focus
+                  </span>
+                  <span className="text-[10px] text-amber-800 font-bold bg-white px-2.5 py-0.5 rounded-full border border-yellow-300 shadow-2xs">
+                    {selectedBranch === 'all' ? 'Full Mixed Syllabus' : `${selectedBranch} Target Practice`}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'all', label: 'All Science', icon: '🌐', desc: 'Mixed Blueprint' },
+                    { id: 'Physics', label: 'Physics', icon: '⚡', desc: 'Light, Electricity...' },
+                    { id: 'Chemistry', label: 'Chemistry', icon: '🧪', desc: 'Reactions, Acids...' },
+                    { id: 'Biology', label: 'Biology', icon: '🧬', desc: 'Life, Heredity...' },
+                  ].map((b) => {
+                    const isSelected = selectedBranch === b.id;
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        id={`branch-btn-${b.id}`}
+                        onClick={() => setSelectedBranch(b.id as any)}
+                        className={`p-2.5 rounded-xl border text-left transition-all ${
+                          isSelected
+                            ? 'bg-amber-400 text-stone-950 border-amber-500 shadow-xs ring-2 ring-amber-300 ring-offset-1 font-bold scale-[1.02]'
+                            : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-yellow-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 text-xs font-bold">
+                          <span className="text-sm">{b.icon}</span>
+                          <span>{b.label}</span>
+                        </div>
+                        <div className={`text-[9px] mt-0.5 line-clamp-1 ${isSelected ? 'text-amber-950 font-medium' : 'text-stone-400'}`}>
+                          {b.desc}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Difficulty Level (Always Unlocked & Interactive) */}
@@ -1380,7 +1434,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
         {/* RAG Knowledge Blueprint Preview */}
         <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 mb-8">
           <p className="text-xs text-stone-600 leading-relaxed">
-            Generating <strong className="text-stone-900">{blueprint.questionCount} questions ({blueprint.totalMarks} Marks)</strong> for <strong className="text-stone-900">{selectedGrade} {selectedBoard}{selectedSubject ? ` • ${selectedSubject}` : ''} ({selectedDifficulty.toUpperCase()})</strong> — {blueprint.breakdown}.
+            Generating <strong className="text-stone-900">{blueprint.questionCount} questions ({blueprint.totalMarks} Marks)</strong> for <strong className="text-stone-900">{selectedGrade} {selectedBoard}{selectedSubject ? ` • ${selectedSubject}${String(selectedSubject).toLowerCase().includes('science') && selectedBranch !== 'all' ? ` (${selectedBranch})` : ''}` : ''} ({selectedDifficulty.toUpperCase()})</strong> — {blueprint.breakdown}.
           </p>
         </div>
 
