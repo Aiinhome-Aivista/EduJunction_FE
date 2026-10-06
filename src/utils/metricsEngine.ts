@@ -115,3 +115,68 @@ export function calculateStudentMetrics(
     weakestTopic,
   };
 }
+
+/**
+ * Resolves dynamic display subject and branch/topic for an exam submission
+ * Examples:
+ * - "Class 10 CBSE Science (Chemistry) (MEDIUM) Diagnostic 15-Mark Exam" -> "Science (Chemistry)"
+ * - "Class 10 CBSE Science (Physics) (HARD) Diagnostic 15-Mark Exam" -> "Science (Physics)"
+ * - "Class 10 CBSE Science: Chemical Reactions Remedial Sprint" -> "Science (Chemical Reactions)"
+ * - "Class 10 CBSE Mathematics (MEDIUM) Diagnostic 15-Mark Exam" -> "Mathematics"
+ */
+export function getExamDisplaySubject(sub: ExamSubmission | null | undefined): string {
+  if (!sub) return 'Diagnostic Exam';
+
+  const title = (sub.examTitle || '').trim();
+  const rawSubj = (sub.subject || '').trim();
+
+  if (!title) return rawSubj || 'Diagnostic Exam';
+
+  // 1. Explicit Branch in Exam Title e.g. "Science (Chemistry)", "Science (Physics)"
+  const branchInParensMatch = title.match(
+    /(?:Class\s+\d+\s+[^:]+?\s+)?([A-Za-z\s]+?)\s*\(((?:Chemistry|Physics|Biology|Botany|Zoology|Algebra|Geometry|Trigonometry|Statistics|Grammar|Literature|History|Civics|Geography|Economics)[^)]*)\)/i
+  );
+  if (branchInParensMatch) {
+    const subj = branchInParensMatch[1].trim() || rawSubj;
+    const branch = branchInParensMatch[2].trim();
+    const cleanBranch = branch.charAt(0).toUpperCase() + branch.slice(1);
+    return `${subj} (${cleanBranch})`;
+  }
+
+  // 2. Any Science with sub-branch anywhere in title e.g. "Science (Physics)"
+  const scienceMatch = title.match(/Science\s*\(([^)]+)\)/i);
+  if (scienceMatch) {
+    const inner = scienceMatch[1].trim();
+    if (!['easy', 'medium', 'hard', 'simple', 'diagnostic', 'marks', '15-mark', '5-mark', '10-mark'].includes(inner.toLowerCase())) {
+      const cleanInner = inner.charAt(0).toUpperCase() + inner.slice(1);
+      return `Science (${cleanInner})`;
+    }
+  }
+
+  // 3. Topic in Title Pattern e.g. "Class 10 CBSE Science: Chemical Reactions Remedial Sprint"
+  const colonTopicMatch = title.match(
+    /(?:Class\s+\d+\s+[^:]+?\s+)?([A-Za-z\s]+):\s*([^(\n\r]+?)(?:\s+Remedial|\s+Diagnostic|\s+Sprint|\s*\(\d+|$)/i
+  );
+  if (colonTopicMatch) {
+    const subj = colonTopicMatch[1].trim() || rawSubj;
+    const topic = colonTopicMatch[2].trim();
+    if (subj && topic) {
+      return `${subj} (${topic})`;
+    }
+  }
+
+  // 4. Fallback: Topic from evaluations if subject is Science and evaluations available
+  if (rawSubj.toLowerCase() === 'science' && sub.evaluations && sub.evaluations.length > 0) {
+    const chemKeywords = ['chemical', 'reaction', 'acid', 'base', 'salt', 'metal', 'non-metal', 'carbon', 'periodic'];
+    const physKeywords = ['light', 'reflection', 'refraction', 'electricity', 'magnetic', 'human eye', 'current', 'motion', 'force', 'gravitation', 'work', 'energy', 'sound'];
+    const bioKeywords = ['life processes', 'control', 'coordination', 'reproduce', 'reproduction', 'heredity', 'environment', 'resources', 'cell', 'tissue', 'organism'];
+
+    const allEvalText = sub.evaluations.map((e) => `${e.topic || ''} ${(e as any).chapter || ''}`).join(' ').toLowerCase();
+    if (chemKeywords.some((k) => allEvalText.includes(k))) return 'Science (Chemistry)';
+    if (physKeywords.some((k) => allEvalText.includes(k))) return 'Science (Physics)';
+    if (bioKeywords.some((k) => allEvalText.includes(k))) return 'Science (Biology)';
+  }
+
+  return rawSubj || 'Diagnostic Exam';
+}
+

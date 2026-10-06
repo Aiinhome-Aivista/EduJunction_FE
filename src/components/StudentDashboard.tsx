@@ -49,7 +49,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-import { calculateStudentMetrics } from '../utils/metricsEngine';
+import { calculateStudentMetrics, getExamDisplaySubject } from '../utils/metricsEngine';
 
 interface StudentDashboardProps {
   activeChild: ChildAccount;
@@ -1021,8 +1021,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="space-y-0.5">
-                      <div className="text-xs font-bold text-stone-900 group-hover:text-amber-900 transition-colors line-clamp-1">
-                        {sub.subject || 'Diagnostic Exam'}
+                      <div className="text-xs font-bold text-stone-900 group-hover:text-amber-900 transition-colors line-clamp-1" title={getExamDisplaySubject(sub)}>
+                        {getExamDisplaySubject(sub)}
                       </div>
                       <div className="text-[10px] text-stone-400 font-medium">
                         {dateStr} &bull; {sub.examType || (isKid ? '5-Mark Adventure Quest' : '15-Mark Challenge')}

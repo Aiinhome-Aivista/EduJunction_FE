@@ -144,6 +144,7 @@ export interface QuestionEvaluation {
   missedKeywords?: string[];
   referenceLinks: ReferenceLink[];
   topic: string;
+  chapter?: string;
 }
 
 export interface KGraphInsight {

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ExamSubmission, QuestionEvaluation } from '../types';
+import { getExamDisplaySubject } from '../utils/metricsEngine';
 import {
   Award,
   CheckCircle2,
@@ -40,7 +41,10 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
   onNavigateToLearningPath,
   onNavigateToFunZone
 }) => {
-  const evaluations: QuestionEvaluation[] = submission?.evaluations || [];
+  const evaluations: QuestionEvaluation[] = useMemo(() => {
+    const list = [...(submission?.evaluations || [])];
+    return list.sort((a, b) => (Number(a.questionNumber) || 0) - (Number(b.questionNumber) || 0));
+  }, [submission?.evaluations]);
 
   const analysis = submission?.analysis || {
     overallBand: 'Proficient' as const,
@@ -103,7 +107,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
   const timeTakenSeconds = submission?.timeTakenSeconds || 0;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 print:max-w-none print:w-full print:p-0 print:m-0">
+    <div className="space-y-6 pb-12 print:max-w-none print:w-full print:p-0 print:m-0">
       {/* Top Banner / Breadcrumb & Action bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6 print:hidden">
         <button
@@ -158,7 +162,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
           </div>
           <div>
             <h3 className="font-bold text-sm text-white">
-              {isKid ? 'Kids Adventure Rewards Unlocked! 🌟' : 'Diagnostic Sprint Rewards Unlocked!'}
+              {isKid ? 'Kids Adventure Rewards Unlocked! 🌟' : 'Exam Sprint Rewards Unlocked!'}
             </h3>
             <p className="text-xs text-amber-100">
               +{earnedXP} EduPoints (XP) awarded to candidate's global knowledge rank.
@@ -181,15 +185,17 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-50 text-yellow-700 border border-yellow-300">
-                {isKid ? `${totalMarks}-Mark Adventure Challenge Result 🌟` : `${totalMarks}-Mark Diagnostic Analytical Result 🎯`}
+                {isKid ? `${totalMarks}-Mark Adventure Challenge Result 🌟` : `${totalMarks}-Mark Analytical Result 🎯`}
               </span>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-stone-100 text-stone-700">
                 {submission.board || 'Curriculum'} • {submission.classGrade || 'Grade'}
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-stone-900">{submission.examTitle || `${submission.subject || 'Subject'} Assessment`}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-stone-900">
+              {(submission.examTitle || `${submission.subject || 'Subject'} Assessment`).replace(/\bDiagnostic\s*/gi, '').replace(/\s{2,}/g, ' ').trim()}
+            </h1>
             <p className="text-xs text-stone-500 mt-1">
-              Candidate: <strong className="text-stone-800">{submission.studentName || 'Student'}</strong> • Tested Subject: <strong className="text-stone-800">{submission.subject || 'General'}</strong> ({(submission.difficulty || 'medium').toUpperCase()})
+              Candidate: <strong className="text-stone-800">{submission.studentName || 'Student'}</strong> • Tested Subject: <strong className="text-stone-800">{getExamDisplaySubject(submission)}</strong> ({(submission.difficulty || 'medium').toUpperCase()})
             </p>
           </div>
 
@@ -259,7 +265,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
         </div>
 
         {/* Evolutionary K-Graph Topic Mastery Breakdown */}
-        {analysis.kGraphInsights && analysis.kGraphInsights.length > 0 && (
+        {/* {analysis.kGraphInsights && analysis.kGraphInsights.length > 0 && (
           <div className="mt-6 pt-6 border-t border-stone-100">
             <h3 className="text-xs font-bold text-stone-800 uppercase tracking-wider mb-4 flex items-center gap-2">
               <Layers className="w-4 h-4 text-yellow-600" />
@@ -284,10 +290,10 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                         </span>
                         <span className="text-xs font-bold text-stone-700">{kNode.masteryPercentage}%</span>
                       </div>
-                    </div>
+                    </div> */}
 
-                    {/* Progress Bar */}
-                    <div className="w-full h-2 bg-stone-200 rounded-full overflow-hidden mb-2">
+        {/* Progress Bar */}
+        {/* <div className="w-full h-2 bg-stone-200 rounded-full overflow-hidden mb-2">
                       <div
                         className={`h-full rounded-full transition-all ${isMastered ? 'bg-yellow-500' : isReinforce ? 'bg-amber-500' : 'bg-rose-500'
                           }`}
@@ -302,7 +308,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
               })}
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Evolutionary Learning Roadmap & Encouragement */}
         <div className="mt-6 p-5 rounded-2xl bg-yellow-50/70 border border-yellow-200 space-y-3">
@@ -379,7 +385,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-stone-100 mb-6">
           <div>
             <h2 className="text-lg font-bold text-stone-900">
-              {evaluations.length > 0 ? `${evaluations.length}-Question Itemized Review & Explanations` : 'Itemized Question Review & Explanations'}
+              {evaluations.length > 0 ? `${evaluations.length}-Question Review & Explanations` : 'Itemized Question Review & Explanations'}
             </h2>
             <p className="text-xs text-stone-500">Compare student choices with correct answers, step-by-step logic, and reference links</p>
           </div>

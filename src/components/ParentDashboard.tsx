@@ -46,7 +46,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
-import { calculateStudentMetrics } from '../utils/metricsEngine';
+import { calculateStudentMetrics, getExamDisplaySubject } from '../utils/metricsEngine';
 import ApiServices from '../services/ApiServices';
 import { StudentActivityLogResponse } from '../types/api';
 
@@ -1033,7 +1033,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-stone-900 mb-0.5">{sub.studentName}</span>
                     <span className="text-[10px] text-stone-500 font-medium">
-                      {resolveSubjectForTopic(sub.examTitle)} • {sub.difficulty.charAt(0).toUpperCase() + sub.difficulty.slice(1)}
+                      {getExamDisplaySubject(sub)} • {sub.difficulty.charAt(0).toUpperCase() + sub.difficulty.slice(1)}
                     </span>
                   </div>
                   <div className="flex flex-col items-end">
