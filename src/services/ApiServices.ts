@@ -63,7 +63,10 @@ export function decodeTokenPayload(token: string): { sub: string; role: string; 
 // ─────────────────────────────────────────────
 // Axios Instance & Interceptors
 // ─────────────────────────────────────────────
-const apiClient = axios.create();
+const DEFAULT_API_TIMEOUT_MS = Number(import.meta.env.VITE_API_TIMEOUT_SECONDS) * 1000;
+const apiClient = axios.create({
+  timeout: DEFAULT_API_TIMEOUT_MS,
+});
 
 let isRefreshing = false;
 let failedQueue: { resolve: (token: string) => void; reject: (err: any) => void }[] = [];

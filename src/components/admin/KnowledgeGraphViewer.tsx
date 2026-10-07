@@ -793,12 +793,15 @@ export const KnowledgeGraphViewer: React.FC = () => {
       setIsSyncing(true);
       setSyncMessage(null);
       const res: any = await ApiServices.syncKnowledgeGraph();
-      if (res?.success) {
-        setSyncMessage(`Curriculum sync successful! Preserved all existing data. Synced ${res.synced_chapters || 0} chapters & ${res.synced_topics || 0} topics.`);
+      const rawData = res?.data !== undefined ? res.data : res;
+      if (res?.success || rawData?.success || rawData?.synced) {
+        const chCount = rawData?.synced_chapters || rawData?.counts?.chapters || 0;
+        const topCount = rawData?.synced_topics || rawData?.counts?.topics || 0;
+        setSyncMessage(`Curriculum sync successful! Preserved all existing data. Synced ${chCount} chapters & ${topCount} topics into Knowledge Graph.`);
         setTimeout(() => setSyncMessage(null), 7000);
         await loadGraphData();
       } else {
-        setSyncMessage(res?.message || 'Sync encountered an issue');
+        setSyncMessage(rawData?.message || res?.message || 'Sync encountered an issue');
       }
     } catch (err: any) {
       console.error('Failed to sync knowledge graph:', err);
@@ -893,7 +896,7 @@ export const KnowledgeGraphViewer: React.FC = () => {
               className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-stone-700 bg-stone-50 hover:bg-stone-100 border border-stone-200 rounded-xl transition-all cursor-pointer"
             >
               <Zap className={`w-3.5 h-3.5 ${isPhysicsRunning ? 'text-amber-500' : 'text-stone-400'}`} />
-              <span>{isPhysicsRunning ? 'Freeze Physics' : 'Resume Physics'}</span>
+              <span>{isPhysicsRunning ? 'Freeze' : 'Resume'}</span>
             </button>
 
             <button
@@ -1176,7 +1179,7 @@ export const KnowledgeGraphViewer: React.FC = () => {
                 ? 'text-amber-400 bg-amber-500/20 border border-amber-500/40'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/80'
             }`}
-            title={isPhysicsRunning ? 'Freeze Physics' : 'Resume Physics'}
+            title={isPhysicsRunning ? 'Freeze' : 'Resume'}
           >
             <Zap className="w-4 h-4" />
           </button>

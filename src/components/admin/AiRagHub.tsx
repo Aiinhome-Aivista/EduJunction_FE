@@ -573,9 +573,8 @@ export const AiRagHub: React.FC = () => {
       const isTextbook = documentType === 'textbook';
       const docTypeLabel = isTextbook ? 'Textbook' : 'Question Bank';
       const countUnit = isTextbook ? 'Chapters' : 'Files';
-
       setExtractedPreviewData({
-        filename: totalFiles === 1 ? uploadFiles[0].name : `${totalFiles} Uploaded Files (${successFileCount} processed)`,
+        filename: allPreviewFiles.length === 1 ? allPreviewFiles[0].filename : `${allPreviewFiles.length} Uploaded Files`,
         board: selectedBoard,
         classGrade: selectedGrade,
         subject: selectedSubject,
