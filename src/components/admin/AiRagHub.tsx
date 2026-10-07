@@ -570,6 +570,10 @@ export const AiRagHub: React.FC = () => {
     }
 
     if (allExtractedQuestions.length > 0) {
+      const isTextbook = documentType === 'textbook';
+      const docTypeLabel = isTextbook ? 'Textbook' : 'Question Bank';
+      const countUnit = isTextbook ? 'Chapters' : 'Files';
+
       setExtractedPreviewData({
         filename: totalFiles === 1 ? uploadFiles[0].name : `${totalFiles} Uploaded Files (${successFileCount} processed)`,
         board: selectedBoard,
@@ -579,7 +583,7 @@ export const AiRagHub: React.FC = () => {
         cleaned_text: allPreviewFiles.map(f => f.cleaned_text).filter(Boolean).join('\n\n--- NEXT DOCUMENT ---\n\n'),
         topic_id: resolvedTopicId,
         topic_name: '',
-        title: totalFiles === 1 ? allPreviewFiles[0]?.title : `${selectedSubject} Question Bank (${successFileCount} Chapters/Files)`,
+        title: totalFiles === 1 ? allPreviewFiles[0]?.title : `${selectedSubject} ${docTypeLabel} (${successFileCount} ${countUnit})`,
         summary: allPreviewFiles.map(f => f.summary).filter(Boolean).join(' '),
         detected_topics: Array.from(new Set(allPreviewFiles.flatMap(f => f.detected_topics || []))),
         total_extracted: allExtractedQuestions.length,
@@ -2020,7 +2024,7 @@ export const AiRagHub: React.FC = () => {
                           </span>
                         ) : uniqueChapters.length > 1 ? (
                           <span className="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-2xs">
-                            📚 Source: {extractedPreviewData?.title || activeDocForGen?.chapterName || 'Curriculum Book'} ({uniqueChapters.length} Chapters)
+                            📚 Source: {extractedPreviewData?.title || activeDocForGen?.chapterName || `${currentSubject} ${documentType === 'textbook' ? 'Textbook' : 'Question Bank'} (${uniqueChapters.length} Chapters)`}
                           </span>
                         ) : (
                           <span className="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-2xs">
