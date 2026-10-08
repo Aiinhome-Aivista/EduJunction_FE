@@ -74,6 +74,15 @@ export const KnowledgeGraphViewer: React.FC = () => {
   const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
   const [curriculumTree, setCurriculumTree] = useState<Record<string, Record<string, string[]>>>({});
 
+  // Graph & Summary State
+  const [nodes, setNodes] = useState<GraphNode[]>([]);
+  const [edges, setEdges] = useState<GraphEdge[]>([]);
+  const [summary, setSummary] = useState<any>({});
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+
   // Cascading Dynamic Filter Options based on database mapping
   const displayBoards = useMemo(() => {
     const dbBoards = Object.keys(curriculumTree);
@@ -87,13 +96,21 @@ export const KnowledgeGraphViewer: React.FC = () => {
     return availableClasses;
   }, [board, curriculumTree, availableClasses]);
 
+  // Active Selected Student resolution
+  const selectedStudent = useMemo(() => {
+    return students.find((s) => String(s.id) === String(studentId)) || null;
+  }, [students, studentId]);
+
   const displaySubjects = useMemo(() => {
-    if (board !== 'ALL' && classGrade !== 'ALL' && curriculumTree[board]?.[classGrade]) {
-      return curriculumTree[board][classGrade];
+    const effBoard = mode === 'student' ? (selectedStudent?.board || summary?.studentMetrics?.studentBoard || board) : board;
+    const effClass = mode === 'student' ? (selectedStudent?.grade || summary?.studentMetrics?.studentGrade || classGrade) : classGrade;
+
+    if (effBoard && effBoard !== 'ALL' && effClass && effClass !== 'ALL' && curriculumTree[effBoard]?.[effClass]) {
+      return curriculumTree[effBoard][effClass];
     }
-    if (board !== 'ALL' && curriculumTree[board]) {
+    if (effBoard && effBoard !== 'ALL' && curriculumTree[effBoard]) {
       const subs = new Set<string>();
-      Object.values(curriculumTree[board]).forEach((arr: string[]) => {
+      Object.values(curriculumTree[effBoard]).forEach((arr: string[]) => {
         if (Array.isArray(arr)) {
           arr.forEach((s) => subs.add(s));
         }
@@ -101,15 +118,7 @@ export const KnowledgeGraphViewer: React.FC = () => {
       return Array.from(subs).sort();
     }
     return availableSubjects;
-  }, [board, classGrade, curriculumTree, availableSubjects]);
-
-  const [nodes, setNodes] = useState<GraphNode[]>([]);
-  const [edges, setEdges] = useState<GraphEdge[]>([]);
-  const [summary, setSummary] = useState<any>({});
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  }, [mode, selectedStudent, summary, board, classGrade, curriculumTree, availableSubjects]);
 
   // Inspector & Selection State
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
@@ -989,7 +998,10 @@ export const KnowledgeGraphViewer: React.FC = () => {
                 {/* Student Selector in Student Diagnostics Mode */}
                 <select
                   value={studentId}
-                  onChange={(e) => setStudentId(e.target.value)}
+                  onChange={(e) => {
+                    setStudentId(e.target.value);
+                    setSubject('ALL');
+                  }}
                   className="px-3 py-1.5 text-xs font-bold text-pink-900 bg-pink-50 border border-pink-200 rounded-xl focus:outline-none cursor-pointer"
                 >
                   <option value="">Select Student...</option>
