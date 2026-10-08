@@ -1022,6 +1022,36 @@ export const AcademicsHub: React.FC = () => {
                         </div>
                       </div>
 
+                      {/* Linked Question Image / Diagram */}
+                      {(q.imageUrl || q.image_url) && (
+                        <div className="p-3 bg-amber-50/50 rounded-2xl border border-amber-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs animate-in fade-in">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={(q.imageUrl || q.image_url)?.startsWith('http') ? (q.imageUrl || q.image_url) : `${import.meta.env.VITE_API_BASE_URL || ''}${q.imageUrl || q.image_url}`}
+                              alt="Linked Question Diagram"
+                              className="max-h-32 max-w-[200px] rounded-xl border border-stone-200 bg-white object-contain shadow-2xs p-1"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                            <div className="text-[11px] text-amber-900/80 font-medium space-y-0.5">
+                              <p className="font-bold flex items-center gap-1 text-amber-800">
+                                <span>🖼️</span> Linked Question Diagram
+                              </p>
+                              <p className="text-[10px] text-stone-500 font-mono truncate max-w-xs">{q.imageUrl || q.image_url}</p>
+                            </div>
+                          </div>
+                          <a
+                            href={(q.imageUrl || q.image_url)?.startsWith('http') ? (q.imageUrl || q.image_url) : `${import.meta.env.VITE_API_BASE_URL || ''}${q.imageUrl || q.image_url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 text-[11px] font-bold text-amber-800 bg-amber-100 hover:bg-amber-200/80 rounded-xl transition-all cursor-pointer shrink-0 text-center"
+                          >
+                            Inspect ↗
+                          </a>
+                        </div>
+                      )}
+
                       {/* MCQ Options Display */}
                       {q.options && Array.isArray(q.options) && q.options.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
