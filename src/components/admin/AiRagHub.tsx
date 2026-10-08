@@ -2081,8 +2081,26 @@ export const AiRagHub: React.FC = () => {
                                       <div className="flex items-center gap-1">
                                         <span className="text-[10px] font-bold text-stone-500">Marks:</span>
                                         <select
-                                          value={q.marks || (q.type === 'LONG ANSWER' ? 5 : q.type === 'SAQ' ? 2 : q.type === 'SHORT ANSWER (3M)' ? 3 : q.type === 'CASE STUDY' ? 4 : q.type === 'LONG EVALUATIVE' ? 8 : 1)}
-                                          onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { marks: Number(e.target.value) })}
+                                          value={q.marks || (
+                                            q.type === 'LONG EVALUATIVE' || q.type === 'LONG EVALUATIVE (8M)' ? 8 :
+                                            q.type === 'LONG ANSWER' ? 5 :
+                                            q.type === 'CASE STUDY' ? 4 :
+                                            q.type === 'SHORT ANSWER (3M)' || q.type === 'NUMERICAL' ? 3 :
+                                            q.type === 'SAQ' ? 2 : 1
+                                          )}
+                                          onChange={(e) => {
+                                            const newMarks = Number(e.target.value);
+                                            let newType = q.type || 'MCQ';
+                                            if (newMarks === 8) newType = 'LONG EVALUATIVE';
+                                            else if (newMarks === 5) newType = 'LONG ANSWER';
+                                            else if (newMarks === 4) newType = 'CASE STUDY';
+                                            else if (newMarks === 3) newType = 'SHORT ANSWER (3M)';
+                                            else if (newMarks === 2) newType = 'SAQ';
+                                            else if (newMarks === 1 && !['MCQ', 'OBJECTIVE', 'ASSERTION REASON'].includes(String(q.type).toUpperCase())) {
+                                              newType = 'MCQ';
+                                            }
+                                            handleUpdateGeneratedQuestion(globalIdx, { marks: newMarks, type: newType });
+                                          }}
                                           className="text-[11px] font-black px-2 py-0.5 rounded-md bg-yellow-100 text-yellow-900 border border-yellow-300 font-mono cursor-pointer"
                                         >
                                           <option value={1}>1 Mark</option>
@@ -2097,15 +2115,25 @@ export const AiRagHub: React.FC = () => {
                                       {/* Question Type Selector */}
                                       <select
                                         value={q.type || 'MCQ'}
-                                        onChange={(e) => handleUpdateGeneratedQuestion(globalIdx, { type: e.target.value })}
+                                        onChange={(e) => {
+                                          const newType = e.target.value;
+                                          let newMarks = q.marks;
+                                          if (newType === 'LONG EVALUATIVE' || newType === 'LONG EVALUATIVE (8M)') newMarks = 8;
+                                          else if (newType === 'LONG ANSWER') newMarks = 5;
+                                          else if (newType === 'CASE STUDY') newMarks = 4;
+                                          else if (newType === 'SHORT ANSWER (3M)' || newType === 'NUMERICAL') newMarks = 3;
+                                          else if (newType === 'SAQ') newMarks = 2;
+                                          else if (['MCQ', 'OBJECTIVE', 'ASSERTION REASON'].includes(newType.toUpperCase())) newMarks = 1;
+                                          handleUpdateGeneratedQuestion(globalIdx, { type: newType, marks: newMarks });
+                                        }}
                                         className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 border border-blue-200 cursor-pointer"
                                       >
-                                        <option value="MCQ">MCQ (Multiple Choice)</option>
+                                        <option value="MCQ">MCQ (Multiple Choice - 1M)</option>
                                         <option value="SAQ">SAQ (Short Answer - 2M)</option>
                                         <option value="SHORT ANSWER (3M)">Short Answer (3M)</option>
                                         <option value="CASE STUDY">Case Study (4M)</option>
                                         <option value="LONG ANSWER">Long Answer (5M)</option>
-                                        <option value="NUMERICAL">Numerical</option>
+                                        <option value="NUMERICAL">Numerical (3M)</option>
                                         <option value="ASSERTION REASON">Assertion Reason (1M)</option>
                                         <option value="OBJECTIVE">Objective (1M)</option>
                                         <option value="LONG EVALUATIVE">Long Evaluative (8M)</option>
