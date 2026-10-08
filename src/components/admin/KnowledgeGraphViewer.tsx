@@ -766,34 +766,24 @@ export const KnowledgeGraphViewer: React.FC = () => {
     setSelectedNode(null);
   };
 
-  const handleOpenStandaloneHtml = async () => {
+  const handleOpenStandaloneHtml = () => {
     try {
-      const htmlText = await ApiServices.exportKnowledgeGraphHtml({
-        board,
-        classGrade,
-        subject,
-        studentId: mode === 'student' ? studentId : undefined,
+      const effBoard = mode === 'student' ? (selectedStudent?.board || summary?.studentMetrics?.studentBoard || board) : board;
+      const effClass = mode === 'student' ? (selectedStudent?.grade || summary?.studentMetrics?.studentGrade || classGrade) : classGrade;
+
+      const exportUrl = ApiServices.getKnowledgeGraphExportUrl({
+        board: effBoard,
+        classGrade: effClass,
+        subject: subject !== 'ALL' ? subject : undefined,
+        studentId: mode === 'student' ? (studentId || selectedStudent?.id) : undefined,
         mode,
       });
 
-      if (htmlText) {
-        const blob = new Blob([htmlText], { type: 'text/html;charset=utf-8' });
-        const blobUrl = URL.createObjectURL(blob);
-        const newWin = window.open(blobUrl, '_blank');
-        if (!newWin) {
-          window.location.href = blobUrl;
-        }
+      if (exportUrl) {
+        window.open(exportUrl, '_blank', 'noopener,noreferrer');
       }
     } catch (err) {
       console.error('Error opening standalone viewer:', err);
-      const exportUrl = ApiServices.getKnowledgeGraphExportUrl({
-        board,
-        classGrade,
-        subject,
-        studentId: mode === 'student' ? studentId : undefined,
-        mode,
-      });
-      window.open(exportUrl, '_blank');
     }
   };
 
