@@ -2017,13 +2017,17 @@ export const AiRagHub: React.FC = () => {
                           📘 {currentSubject}
                         </span>
                         <span className="text-stone-400 font-bold">&gt;</span>
-                        {uniqueChapters.length === 1 ? (
+                        {(documentType === 'old_question_paper' || extractedPreviewData?.documentType === 'old_question_paper') ? (
+                          <span className="px-2.5 py-0.5 rounded-lg bg-blue-100 text-blue-900 border border-blue-300 font-extrabold shadow-2xs">
+                            📄 Question Bank
+                          </span>
+                        ) : uniqueChapters.length === 1 ? (
                           <span className="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-2xs">
                             📖 Chapter: {uniqueChapters[0]}
                           </span>
                         ) : uniqueChapters.length > 1 ? (
                           <span className="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-2xs">
-                            📚 Source: {extractedPreviewData?.title || activeDocForGen?.chapterName || `${currentSubject} ${documentType === 'textbook' ? 'Textbook' : 'Question Bank'} (${uniqueChapters.length} Chapters)`}
+                            📚 Source: {extractedPreviewData?.title || activeDocForGen?.chapterName || `${currentSubject} Textbook (${uniqueChapters.length} Chapters)`}
                           </span>
                         ) : (
                           <span className="px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-extrabold shadow-2xs">
@@ -2054,7 +2058,7 @@ export const AiRagHub: React.FC = () => {
                               </span>
                             </div>
                             <span className="text-[10px] text-stone-500 font-medium">
-                              {currentBoard} &gt; {currentClass} &gt; {currentSubject} &gt; <span className="font-bold text-stone-700">{group.questions[0]?.chapter_name || currentChapter}</span> &gt; <strong className="text-amber-900 bg-amber-100/70 px-1.5 py-0.5 rounded">{topicName}</strong>
+                              {currentBoard} &gt; {currentClass} &gt; {currentSubject} &gt; <span className="font-bold text-stone-700">{(documentType === 'old_question_paper' || extractedPreviewData?.documentType === 'old_question_paper') ? 'Question Bank' : (group.questions[0]?.chapter_name || currentChapter)}</span> &gt; <strong className="text-amber-900 bg-amber-100/70 px-1.5 py-0.5 rounded">{topicName}</strong>
                             </span>
                           </div>
 
@@ -2257,19 +2261,25 @@ export const AiRagHub: React.FC = () => {
                                       {q.options.map((opt, optIdx) => {
                                         const optLetter = String.fromCharCode(65 + optIdx);
                                         const rawAns = (q.correct_answer || '').trim();
-                                        const rawAnsUpper = rawAns.toUpperCase();
 
-                                        const isLetterMatch = rawAnsUpper === optLetter;
-                                        const isLetterPrefix = rawAnsUpper.startsWith(`${optLetter})`) ||
-                                          rawAnsUpper.startsWith(`${optLetter}.`) ||
-                                          rawAnsUpper.startsWith(`(${optLetter})`);
+                                        // Thoroughly strip any leading prefixes like A), a), (c), etc.
+                                        const cleanOptText = opt.replace(/^(?:[A-Da-d1-4][\)\.\:\-\s]+)+/i, '').trim().toLowerCase();
+                                        const cleanAnsText = rawAns.replace(/^(?:[A-Da-d1-4][\)\.\:\-\s]+)+/i, '').trim().toLowerCase();
 
-                                        const cleanOptText = opt.replace(/^[A-D][\)\.\:\-\s]+/i, '').trim().toLowerCase();
-                                        const cleanAnsText = rawAns.replace(/^[A-D][\)\.\:\-\s]+/i, '').trim().toLowerCase();
-                                        const isTextExactMatch = cleanAnsText.length > 2 && cleanOptText.length > 2 && cleanOptText === cleanAnsText;
-                                        const isFullStringMatch = rawAns.length > 2 && opt.trim().toLowerCase() === rawAns.toLowerCase();
+                                        const optNorm = cleanOptText.replace(/[^a-z0-9]/g, '');
+                                        const ansNorm = cleanAnsText.replace(/[^a-z0-9]/g, '');
 
-                                        const isCorrect = isLetterMatch || isLetterPrefix || isTextExactMatch || isFullStringMatch;
+                                        // Strict exact match only - NEVER substring .includes()
+                                        const isTextExactMatch = cleanAnsText.length > 0 && cleanOptText.length > 0 && (
+                                          cleanOptText === cleanAnsText ||
+                                          (optNorm.length > 0 && ansNorm.length > 0 && optNorm === ansNorm)
+                                        );
+
+                                        // Single letter match ONLY if rawAns is literally just 'A', 'B', 'C', or 'D'
+                                        const isSingleLetterOnly = /^[A-D]$/i.test(rawAns.trim());
+                                        const isLetterMatch = isSingleLetterOnly && rawAns.trim().toUpperCase() === optLetter;
+
+                                        const isCorrect = isTextExactMatch || isLetterMatch;
                                         return (
                                           <div
                                             key={optIdx}
