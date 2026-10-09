@@ -388,7 +388,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
 
       const targetScheduledId = isAssignedTest ? assignedExam?.id : undefined;
 
-      const isScience = String(targetSub).toLowerCase().includes('science');
+      const isScience = String(targetSub).toLowerCase().trim() === 'science';
       const scienceBranch = isScience && selectedBranch !== 'all' ? selectedBranch : undefined;
 
       const { exam } = await ApiServices.generateExam({
@@ -1348,7 +1348,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
             </select>
 
             {/* Science Domain / Sub-Branch Selector (CBSE & General Science) */}
-            {String(selectedSubject || '').toLowerCase().includes('science') && (
+            {String(selectedSubject || '').toLowerCase().trim() === 'science' && (
               <div className="mt-3 p-3.5 bg-gradient-to-r from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-2xl border border-yellow-200/90 shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200">
                 <div className="flex items-center justify-between mb-2.5">
                   <span className="text-[11px] font-extrabold text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
@@ -1434,7 +1434,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
         {/* RAG Knowledge Blueprint Preview */}
         <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 mb-8">
           <p className="text-xs text-stone-600 leading-relaxed">
-            Generating <strong className="text-stone-900">{blueprint.questionCount} questions ({blueprint.totalMarks} Marks)</strong> for <strong className="text-stone-900">{selectedGrade} {selectedBoard}{selectedSubject ? ` • ${selectedSubject}${String(selectedSubject).toLowerCase().includes('science') && selectedBranch !== 'all' ? ` (${selectedBranch})` : ''}` : ''} ({selectedDifficulty.toUpperCase()})</strong> — {blueprint.breakdown}.
+            Generating <strong className="text-stone-900">{blueprint.questionCount} questions ({blueprint.totalMarks} Marks)</strong> for <strong className="text-stone-900">{selectedGrade} {selectedBoard}{selectedSubject ? ` • ${selectedSubject}${String(selectedSubject).toLowerCase().trim() === 'science' && selectedBranch !== 'all' ? ` (${selectedBranch})` : ''}` : ''} ({selectedDifficulty.toUpperCase()})</strong> — {blueprint.breakdown}.
           </p>
         </div>
 
