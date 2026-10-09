@@ -141,6 +141,7 @@ export const POST_APIS = {
   saveRagQuestions: `${API_V1}/admin/rag/save-questions`,
   extractCurriculumPreview: `${API_V1}/curriculum/extract-preview`,
   saveExtractedCurriculumQuestions: `${API_V1}/curriculum/save-extracted-questions`,
+  discardCurriculumPreview: `${API_V1}/admin/rag/discard-preview`,
   processDocumentPipeline: `${API_V1}/admin/rag/process-document`,
   processDocumentsBatch: `${API_V1}/admin/rag/process-documents-batch`,
   analyzeBook: `${API_V1}/admin/rag/analyze-book`,

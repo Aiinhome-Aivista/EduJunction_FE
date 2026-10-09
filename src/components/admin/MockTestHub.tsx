@@ -86,9 +86,9 @@ export const MockTestHub: React.FC = () => {
   const [mockTests, setMockTests] = useState<MockTest[]>([]);
 
   // Generator Form State
-  const [selectedBoard, setSelectedBoard] = useState('CBSE');
-  const [selectedClass, setSelectedClass] = useState('Class 10');
-  const [selectedSubject, setSelectedSubject] = useState('Mathematics');
+  const [selectedBoard, setSelectedBoard] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState('');
   const [chapterMode, setChapterMode] = useState<'all' | 'specific'>('all');
   const [selectedChapterId, setSelectedChapterId] = useState<number | undefined>(undefined);
   const [selectedChapterName, setSelectedChapterName] = useState<string>('');
@@ -155,6 +155,7 @@ export const MockTestHub: React.FC = () => {
   }, [curriculumTree]);
 
   const dynamicClasses = React.useMemo(() => {
+    if (!selectedBoard) return [];
     if (curriculumTree.length > 0) {
       const boardObj = curriculumTree.find(
         (b: any) => b.board_name?.toLowerCase().trim() === selectedBoard.toLowerCase().trim()
@@ -167,6 +168,7 @@ export const MockTestHub: React.FC = () => {
   }, [curriculumTree, selectedBoard]);
 
   const dynamicSubjects = React.useMemo(() => {
+    if (!selectedBoard || !selectedClass) return [];
     if (curriculumTree.length > 0) {
       const boardObj = curriculumTree.find(
         (b: any) => b.board_name?.toLowerCase().trim() === selectedBoard.toLowerCase().trim()
@@ -196,34 +198,23 @@ export const MockTestHub: React.FC = () => {
 
   const handleBoardChange = (newBoard: string) => {
     setSelectedBoard(newBoard);
-    const boardObj = curriculumTree.find(
-      (b: any) => b.board_name?.toLowerCase().trim() === newBoard.toLowerCase().trim()
-    );
-    const classes = boardObj?.classes || [];
-    const validClass = classes.some((c: any) => c.class_name === selectedClass)
-      ? selectedClass
-      : (classes[0]?.class_name || 'Class 10');
-    setSelectedClass(validClass);
-
-    const classObj = classes.find((c: any) => c.class_name === validClass);
-    const subjects = classObj?.subjects || [];
-    const validSub = subjects.some((s: any) => s.subject_name === selectedSubject)
-      ? selectedSubject
-      : (subjects[0]?.subject_name || 'Mathematics');
-    setSelectedSubject(validSub);
+    setSelectedClass('');
+    setSelectedSubject('');
+    setSelectedChapterId(undefined);
+    setSelectedChapterName('');
   };
 
   const handleClassChange = (newClass: string) => {
     setSelectedClass(newClass);
-    const boardObj = curriculumTree.find(
-      (b: any) => b.board_name?.toLowerCase().trim() === selectedBoard.toLowerCase().trim()
-    );
-    const classObj = boardObj?.classes?.find((c: any) => c.class_name === newClass);
-    const subjects = classObj?.subjects || [];
-    const validSub = subjects.some((s: any) => s.subject_name === selectedSubject)
-      ? selectedSubject
-      : (subjects[0]?.subject_name || 'Mathematics');
-    setSelectedSubject(validSub);
+    setSelectedSubject('');
+    setSelectedChapterId(undefined);
+    setSelectedChapterName('');
+  };
+
+  const handleSubjectChange = (newSub: string) => {
+    setSelectedSubject(newSub);
+    setSelectedChapterId(undefined);
+    setSelectedChapterName('');
   };
 
   // Compute Available Chapters for Selected Board, Class & Subject
@@ -261,6 +252,20 @@ export const MockTestHub: React.FC = () => {
   // Handle Generate Mock Test
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!selectedBoard) {
+      showNotify('error', 'Please select a Board / Curriculum');
+      return;
+    }
+    if (!selectedClass) {
+      showNotify('error', 'Please select a Class / Grade');
+      return;
+    }
+    if (!selectedSubject) {
+      showNotify('error', 'Please select a Subject');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const payload: any = {
@@ -499,6 +504,7 @@ export const MockTestHub: React.FC = () => {
                     onChange={(e) => handleBoardChange(e.target.value)}
                     className="w-full h-12 px-4 rounded-2xl bg-stone-50 border-2 border-stone-200 font-bold text-sm text-stone-900 focus:border-amber-400 focus:bg-white outline-none transition-all cursor-pointer"
                   >
+                    <option value="">Select Board</option>
                     {dynamicBoards.map((b) => (
                       <option key={b} value={b}>
                         {b}
@@ -513,9 +519,11 @@ export const MockTestHub: React.FC = () => {
                   </label>
                   <select
                     value={selectedClass}
+                    disabled={!selectedBoard}
                     onChange={(e) => handleClassChange(e.target.value)}
-                    className="w-full h-12 px-4 rounded-2xl bg-stone-50 border-2 border-stone-200 font-bold text-sm text-stone-900 focus:border-amber-400 focus:bg-white outline-none transition-all cursor-pointer"
+                    className="w-full h-12 px-4 rounded-2xl bg-stone-50 border-2 border-stone-200 font-bold text-sm text-stone-900 focus:border-amber-400 focus:bg-white outline-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
+                    <option value="">Select Class</option>
                     {dynamicClasses.map((c) => (
                       <option key={c} value={c}>
                         {c}
@@ -533,9 +541,11 @@ export const MockTestHub: React.FC = () => {
                   </label>
                   <select
                     value={selectedSubject}
-                    onChange={(e) => setSelectedSubject(e.target.value)}
-                    className="w-full h-12 px-4 rounded-2xl bg-stone-50 border-2 border-stone-200 font-bold text-sm text-stone-900 focus:border-amber-400 focus:bg-white outline-none transition-all cursor-pointer"
+                    disabled={!selectedClass}
+                    onChange={(e) => handleSubjectChange(e.target.value)}
+                    className="w-full h-12 px-4 rounded-2xl bg-stone-50 border-2 border-stone-200 font-bold text-sm text-stone-900 focus:border-amber-400 focus:bg-white outline-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
+                    <option value="">Select Subject</option>
                     {dynamicSubjects.map((s) => (
                       <option key={s} value={s}>
                         {s}

@@ -443,6 +443,9 @@ class ApiServices {
   }) {
     return this.post(POST_APIS.saveExtractedCurriculumQuestions, payload);
   }
+  discardCurriculumPreview(payload?: { image_urls?: string[]; questions?: any[]; discard_all?: boolean }) {
+    return this.post(POST_APIS.discardCurriculumPreview, payload || { discard_all: true });
+  }
   processDocumentPipeline(formData: FormData) {
     return apiClient.post(POST_APIS.processDocumentPipeline, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

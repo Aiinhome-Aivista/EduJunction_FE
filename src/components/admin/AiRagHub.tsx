@@ -27,7 +27,8 @@ import {
   Eye,
   Lightbulb,
   AlertTriangle,
-  Compass
+  Compass,
+  Loader2
 } from 'lucide-react';
 import ApiServices from '../../services/ApiServices';
 import { Board, ClassGrade, Subject, BOARD_CLASSES_MAP, CLASS_SUBJECTS_MAP } from '../../types';
@@ -154,9 +155,9 @@ export const AiRagHub: React.FC = () => {
   // Ingestion Form State (Single & Multi-File Support)
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [documentType, setDocumentType] = useState<'textbook' | 'old_question_paper'>('textbook');
-  const [selectedBoard, setSelectedBoard] = useState<string>('CBSE');
-  const [selectedGrade, setSelectedGrade] = useState<string>('Class 10');
-  const [selectedSubject, setSelectedSubject] = useState<string>('Mathematics');
+  const [selectedBoard, setSelectedBoard] = useState<string>('');
+  const [selectedGrade, setSelectedGrade] = useState<string>('');
+  const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [uploading, setUploading] = useState(false);
 
   // Multi-File Pipeline Batch Progress State
@@ -186,23 +187,86 @@ export const AiRagHub: React.FC = () => {
     results: []
   });
 
+  const [isSwitchingMode, setIsSwitchingMode] = useState(false);
+
+  // Silent cleanup of temporary extracted diagrams on preview discard or reset
+  const handleDiscardPreview = async (customQuestions?: GeneratedQuestionItem[]) => {
+    try {
+      const qList = customQuestions || generatedQuestions;
+      const urls: string[] = [];
+      qList.forEach((q) => {
+        if (q.image_url && !urls.includes(q.image_url)) urls.push(q.image_url);
+      });
+      if (extractedPreviewData?.questions) {
+        extractedPreviewData.questions.forEach((q: any) => {
+          if (q.image_url && !urls.includes(q.image_url)) urls.push(q.image_url);
+        });
+      }
+      await ApiServices.discardCurriculumPreview({ discard_all: true, image_urls: urls });
+    } catch (err) {
+      console.warn('Silent temp cleanup on preview discard:', err);
+    }
+  };
+
+  // Fully resets file selection, batch progress, logs, and preview state
+  const resetBatchProgressAndFiles = () => {
+    handleDiscardPreview();
+    setUploadFiles([]);
+    setBatchProgress({
+      isRunning: false,
+      current: 0,
+      total: 0,
+      filename: '',
+      percent: 0,
+      completed: 0,
+      remaining: 0,
+      currentStepName: '',
+      lastError: null,
+      logs: [],
+      results: []
+    });
+    setExtractedPreviewData(null);
+    setPedagogicalInsights(null);
+    setGeneratedQuestions([]);
+    const inputEl = document.getElementById('curriculum-upload-input') as HTMLInputElement | null;
+    if (inputEl) inputEl.value = '';
+  };
+
+  // Safe mode switch between Textbook Synthesis and Old Question Paper (PYQ)
+  const handleDocumentModeSwitch = (newMode: 'textbook' | 'old_question_paper') => {
+    if (documentType === newMode) return;
+    setIsSwitchingMode(true);
+    setDocumentType(newMode);
+    resetBatchProgressAndFiles();
+    setTimeout(() => {
+      setIsSwitchingMode(false);
+    }, 220);
+  };
+
   // Dynamic allowed classes strictly determined by Board mapping from database
-  const availableClasses: string[] = (boardClassesMap && boardClassesMap[selectedBoard]) || BOARD_CLASSES_MAP[selectedBoard] || [
-    'Class 1', 'Class 2', 'Class 3', 'Class 4',
-    'Class 5', 'Class 6', 'Class 7', 'Class 8',
-    'Class 9', 'Class 10', 'Class 11', 'Class 12'
-  ];
+  const availableClasses: string[] = selectedBoard
+    ? ((boardClassesMap && boardClassesMap[selectedBoard]) || BOARD_CLASSES_MAP[selectedBoard] || [
+        'Class 1', 'Class 2', 'Class 3', 'Class 4',
+        'Class 5', 'Class 6', 'Class 7', 'Class 8',
+        'Class 9', 'Class 10', 'Class 11', 'Class 12'
+      ])
+    : [];
 
   // Dynamic allowed subjects strictly determined by database subject master
-  const availableSubjects: string[] = dbSubjects.length > 0 ? dbSubjects : (CLASS_SUBJECTS_MAP[selectedGrade] || [
-    'Mathematics', 'Physics', 'Chemistry', 'Biology',
-    'Science', 'Social Studies', 'English', 'Computer Science', 'Logical Reasoning'
-  ]);
+  const availableSubjects: string[] = selectedGrade
+    ? (dbSubjects.length > 0 ? dbSubjects : (CLASS_SUBJECTS_MAP[selectedGrade] || [
+        'Mathematics', 'Physics', 'Chemistry', 'Biology',
+        'Science', 'Social Studies', 'English', 'Computer Science', 'Logical Reasoning'
+      ]))
+    : [];
 
   // Dynamic Subject fetching from database based on selected board and grade
   useEffect(() => {
     let isMounted = true;
-    if (!selectedGrade) return;
+    if (!selectedBoard || !selectedGrade) {
+      setDbSubjects([]);
+      return;
+    }
 
     setIsLoadingSubjects(true);
     ApiServices.getCurriculumOptions({
@@ -215,11 +279,9 @@ export const AiRagHub: React.FC = () => {
         const subjectNames: string[] = fetched.map((s: any) => s.name || s.subject_name).filter(Boolean);
         if (subjectNames.length > 0) {
           setDbSubjects(subjectNames);
-          setSelectedSubject((prev) => (subjectNames.includes(prev) ? prev : subjectNames[0]));
         } else {
           const fallback = CLASS_SUBJECTS_MAP[selectedGrade] || ['Mathematics'];
           setDbSubjects(fallback);
-          setSelectedSubject((prev) => (fallback.includes(prev) ? prev : fallback[0]));
         }
       })
       .catch((err) => {
@@ -240,13 +302,13 @@ export const AiRagHub: React.FC = () => {
 
   const handleBoardChange = (newBoard: string) => {
     setSelectedBoard(newBoard);
-    const validClasses = (boardClassesMap && boardClassesMap[newBoard]) || BOARD_CLASSES_MAP[newBoard] || ['Class 10'];
-    const newClass = validClasses.includes(selectedGrade) ? selectedGrade : (validClasses[0] || 'Class 10');
-    setSelectedGrade(newClass);
+    setSelectedGrade('');
+    setSelectedSubject('');
   };
 
   const handleGradeChange = (newGrade: string) => {
     setSelectedGrade(newGrade);
+    setSelectedSubject('');
   };
 
   // Playground State
@@ -403,22 +465,6 @@ export const AiRagHub: React.FC = () => {
 
       if (fetchedBoards.length > 0) {
         setActiveBoards(fetchedBoards);
-        setSelectedBoard((prev) => {
-          const match = fetchedBoards.find(b => b.name === prev);
-          const boardName = match ? prev : fetchedBoards[0].name;
-
-          const validClasses = fetchedMap[boardName] || BOARD_CLASSES_MAP[boardName] || ['Class 10'];
-          setSelectedGrade((prevGrade) => {
-            const gradeName = validClasses.includes(prevGrade) ? prevGrade : (validClasses[0] || 'Class 10');
-            const validSubjects = CLASS_SUBJECTS_MAP[gradeName] || ['Mathematics'];
-            setSelectedSubject((prevSub) => {
-              return validSubjects.includes(prevSub as any) ? prevSub : (validSubjects[0] || 'Mathematics');
-            });
-            return gradeName;
-          });
-
-          return boardName;
-        });
       }
       if (fetchedMap) {
         setBoardClassesMap(fetchedMap);
@@ -439,6 +485,19 @@ export const AiRagHub: React.FC = () => {
   const handleProcessPipeline = async (e: React.FormEvent) => {
     e.preventDefault();
     if (uploadFiles.length === 0) return;
+
+    if (!selectedBoard) {
+      showNotify('error', 'Please select a Target Board');
+      return;
+    }
+    if (!selectedGrade) {
+      showNotify('error', 'Please select a Class / Grade');
+      return;
+    }
+    if (!selectedSubject) {
+      showNotify('error', 'Please select a Subject');
+      return;
+    }
 
     setUploading(true);
     const totalFiles = uploadFiles.length;
@@ -841,6 +900,12 @@ export const AiRagHub: React.FC = () => {
       let data: any;
       if (extractedPreviewData) {
         // Step 5: Execute complete pipeline with duplicate skipping, vector chunking, and K-Graph syncing
+        const finalActiveQuestions = sanitizeQuestionsList(generatedQuestions);
+        const filteredFilesData = (extractedPreviewData.filesData || []).map(f => ({
+          ...f,
+          questions: finalActiveQuestions.filter(q => !q.source_file || q.source_file === f.filename)
+        }));
+
         const res = await ApiServices.saveExtractedCurriculumQuestions({
           filename: extractedPreviewData.filename,
           board: extractedPreviewData.board,
@@ -849,11 +914,11 @@ export const AiRagHub: React.FC = () => {
           documentType: extractedPreviewData.documentType,
           cleanedText: extractedPreviewData.cleaned_text,
           topicId: selectedTargetTopicId,
-          questions: sanitizeQuestionsList(generatedQuestions),
+          questions: finalActiveQuestions,
           detectedTopics: extractedPreviewData.detected_topics,
           title: extractedPreviewData.title,
           summary: extractedPreviewData.summary,
-          files: extractedPreviewData.filesData,
+          files: filteredFilesData,
         } as any);
         data = res?.data || res;
       } else {
@@ -911,8 +976,27 @@ export const AiRagHub: React.FC = () => {
     });
   };
 
-  // Remove single generated question from review list
+  // Remove diagram image from a question and immediately purge from disk temp folder
+  const handleRemoveQuestionImage = (index: number) => {
+    const targetQ = generatedQuestions[index];
+    if (targetQ?.image_url) {
+      ApiServices.discardCurriculumPreview({
+        discard_all: false,
+        image_urls: [targetQ.image_url]
+      }).catch(err => console.warn('Failed removing temp image on preview image delete:', err));
+    }
+    handleUpdateGeneratedQuestion(index, { image_url: undefined });
+  };
+
+  // Remove single generated question from review list and delete its temp diagram if present
   const handleRemoveGeneratedQuestion = (index: number) => {
+    const targetQ = generatedQuestions[index];
+    if (targetQ?.image_url) {
+      ApiServices.discardCurriculumPreview({
+        discard_all: false,
+        image_urls: [targetQ.image_url]
+      }).catch(err => console.warn('Failed removing temp image on question delete:', err));
+    }
     setGeneratedQuestions(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -1054,14 +1138,22 @@ export const AiRagHub: React.FC = () => {
             <form onSubmit={handleProcessPipeline} className="space-y-4">
               {/* Document Type Selection */}
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1.5">Document Mode / Type</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-stone-700">Document Mode / Type</label>
+                  {isSwitchingMode && (
+                    <span className="text-[10px] font-bold text-amber-600 flex items-center gap-1 animate-pulse">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Switching Mode & Clearing Session...
+                    </span>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setDocumentType('textbook')}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-bold border text-left flex items-center gap-2 transition-all ${documentType === 'textbook'
+                    disabled={isSwitchingMode || batchProgress.isRunning}
+                    onClick={() => handleDocumentModeSwitch('textbook')}
+                    className={`px-3 py-2.5 rounded-xl text-xs font-bold border text-left flex items-center gap-2 transition-all cursor-pointer ${documentType === 'textbook'
                         ? 'bg-amber-500/10 border-amber-400 text-amber-900 ring-2 ring-amber-400/20'
-                        : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
+                        : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100 opacity-80 hover:opacity-100'
                       }`}
                   >
                     <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
@@ -1073,10 +1165,11 @@ export const AiRagHub: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => setDocumentType('old_question_paper')}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-bold border text-left flex items-center gap-2 transition-all ${documentType === 'old_question_paper'
+                    disabled={isSwitchingMode || batchProgress.isRunning}
+                    onClick={() => handleDocumentModeSwitch('old_question_paper')}
+                    className={`px-3 py-2.5 rounded-xl text-xs font-bold border text-left flex items-center gap-2 transition-all cursor-pointer ${documentType === 'old_question_paper'
                         ? 'bg-blue-500/10 border-blue-400 text-blue-900 ring-2 ring-blue-400/20'
-                        : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
+                        : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100 opacity-80 hover:opacity-100'
                       }`}
                   >
                     <FileText className="w-4 h-4 text-blue-600 shrink-0" />
@@ -1097,8 +1190,9 @@ export const AiRagHub: React.FC = () => {
                 <select
                   value={selectedBoard}
                   onChange={(e) => handleBoardChange(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
+                  className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400 cursor-pointer"
                 >
+                  <option value="">Select Board</option>
                   {activeBoards.length > 0 ? (
                     activeBoards.map(b => (
                       <option key={b.id || b.name} value={b.name}>
@@ -1122,9 +1216,11 @@ export const AiRagHub: React.FC = () => {
                   </div>
                   <select
                     value={selectedGrade}
+                    disabled={!selectedBoard}
                     onChange={(e) => handleGradeChange(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
+                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
+                    <option value="">Select Class</option>
                     {availableClasses.map(g => (
                       <option key={g} value={g}>{g}</option>
                     ))}
@@ -1137,9 +1233,11 @@ export const AiRagHub: React.FC = () => {
                   </div>
                   <select
                     value={selectedSubject}
+                    disabled={!selectedGrade}
                     onChange={(e) => setSelectedSubject(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400"
+                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-yellow-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
+                    <option value="">Select Subject</option>
                     {availableSubjects.map(s => (
                       <option key={s} value={s}>{s}</option>
                     ))}
@@ -1183,13 +1281,10 @@ export const AiRagHub: React.FC = () => {
                       {!batchProgress.isRunning && (
                         <button
                           type="button"
-                          onClick={() => {
-                            setUploadFiles([]);
-                            setPedagogicalInsights(null);
-                          }}
-                          className="text-rose-500 hover:underline cursor-pointer"
+                          onClick={resetBatchProgressAndFiles}
+                          className="text-rose-500 hover:text-rose-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
                         >
-                          Clear All
+                          <Trash2 className="w-3 h-3" /> Clear All
                         </button>
                       )}
                     </div>
@@ -1280,7 +1375,7 @@ export const AiRagHub: React.FC = () => {
 
 
               {/* Multi-File Progress Bar Card (Modern Theme) */}
-              {(batchProgress.isRunning || batchProgress.results.length > 0 || batchProgress.lastError || batchProgress.logs.length > 0) && (
+              {(batchProgress.isRunning || (uploadFiles.length > 0 && (batchProgress.results.length > 0 || batchProgress.lastError || batchProgress.logs.length > 0))) && (
                 <div className={`p-4 rounded-2xl border transition-all duration-300 shadow-xs space-y-3 ${batchProgress.lastError
                     ? 'bg-rose-50/50 border-rose-200'
                     : 'bg-stone-50 border-stone-200'
@@ -1307,13 +1402,39 @@ export const AiRagHub: React.FC = () => {
                               : 'Extraction Stopped'}
                       </span>
                     </div>
-                    <span className={`text-xs font-mono font-black px-2 py-0.5 rounded-md ${
-                      batchProgress.percent === 100 && !batchProgress.isRunning
-                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300/60'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {batchProgress.percent}%
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-mono font-black px-2 py-0.5 rounded-md ${
+                        batchProgress.percent === 100 && !batchProgress.isRunning
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300/60'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {batchProgress.percent}%
+                      </span>
+                      {!batchProgress.isRunning && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBatchProgress({
+                              isRunning: false,
+                              current: 0,
+                              total: 0,
+                              filename: '',
+                              percent: 0,
+                              completed: 0,
+                              remaining: 0,
+                              currentStepName: '',
+                              lastError: null,
+                              logs: [],
+                              results: []
+                            });
+                          }}
+                          className="p-1 rounded-md text-stone-400 hover:text-stone-600 hover:bg-stone-200 transition-colors cursor-pointer"
+                          title="Dismiss progress log"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Clean Modern Progress Bar */}
@@ -1742,6 +1863,7 @@ export const AiRagHub: React.FC = () => {
               </div>
               <button
                 onClick={() => {
+                  handleDiscardPreview();
                   setGeneratorModalOpen(false);
                   setExtractedPreviewData(null);
                   setActiveDocForGen(null);
@@ -2245,7 +2367,7 @@ export const AiRagHub: React.FC = () => {
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={() => handleUpdateGeneratedQuestion(globalIdx, { image_url: undefined })}
+                                        onClick={() => handleRemoveQuestionImage(globalIdx)}
                                         className="px-3 py-1.5 text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl border border-rose-200 transition-colors shrink-0 cursor-pointer flex items-center gap-1"
                                         title="Remove diagram from this question"
                                       >
@@ -2402,6 +2524,7 @@ export const AiRagHub: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
+                    handleDiscardPreview();
                     setGeneratorModalOpen(false);
                     setExtractedPreviewData(null);
                     setActiveDocForGen(null);
