@@ -824,7 +824,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 <span>3. Select Subject</span>
               </label>
               {isLoadingCurriculum ? (
-                <span className="text-[10px] text-amber-600 font-semibold animate-pulse">Loading DB subjects...</span>
+                <span className="text-[10px] text-amber-600 font-semibold animate-pulse">Loading ...</span>
               ) : (
                 <span className="text-[10px] text-stone-400 font-medium">{selectedBoard} • {selectedClass}</span>
               )}
