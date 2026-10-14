@@ -115,6 +115,18 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
     }
   };
 
+  // Shared utility class for items with smooth underline animation
+  const navLinkClasses = (isActive: boolean) => `
+    relative py-1 cursor-pointer transition-colors duration-200 group
+    ${isActive ? "text-yellow-600 font-bold" : "text-stone-600 hover:text-yellow-600"}
+  `;
+
+  // Pseudo-element underline span helper function or tailwind classes
+  const underlineIndicator = (isActive: boolean) => `
+    absolute left-0 bottom-0 w-full h-[2px] bg-yellow-500 transition-all duration-300 ease-out
+    ${isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}
+  `;
+
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[72px] flex items-center justify-between">
@@ -131,31 +143,39 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
           </div>
         </Link>
 
-
-        {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-stone-600">
+        {/* Desktop nav with Animated Underline */}
+        <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold">
           <button
             type="button"
             onClick={(e) => handleNavClick('hero', e)}
-            className={`cursor-pointer transition-colors ${(!isBlogActive && activeSection === 'home') ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
+            className={navLinkClasses(!isBlogActive && activeSection === 'home')}
           >
             Home
+            <span className={underlineIndicator(!isBlogActive && activeSection === 'home')} />
           </button>
+
           <button
             type="button"
             onClick={(e) => handleNavClick('features', e)}
-            className={`cursor-pointer transition-colors ${(!isBlogActive && activeSection === 'features') ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
+            className={navLinkClasses(!isBlogActive && activeSection === 'features')}
           >
             Features
+            <span className={underlineIndicator(!isBlogActive && activeSection === 'features')} />
           </button>
+
           <button
             type="button"
             onClick={(e) => handleNavClick('free-mock-papers-2027', e)}
-            className={`cursor-pointer flex items-center gap-1.5 transition-colors ${(!isBlogActive && activeSection === 'free-mock-papers-2027') ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
+            className={`${navLinkClasses(!isBlogActive && activeSection === 'free-mock-papers-2027')} flex items-center gap-1.5`}
           >
             Free Mock Test <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">2027</span>
+            <span className={underlineIndicator(!isBlogActive && activeSection === 'free-mock-papers-2027')} />
           </button>
-          <Link to="/blog" className={isBlogActive ? "text-yellow-600 font-black" : "hover:text-yellow-600 transition-colors"}>Blogs</Link>
+
+          <Link to="/blog" className={`relative py-1 transition-colors duration-200 group ${isBlogActive ? "text-yellow-600 font-black" : "text-stone-600 hover:text-yellow-600"}`}>
+            Blogs
+            <span className={`absolute left-0 bottom-0 w-full h-[2px] bg-yellow-500 transition-all duration-300 ease-out ${isBlogActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
+          </Link>
         </nav>
 
         {/* Auth buttons */}
