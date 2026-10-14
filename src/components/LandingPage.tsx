@@ -577,7 +577,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
                 <Link
                   to="/actions-demo"
-                  className="px-7 py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-yellow-400 hover:bg-yellow-50/80 text-stone-800 hover:text-yellow-900 font-bold flex items-center justify-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="px-7 py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-yellow-400 hover:bg-yellow-50/80 text-stone-800 hover:text-yellow-900 font-bold flex items-center justify-center gap-2 transition-all duration-200 shadow-sm"
                 >
                   <Play className="w-4 h-4 fill-current text-yellow-500" />
                   See How It Works
@@ -1256,7 +1256,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="pt-6 relative z-10">
                 <button
                   onClick={() => openAuth('register')}
-                  className="m-auto py-3.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-sm shadow-xl shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
+                  className="m-auto py-3.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-sm shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
                 >
                   Explore Model Test Papers <ArrowRight className="w-4 h-4 text-yellow-400 transition-transform group-hover:translate-x-1" />
                 </button>
@@ -1400,7 +1400,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               One Platform, Three Perspectives
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize text-stone-900 drop-shadow-xs">
-              Built for everyone around the learner
+              BUILT FOR EVERYONE AROUND THE LEARNER
             </h2>
             <p className="mt-3 text-stone-700 font-semibold drop-shadow-xs">
               Students learn, teachers guide, and parents stay connected.
@@ -1537,7 +1537,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span>✨</span> Magic Word Arena
               </div>
               <h3 className="text-2xl md:text-3xl font-black text-slate-800">
-                Read Clues & Build Words 🚀
+                READ CLUES & BUILD WORDS 🚀
               </h3>
             </div>
 
@@ -1676,7 +1676,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Study Buddy Personalization
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize">
-              Not the same lesson for everyone
+              NOT THE SAME LESSON FOR EVERYONE
             </h2>
             <p className="mt-3 text-stone-600">
               Example: Rahul struggles with Geometry, so the platform changes his next steps.
@@ -1842,7 +1842,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Interactive Demo
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize">
-              Unbox The Future Of Grading
+              UNBOX THE FUTURE OF GRADING
             </h2>
             <p className="mt-3 text-stone-600">
               Try a sample student attempt and see how the platform gives useful feedback.
@@ -1991,7 +1991,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>Tailored Academic Tracks</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-stone-900 capitalize">
-              Choose The Learning Track <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">That Fits</span>
+              CHOSSE THE LEARNING TRACK <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">THAT FITS</span>
             </h2>
             <p className="mt-3.5 text-stone-600 text-sm sm:text-base font-medium leading-relaxed max-w-2xl mx-auto">
               Comprehensive, syllabus-accurate practice for school board excellence and high-rigor competitive foundations. Complete with NCERT solutions, previous year papers, and instant AI step feedback.
