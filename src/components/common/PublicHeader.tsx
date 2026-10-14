@@ -135,7 +135,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
             <div className="font-black text-lg tracking-tight text-stone-900">
               Edu<span className="text-yellow-500">Junction</span>
             </div>
-            <div className="text-[10px] text-stone-500 font-semibold hidden sm:block">Smarter Learning Platform</div>
+            <div className="text-[10px] text-stone-700 font-extrabold hidden sm:block">Smarter Learning Platform</div>
           </div>
         </Link>
 
