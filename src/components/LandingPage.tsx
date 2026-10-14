@@ -463,10 +463,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           animation: float-3d 6s ease-in-out infinite;
         }
       `}</style>
-      {/* FIXED NAVBAR & MARQUEE TICKER (Guaranteed 100% Viewport Locking) */}
+{/* FIXED NAVBAR (Only the header stays fixed if needed) */}
       <div className="fixed top-0 left-0 right-0 z-50 shadow-sm bg-white">
         <PublicHeader onOpenAuth={openAuth} />
-        <div className="w-full overflow-hidden relative py-2.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none">
+      </div>
+
+      {/* HERO SECTION (Padded for Fixed Header Height & Contains the Ticker) */}
+      <section
+        id="hero"
+        className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-white to-stone-50 pt-20 sm:pt-24"
+      >
+        {/* MARQUEE TICKER - Now restricted to and scrolling with the Hero Section */}
+        <div className="w-full overflow-hidden relative py-2.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none mb-6">
           <div
             className="flex items-center whitespace-nowrap w-max"
             style={{ animation: 'navMarquee 80s linear infinite' }}
@@ -491,16 +499,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             ))}
           </div>
         </div>
-      </div>
 
-      {/* HERO SECTION (Padded for Fixed Header Height) */}
-      <section
-        id="hero"
-        className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-white to-stone-50 pt-27 sm:pt-30"
-      >
-
-        <div className="absolute -top-28 -right-28 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl" />
-        <div className="absolute top-40 -left-32 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl" />
+        <div className="absolute -top-28 -right-28 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
+        <div className="absolute top-40 -left-32 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-3 pb-6 sm:pb-8">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
@@ -534,10 +535,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     onClick={() => openAuth('register', 'student')}
                     className="group relative inline-flex items-center animate-float-badge cursor-pointer"
                   >
-                    {/* Ambient Blurred Glow Aura (React Bits Style) */}
+                    {/* Ambient Blurred Glow Aura */}
                     <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 opacity-60 blur-md group-hover:opacity-100 group-hover:blur-lg transition-all duration-500 animate-pulse pointer-events-none" />
 
-                    {/* Button Surface with Animated Color Flow */}
+                    {/* Button Surface */}
                     <span className="relative inline-flex items-center gap-3 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full animate-surface-flow backdrop-blur-md border border-amber-300/90 shadow-md group-hover:border-amber-400 group-hover:shadow-2xl group-hover:shadow-amber-300/50 transition-all duration-300 overflow-hidden">
                       <span className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 text-stone-950 shadow-2xs group-hover:rotate-12 transition-transform duration-300">
                         <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-stone-950 stroke-stone-950" />
@@ -549,17 +550,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </span>
                   </button>
                 </div>
-
-                {/* <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-yellow-200 text-yellow-700 text-xs font-bold shadow-sm">
-                  Study Buddy-powered learning for students, teachers & parents
-                </div> */}
               </div>
 
               {/* Main Headline */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.12] tracking-tight capitalize">
-                Learn Smarter.
+                LEARN SMARTER.
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-500 mt-1">
-                  Grow Better.
+                  GROW BETTER.
                 </span>
               </h1>
 
@@ -580,9 +577,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
                 <Link
                   to="/actions-demo"
-                  className="px-7 py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-yellow-300 text-stone-800 font-bold flex items-center justify-center gap-2"
+                  className="px-7 py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-yellow-400 hover:bg-yellow-50/80 text-stone-800 hover:text-yellow-900 font-bold flex items-center justify-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md"
                 >
-                  <Play className="w-4 h-4 fill-current" />
+                  <Play className="w-4 h-4 fill-current text-yellow-500" />
                   See How It Works
                 </Link>
               </div>
