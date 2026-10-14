@@ -1256,7 +1256,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="pt-6 relative z-10">
                 <button
                   onClick={() => openAuth('register')}
-                  className="w-full py-3.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-sm shadow-xl shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
+                  className="m-auto py-3.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-sm shadow-xl shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
                 >
                   Explore Model Test Papers <ArrowRight className="w-4 h-4 text-yellow-400 transition-transform group-hover:translate-x-1" />
                 </button>
@@ -1295,20 +1295,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
               </div>
 
-              <div className="pt-6 relative z-10 flex flex-col sm:flex-row gap-2.5">
-                <button
-                  onClick={() => openAuth('register')}
-                  className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs shadow-md shadow-amber-500/15 flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-95"
-                >
-                  <Users className="w-4 h-4" /> Create Free Parent Account <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => openAuth('login')}
-                  className="py-3 px-4 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs border border-stone-300 transition-all flex items-center justify-center cursor-pointer"
-                >
-                  Sign In
-                </button>
-              </div>
+              
+<div className="pt-6 relative z-10 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+  <button
+    onClick={() => openAuth('register')}
+    className="w-fit py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs shadow-md shadow-amber-500/15 flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-95"
+  >
+    <Users className="w-4 h-4 shrink-0" />
+    Create Free Parent Account
+    <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+  </button>
+
+  <button
+    onClick={() => openAuth('login')}
+    className="w-fit py-3 px-4 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs border border-stone-300 transition-all flex items-center justify-center cursor-pointer"
+  >
+    Sign In
+  </button>
+</div>
+
             </div>
           </div>
         </div>
