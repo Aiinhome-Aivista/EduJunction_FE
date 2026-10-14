@@ -8,6 +8,8 @@ import { InfoPage } from './components/InfoPage.tsx';
 import { BlogPage } from './components/BlogPage.tsx';
 import { ModelExamPage } from './components/ModelExamPage.tsx';
 import { QuickTestPage } from './components/QuickTestPage.tsx';
+import { FeaturesPage } from './components/FeaturesPage.tsx';
+import { PricingPage } from './components/PricingPage.tsx';
 import './index.css';
 import AdminLogin from './components/admin/AdminLogin.tsx';
 
@@ -33,6 +35,10 @@ createRoot(document.getElementById('root')!).render(
 
           {/* Dedicated Zero-Auth Free Demo Quick Test Route */}
           <Route path="/quick-test" element={<QuickTestPage />} />
+
+          {/* Dedicated Public Features & Pricing Routes */}
+          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
 
           {/* Public & Information Pages */}
           <Route path="/about" element={<InfoPage type="about" />} />

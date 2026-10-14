@@ -12,18 +12,19 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isBlogActive = location.pathname.startsWith("/blog");
+  const isFeaturesActive = location.pathname === "/features";
+  const isPricingActive = location.pathname === "/pricing";
+  const isHomeActive = location.pathname === "/" || location.pathname === "/home";
   const isLoggedIn = !!getStoredTokens();
 
   const [activeSection, setActiveSection] = useState<'home' | 'features' | 'free-mock-papers-2027' | 'actions-demo' | 'for-everyone'>('home');
 
-  // Track active section and dynamically update browser URL in real-time as user scrolls
+  // Track active section and dynamically update browser URL in real-time as user scrolls (Landing only)
   React.useEffect(() => {
-    if (isBlogActive) return;
+    if (isBlogActive || isFeaturesActive || isPricingActive) return;
 
     const sectionIds = [
       { id: 'hero', key: 'home' as const, path: '/' },
-      { id: 'features', key: 'features' as const, path: '/features' },
-      { id: 'why-edujunction', key: 'features' as const, path: '/features' },
       { id: 'free-mock-papers-2027', key: 'free-mock-papers-2027' as const, path: '/free-mock-papers-2027' },
       { id: 'actions-demo', key: 'actions-demo' as const, path: '/actions-demo' },
       { id: 'for-everyone', key: 'for-everyone' as const, path: '/for-everyone' },
@@ -73,16 +74,33 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isBlogActive]);
+  }, [isBlogActive, isFeaturesActive, isPricingActive]);
 
   const handleNavClick = (sectionId: string, e: React.MouseEvent) => {
     e.preventDefault();
+
+    if (sectionId === 'features') {
+      if (location.pathname === '/features') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        navigate('/features');
+      }
+      return;
+    }
+
+    if (sectionId === 'pricing') {
+      if (location.pathname === '/pricing') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        navigate('/pricing');
+      }
+      return;
+    }
 
     const isLanding =
       location.pathname === "/" ||
       location.pathname === "/home" ||
       location.pathname === "/landing" ||
-      location.pathname === "/features" ||
       location.pathname === "/free-mock-papers-2027" ||
       location.pathname === "/model-papers-2027" ||
       location.pathname === "/actions-demo" ||
@@ -104,7 +122,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
       setActiveSection('home');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      const el = document.getElementById(sectionId) || (sectionId === 'features' ? document.getElementById('why-edujunction') : null);
+      const el = document.getElementById(sectionId);
       if (el) {
         setActiveSection(sectionId as any);
         const header = document.querySelector('header');
@@ -144,7 +162,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
           <button
             type="button"
             onClick={(e) => handleNavClick('hero', e)}
-            className={navButtonClasses(!isBlogActive && activeSection === 'home')}
+            className={navButtonClasses(isHomeActive && activeSection === 'home')}
           >
             Home
           </button>
@@ -152,15 +170,23 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
           <button
             type="button"
             onClick={(e) => handleNavClick('features', e)}
-            className={navButtonClasses(!isBlogActive && activeSection === 'features')}
+            className={navButtonClasses(isFeaturesActive)}
           >
             Features
+          </button>
+
+          <button
+            type="button"
+            onClick={(e) => handleNavClick('pricing', e)}
+            className={navButtonClasses(isPricingActive)}
+          >
+            Pricing
           </button>
           
           <button
             type="button"
             onClick={(e) => handleNavClick('free-mock-papers-2027', e)}
-            className={`${navButtonClasses(!isBlogActive && activeSection === 'free-mock-papers-2027')} flex items-center gap-1.5`}
+            className={`${navButtonClasses(isHomeActive && activeSection === 'free-mock-papers-2027')} flex items-center gap-1.5`}
           >
             Free Mock Test <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-900 font-bold">2027</span>
           </button>
@@ -209,14 +235,20 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
       {/* Mobile drawer */}
       {mob && (
         <div className="lg:hidden bg-white border-t border-stone-100 px-4 py-4 space-y-2">
-          {[["hero", "Home"], ["features", "Features"], ["free-mock-papers-2027", "Free Mock Test 2027"], ["actions-demo", "Actions & Demo"], ["for-everyone", "For Everyone"]].map(([sectionId, label]) => (
+          {[
+            ["hero", "Home", isHomeActive && activeSection === 'home'],
+            ["features", "Features", isFeaturesActive],
+            ["pricing", "Pricing", isPricingActive],
+            ["free-mock-papers-2027", "Free Mock Test 2027", isHomeActive && activeSection === 'free-mock-papers-2027'],
+            ["actions-demo", "Actions & Demo", isHomeActive && activeSection === 'actions-demo']
+          ].map(([sectionId, label, isActive]) => (
             <button
-              key={sectionId}
+              key={sectionId as string}
               type="button"
-              onClick={(e) => { setMob(false); handleNavClick(sectionId, e); }}
-              className={`block w-full text-left py-2.5 px-3 rounded-xl text-sm ${(!isBlogActive && (activeSection === sectionId || (sectionId === 'hero' && activeSection === 'home'))) ? "font-bold text-yellow-800 bg-amber-100" : "font-semibold text-stone-700 hover:bg-stone-100 hover:text-yellow-600"}`}
+              onClick={(e) => { setMob(false); handleNavClick(sectionId as string, e); }}
+              className={`block w-full text-left py-2.5 px-3 rounded-xl text-sm ${(!isBlogActive && isActive) ? "font-bold text-yellow-800 bg-amber-100" : "font-semibold text-stone-700 hover:bg-stone-100 hover:text-yellow-600"}`}
             >
-              {label}
+              {label as string}
             </button>
           ))}
           <Link to="/blog" onClick={() => setMob(false)} className={isBlogActive ? "block py-2.5 px-3 rounded-xl text-sm font-black text-yellow-800 bg-amber-100" : "block py-2.5 px-3 rounded-xl text-sm font-semibold text-stone-700 hover:bg-stone-100 hover:text-yellow-600"}>Blogs</Link>

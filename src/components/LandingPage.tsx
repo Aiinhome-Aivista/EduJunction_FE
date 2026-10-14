@@ -213,7 +213,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-      const landingSubPaths = ['/home', '/features', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/for-everyone'];
+      const landingSubPaths = ['/home', '/features', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/magic-word-arena', '/for-everyone'];
       if (landingSubPaths.includes(location.pathname)) {
         window.history.replaceState(null, '', '/');
         navigate('/', { replace: true });
@@ -463,18 +463,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           animation: float-3d 6s ease-in-out infinite;
         }
       `}</style>
-{/* FIXED NAVBAR (Only the header stays fixed if needed) */}
+      {/* FIXED NAVBAR (Only the header stays fixed if needed) */}
       <div className="fixed top-0 left-0 right-0 z-50 shadow-sm bg-white">
         <PublicHeader onOpenAuth={openAuth} />
       </div>
 
-      {/* HERO SECTION (Padded for Fixed Header Height & Contains the Ticker) */}
+      {/* HERO SECTION (Full Viewport 100vh with Integrated Quick Value Strip) */}
       <section
         id="hero"
-        className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-white to-stone-50 pt-20 sm:pt-24"
+        className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-white to-stone-50 pt-[72px] min-h-screen lg:h-screen lg:max-h-screen flex flex-col justify-between"
       >
-        {/* MARQUEE TICKER - Now restricted to and scrolling with the Hero Section */}
-        <div className="w-full overflow-hidden relative py-2.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none mb-6">
+        {/* MARQUEE TICKER - Restricted to and scrolling with the Hero Section */}
+        <div className="w-full overflow-hidden relative py-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none shrink-0">
           <div
             className="flex items-center whitespace-nowrap w-max"
             style={{ animation: 'navMarquee 80s linear infinite' }}
@@ -484,15 +484,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-950 text-amber-300 text-[11px] font-black uppercase tracking-wider shadow-sm">
                   <span>{i % 2 === 0 ? "✨" : "🎯"}</span> {i % 2 === 0 ? "NEW" : "TIPS"}
                 </span>
-                <span className="text-stone-950 font-black text-sm sm:text-base tracking-wide drop-shadow-sm">
+                <span className="text-stone-950 font-medium text-sm sm:text-base tracking-normal">
                   {i % 2 === 0 ? (
                     <>
-                      Free Mock Test &amp; Model Test Papers for <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span>, <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span> &amp; <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span> Boards
+                      Free Mock Test &amp; Model Test Papers for{' '}
+                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span>,{' '}
+                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span> &amp;{' '}
+                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span> Boards
                     </>
                   ) : (
-                    <>
-                      Practice smart. Prepare better.
-                    </>
+                    <>Practice smart. Prepare better.</>
                   )}
                 </span>
               </span>
@@ -503,12 +504,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="absolute -top-28 -right-28 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
         <div className="absolute top-40 -left-32 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-3 pb-6 sm:pb-8">
-          <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
-            <div className="space-y-6">
-
+        {/* HERO MAIN CONTENT GRID (Vertically Centered with min-h-0) */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 flex-1 min-h-0 flex items-center w-full">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full">
+            <div className="space-y-3 lg:space-y-4">
               {/* Top Badges (Quick Test & Study Buddy) */}
-              <div className="space-y-3.5">
+              <div>
                 {/* Floating Glowing Quick Test Badge (React Bits Style) */}
                 <div className="flex items-center justify-start">
                   <style>{`
@@ -525,7 +526,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       animation: float-badge 4s ease-in-out infinite;
                     }
                     .animate-surface-flow {
-                      background: linear-gradient(135deg, #ffffff 0%, #fef3c7 30%, #fde68a 50%, #fffbeb 70%, #ffffff 100%);
+                      background: linear-gradient(135deg, #ffffff 0%, #fef08a 22%, #ffffff 40%, #8fc57e 58%, #b2dc9e 68%, #fde68a 84%, #ffffff 100%);
                       background-size: 300% 300%;
                       animation: surface-flow 6s ease infinite;
                     }
@@ -535,63 +536,63 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     onClick={() => navigate('/quick-test')}
                     className="group relative inline-flex items-center animate-float-badge cursor-pointer"
                   >
-                    {/* Ambient Blurred Glow Aura */}
-                    <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 opacity-60 blur-md group-hover:opacity-100 group-hover:blur-lg transition-all duration-500 animate-pulse pointer-events-none" />
-
-                    {/* Button Surface */}
-                    <span className="relative inline-flex items-center gap-3 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full animate-surface-flow backdrop-blur-md border border-amber-300/90 shadow-md group-hover:border-amber-400 group-hover:shadow-2xl group-hover:shadow-amber-300/50 transition-all duration-300 overflow-hidden">
-                      <span className="relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 text-stone-950 shadow-2xs group-hover:rotate-12 transition-transform duration-300">
-                        <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-stone-950 stroke-stone-950" />
+                    {/* Button Surface with Tricolor Animated Flow - Squarish rounded-2xl matching Sign Up button */}
+                    <span className="relative inline-flex items-center gap-3 px-5 sm:px-6 py-2.5 rounded-2xl animate-surface-flow backdrop-blur-md border border-amber-300/90 group-hover:border-[#508244]/70 transition-all duration-300 overflow-hidden shadow-2xs">
+                      <span className="relative flex items-center justify-center w-6 h-6 rounded-xl bg-gradient-to-tr from-amber-400 to-yellow-300 text-stone-950 group-hover:rotate-12 transition-transform duration-300">
+                        <Zap className="w-3.5 h-3.5 fill-stone-950 stroke-stone-950" />
                       </span>
-                      <span className="text-sm sm:text-base font-black tracking-wide text-stone-900 group-hover:text-amber-700 transition-colors">
+                      <span className="text-sm sm:text-base lg:text-lg font-black tracking-wide text-stone-900 group-hover:text-amber-700 transition-colors">
                         Take a Free Quick Test
                       </span>
-                      <ArrowRight className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-stone-400 group-hover:text-amber-700 group-hover:translate-x-1 transition-all" />
+                      <ArrowRight className="w-4 h-4 text-stone-500 group-hover:text-amber-700 group-hover:translate-x-1 transition-all" />
                     </span>
                   </button>
                 </div>
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.12] tracking-tight capitalize">
-                LEARN SMARTER.
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-500 mt-1">
-                  GROW BETTER.
+              <h1
+                className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black leading-[1.08] tracking-normal [word-spacing:0.25em] capitalize"
+                style={{ wordSpacing: '0.25em' }}
+              >
+                LEARN SMARTER
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-500 mt-1 sm:mt-1.5">
+                  GROW BETTER
                 </span>
               </h1>
 
               {/* Subheading Description */}
-              <p className="text-base sm:text-lg text-stone-600 leading-relaxed max-w-xl text-justify [text-align-last:left] pt-1">
+              <p className="text-sm sm:text-base lg:text-lg text-stone-600 leading-relaxed max-w-xl sm:max-w-2xl text-justify [text-align-last:left]">
                 Take an assessment, understand where you need help, and get a
                 learning Path made for you. Learn, practice, play and improve
                 with your Study Buddy.
               </p>
 
               {/* CTA Action Buttons */}
-              <div className="pt-2 flex flex-col sm:flex-row gap-3.5">
+              <div className="pt-1 flex flex-col sm:flex-row gap-3.5">
                 <button
                   onClick={() => openAuth('register')}
-                  className="px-7 py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-extrabold shadow-yellow-200 flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-extrabold shadow-yellow-200 flex items-center justify-center gap-2.5 cursor-pointer text-sm sm:text-base border border-amber-400/60"
                 >
-                  Get Started For FREE <ArrowRight className="w-5 h-5" />
+                  Sign Up For FREE <ArrowRight className="w-4 h-4" />
                 </button>
                 <Link
                   to="/actions-demo"
-                  className="px-7 py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-yellow-400 hover:bg-yellow-50/80 text-stone-800 hover:text-yellow-900 font-bold flex items-center justify-center gap-2 transition-all duration-200 shadow-sm"
+                  className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-yellow-400 hover:bg-yellow-50/80 text-stone-800 hover:text-yellow-900 font-bold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-xs text-sm sm:text-base"
                 >
                   <Play className="w-4 h-4 fill-current text-yellow-500" />
                   See How It Works
                 </Link>
               </div>
 
-              {/* Process Steps */}
-              <div className="pt-2 flex flex-wrap gap-3 text-xs font-bold text-stone-600">
+              {/* Process Steps (1. Assess -> 2. Analyze -> 3. Learn -> 4. Improve) - Squarish rounded-xl matching buttons */}
+              <div className="pt-2 flex flex-wrap items-center gap-2.5 text-xs sm:text-sm font-bold text-stone-700">
                 {['Assess', 'Analyze', 'Learn', 'Improve'].map((item, i) => (
                   <React.Fragment key={item}>
-                    <span className="px-3 py-1.5 rounded-full bg-yellow-50 border border-yellow-300 text-yellow-800 shadow-sm shadow-yellow-100/50">
+                    <span className="px-3.5 py-1.5 rounded-xl bg-yellow-50/90 border border-yellow-300 text-stone-900 shadow-2xs">
                       {i + 1}. {item}
                     </span>
-                    {i < 3 && <ArrowRight className="w-3.5 self-center text-yellow-400" />}
+                    {i < 3 && <ArrowRight className="w-3.5 h-3.5 text-yellow-500 shrink-0" />}
                   </React.Fragment>
                 ))}
               </div>
@@ -602,12 +603,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <style>{`
                 @keyframes float-animation {
                   0% { transform: translateY(0px); }
-                  50% { transform: translateY(-20px); }
+                  50% { transform: translateY(-12px); }
                   100% { transform: translateY(0px); }
                 }
                 @keyframes float-delayed {
                   0% { transform: translateY(0px); }
-                  50% { transform: translateY(-15px); }
+                  50% { transform: translateY(-10px); }
                   100% { transform: translateY(0px); }
                 }
                 .animate-float-hero {
@@ -621,48 +622,171 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 }
               `}</style>
 
-              <div className="absolute top-10 -left-10 text-4xl opacity-50 animate-float-delayed select-none pointer-events-none">✨</div>
-              <div className="absolute bottom-20 -left-5 text-3xl opacity-50 animate-float-slow select-none pointer-events-none">🌟</div>
-              <div className="absolute top-20 right-0 text-3xl opacity-40 animate-float-delayed select-none pointer-events-none">💡</div>
-              <div className="absolute bottom-10 right-10 text-4xl opacity-50 animate-float-slow select-none pointer-events-none">🎨</div>
+              <div className="absolute top-6 -left-6 text-3xl opacity-50 animate-float-delayed select-none pointer-events-none">✨</div>
+              <div className="absolute bottom-12 -left-4 text-2xl opacity-50 animate-float-slow select-none pointer-events-none">🌟</div>
+              <div className="absolute top-12 right-0 text-2xl opacity-40 animate-float-delayed select-none pointer-events-none">💡</div>
+              <div className="absolute bottom-6 right-6 text-3xl opacity-50 animate-float-slow select-none pointer-events-none">🎨</div>
               <img
                 src="/hero-illustration.png"
                 alt="Animated Hero Illustration"
-                className="w-full max-w-[530px] lg:max-w-[560px] object-contain animate-float-hero filter drop-shadow-xl"
+                className="w-auto h-auto max-h-[340px] sm:max-h-[380px] lg:max-h-[420px] xl:max-h-[450px] max-w-[420px] lg:max-w-[460px] xl:max-w-[500px] object-contain animate-float-hero filter drop-shadow-2xl"
               />
             </div>
           </div>
         </div>
 
-        {/* WAVY DIVIDER at bottom of Hero */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10 translate-y-[99%]">
-          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-6 sm:h-10 fill-yellow-50/50">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V0C101.33,26.6,204.66,66.19,321.39,56.44Z"></path>
-          </svg>
-        </div>
-      </section>
-
-      {/* QUICK VALUE */}
-      <section className="bg-yellow-50/50 relative pt-2 sm:pt-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-3">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              ['📝', 'Assess', 'Find what you know'],
-              ['🤖', 'Study Buddy Insights', 'Find where you need help'],
-              ['🎯', 'Personal Path', 'Get the right next step'],
-              ['🏆', 'Rewards', 'Stay motivated'],
-            ].map(([icon, title, text], idx) => (
-              <div key={title} className="flex items-center gap-4 reveal-on-scroll" style={{ animationDelay: `${idx * 150}ms` }}>
-                <div className="w-12 h-12 rounded-2xl bg-white shadow-sm shadow-yellow-100 border border-yellow-200 flex items-center justify-center text-2xl shrink-0">{icon}</div>
-                <div>
-                  <div className="font-extrabold text-sm text-stone-900">{title}</div>
-                  <div className="text-xs font-medium text-stone-600 mt-0.5">{text}</div>
+        {/* INTEGRATED QUICK VALUE BAR (Assess, Insights, Path, Rewards) */}
+        <div className="w-full bg-white/85 backdrop-blur-md border-t border-amber-200/80 py-2.5 sm:py-3 relative z-20 shrink-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-6">
+              {[
+                ['📝', 'Assess', 'Find what you know'],
+                ['🤖', 'Study Buddy Insights', 'Find where you need help'],
+                ['🎯', 'Personal Path', 'Get the right next step'],
+                ['🏆', 'Rewards', 'Stay motivated'],
+              ].map(([icon, title, text]) => (
+                <div key={title} className="flex items-center gap-3">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50/80 border border-amber-200/80 flex items-center justify-center text-lg sm:text-xl shrink-0 shadow-2xs">
+                    {icon}
+                  </div>
+                  <div>
+                    <div className="font-extrabold text-xs sm:text-sm text-stone-900">{title}</div>
+                    <div className="text-[11px] sm:text-xs font-medium text-stone-600">{text}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
+
+      {/* 🌟 FREE MOCK TEST PAPERS 2027 */}
+      <section id="free-mock-papers-2027" className="pt-4 sm:pt-6 pb-12 sm:pb-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden scroll-mt-[90px]">
+        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10 reveal-on-scroll">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/90 border border-yellow-200 text-yellow-800 text-xs font-bold shadow-sm">
+              <FileText className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
+              Free Mock Test Papers 2027
+            </div>
+            <h2
+              className="mt-4 text-3xl sm:text-4xl font-black capitalize tracking-normal text-stone-900"
+              style={{ wordSpacing: '0.25em' }}
+            >
+              <span className="text-yellow-500">FREE</span> MOCK TEST &amp; <span className="text-yellow-500">MODEL TEST PAPERS</span> FOR CBSE, ICSE &amp; ISC
+            </h2>
+            <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
+              Practice free unlimited CBSE, ICSE & ISC mock tests, model question papers and online practice tests. Prepare for exams with EduJunction's student-friendly resources.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-6 items-stretch">
+            {/* 1. Free Mock Test Papers - ICSE, CBSE & ISC 2027 (PRIMARY HERO SPOTLIGHT) */}
+            <div className="rounded-3xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-500 text-stone-950 p-6 sm:p-7 shadow-2xl shadow-amber-500/25 border-2 border-amber-300 ring-4 ring-amber-400/20 flex flex-col justify-between relative overflow-hidden group hover:shadow-amber-500/35 hover:-translate-y-1 transition-all duration-300">
+              {/* Shimmer Light Accent */}
+              <div className="absolute -top-24 -right-24 w-60 h-60 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
+
+              <div className="space-y-3 relative z-10">
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-stone-950 text-yellow-300 text-xs font-black uppercase tracking-wider shadow-md">
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
+                    2027 Flagship Edition
+                  </div>
+                  <span className="text-2xl drop-shadow-sm">📝</span>
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight">
+                  Model Test Papers Available For :{' '}
+                  <span className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+                    CBSE, ICSE &amp; ISC 2027
+                  </span>
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-900 leading-relaxed font-semibold text-justify [text-align-last:left]">
+                  Access full-length authentic specimen model papers: <b>CBSE (3h • 80m)</b>, <b>ICSE (2.5h • 80m)</b> and <b>ISC (3h • 70/80m)</b>. Built on 10–15 years of past question patterns and step-by-step marking rubrics.
+                </p>
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  {[
+                    '⏱️ CBSE: 3 Hours (80 Marks)',
+                    '⏱️ ICSE: 2.5 Hours (80 Marks)',
+                    '⏱️ ISC: 3 Hours (70/80 Marks)',
+                    '📄 PDF & Word Downloads',
+                    '10–15 Yrs Past Trends (2011–2026)',
+                    '🎯 Step-by-Step Marking Rules',
+                  ].map((tag) => (
+                    <div key={tag} className="px-2.5 py-1.5 rounded-xl bg-white/90 backdrop-blur-sm border border-amber-900/10 text-stone-950 text-[11px] font-bold flex items-center gap-1.5 shadow-xs">
+                      <span className="text-emerald-700 font-extrabold">✓</span> {tag}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-6 relative z-10">
+                <button
+                  onClick={() => openAuth('register')}
+                  className="m-auto py-3.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-sm shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
+                >
+                  Explore Model Test Papers <ArrowRight className="w-4 h-4 text-yellow-400 transition-transform group-hover:translate-x-1" />
+                </button>
+              </div>
+            </div>
+
+            {/* 2. Free Mock Test: Subject-Wise 10-Mark Diagnostic Mock Test Available (SUPPORTING CARD) */}
+            <div className="rounded-3xl bg-white/95 backdrop-blur-sm border border-stone-200/90 text-stone-900 p-6 sm:p-7 shadow-lg shadow-stone-900/5 flex flex-col justify-between relative overflow-hidden group hover:shadow-xl hover:border-amber-300/80 transition-all">
+              <div className="space-y-3 relative z-10">
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 border border-yellow-300/80 text-amber-950 text-xs font-black">
+                    <Zap className="w-3.5 h-3.5 text-yellow-600 fill-current" /> Free Mock Test Available
+                  </div>
+                  <span className="text-2xl">⚡</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
+                  Free Subject-Wise Mock Test
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium text-justify [text-align-last:left]">
+                  Understand your child’s learning level in just 15 minutes. <b>Create a free Parent Account</b>, choose Board (CBSE, ICSE, ISC) and Class (5-12), and unlock instant diagnostic reports sent straight to your email.
+                </p>
+
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70">
+                    <p className="text-xs font-bold text-amber-900">📝 Free Mock Test</p>
+                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">15-Min timed test</p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70">
+                    <p className="text-xs font-bold text-amber-900">📊 Diagnostic Insights</p>
+                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">Concept error detection</p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70 col-span-2">
+                    <p className="text-xs font-bold text-amber-900">📧 Direct Emailed PDF Report</p>
+                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">Delivered to parent inbox upon submission</p>
+                  </div>
+                </div>
+              </div>
+
+
+              <div className="pt-6 relative z-10 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                <button
+                  onClick={() => openAuth('register')}
+                  className="w-fit py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs shadow-md shadow-amber-500/15 flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-95"
+                >
+                  <Users className="w-4 h-4 shrink-0" />
+                  Create Free Parent Account
+                  <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+                </button>
+
+                <button
+                  onClick={() => openAuth('login')}
+                  className="w-fit py-3 px-4 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs border border-stone-300 transition-all flex items-center justify-center cursor-pointer"
+                >
+                  Sign In
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       {/* FEATURES */}
       <section id="features" className="pt-4 sm:pt-6 pb-6 bg-stone-50 scroll-mt-[90px]">
@@ -672,9 +796,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Sparkles className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
               What You Can Do
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black tracking-[0.15em] capitalize">
-  EVERYTHING YOU NEED TO KNOW BETTER
-</h2>
+            <h2
+              className="mt-4 text-3xl sm:text-4xl font-black tracking-normal capitalize"
+              style={{ wordSpacing: '0.25em' }}
+            >
+              EVERYTHING YOU NEED TO KNOW BETTER
+            </h2>
             <p className="mt-3 text-stone-600 text-sm sm:text-base">
               Simple tools for learning, practice, motivation and communication.
             </p>
@@ -1148,178 +1275,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* 💎 WHY EDUJUNCTION (EDITORIAL STORY & VALUE NARRATIVE) */}
-      <section id="why-edujunction" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-[90px]">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-amber-100/30 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-yellow-100/20 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* Section Header */}
-          <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
-  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100/80 border border-amber-300 text-amber-900 text-xs font-black uppercase tracking-wider shadow-xs">
-    <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
-    Why EduJunction
-  </div>
-  <h2 className="mt-4 text-3xl sm:text-4xl lg:text-4xl font-black text-stone-900 tracking-tight leading-tight whitespace-nowrap overflow-x-auto pb-2">
-    EDU<span className="text-yellow-500">JUNCTION</span> vs <span className="text-yellow-500">OTHER</span> PLATFORMS
-  </h2>
-</div>
-
-          {/* 2-Column Open / Borderless Layout: Left Description & Right 3D Motion Image */}
-          <div className="mt-10 lg:mt-12 grid lg:grid-cols-12 gap-6 lg:gap-8 items-center reveal-on-scroll">
-            {/* Left Side: Description */}
-            <div className="lg:col-span-7 space-y-4">
-              <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
-                While traditional platforms offer generic PDFs with zero diagnostic insights, <strong className="text-stone-900 font-bold">EduJunction</strong> brings the exact <strong className="text-amber-800 font-bold">Upcoming ICSE, ISC &amp; CBSE board blueprints</strong> to life with step-by-step scoring rubrics. Our built-in <strong className="text-stone-900 font-bold">Study Buddy</strong> identifies why a student struggled, pinpointing conceptual traps and prerequisite knowledge gaps before exam day.
-              </p>
-              <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
-                Every test submission automatically compiles and emails an authentic <strong className="text-stone-900 font-bold">PDF Diagnostic Dossier</strong> directly to parents with chapter-wise mastery breakdowns, ensuring seamless transparency. Inside the exam interface, students can solve numericals, draft diagrams, and utilize digital scratchpads directly with our <strong className="text-stone-900 font-bold">Interactive STEM Canvas</strong>. We believe quality education should be accessible and student-centric — empowering learners with <strong className="text-amber-800 font-bold">fair, modular, per-paper pricing</strong> and absolutely no forced annual lock-ins, putting students in complete control of their success.
-              </p>
-            </div>
-
-            {/* Right Side: Realistic Student Floating Cutout (Borderless, Transparent PNG) */}
-            <div className="lg:col-span-5 flex items-center justify-center relative">
-              {/* Soft Ambient Glow */}
-              <div className="absolute -inset-4 bg-gradient-to-tr from-amber-300/25 via-yellow-200/30 to-orange-300/15 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="relative w-full flex items-center justify-center">
-                <img
-                  src="/why-edujunction-student-cutout.png"
-                  alt="Student studying with EduJunction"
-                  className="w-full max-w-[380px] sm:max-w-[420px] lg:max-w-[450px] h-auto max-h-[440px] object-contain select-none drop-shadow-[0_18px_36px_rgba(120,53,15,0.18)] transition-transform duration-500 hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 🌟 FREE MOCK TEST PAPERS 2027 */}
-      <section id="free-mock-papers-2027" className="pt-4 sm:pt-6 pb-12 sm:pb-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden scroll-mt-[90px]">
-        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10 reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/90 border border-yellow-200 text-yellow-800 text-xs font-bold shadow-sm">
-              <FileText className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
-              Free Mock Test Papers 2027
-            </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize tracking-wide text-stone-900">
-              <span className="text-yellow-500">FREE</span> MOCK TEST &amp; <span className="text-yellow-500">MODEL TEST PAPERS</span> for CBSE, ICSE &amp; ISC
-            </h2>
-            <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
-              Practice free unlimited CBSE, ICSE & ISC mock tests, model question papers and online practice tests. Prepare for exams with EduJunction's student-friendly resources.
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-6 items-stretch">
-            {/* 1. Free Mock Test Papers - ICSE, CBSE & ISC 2027 (PRIMARY HERO SPOTLIGHT) */}
-            <div className="rounded-3xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-500 text-stone-950 p-6 sm:p-7 shadow-2xl shadow-amber-500/25 border-2 border-amber-300 ring-4 ring-amber-400/20 flex flex-col justify-between relative overflow-hidden group hover:shadow-amber-500/35 hover:-translate-y-1 transition-all duration-300">
-              {/* Shimmer Light Accent */}
-              <div className="absolute -top-24 -right-24 w-60 h-60 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
-
-              <div className="space-y-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-stone-950 text-yellow-300 text-xs font-black uppercase tracking-wider shadow-md">
-                    <Sparkles className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
-                    2027 Flagship Edition
-                  </div>
-                  <span className="text-2xl drop-shadow-sm">📝</span>
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight">
-                  Model Test Papers Available For :{' '}
-                  <span className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
-                    CBSE, ICSE &amp; ISC 2027
-                  </span>
-                </h3>
-                <p className="text-xs sm:text-sm text-stone-900 leading-relaxed font-semibold text-justify [text-align-last:left]">
-                  Access full-length authentic specimen model papers: <b>CBSE (3h • 80m)</b>, <b>ICSE (2.5h • 80m)</b> and <b>ISC (3h • 70/80m)</b>. Built on 10–15 years of past question patterns and step-by-step marking rubrics.
-                </p>
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  {[
-                    '⏱️ CBSE: 3 Hours (80 Marks)',
-                    '⏱️ ICSE: 2.5 Hours (80 Marks)',
-                    '⏱️ ISC: 3 Hours (70/80 Marks)',
-                    '📄 PDF & Word Downloads',
-                    '10–15 Yrs Past Trends (2011–2026)',
-                    '🎯 Step-by-Step Marking Rules',
-                  ].map((tag) => (
-                    <div key={tag} className="px-2.5 py-1.5 rounded-xl bg-white/90 backdrop-blur-sm border border-amber-900/10 text-stone-950 text-[11px] font-bold flex items-center gap-1.5 shadow-xs">
-                      <span className="text-emerald-700 font-extrabold">✓</span> {tag}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-6 relative z-10">
-                <button
-                  onClick={() => openAuth('register')}
-                  className="m-auto py-3.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-sm shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
-                >
-                  Explore Model Test Papers <ArrowRight className="w-4 h-4 text-yellow-400 transition-transform group-hover:translate-x-1" />
-                </button>
-              </div>
-            </div>
-
-            {/* 2. Free Mock Test: Subject-Wise 10-Mark Diagnostic Mock Test Available (SUPPORTING CARD) */}
-            <div className="rounded-3xl bg-white/95 backdrop-blur-sm border border-stone-200/90 text-stone-900 p-6 sm:p-7 shadow-lg shadow-stone-900/5 flex flex-col justify-between relative overflow-hidden group hover:shadow-xl hover:border-amber-300/80 transition-all">
-              <div className="space-y-3 relative z-10">
-                <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 border border-yellow-300/80 text-amber-950 text-xs font-black">
-                    <Zap className="w-3.5 h-3.5 text-yellow-600 fill-current" /> Free Mock Test Available
-                  </div>
-                  <span className="text-2xl">⚡</span>
-                </div>
-                <h3 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
-                  Free Subject-Wise Mock Test
-                </h3>
-                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium text-justify [text-align-last:left]">
-                  Understand your child’s learning level in just 15 minutes. <b>Create a free Parent Account</b>, choose Board (CBSE, ICSE, ISC) and Class (5-12), and unlock instant diagnostic reports sent straight to your email.
-                </p>
-
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70">
-                    <p className="text-xs font-bold text-amber-900">📝 Free Mock Test</p>
-                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">15-Min timed test</p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70">
-                    <p className="text-xs font-bold text-amber-900">📊 Diagnostic Insights</p>
-                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">Concept error detection</p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70 col-span-2">
-                    <p className="text-xs font-bold text-amber-900">📧 Direct Emailed PDF Report</p>
-                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">Delivered to parent inbox upon submission</p>
-                  </div>
-                </div>
-              </div>
-
-              
-<div className="pt-6 relative z-10 flex flex-col sm:flex-row items-center justify-center gap-2.5">
-  <button
-    onClick={() => openAuth('register')}
-    className="w-fit py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs shadow-md shadow-amber-500/15 flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-95"
-  >
-    <Users className="w-4 h-4 shrink-0" />
-    Create Free Parent Account
-    <ArrowRight className="w-3.5 h-3.5 shrink-0" />
-  </button>
-
-  <button
-    onClick={() => openAuth('login')}
-    className="w-fit py-3 px-4 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs border border-stone-300 transition-all flex items-center justify-center cursor-pointer"
-  >
-    Sign In
-  </button>
-</div>
-
-            </div>
-          </div>
-        </div>
-      </section>
-
-
       {/* ACTIONS & DEMO */}
       <section id="actions-demo" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white scroll-mt-[90px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1328,8 +1283,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Lightbulb className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
               Actions &amp; Demo
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black text-stone-900 !word-spacing-wider">
-              EXPERIENCE EDU<span className="text-yellow-500">JUNCTION</span> IN ACTION 🚀
+            <h2
+              className="mt-4 text-3xl sm:text-4xl font-black text-stone-900 tracking-normal"
+              style={{ wordSpacing: '0.25em' }}
+            >
+              EXPERIENCE Edu<span className="text-yellow-500">Junction</span> IN <span className="text-yellow-500">ACTION</span> 🚀
             </h2>
             <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
               Watch our interactive walkthrough video and try our hands-on demo below.
@@ -1384,96 +1342,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* PERSONAS / FOR EVERYONE */}
-      <section
-        id="for-everyone"
-        className="pt-4 sm:pt-6 pb-16 sm:pb-20 relative bg-cover bg-center bg-no-repeat border-y border-stone-200/80 scroll-mt-[90px] overflow-hidden"
-        style={{ backgroundImage: `url('/roles-study-bg.jpg')` }}
-      >
-        {/* Crisp & Clear Overlay (No Blur Filter) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-white/20 to-white/40 pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/95 backdrop-blur-sm border border-stone-200 text-stone-800 text-xs font-bold shadow-sm">
-              <Users className="w-3.5 h-3.5" />
-              One Platform, Three Perspectives
-            </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize text-stone-900 drop-shadow-xs">
-              BUILT FOR EVERYONE AROUND THE LEARNER
-            </h2>
-            <p className="mt-3 text-stone-700 font-semibold drop-shadow-xs">
-              Students learn, teachers guide, and parents stay connected.
-            </p>
-          </div>
-
-          <div className="mt-12 grid lg:grid-cols-3 gap-5">
-            {(['parent', 'student', 'teacher'] as Role[]).map((role, i) => {
-              const content = roleContent[role];
-              const Icon = content.icon;
-              const active = activeRole === role;
-
-              return (
-                <div
-                  key={role}
-                  className="text-left rounded-3xl p-6 border-2 border-yellow-300/90 bg-white/95 backdrop-blur-md shadow-xl shadow-stone-900/5 hover:shadow-2xl hover:shadow-yellow-500/15 hover:-translate-y-1 transition-all duration-300 reveal-on-scroll"
-                  style={{ transitionDelay: `${i * 100}ms` }}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className={`w-12 h-12 rounded-2xl ${role === 'student'
-                      ? 'bg-yellow-50 text-yellow-600'
-                      : role === 'teacher'
-                        ? 'bg-yellow-50 text-yellow-600'
-                        : 'bg-sky-50 text-sky-600'
-                      } flex items-center justify-center`}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                  </div>
-
-                  <h3 className="mt-5 text-xl font-black">{content.title}</h3>
-                  <p className="mt-1 text-sm font-semibold text-stone-500">{content.subtitle}</p>
-
-                  <ul className="mt-5 space-y-3">
-                    {content.bullets.map((bullet) => (
-                      <li key={bullet} className="flex items-center gap-2.5 text-sm text-stone-700">
-                        <CheckCircle2 className="w-4 h-4 text-yellow-500 shrink-0" />
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (role === 'parent') {
-                        openAuth('register');
-                      } else if (role === 'student') {
-                        openAuth('login');
-                      } else {
-                        document.getElementById('personalization')?.scrollIntoView({
-                          behavior: 'smooth',
-                          block: 'start',
-                        });
-                      }
-                    }}
-                    className="mt-6 text-sm font-extrabold text-yellow-500 flex items-center gap-1"
-                  >
-                    {role === 'student'
-                      ? 'Start Learning'
-                      : role === 'teacher'
-                        ? 'See How It Works'
-                        : 'Parent Login'}
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* ==================== 2-COLUMN WORD BUILDER SECTION ==================== */}
-      <section id="demo" className="pt-4 sm:pt-6 pb-16 bg-amber-50/60 relative z-20 font-sans select-none px-4 scroll-mt-[90px] overflow-hidden">
+      <section id="magic-word-arena" className="pt-4 sm:pt-6 pb-16 bg-amber-50/60 relative z-20 font-sans select-none px-4 scroll-mt-[90px] overflow-hidden">
 
         {/* Background Soft Glows */}
         <div className="absolute top-5 left-1/4 w-72 h-72 bg-yellow-200/50 rounded-full blur-3xl animate-pulse pointer-events-none" />
@@ -1667,6 +1537,147 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
 
+      {/* 💎 WHY EDUJUNCTION (EDITORIAL STORY & VALUE NARRATIVE) */}
+      <section id="why-edujunction" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-[90px]">
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-amber-100/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-yellow-100/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100/80 border border-amber-300 text-amber-900 text-xs font-black uppercase tracking-wider shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+              Why EduJunction
+            </div>
+            <h2
+              className="mt-4 text-3xl sm:text-4xl lg:text-4xl font-black text-stone-900 tracking-normal leading-tight whitespace-nowrap overflow-x-auto pb-2"
+              style={{ wordSpacing: '0.25em' }}
+            >
+              Edu<span className="text-yellow-500">Junction</span> vs <span className="text-yellow-500">OTHER</span> PLATFORMS
+            </h2>
+          </div>
+
+          {/* 2-Column Open / Borderless Layout: Left Description & Right 3D Motion Image */}
+          <div className="mt-10 lg:mt-12 grid lg:grid-cols-12 gap-6 lg:gap-8 items-center reveal-on-scroll">
+            {/* Left Side: Description */}
+            <div className="lg:col-span-7 space-y-4">
+              <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
+                While traditional platforms offer generic PDFs with zero diagnostic insights, <strong className="text-stone-900 font-bold">EduJunction</strong> brings the exact <strong className="text-amber-800 font-bold">Upcoming ICSE, ISC &amp; CBSE board blueprints</strong> to life with step-by-step scoring rubrics. Our built-in <strong className="text-stone-900 font-bold">Study Buddy</strong> identifies why a student struggled, pinpointing conceptual traps and prerequisite knowledge gaps before exam day.
+              </p>
+              <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
+                Every test submission automatically compiles and emails an authentic <strong className="text-stone-900 font-bold">PDF Diagnostic Dossier</strong> directly to parents with chapter-wise mastery breakdowns, ensuring seamless transparency. Inside the exam interface, students can solve numericals, draft diagrams, and utilize digital scratchpads directly with our <strong className="text-stone-900 font-bold">Interactive STEM Canvas</strong>. We believe quality education should be accessible and student-centric — empowering learners with <strong className="text-amber-800 font-bold">fair, modular, per-paper pricing</strong> and absolutely no forced annual lock-ins, putting students in complete control of their success.
+              </p>
+            </div>
+
+            {/* Right Side: Realistic Student Floating Cutout (Borderless, Transparent PNG) */}
+            <div className="lg:col-span-5 flex items-center justify-center relative">
+              {/* Soft Ambient Glow */}
+              <div className="absolute -inset-4 bg-gradient-to-tr from-amber-300/25 via-yellow-200/30 to-orange-300/15 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="relative w-full flex items-center justify-center">
+                <img
+                  src="/why-edujunction-student-cutout.png"
+                  alt="Student studying with EduJunction"
+                  className="w-full max-w-[380px] sm:max-w-[420px] lg:max-w-[450px] h-auto max-h-[440px] object-contain select-none drop-shadow-[0_18px_36px_rgba(120,53,15,0.18)] transition-transform duration-500 hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PERSONAS / FOR EVERYONE */}
+      <section
+        id="for-everyone"
+        className="pt-4 sm:pt-6 pb-16 sm:pb-20 relative bg-cover bg-center bg-no-repeat border-y border-stone-200/80 scroll-mt-[90px] overflow-hidden"
+        style={{ backgroundImage: `url('/roles-study-bg.jpg')` }}
+      >
+        {/* Crisp & Clear Overlay (No Blur Filter) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-white/20 to-white/40 pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/95 backdrop-blur-sm border border-stone-200 text-stone-800 text-xs font-bold shadow-sm">
+              <Users className="w-3.5 h-3.5" />
+              One Platform, Three Perspectives
+            </div>
+            <h2
+              className="mt-4 text-3xl sm:text-4xl font-black capitalize tracking-normal text-stone-900 drop-shadow-xs"
+              style={{ wordSpacing: '0.25em' }}
+            >
+              BUILT FOR EVERYONE AROUND THE LEARNER
+            </h2>
+            <p className="mt-3 text-stone-700 font-semibold drop-shadow-xs">
+              Students learn, teachers guide, and parents stay connected.
+            </p>
+          </div>
+
+          <div className="mt-12 grid lg:grid-cols-3 gap-5">
+            {(['parent', 'student', 'teacher'] as Role[]).map((role, i) => {
+              const content = roleContent[role];
+              const Icon = content.icon;
+              const active = activeRole === role;
+
+              return (
+                <div
+                  key={role}
+                  className="text-left rounded-3xl p-6 border-2 border-yellow-300/90 bg-white/95 backdrop-blur-md shadow-xl shadow-stone-900/5 hover:shadow-2xl hover:shadow-yellow-500/15 hover:-translate-y-1 transition-all duration-300 reveal-on-scroll"
+                  style={{ transitionDelay: `${i * 100}ms` }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className={`w-12 h-12 rounded-2xl ${role === 'student'
+                      ? 'bg-yellow-50 text-yellow-600'
+                      : role === 'teacher'
+                        ? 'bg-yellow-50 text-yellow-600'
+                        : 'bg-sky-50 text-sky-600'
+                      } flex items-center justify-center`}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                  </div>
+
+                  <h3 className="mt-5 text-xl font-black">{content.title}</h3>
+                  <p className="mt-1 text-sm font-semibold text-stone-500">{content.subtitle}</p>
+
+                  <ul className="mt-5 space-y-3">
+                    {content.bullets.map((bullet) => (
+                      <li key={bullet} className="flex items-center gap-2.5 text-sm text-stone-700">
+                        <CheckCircle2 className="w-4 h-4 text-yellow-500 shrink-0" />
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (role === 'parent') {
+                        openAuth('register');
+                      } else if (role === 'student') {
+                        openAuth('login');
+                      } else {
+                        document.getElementById('personalization')?.scrollIntoView({
+                          behavior: 'smooth',
+                          block: 'start',
+                        });
+                      }
+                    }}
+                    className="mt-6 text-sm font-extrabold text-yellow-500 flex items-center gap-1"
+                  >
+                    {role === 'student'
+                      ? 'Start Learning'
+                      : role === 'teacher'
+                        ? 'See How It Works'
+                        : 'Parent Login'}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* PERSONALIZATION EXAMPLE */}
       <section id="personalization" className="py-20 bg-white relative z-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1675,7 +1686,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Brain className="w-3.5 h-3.5" />
               Study Buddy Personalization
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize">
+            <h2
+              className="mt-4 text-3xl sm:text-4xl font-black tracking-normal capitalize"
+              style={{ wordSpacing: '0.25em' }}
+            >
               NOT THE SAME LESSON FOR EVERYONE
             </h2>
             <p className="mt-3 text-stone-600">
@@ -1759,7 +1773,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <Trophy className="w-3.5 h-3.5" />
                   Learning, but make it fun
                 </div>
-                <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize">
+                <h2
+                  className="mt-4 text-3xl sm:text-4xl font-black tracking-normal capitalize"
+                  style={{ wordSpacing: '0.25em' }}
+                >
                   Rewards that make children want to keep going
                 </h2>
                 <p className="mt-4 text-stone-600 leading-relaxed text-justify [text-align-last:left]">
@@ -1841,7 +1858,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Play className="w-3.5 h-3.5 fill-current" />
               Interactive Demo
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize">
+            <h2
+              className="mt-4 text-3xl sm:text-4xl font-black tracking-normal capitalize"
+              style={{ wordSpacing: '0.25em' }}
+            >
               UNBOX THE FUTURE OF GRADING
             </h2>
             <p className="mt-3 text-stone-600">
@@ -1990,8 +2010,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
               <span>Tailored Academic Tracks</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-stone-900 capitalize">
-              CHOSSE THE LEARNING TRACK <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">THAT FITS</span>
+            <h2
+              className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-normal text-stone-900 capitalize"
+              style={{ wordSpacing: '0.25em' }}
+            >
+              CHOOSE THE LEARNING TRACK <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">THAT FITS</span>
             </h2>
             <p className="mt-3.5 text-stone-600 text-sm sm:text-base font-medium leading-relaxed max-w-2xl mx-auto">
               Comprehensive, syllabus-accurate practice for school board excellence and high-rigor competitive foundations. Complete with NCERT solutions, previous year papers, and instant AI step feedback.
@@ -2414,7 +2437,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Lightbulb className="w-4 h-4 text-yellow-600" />
               FAQ
             </div>
-            <h2 className="mt-6 text-4xl sm:text-5xl font-black tracking-tight text-stone-900 capitalize">
+            <h2
+              className="mt-6 text-4xl sm:text-5xl font-black tracking-normal text-stone-900 capitalize"
+              style={{ wordSpacing: '0.25em' }}
+            >
               Your Questions, Our Answers
             </h2>
           </div>

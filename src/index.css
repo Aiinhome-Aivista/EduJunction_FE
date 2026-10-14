@@ -9,10 +9,17 @@ body {
   font-family: 'Nunito', sans-serif !important;
 }
 
-/* Global Headings: Outfit Font */
+/* Global Headings: Outfit Font with proper word spacing */
 h1, h2, h3, h4, h5, h6, .font-heading {
   font-family: 'Outfit', sans-serif !important;
-  letter-spacing: -0.015em;
+  letter-spacing: 0.01em;
+  word-spacing: 0.22em;
+}
+
+/* Word Spacing Utilities */
+.word-spacing-wider,
+.\!word-spacing-wider {
+  word-spacing: 0.25em !important;
 }
 
 /* Keep links visibly distinct while editing and in published blog content. */

@@ -78,8 +78,8 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
             <div className="mt-3 space-y-2 text-xs">
               <button type="button" onClick={(e) => handleFooterNav('features', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">Features</button>
               <button type="button" onClick={(e) => handleFooterNav('free-mock-papers-2027', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">Free Mock Papers 2027</button>
-              <button type="button" onClick={(e) => handleFooterNav('actions-demo', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">Actions &amp; Demo</button>
-              <button type="button" onClick={(e) => handleFooterNav('for-everyone', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">For Everyone</button>
+              <button type="button" onClick={(e) => handleFooterNav('actions-demo', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">Pricing</button>
+              {/* <button type="button" onClick={(e) => handleFooterNav('for-everyone', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">For Everyone</button> */}
               <Link to="/blog" className="block hover:text-white transition-colors">Blogs</Link>
             </div>
           </div>
