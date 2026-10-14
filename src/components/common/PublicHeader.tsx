@@ -170,7 +170,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
                 Login
               </button>
               <button onClick={() => onOpenAuth('register')} className="px-5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-sm font-extrabold shadow-lg shadow-yellow-200 flex items-center gap-2 transition-all">
-                Get Started <ArrowRight className="w-4 h-4" />
+                Sign Up <ArrowRight className="w-4 h-4" />
               </button>
             </>
           ) : (
