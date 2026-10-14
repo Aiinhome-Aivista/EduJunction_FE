@@ -34,6 +34,7 @@ import {
   Check,
   Maximize2,
   ExternalLink,
+  Star,
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
 
@@ -129,6 +130,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [freeMockSubject, setFreeMockSubject] = useState<string>('Mathematics');
   const [isGeneratingMock, setIsGeneratingMock] = useState<boolean>(false);
   const [mockSuccessMsg, setMockSuccessMsg] = useState<string | null>(null);
+  const [previewTrack, setPreviewTrack] = useState<any | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPreviewTrack(null);
+    };
+    if (previewTrack) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [previewTrack]);
 
   const handleStartFreeMock = async () => {
     try {
@@ -1955,108 +1973,430 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
 
 
-      {/* CURRICULUM */}
-      <section className="py-20 pb-8 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* CURRICULUM & LEARNING TRACKS */}
+      <section id="curriculum-tracks" className="relative py-24 bg-gradient-to-b from-stone-50/70 via-white to-amber-50/20 overflow-hidden">
+        {/* Subtle Decorative Background Glows */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[320px] bg-gradient-to-b from-amber-200/25 via-amber-100/10 to-transparent blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-20 w-80 h-80 bg-sky-200/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-20 w-80 h-80 bg-rose-200/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
           {/* CENTERED HEADER */}
-          <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-black capitalize tracking-tight text-stone-900">
-              Choose the learning track that fits
+          <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-300/60 text-amber-900 text-xs font-extrabold shadow-2xs mb-4">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+              <span>Tailored Academic Tracks</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-stone-900 capitalize">
+              Choose The Learning Track <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">That Fits</span>
             </h2>
-            <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
-              Support for school learning and higher-level preparation across the platform.
+            <p className="mt-3.5 text-stone-600 text-sm sm:text-base font-medium leading-relaxed max-w-2xl mx-auto">
+              Comprehensive, syllabus-accurate practice for school board excellence and high-rigor competitive foundations. Complete with NCERT solutions, previous year papers, and instant AI step feedback.
             </p>
+
+            {/* Quick Value Highlights Strip */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs font-bold text-stone-600">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200/80 shadow-2xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
+                Latest 2025–26 Pattern
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200/80 shadow-2xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" />
+                Past 10-Yr Solved Papers
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200/80 shadow-2xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-rose-600" />
+                Step-by-Step AI Evaluation
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200/80 shadow-2xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                Free Diagnostic Tier Included
+              </span>
+            </div>
           </div>
 
-          {/* CUTE COMPACT CARDS GRID */}
-          <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* RICH INTERACTIVE TRACKS GRID */}
+          <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
+                id: 'cbse-10',
                 title: 'CBSE Board',
                 level: 'Class 10',
-                text: 'Board exam & NCERT practice',
-                color: 'bg-amber-100 text-amber-700 hover:border-amber-300',
-                svg: (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                ),
+                popularTag: 'Most Popular',
+                subtitle: 'Board Exam & NCERT Practice',
+                description: 'Master core concepts with line-by-line NCERT solutions, chapter-wise question banks, and official marking rubrics.',
+                icon: BookOpen,
+                theme: {
+                  cardBorder: 'border-amber-200/90 hover:border-amber-400',
+                  badgeBg: 'bg-amber-100/90 text-amber-900 border-amber-300/80',
+                  iconGrad: 'from-amber-400 via-amber-500 to-orange-500 shadow-amber-500/30',
+                  glow: 'hover:shadow-amber-500/15',
+                  accentHover: 'group-hover:text-amber-600',
+                  checkColor: 'text-amber-600',
+                  actionBtn: 'bg-stone-900 hover:bg-amber-500 text-white hover:text-stone-950',
+                },
+                features: [
+                  'Complete NCERT & Exemplar Solutions',
+                  'Past 10 Years Solved Papers (PYQs)',
+                  'Step-by-Step AI Evaluation Rubric',
+                ],
+                subjects: ['Mathematics', 'Science', 'Social Science', 'English'],
+                stats: { questions: '15,000+', mockTests: '12 Full Mocks', passRate: '98.4%' },
+                sampleTopics: [
+                  'Quadratic Equations & Arithmetic Progressions',
+                  'Light: Reflection, Refraction & Human Eye',
+                  'Life Processes, Reproduction & Heredity',
+                  'Real-world Case Study & Competency Questions',
+                ],
+                board: 'CBSE',
+                classGrade: 'Class 10',
+                defaultSubject: 'Mathematics',
               },
               {
-                title: 'CBSE & ISC',
+                id: 'cbse-isc-12',
+                title: 'CBSE & ISC Senior',
                 level: 'Class 12',
-                text: 'Advanced board preparation',
-                color: 'bg-sky-100 text-sky-700 hover:border-sky-300',
-                svg: (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                  </svg>
-                ),
+                popularTag: 'Pre-University',
+                subtitle: 'Advanced Board & CUET Prep',
+                description: 'In-depth derivations, formula vaults, specimen board papers, and conceptual bridge training for CUET & entrance tests.',
+                icon: GraduationCap,
+                theme: {
+                  cardBorder: 'border-sky-200/90 hover:border-sky-400',
+                  badgeBg: 'bg-sky-100/90 text-sky-900 border-sky-300/80',
+                  iconGrad: 'from-sky-400 via-blue-500 to-indigo-600 shadow-sky-500/30',
+                  glow: 'hover:shadow-sky-500/15',
+                  accentHover: 'group-hover:text-sky-600',
+                  checkColor: 'text-sky-600',
+                  actionBtn: 'bg-stone-900 hover:bg-sky-600 text-white',
+                },
+                features: [
+                  'Complete Derivations & Formula Vault',
+                  'Official Specimen & Model Mock Papers',
+                  'CUET & Board Dual Readiness Drills',
+                ],
+                subjects: ['Physics', 'Chemistry', 'Mathematics', 'Biology'],
+                stats: { questions: '20,000+', mockTests: '15 Full Mocks', passRate: '99.1%' },
+                sampleTopics: [
+                  'Calculus, Integrals & Differential Equations',
+                  'Electrostatics, Magnetism & Wave Optics',
+                  'Organic Reaction Mechanisms & Kinetics',
+                  'Genetics, Molecular Biology & Biotechnology',
+                ],
+                board: 'CBSE',
+                classGrade: 'Class 12',
+                defaultSubject: 'Physics',
               },
               {
+                id: 'icse-10',
                 title: 'ICSE Board',
                 level: 'Class 10',
-                text: 'ICSE exam & subject practice',
-                color: 'bg-rose-100 text-rose-700 hover:border-rose-300',
-                svg: (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m6 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                  </svg>
-                ),
+                popularTag: 'In-Depth Theory',
+                subtitle: 'ICSE Exam & Subject Practice',
+                description: 'Comprehensive syllabus coverage mapped to Selina & Concise textbooks with structured subjective evaluation & diagrams.',
+                icon: FileText,
+                theme: {
+                  cardBorder: 'border-rose-200/90 hover:border-rose-400',
+                  badgeBg: 'bg-rose-100/90 text-rose-900 border-rose-300/80',
+                  iconGrad: 'from-rose-400 via-pink-500 to-purple-600 shadow-rose-500/30',
+                  glow: 'hover:shadow-rose-500/15',
+                  accentHover: 'group-hover:text-rose-600',
+                  checkColor: 'text-rose-600',
+                  actionBtn: 'bg-stone-900 hover:bg-rose-600 text-white',
+                },
+                features: [
+                  'Selina & Concise Textbook Mapping',
+                  'Structured Subjective Theory Rubrics',
+                  'Diagram & Practical Question Banks',
+                ],
+                subjects: ['Maths', 'Physics', 'Chemistry', 'Biology', 'English'],
+                stats: { questions: '14,000+', mockTests: '10 Full Mocks', passRate: '97.8%' },
+                sampleTopics: [
+                  'Commercial Mathematics: GST & Banking',
+                  'Force, Work, Power & Sound Waves',
+                  'Periodic Properties & Chemical Bonding',
+                  'Plant Physiology & Circulatory System',
+                ],
+                board: 'ICSE',
+                classGrade: 'Class 10',
+                defaultSubject: 'Mathematics',
               },
               {
+                id: 'competitive-prep',
                 title: 'Competitive Prep',
                 level: 'HOTS / Foundation',
-                text: 'More challenging practice',
-                color: 'bg-emerald-100 text-emerald-700 hover:border-emerald-300',
-                svg: (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                ),
+                popularTag: 'High Rigor',
+                subtitle: 'Challenging Practice & Drills',
+                description: 'Higher-order thinking skills, Olympiad question sets, NTSE speed drills, and early bridge foundations for JEE & NEET.',
+                icon: Sparkles,
+                theme: {
+                  cardBorder: 'border-emerald-200/90 hover:border-emerald-400',
+                  badgeBg: 'bg-emerald-100/90 text-emerald-900 border-emerald-300/80',
+                  iconGrad: 'from-emerald-400 via-teal-500 to-teal-700 shadow-emerald-500/30',
+                  glow: 'hover:shadow-emerald-500/15',
+                  accentHover: 'group-hover:text-emerald-600',
+                  checkColor: 'text-emerald-600',
+                  actionBtn: 'bg-stone-900 hover:bg-emerald-600 text-white',
+                },
+                features: [
+                  'Multi-Concept HOTS Problems',
+                  'Olympiad & NTSE Speed Drills',
+                  'National Percentile Benchmark Tests',
+                ],
+                subjects: ['Advanced Maths', 'Science HOTS', 'Aptitude & Logic'],
+                stats: { questions: '12,000+', mockTests: '20 Speed Drills', passRate: 'Top 5%' },
+                sampleTopics: [
+                  'Non-Routine Algebraic Olympiad Challenges',
+                  'Multi-Concept Kinematics & Mechanics',
+                  'Logical Reasoning & Mathematical Induction',
+                  'Real-time Percentile & Accuracy Analytics',
+                ],
+                board: 'CBSE',
+                classGrade: 'Class 10',
+                defaultSubject: 'Mathematics',
               },
-            ].map((track) => (
-              <div
-                key={track.title}
-                className={`group bg-stone-50/80 rounded-2xl border border-stone-200/80 p-5 hover:-translate-y-1.5 hover:bg-white hover:shadow-xl hover:shadow-amber-500/5 transition-all duration-300 ${track.color}`}
-              >
-                {/* Icon + Level Badge */}
-                <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-inner transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                    {track.svg}
-                  </div>
-                  <span className="px-2.5 py-1 rounded-full bg-white border border-stone-200/60 text-[11px] font-black text-amber-700 shadow-2xs">
-                    {track.level}
-                  </span>
-                </div>
+            ].map((track) => {
+              const TrackIcon = track.icon;
+              return (
+                <div
+                  key={track.id}
+                  onClick={() => setPreviewTrack(track)}
+                  className={`group relative flex flex-col justify-between bg-white rounded-3xl border ${track.theme.cardBorder} p-6 shadow-sm hover:shadow-2xl ${track.theme.glow} hover:-translate-y-2 transition-all duration-300 cursor-pointer`}
+                >
+                  {/* Top Row: Icon + Badges */}
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${track.theme.iconGrad} flex items-center justify-center text-white shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 shrink-0`}>
+                        <TrackIcon className="w-6 h-6 stroke-[2.2]" />
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold border ${track.theme.badgeBg} shadow-2xs`}>
+                          {track.level}
+                        </span>
+                        {track.popularTag && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-300/60 shadow-2xs">
+                            <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                            {track.popularTag}
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-                {/* Title & Text */}
-                <h3 className="mt-4 font-black text-stone-800 text-base group-hover:text-amber-600 transition-colors">
-                  {track.title}
-                </h3>
-                <p className="mt-1.5 text-xs font-medium text-stone-500 leading-relaxed">
-                  {track.text}
-                </p>
-              </div>
-            ))}
+                    {/* Titles */}
+                    <h3 className={`mt-5 font-black text-stone-900 text-lg sm:text-xl tracking-tight ${track.theme.accentHover} transition-colors`}>
+                      {track.title}
+                    </h3>
+                    <div className="text-xs font-bold text-stone-600 mt-1">
+                      {track.subtitle}
+                    </div>
+                    <p className="mt-2 text-xs text-stone-500 leading-relaxed font-normal">
+                      {track.description}
+                    </p>
+
+                    {/* Key Features List */}
+                    <div className="mt-4 pt-4 border-t border-stone-100 space-y-2">
+                      {track.features.map((feature) => (
+                        <div key={feature} className="flex items-start gap-2 text-xs font-medium text-stone-700">
+                          <CheckCircle2 className={`w-3.5 h-3.5 ${track.theme.checkColor} shrink-0 mt-0.5`} />
+                          <span className="leading-tight">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Subject Pills */}
+                    <div className="mt-4 pt-3 border-t border-stone-100/90 flex flex-wrap gap-1.5">
+                      {track.subjects.map((sub) => (
+                        <span
+                          key={sub}
+                          className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-stone-100 text-stone-600 group-hover:bg-stone-200/70 transition-colors"
+                        >
+                          {sub}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card Actions */}
+                  <div className="mt-6 pt-4 border-t border-stone-100/90 flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openAuth('register', 'student');
+                      }}
+                      className={`w-full py-2.5 px-3 rounded-xl ${track.theme.actionBtn} font-black text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-98 transition-all duration-200 cursor-pointer`}
+                    >
+                      <span>Start Free Practice</span>
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewTrack(track);
+                      }}
+                      className="w-full py-2 px-3 rounded-xl border border-stone-200 bg-stone-50/80 hover:bg-stone-100 text-stone-700 hover:text-stone-900 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <span>Preview Syllabus & Mocks</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-600" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          {/* CENTERED BUTTON */}
-          <div className="mt-10 text-center">
-            <button
-              onClick={() => typeof openAuth === 'function' && openAuth('register')}
-              className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-stone-900 font-black text-sm shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/40 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 cursor-pointer"
-            >
-              <span>Explore After Sign Up</span>
-              <svg className="w-4 h-4 text-stone-900 transition-transform group-hover:rotate-12 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </button>
+          {/* HIGH-CONVERTING BOTTOM CTA BAR */}
+          <div className="mt-14 text-center flex flex-col items-center reveal-on-scroll">
+            <div className="inline-flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => openAuth('register', 'student')}
+                className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-stone-950 font-black text-sm sm:text-base shadow-xl shadow-amber-500/25 hover:shadow-2xl hover:shadow-amber-500/40 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 cursor-pointer"
+              >
+                <span>Get Started Free — Pick Any Track</span>
+                <ArrowRight className="w-5 h-5 text-stone-950 transition-transform group-hover:translate-x-1.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('free-mock-papers-2027') || document.getElementById('demo');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  } else {
+                    openAuth('login');
+                  }
+                }}
+                className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-white border border-stone-200/90 hover:border-amber-300 hover:bg-amber-50/40 text-stone-700 hover:text-stone-900 font-bold text-sm shadow-xs transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
+                <span>Try Instant 10-Mark Diagnostic Test</span>
+              </button>
+            </div>
+
+            {/* TRUST BADGES */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs font-semibold text-stone-500">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> No credit card required
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-amber-600" /> Instant step-by-step AI grading
+              </span>
+              <span className="flex items-center gap-1.5">
+                <BookOpen className="w-4 h-4 text-blue-600" /> Latest 2025–26 CBSE & ICSE syllabus
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-purple-600" /> Free diagnostic test included
+              </span>
+            </div>
           </div>
 
         </div>
+
+        {/* INTERACTIVE TRACK PREVIEW MODAL */}
+        {previewTrack && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/60 backdrop-blur-sm animate-fade-in"
+            onClick={() => setPreviewTrack(null)}
+          >
+            <div
+              className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-stone-200 p-6 sm:p-8 max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between pb-4 border-b border-stone-100">
+                <div className="flex items-center gap-3.5">
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${previewTrack.theme.iconGrad} flex items-center justify-center text-white shadow-md`}>
+                    {React.createElement(previewTrack.icon, { className: 'w-6 h-6 stroke-[2.2]' })}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-black text-stone-900">{previewTrack.title}</h3>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${previewTrack.theme.badgeBg}`}>
+                        {previewTrack.level}
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold text-stone-500 mt-0.5">{previewTrack.subtitle}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewTrack(null)}
+                  className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 hover:text-stone-800 flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Stats Tiles */}
+              <div className="grid grid-cols-3 gap-3 my-5">
+                <div className="p-3 rounded-2xl bg-stone-50 border border-stone-100 text-center">
+                  <div className="text-lg font-black text-stone-900">{previewTrack.stats.questions}</div>
+                  <div className="text-[11px] font-semibold text-stone-500">Practice Questions</div>
+                </div>
+                <div className="p-3 rounded-2xl bg-stone-50 border border-stone-100 text-center">
+                  <div className="text-lg font-black text-stone-900">{previewTrack.stats.mockTests}</div>
+                  <div className="text-[11px] font-semibold text-stone-500">Mock Assessments</div>
+                </div>
+                <div className="p-3 rounded-2xl bg-stone-50 border border-stone-100 text-center">
+                  <div className="text-lg font-black text-amber-600">{previewTrack.stats.passRate}</div>
+                  <div className="text-[11px] font-semibold text-stone-500">Benchmark Score</div>
+                </div>
+              </div>
+
+              {/* Subjects Covered */}
+              <div className="mb-5">
+                <div className="text-xs font-black uppercase tracking-wider text-stone-400 mb-2">Subjects Included</div>
+                <div className="flex flex-wrap gap-2">
+                  {previewTrack.subjects.map((sub: string) => (
+                    <span
+                      key={sub}
+                      className="px-3 py-1.5 rounded-xl bg-amber-50/70 border border-amber-200/60 text-amber-900 text-xs font-bold"
+                    >
+                      {sub}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sample Topics & Syllabus Highlights */}
+              <div className="mb-6">
+                <div className="text-xs font-black uppercase tracking-wider text-stone-400 mb-2">Core Topics & Syllabus Highlights</div>
+                <div className="space-y-2">
+                  {previewTrack.sampleTopics.map((topic: string) => (
+                    <div key={topic} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-stone-50 border border-stone-100/90 text-xs font-semibold text-stone-700">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <span>{topic}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Modal CTAs */}
+              <div className="pt-4 border-t border-stone-100 flex flex-col sm:flex-row items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPreviewTrack(null)}
+                  className="w-full sm:w-auto px-5 py-3 rounded-xl border border-stone-200 text-stone-600 hover:text-stone-900 font-bold text-xs cursor-pointer transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewTrack(null);
+                    openAuth('register', 'student');
+                  }}
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer transition-all"
+                >
+                  <span>Start Free in {previewTrack.title}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* FAQ */}
