@@ -155,20 +155,6 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
           >
             Free Mock Test <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">2027</span>
           </button>
-          <button
-            type="button"
-            onClick={(e) => handleNavClick('actions-demo', e)}
-            className={`cursor-pointer transition-colors ${(!isBlogActive && activeSection === 'actions-demo') ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
-          >
-            Actions &amp; Demo
-          </button>
-          <button
-            type="button"
-            onClick={(e) => handleNavClick('for-everyone', e)}
-            className={`cursor-pointer transition-colors ${(!isBlogActive && activeSection === 'for-everyone') ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
-          >
-            For Everyone
-          </button>
           <Link to="/blog" className={isBlogActive ? "text-yellow-600 font-black" : "hover:text-yellow-600 transition-colors"}>Blogs</Link>
         </nav>
 
