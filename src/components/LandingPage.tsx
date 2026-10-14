@@ -544,7 +544,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-stone-950 stroke-stone-950" />
                       </span>
                       <span className="text-sm sm:text-base font-black tracking-wide text-stone-900 group-hover:text-amber-700 transition-colors">
-                        Quick Test
+                        Take a Free Quick Test
                       </span>
                       <ArrowRight className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-stone-400 group-hover:text-amber-700 group-hover:translate-x-1 transition-all" />
                     </span>
