@@ -115,16 +115,12 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
     }
   };
 
-  // Shared utility class for items with smooth underline animation
-  const navLinkClasses = (isActive: boolean) => `
-    relative py-1 cursor-pointer transition-colors duration-200 group
-    ${isActive ? "text-yellow-600 font-bold" : "text-stone-600 hover:text-yellow-600"}
-  `;
-
-  // Pseudo-element underline span helper function or tailwind classes
-  const underlineIndicator = (isActive: boolean) => `
-    absolute left-0 bottom-0 w-full h-[2px] bg-yellow-500 transition-all duration-300 ease-out
-    ${isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}
+  // Helper utility for rounded pill button hover/active styling
+  const navButtonClasses = (isActive: boolean) => `
+    px-4 py-2 rounded-full cursor-pointer transition-all duration-200
+    ${isActive 
+      ? "bg-amber-100 text-yellow-800 font-bold shadow-sm" 
+      : "text-stone-600 hover:bg-stone-100 hover:text-yellow-600"}
   `;
 
   return (
@@ -143,38 +139,37 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
           </div>
         </Link>
 
-        {/* Desktop nav with Animated Underline */}
-        <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold">
+        {/* Desktop nav with Rounded Pill Style */}
+        <nav className="hidden lg:flex items-center gap-2 text-sm font-semibold">
           <button
             type="button"
             onClick={(e) => handleNavClick('hero', e)}
-            className={navLinkClasses(!isBlogActive && activeSection === 'home')}
+            className={navButtonClasses(!isBlogActive && activeSection === 'home')}
           >
             Home
-            <span className={underlineIndicator(!isBlogActive && activeSection === 'home')} />
           </button>
-
+          
           <button
             type="button"
             onClick={(e) => handleNavClick('features', e)}
-            className={navLinkClasses(!isBlogActive && activeSection === 'features')}
+            className={navButtonClasses(!isBlogActive && activeSection === 'features')}
           >
             Features
-            <span className={underlineIndicator(!isBlogActive && activeSection === 'features')} />
           </button>
-
+          
           <button
             type="button"
             onClick={(e) => handleNavClick('free-mock-papers-2027', e)}
-            className={`${navLinkClasses(!isBlogActive && activeSection === 'free-mock-papers-2027')} flex items-center gap-1.5`}
+            className={`${navButtonClasses(!isBlogActive && activeSection === 'free-mock-papers-2027')} flex items-center gap-1.5`}
           >
-            Free Mock Test <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">2027</span>
-            <span className={underlineIndicator(!isBlogActive && activeSection === 'free-mock-papers-2027')} />
+            Free Mock Test <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-900 font-bold">2027</span>
           </button>
-
-          <Link to="/blog" className={`relative py-1 transition-colors duration-200 group ${isBlogActive ? "text-yellow-600 font-black" : "text-stone-600 hover:text-yellow-600"}`}>
+          
+          <Link 
+            to="/blog" 
+            className={`px-4 py-2 rounded-full transition-all duration-200 ${isBlogActive ? "bg-amber-100 text-yellow-800 font-black shadow-sm" : "text-stone-600 hover:bg-stone-100 hover:text-yellow-600"}`}
+          >
             Blogs
-            <span className={`absolute left-0 bottom-0 w-full h-[2px] bg-yellow-500 transition-all duration-300 ease-out ${isBlogActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`} />
           </Link>
         </nav>
 
@@ -219,12 +214,12 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
               key={sectionId}
               type="button"
               onClick={(e) => { setMob(false); handleNavClick(sectionId, e); }}
-              className={`block w-full text-left py-2.5 text-sm ${(!isBlogActive && (activeSection === sectionId || (sectionId === 'hero' && activeSection === 'home'))) ? "font-bold text-yellow-600" : "font-semibold text-stone-700 hover:text-yellow-600"}`}
+              className={`block w-full text-left py-2.5 px-3 rounded-xl text-sm ${(!isBlogActive && (activeSection === sectionId || (sectionId === 'hero' && activeSection === 'home'))) ? "font-bold text-yellow-800 bg-amber-100" : "font-semibold text-stone-700 hover:bg-stone-100 hover:text-yellow-600"}`}
             >
               {label}
             </button>
           ))}
-          <Link to="/blog" onClick={() => setMob(false)} className={isBlogActive ? "block py-2.5 text-sm font-black text-yellow-600" : "block py-2.5 text-sm font-semibold text-stone-700 hover:text-yellow-600"}>Blogs</Link>
+          <Link to="/blog" onClick={() => setMob(false)} className={isBlogActive ? "block py-2.5 px-3 rounded-xl text-sm font-black text-yellow-800 bg-amber-100" : "block py-2.5 px-3 rounded-xl text-sm font-semibold text-stone-700 hover:bg-stone-100 hover:text-yellow-600"}>Blogs</Link>
           <div className="pt-3 border-t border-stone-100 flex gap-2">
             {isLoggedIn ? (
               <Link to="/dashboard" onClick={() => setMob(false)} className="flex-1 py-2.5 text-center rounded-xl bg-yellow-400 text-stone-900 font-bold text-sm">
