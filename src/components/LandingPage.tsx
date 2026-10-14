@@ -571,7 +571,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="pt-2 flex flex-col sm:flex-row gap-3.5">
                 <button
                   onClick={() => openAuth('register')}
-                  className="px-7 py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-extrabold shadow-xl shadow-yellow-200 flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-7 py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-extrabold shadow-yellow-200 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   Get Started For FREE <ArrowRight className="w-5 h-5" />
                 </button>
@@ -672,9 +672,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Sparkles className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
               What You Can Do
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black tracking-tight capitalize">
-              Everything you need to learn better
-            </h2>
+            <h2 className="mt-4 text-3xl sm:text-4xl font-black tracking-[0.15em] capitalize">
+  EVERYTHING YOU NEED TO KNOW BETTER
+</h2>
             <p className="mt-3 text-stone-600 text-sm sm:text-base">
               Simple tools for learning, practice, motivation and communication.
             </p>
@@ -1156,14 +1156,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100/80 border border-amber-300 text-amber-900 text-xs font-black uppercase tracking-wider shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
-              Why EduJunction
-            </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black text-stone-900 tracking-tight leading-tight">
-              Edu<span className="text-yellow-500">Junction</span> vs <span className="text-yellow-500">Other</span> Platforms
-            </h2>
-          </div>
+  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100/80 border border-amber-300 text-amber-900 text-xs font-black uppercase tracking-wider shadow-xs">
+    <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+    Why EduJunction
+  </div>
+  <h2 className="mt-4 text-3xl sm:text-4xl lg:text-4xl font-black text-stone-900 tracking-tight leading-tight whitespace-nowrap overflow-x-auto pb-2">
+    EDU<span className="text-yellow-500">JUNCTION</span> vs <span className="text-yellow-500">OTHER</span> PLATFORMS
+  </h2>
+</div>
 
           {/* 2-Column Open / Borderless Layout: Left Description & Right 3D Motion Image */}
           <div className="mt-10 lg:mt-12 grid lg:grid-cols-12 gap-6 lg:gap-8 items-center reveal-on-scroll">
@@ -1206,8 +1206,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <FileText className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
               Free Mock Test Papers 2027
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize tracking-tight text-stone-900">
-              <span className="text-yellow-500">Free</span> Mock Test &amp; <span className="text-yellow-500">Model Test Papers</span> for CBSE, ICSE &amp; ISC
+            <h2 className="mt-4 text-3xl sm:text-4xl font-black capitalize tracking-wide text-stone-900">
+              <span className="text-yellow-500">FREE</span> MOCK TEST &amp; <span className="text-yellow-500">MODEL TEST PAPERS</span> for CBSE, ICSE &amp; ISC
             </h2>
             <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
               Practice free unlimited CBSE, ICSE & ISC mock tests, model question papers and online practice tests. Prepare for exams with EduJunction's student-friendly resources.
@@ -1328,8 +1328,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Lightbulb className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
               Actions &amp; Demo
             </div>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black text-stone-900">
-              Experience Edu<span className="text-yellow-500">Junction</span> in Action 🚀
+            <h2 className="mt-4 text-3xl sm:text-4xl font-black text-stone-900 !word-spacing-wider">
+              EXPERIENCE EDU<span className="text-yellow-500">JUNCTION</span> IN ACTION 🚀
             </h2>
             <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
               Watch our interactive walkthrough video and try our hands-on demo below.
@@ -2254,7 +2254,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <button
                 type="button"
                 onClick={() => openAuth('register', 'student')}
-                className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-stone-950 font-black text-sm sm:text-base shadow-xl shadow-amber-500/25 hover:shadow-2xl hover:shadow-amber-500/40 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 cursor-pointer"
+                className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-stone-950 font-black text-sm sm:text-base shadow-amber-500/25 hover:shadow-amber-500/40 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 cursor-pointer"
               >
                 <span>Get Started Free — Pick Any Track</span>
                 <ArrowRight className="w-5 h-5 text-stone-950 transition-transform group-hover:translate-x-1.5" />

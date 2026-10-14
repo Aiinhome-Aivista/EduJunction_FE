@@ -128,14 +128,14 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[72px] flex items-center justify-between">
         {/* Logo */}
         <Link to="/" onClick={(e) => handleNavClick('hero', e)} className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-lg shadow-yellow-200">
+          <div className="w-10 h-10 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-yellow-200">
             <GraduationCap className="w-5 h-5" />
           </div>
           <div>
             <div className="font-black text-lg tracking-tight text-stone-900">
               Edu<span className="text-yellow-500">Junction</span>
             </div>
-            <div className="text-[10px] text-stone-700 font-extrabold hidden sm:block">Smarter Learning Platform</div>
+            <div className="text-[12px] text-stone-700 font-extrabold hidden sm:block">Smarter Learning Platform</div>
           </div>
         </Link>
 
@@ -184,7 +184,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
               <button onClick={() => onOpenAuth('login')} className="px-4 py-2.5 rounded-xl text-sm font-bold text-stone-700 hover:bg-stone-100 transition-colors">
                 Login
               </button>
-              <button onClick={() => onOpenAuth('register')} className="px-5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-sm font-extrabold shadow-lg shadow-yellow-200 flex items-center gap-2 transition-all">
+              <button onClick={() => onOpenAuth('register')} className="px-5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-sm font-extrabold shadow-yellow-200 flex items-center gap-2 transition-all">
                 Sign Up <ArrowRight className="w-4 h-4" />
               </button>
             </>
