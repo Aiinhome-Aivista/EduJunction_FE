@@ -115,61 +115,62 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
     }
   };
 
+  // Helper utility for rounded pill button hover/active styling
+  const navButtonClasses = (isActive: boolean) => `
+    px-4 py-2 rounded-full cursor-pointer transition-all duration-200
+    ${isActive 
+      ? "bg-amber-100 text-yellow-800 font-bold shadow-sm" 
+      : "text-stone-600 hover:bg-stone-100 hover:text-yellow-600"}
+  `;
+
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-[72px] flex items-center justify-between">
         {/* Logo */}
         <Link to="/" onClick={(e) => handleNavClick('hero', e)} className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-lg shadow-yellow-200">
+          <div className="w-10 h-10 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-yellow-200">
             <GraduationCap className="w-5 h-5" />
           </div>
           <div>
             <div className="font-black text-lg tracking-tight text-stone-900">
               Edu<span className="text-yellow-500">Junction</span>
             </div>
-            <div className="text-[10px] text-stone-500 font-semibold hidden sm:block">Smarter Learning Platform</div>
+            <div className="text-[12px] text-stone-700 font-extrabold hidden sm:block">Smarter Learning Platform</div>
           </div>
         </Link>
 
-
-        {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-stone-600">
+        {/* Desktop nav with Rounded Pill Style */}
+        <nav className="hidden lg:flex items-center gap-2 text-sm font-semibold">
           <button
             type="button"
             onClick={(e) => handleNavClick('hero', e)}
-            className={`cursor-pointer transition-colors ${(!isBlogActive && activeSection === 'home') ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
+            className={navButtonClasses(!isBlogActive && activeSection === 'home')}
           >
             Home
           </button>
+          
           <button
             type="button"
             onClick={(e) => handleNavClick('features', e)}
-            className={`cursor-pointer transition-colors ${(!isBlogActive && activeSection === 'features') ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
+            className={navButtonClasses(!isBlogActive && activeSection === 'features')}
           >
             Features
           </button>
+          
           <button
             type="button"
             onClick={(e) => handleNavClick('free-mock-papers-2027', e)}
-            className={`cursor-pointer flex items-center gap-1.5 transition-colors ${(!isBlogActive && activeSection === 'free-mock-papers-2027') ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
+            className={`${navButtonClasses(!isBlogActive && activeSection === 'free-mock-papers-2027')} flex items-center gap-1.5`}
           >
-            Free Mock Test <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">2027</span>
+            Free Mock Test <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-900 font-bold">2027</span>
           </button>
-          <button
-            type="button"
-            onClick={(e) => handleNavClick('actions-demo', e)}
-            className={`cursor-pointer transition-colors ${(!isBlogActive && activeSection === 'actions-demo') ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
+          
+          <Link 
+            to="/blog" 
+            className={`px-4 py-2 rounded-full transition-all duration-200 ${isBlogActive ? "bg-amber-100 text-yellow-800 font-black shadow-sm" : "text-stone-600 hover:bg-stone-100 hover:text-yellow-600"}`}
           >
-            Actions &amp; Demo
-          </button>
-          <button
-            type="button"
-            onClick={(e) => handleNavClick('for-everyone', e)}
-            className={`cursor-pointer transition-colors ${(!isBlogActive && activeSection === 'for-everyone') ? "text-yellow-600 font-bold" : "hover:text-yellow-600"}`}
-          >
-            For Everyone
-          </button>
-          <Link to="/blog" className={isBlogActive ? "text-yellow-600 font-black" : "hover:text-yellow-600 transition-colors"}>Blogs</Link>
+            Blogs
+          </Link>
         </nav>
 
         {/* Auth buttons */}
@@ -183,8 +184,8 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
               <button onClick={() => onOpenAuth('login')} className="px-4 py-2.5 rounded-xl text-sm font-bold text-stone-700 hover:bg-stone-100 transition-colors">
                 Login
               </button>
-              <button onClick={() => onOpenAuth('register')} className="px-5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-sm font-extrabold shadow-lg shadow-yellow-200 flex items-center gap-2 transition-all">
-                Get Started <ArrowRight className="w-4 h-4" />
+              <button onClick={() => onOpenAuth('register')} className="px-5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-sm font-extrabold shadow-yellow-200 flex items-center gap-2 transition-all">
+                Sign Up <ArrowRight className="w-4 h-4" />
               </button>
             </>
           ) : (
@@ -213,12 +214,12 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
               key={sectionId}
               type="button"
               onClick={(e) => { setMob(false); handleNavClick(sectionId, e); }}
-              className={`block w-full text-left py-2.5 text-sm ${(!isBlogActive && (activeSection === sectionId || (sectionId === 'hero' && activeSection === 'home'))) ? "font-bold text-yellow-600" : "font-semibold text-stone-700 hover:text-yellow-600"}`}
+              className={`block w-full text-left py-2.5 px-3 rounded-xl text-sm ${(!isBlogActive && (activeSection === sectionId || (sectionId === 'hero' && activeSection === 'home'))) ? "font-bold text-yellow-800 bg-amber-100" : "font-semibold text-stone-700 hover:bg-stone-100 hover:text-yellow-600"}`}
             >
               {label}
             </button>
           ))}
-          <Link to="/blog" onClick={() => setMob(false)} className={isBlogActive ? "block py-2.5 text-sm font-black text-yellow-600" : "block py-2.5 text-sm font-semibold text-stone-700 hover:text-yellow-600"}>Blogs</Link>
+          <Link to="/blog" onClick={() => setMob(false)} className={isBlogActive ? "block py-2.5 px-3 rounded-xl text-sm font-black text-yellow-800 bg-amber-100" : "block py-2.5 px-3 rounded-xl text-sm font-semibold text-stone-700 hover:bg-stone-100 hover:text-yellow-600"}>Blogs</Link>
           <div className="pt-3 border-t border-stone-100 flex gap-2">
             {isLoggedIn ? (
               <Link to="/dashboard" onClick={() => setMob(false)} className="flex-1 py-2.5 text-center rounded-xl bg-yellow-400 text-stone-900 font-bold text-sm">
