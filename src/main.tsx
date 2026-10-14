@@ -7,6 +7,7 @@ import { LegalPage } from './components/LegalPage.tsx';
 import { InfoPage } from './components/InfoPage.tsx';
 import { BlogPage } from './components/BlogPage.tsx';
 import { ModelExamPage } from './components/ModelExamPage.tsx';
+import { QuickTestPage } from './components/QuickTestPage.tsx';
 import './index.css';
 import AdminLogin from './components/admin/AdminLogin.tsx';
 
@@ -29,6 +30,9 @@ createRoot(document.getElementById('root')!).render(
 
           {/* Dedicated Model Examination Full-Page Route */}
           <Route path="/model-exam/:subscriptionId" element={<ModelExamPage />} />
+
+          {/* Dedicated Zero-Auth Free Demo Quick Test Route */}
+          <Route path="/quick-test" element={<QuickTestPage />} />
 
           {/* Public & Information Pages */}
           <Route path="/about" element={<InfoPage type="about" />} />

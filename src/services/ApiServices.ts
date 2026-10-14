@@ -506,6 +506,19 @@ class ApiServices {
     return this.post(POST_APIS.generateFreeMockTest, payload);
   }
 
+  getQuickDemoQuestions(board: string, classGrade: string, subject: string, branch?: string) {
+    const qParams: Record<string, string> = { board, classGrade, subject };
+    if (branch && branch.toLowerCase() !== 'all') {
+      qParams.branch = branch;
+    }
+    const params = new URLSearchParams(qParams).toString();
+    return this.get(GET_APIS.quickDemoQuestions(params));
+  }
+
+  evaluateQuickDemo(answers: Record<string, string>) {
+    return this.post(POST_APIS.evaluateQuickDemo, { answers });
+  }
+
   // ── Subject Subscriptions (₹300/Subject / Multi-Set) ──
   createSubjectSubscriptionOrder(payload: {
     board: string;

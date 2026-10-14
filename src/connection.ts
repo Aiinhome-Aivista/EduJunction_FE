@@ -82,6 +82,7 @@ export const GET_APIS = {
   previewSubjectModelPaper: (subId: number | string) => `${API_V1}/subscriptions/subject/${subId}/preview-paper`,
   downloadSubjectModelPaper: (subId: number | string, format: string = 'pdf') => `${API_V1}/subscriptions/subject/${subId}/download-paper?format=${format}`,
   seoMetadata: `${API_V1}/seo/metadata`,
+  quickDemoQuestions: (params: string) => `${API_V1}/mock-tests/quick-demo?${params}`,
 };
 
 export const POST_APIS = {
@@ -160,6 +161,7 @@ export const POST_APIS = {
   createAdminSubscriptionPlan: `${API_V1}/admin/subscription-plans`,
   evaluateSubjectModelPaper: (subId: number | string) => `${API_V1}/subscriptions/subject/${subId}/evaluate-paper`,
   saveSeoMetadata: `${API_V1}/admin/seo`,
+  evaluateQuickDemo: `${API_V1}/mock-tests/quick-demo/evaluate`,
 };
 
 export const PUT_APIS = {

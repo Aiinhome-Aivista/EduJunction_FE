@@ -513,7 +513,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   `}</style>
                   <button
                     type="button"
-                    onClick={() => openAuth('register', 'student')}
+                    onClick={() => navigate('/quick-test')}
                     className="group relative inline-flex items-center animate-float-badge cursor-pointer"
                   >
                     {/* Ambient Blurred Glow Aura (React Bits Style) */}
