@@ -35,8 +35,11 @@ import {
   Maximize2,
   ExternalLink,
   Star,
+  RotateCcw,
+  HelpCircle,
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
+import { ACADEMIC_WORDS } from '../data/academicArenaData';
 
 interface LandingPageProps {
   onOpenAuth: (mode?: 'login' | 'register', persona?: 'parent' | 'student') => void;
@@ -319,81 +322,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     },
   };
 
-  // Simple Word Builder Game State & Logic (For 5th Class Students)
-  const EASY_WORDS = [
-    {
-      word: 'SOLAR',
-      logo: '☀️',
-      hint: 'It shines bright in the sky!',
-      mascotMsg: 'Hey Little Explorer! Can you build the word for Sun Power?',
-      secretHint: 'Starts with S... It creates clean energy from sunlight!',
-      gradient: 'from-amber-400 via-orange-400 to-yellow-500',
-      badgeBg: 'bg-amber-100 text-amber-800 border-amber-300'
-    },
-    {
-      word: 'EARTH',
-      logo: '🌍',
-      hint: 'Our beautiful home planet!',
-      mascotMsg: 'We all live here! Can you spell our home planet?',
-      secretHint: 'Starts with E... It has oceans, trees, and air to breathe!',
-      gradient: 'from-emerald-400 via-teal-500 to-green-500',
-      badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300'
-    },
-    // {
-    //   word: 'ROBOT',
-    //   logo: '🤖',
-    //   hint: 'Beep-boop! A smart helper machine!',
-    //   mascotMsg: 'Beep Boop! Spell the word for a smart metal helper!',
-    //   secretHint: 'Starts with R... It works on electricity and code!',
-    //   gradient: 'from-cyan-400 via-blue-500 to-indigo-500',
-    //   badgeBg: 'bg-cyan-100 text-cyan-800 border-cyan-300'
-    // },
-    {
-      word: 'GRAVITY',
-      logo: '🍏',
-      hint: 'Invisible force pulling everything down!',
-      mascotMsg: 'Why do objects fall down and not float up? Spell the magic force!',
-      secretHint: 'Starts with G... Sir Isaac Newton discovered it with an apple!',
-      gradient: 'from-amber-500 via-orange-500 to-red-500',
-      badgeBg: 'bg-amber-100 text-amber-900 border-amber-300'
-    },
-    {
-      word: 'SPACE',
-      logo: '🚀',
-      hint: 'Full of moon and glowing stars!',
-      mascotMsg: 'Ready for a rocket trip? Build the word for the universe!',
-      secretHint: 'Starts with S... It is dark, quiet, and full of stars!',
-      gradient: 'from-purple-500 via-pink-500 to-indigo-600',
-      badgeBg: 'bg-purple-100 text-purple-800 border-purple-300'
-    },
-    {
-      word: 'BRAIN',
-      logo: '🧠',
-      hint: 'Your super-smart thinking cap!',
-      mascotMsg: 'Use your thinking cap to spell this super-computer body part!',
-      secretHint: 'Starts with B... It helps you learn, dream, and play!',
-      gradient: 'from-rose-400 via-pink-500 to-red-500',
-      badgeBg: 'bg-rose-100 text-rose-800 border-rose-300'
-    },
-  ];
-
+  // Academic Concept Arena State & Logic (Class 5–12)
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [userLetters, setUserLetters] = useState<string[]>([]);
+  const [usedOptionIndices, setUsedOptionIndices] = useState<number[]>([]);
   const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
   const [isWordComplete, setIsWordComplete] = useState(false);
   const [showSecretHint, setShowSecretHint] = useState(false);
 
-  const activeWordObj = EASY_WORDS[currentWordIndex];
+  const activeWordObj = ACADEMIC_WORDS[currentWordIndex] || ACADEMIC_WORDS[0];
 
   const loadWord = (index: number) => {
-    const word = EASY_WORDS[index].word;
+    const word = ACADEMIC_WORDS[index].word;
     setUserLetters([]);
+    setUsedOptionIndices([]);
     setIsWordComplete(false);
     setShowSecretHint(false);
 
     const lettersArr = word.split('');
-    const extraLetters = ['X', 'Z', 'M', 'K', 'L', 'P'];
-    const combined = [...lettersArr, extraLetters[Math.floor(Math.random() * extraLetters.length)]];
+    const extraPool = ['X', 'Z', 'M', 'K', 'L', 'P', 'R', 'T', 'B', 'D'];
+    const extraLetter = extraPool[Math.floor(Math.random() * extraPool.length)];
+    const combined = [...lettersArr, extraLetter];
 
     for (let i = combined.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -407,8 +356,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     loadWord(currentWordIndex);
   }, [currentWordIndex]);
 
-  const handleLetterClick = (letter: string) => {
+  const handleLetterClick = (letter: string, optionIdx: number) => {
     if (isWordComplete) return;
+    if (usedOptionIndices.includes(optionIdx)) return;
 
     const targetWord = activeWordObj.word;
     const nextIndex = userLetters.length;
@@ -416,6 +366,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     if (targetWord[nextIndex] === letter) {
       const updated = [...userLetters, letter];
       setUserLetters(updated);
+      setUsedOptionIndices((prev) => [...prev, optionIdx]);
 
       if (updated.length === targetWord.length) {
         setIsWordComplete(true);
@@ -423,8 +374,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     }
   };
 
+  const handleUndoLetter = () => {
+    if (isWordComplete || userLetters.length === 0) return;
+    setUserLetters((prev) => prev.slice(0, -1));
+    setUsedOptionIndices((prev) => prev.slice(0, -1));
+  };
+
   const nextWord = () => {
-    const nextIdx = (currentWordIndex + 1) % EASY_WORDS.length;
+    const nextIdx = (currentWordIndex + 1) % ACADEMIC_WORDS.length;
     setCurrentWordIndex(nextIdx);
   };
 
@@ -471,7 +428,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* HERO SECTION (Full Viewport 100vh with Integrated Quick Value Strip) */}
       <section
         id="hero"
-        className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-white to-stone-50 pt-[72px] min-h-screen lg:h-screen lg:max-h-screen flex flex-col justify-between"
+        className="relative overflow-hidden bg-white pt-[72px] min-h-screen lg:h-screen lg:max-h-screen flex flex-col justify-between"
       >
         {/* MARQUEE TICKER - Restricted to and scrolling with the Hero Section */}
         <div className="w-full overflow-hidden relative py-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none shrink-0">
@@ -501,13 +458,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
 
-        <div className="absolute -top-28 -right-28 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
-        <div className="absolute top-40 -left-32 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
-
         {/* HERO MAIN CONTENT GRID (Vertically Centered with min-h-0) */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 flex-1 min-h-0 flex items-center w-full">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full">
-            <div className="space-y-3 lg:space-y-4">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-6 items-center w-full">
+            <div className="lg:col-span-7 space-y-3 lg:space-y-4">
               {/* Top Badges (Quick Test & Study Buddy) */}
               <div>
                 {/* Floating Glowing Quick Test Badge (React Bits Style) */}
@@ -578,15 +532,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
                 <Link
                   to="/actions-demo"
-                  className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-yellow-400 hover:bg-yellow-50/80 text-stone-800 hover:text-yellow-900 font-bold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-xs text-sm sm:text-base"
+                  className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white hover:text-yellow-300 font-bold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-sm text-sm sm:text-base border border-stone-800 cursor-pointer"
                 >
-                  <Play className="w-4 h-4 fill-current text-yellow-500" />
+                  <Play className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   See How It Works
                 </Link>
               </div>
 
               {/* Process Steps (1. Assess -> 2. Analyze -> 3. Learn -> 4. Improve) - Squarish rounded-xl matching buttons */}
-              <div className="pt-2 flex flex-wrap items-center gap-2.5 text-xs sm:text-sm font-bold text-stone-700">
+              {/* <div className="pt-2 flex flex-wrap items-center gap-2.5 text-xs sm:text-sm font-bold text-stone-700">
                 {['Assess', 'Analyze', 'Learn', 'Improve'].map((item, i) => (
                   <React.Fragment key={item}>
                     <span className="px-3.5 py-1.5 rounded-xl bg-yellow-50/90 border border-yellow-300 text-stone-900 shadow-2xs">
@@ -595,41 +549,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     {i < 3 && <ArrowRight className="w-3.5 h-3.5 text-yellow-500 shrink-0" />}
                   </React.Fragment>
                 ))}
-              </div>
+              </div> */}
             </div>
 
             {/* HERO RIGHT IMAGE */}
-            <div className="relative flex justify-center lg:justify-end">
+            <div className="lg:col-span-5 relative flex justify-center items-center">
               <style>{`
                 @keyframes float-animation {
                   0% { transform: translateY(0px); }
-                  50% { transform: translateY(-12px); }
-                  100% { transform: translateY(0px); }
-                }
-                @keyframes float-delayed {
-                  0% { transform: translateY(0px); }
-                  50% { transform: translateY(-10px); }
+                  50% { transform: translateY(-8px); }
                   100% { transform: translateY(0px); }
                 }
                 .animate-float-hero {
                   animation: float-animation 6s ease-in-out infinite;
                 }
-                .animate-float-delayed {
-                  animation: float-delayed 7s ease-in-out infinite 1s;
-                }
-                .animate-float-slow {
-                  animation: float-animation 8s ease-in-out infinite 2s;
-                }
               `}</style>
 
-              <div className="absolute top-6 -left-6 text-3xl opacity-50 animate-float-delayed select-none pointer-events-none">✨</div>
-              <div className="absolute bottom-12 -left-4 text-2xl opacity-50 animate-float-slow select-none pointer-events-none">🌟</div>
-              <div className="absolute top-12 right-0 text-2xl opacity-40 animate-float-delayed select-none pointer-events-none">💡</div>
-              <div className="absolute bottom-6 right-6 text-3xl opacity-50 animate-float-slow select-none pointer-events-none">🎨</div>
               <img
-                src="/hero-illustration.png"
-                alt="Animated Hero Illustration"
-                className="w-auto h-auto max-h-[340px] sm:max-h-[380px] lg:max-h-[420px] xl:max-h-[450px] max-w-[420px] lg:max-w-[460px] xl:max-w-[500px] object-contain animate-float-hero filter drop-shadow-2xl"
+                src="/hero-duo-students-cutout.png"
+                alt="EduJunction Study Buddies"
+                className="w-auto h-auto max-h-[440px] sm:max-h-[490px] lg:max-h-[530px] xl:max-h-[570px] max-w-full object-contain animate-float-hero select-none"
               />
             </div>
           </div>
@@ -661,51 +600,54 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* 🌟 FREE MOCK TEST PAPERS 2027 */}
-      <section id="free-mock-papers-2027" className="pt-4 sm:pt-6 pb-12 sm:pb-14 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative overflow-hidden scroll-mt-[90px]">
+      <section
+        id="free-mock-papers-2027"
+        className="min-h-[calc(100vh-72px)] lg:h-[calc(100vh-72px)] flex flex-col justify-center py-3 lg:py-4 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-amber-50/70 via-yellow-50/40 to-white border-y border-amber-200/70 relative scroll-mt-[72px]"
+      >
         <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10 reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/90 border border-yellow-200 text-yellow-800 text-xs font-bold shadow-sm">
-              <FileText className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
+        <div className="max-w-6xl mx-auto relative z-10 w-full flex flex-col justify-center my-auto">
+          <div className="text-center max-w-2xl mx-auto mb-3 lg:mb-3.5 reveal-on-scroll shrink-0">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-100/90 border border-yellow-200 text-yellow-800 text-xs sm:text-sm font-bold shadow-2xs">
+              <FileText className="w-4 h-4 text-yellow-600 animate-pulse" />
               Free Mock Test Papers 2027
             </div>
             <h2
-              className="mt-4 text-3xl sm:text-4xl font-black capitalize tracking-normal text-stone-900"
-              style={{ wordSpacing: '0.25em' }}
+              className="mt-2 text-2xl sm:text-3xl lg:text-3xl xl:text-4xl font-black capitalize tracking-tight text-stone-900 leading-tight"
+              style={{ wordSpacing: '0.2em' }}
             >
               <span className="text-yellow-500">FREE</span> MOCK TEST &amp; <span className="text-yellow-500">MODEL TEST PAPERS</span> FOR CBSE, ICSE &amp; ISC
             </h2>
-            <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
-              Practice free unlimited CBSE, ICSE & ISC mock tests, model question papers and online practice tests. Prepare for exams with EduJunction's student-friendly resources.
+            <p className="mt-1.5 text-stone-600 text-xs sm:text-sm xl:text-base font-medium max-w-xl mx-auto leading-relaxed">
+              Practice free unlimited CBSE, ICSE &amp; ISC mock tests, model question papers and online practice tests.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-6 items-stretch">
+          <div className="grid lg:grid-cols-2 gap-3.5 lg:gap-5 items-stretch">
             {/* 1. Free Mock Test Papers - ICSE, CBSE & ISC 2027 (PRIMARY HERO SPOTLIGHT) */}
-            <div className="rounded-3xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-500 text-stone-950 p-6 sm:p-7 shadow-2xl shadow-amber-500/25 border-2 border-amber-300 ring-4 ring-amber-400/20 flex flex-col justify-between relative overflow-hidden group hover:shadow-amber-500/35 hover:-translate-y-1 transition-all duration-300">
+            <div className="rounded-3xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-500 text-stone-950 p-4 sm:p-5 lg:p-4.5 xl:p-5 shadow-xl shadow-amber-500/20 border-2 border-amber-300 ring-2 ring-amber-400/20 flex flex-col justify-between relative overflow-hidden group hover:shadow-amber-500/30 hover:-translate-y-0.5 transition-all duration-300">
               {/* Shimmer Light Accent */}
               <div className="absolute -top-24 -right-24 w-60 h-60 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
 
-              <div className="space-y-3 relative z-10">
+              <div className="space-y-1.5 lg:space-y-2 relative z-10">
                 <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-stone-950 text-yellow-300 text-xs font-black uppercase tracking-wider shadow-md">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-950 text-yellow-300 text-xs font-black uppercase tracking-wider shadow-xs">
                     <Sparkles className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
                     2027 Flagship Edition
                   </div>
-                  <span className="text-2xl drop-shadow-sm">📝</span>
+                  <span className="text-lg drop-shadow-sm">📝</span>
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-black text-stone-950 tracking-tight">
+                <h3 className="text-lg sm:text-xl lg:text-xl xl:text-2xl font-black text-stone-950 tracking-tight leading-snug">
                   Model Test Papers Available For :{' '}
                   <span className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
                     CBSE, ICSE &amp; ISC 2027
                   </span>
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-900 leading-relaxed font-semibold text-justify [text-align-last:left]">
+                <p className="text-xs sm:text-sm text-stone-900 leading-snug font-semibold text-justify [text-align-last:left]">
                   Access full-length authentic specimen model papers: <b>CBSE (3h • 80m)</b>, <b>ICSE (2.5h • 80m)</b> and <b>ISC (3h • 70/80m)</b>. Built on 10–15 years of past question patterns and step-by-step marking rubrics.
                 </p>
-                <div className="grid grid-cols-2 gap-2 pt-2">
+                <div className="grid grid-cols-2 gap-1.5 pt-1">
                   {[
                     '⏱️ CBSE: 3 Hours (80 Marks)',
                     '⏱️ ICSE: 2.5 Hours (80 Marks)',
@@ -714,69 +656,68 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     '10–15 Yrs Past Trends (2011–2026)',
                     '🎯 Step-by-Step Marking Rules',
                   ].map((tag) => (
-                    <div key={tag} className="px-2.5 py-1.5 rounded-xl bg-white/90 backdrop-blur-sm border border-amber-900/10 text-stone-950 text-[11px] font-bold flex items-center gap-1.5 shadow-xs">
-                      <span className="text-emerald-700 font-extrabold">✓</span> {tag}
+                    <div key={tag} className="px-2 py-1 rounded-xl bg-white/90 backdrop-blur-sm border border-amber-900/10 text-stone-950 text-xs sm:text-[12.5px] font-bold flex items-center gap-1 shadow-2xs">
+                      <span className="text-emerald-700 font-extrabold text-sm">✓</span> {tag}
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="pt-6 relative z-10">
+              <div className="pt-3 lg:pt-3 relative z-10">
                 <button
                   onClick={() => openAuth('register')}
-                  className="m-auto py-3.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-sm shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
+                  className="m-auto py-2.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-xs sm:text-sm shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
                 >
-                  Explore Model Test Papers <ArrowRight className="w-4 h-4 text-yellow-400 transition-transform group-hover:translate-x-1" />
+                  Explore Model Test Papers <ArrowRight className="w-3.5 h-3.5 text-yellow-400 transition-transform group-hover:translate-x-1" />
                 </button>
               </div>
             </div>
 
             {/* 2. Free Mock Test: Subject-Wise 10-Mark Diagnostic Mock Test Available (SUPPORTING CARD) */}
-            <div className="rounded-3xl bg-white/95 backdrop-blur-sm border border-stone-200/90 text-stone-900 p-6 sm:p-7 shadow-lg shadow-stone-900/5 flex flex-col justify-between relative overflow-hidden group hover:shadow-xl hover:border-amber-300/80 transition-all">
-              <div className="space-y-3 relative z-10">
+            <div className="rounded-3xl bg-white/95 backdrop-blur-sm border border-stone-200/90 text-stone-900 p-4 sm:p-5 lg:p-4.5 xl:p-5 shadow-md shadow-stone-900/5 flex flex-col justify-between relative overflow-hidden group hover:shadow-lg hover:border-amber-300/80 transition-all">
+              <div className="space-y-1.5 lg:space-y-2 relative z-10">
                 <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 border border-yellow-300/80 text-amber-950 text-xs font-black">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-100 border border-yellow-300/80 text-amber-950 text-xs font-black">
                     <Zap className="w-3.5 h-3.5 text-yellow-600 fill-current" /> Free Mock Test Available
                   </div>
-                  <span className="text-2xl">⚡</span>
+                  <span className="text-lg">⚡</span>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
+                <h3 className="text-lg sm:text-xl lg:text-xl xl:text-2xl font-black text-stone-900 tracking-tight leading-snug">
                   Free Subject-Wise Mock Test
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium text-justify [text-align-last:left]">
+                <p className="text-xs sm:text-sm text-stone-600 leading-snug font-medium text-justify [text-align-last:left]">
                   Understand your child’s learning level in just 15 minutes. <b>Create a free Parent Account</b>, choose Board (CBSE, ICSE, ISC) and Class (5-12), and unlock instant diagnostic reports sent straight to your email.
                 </p>
 
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70">
-                    <p className="text-xs font-bold text-amber-900">📝 Free Mock Test</p>
-                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">15-Min timed test</p>
+                <div className="grid grid-cols-2 gap-1.5 pt-1">
+                  <div className="p-1.5 lg:p-2 rounded-xl bg-amber-50/60 border border-amber-200/70">
+                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">📝 Free Mock Test</p>
+                    <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">15-Min timed test</p>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70">
-                    <p className="text-xs font-bold text-amber-900">📊 Diagnostic Insights</p>
-                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">Concept error detection</p>
+                  <div className="p-1.5 lg:p-2 rounded-xl bg-amber-50/60 border border-amber-200/70">
+                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">📊 Diagnostic Insights</p>
+                    <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">Concept error detection</p>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-200/70 col-span-2">
-                    <p className="text-xs font-bold text-amber-900">📧 Direct Emailed PDF Report</p>
-                    <p className="text-[10px] text-stone-600 mt-0.5 font-medium">Delivered to parent inbox upon submission</p>
+                  <div className="p-1.5 lg:p-2 rounded-xl bg-amber-50/60 border border-amber-200/70 col-span-2">
+                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">📧 Direct Emailed PDF Report</p>
+                    <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">Delivered to parent inbox upon submission</p>
                   </div>
                 </div>
               </div>
 
-
-              <div className="pt-6 relative z-10 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+              <div className="pt-3 lg:pt-3 relative z-10 flex flex-col sm:flex-row items-center justify-center gap-2">
                 <button
                   onClick={() => openAuth('register')}
-                  className="w-fit py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs shadow-md shadow-amber-500/15 flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-95"
+                  className="w-fit py-2.5 px-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs sm:text-sm shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-95"
                 >
-                  <Users className="w-4 h-4 shrink-0" />
+                  <Users className="w-3.5 h-3.5 shrink-0" />
                   Create Free Parent Account
                   <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                 </button>
 
                 <button
                   onClick={() => openAuth('login')}
-                  className="w-fit py-3 px-4 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs border border-stone-300 transition-all flex items-center justify-center cursor-pointer"
+                  className="w-fit py-2.5 px-3.5 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs sm:text-sm border border-stone-300 transition-all flex items-center justify-center cursor-pointer"
                 >
                   Sign In
                 </button>
@@ -789,35 +730,46 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
 
       {/* FEATURES */}
-      <section id="features" className="pt-4 sm:pt-6 pb-6 bg-stone-50 scroll-mt-[90px]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/80 text-yellow-800 text-xs font-bold shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
+      <section
+        id="features"
+        className="py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-stone-50/60 via-amber-50/20 to-white border-b border-stone-200/60 relative scroll-mt-[72px] overflow-hidden"
+      >
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-yellow-200/30 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-amber-200/25 blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col justify-center my-auto">
+          <div className="text-center max-w-4xl mx-auto mb-8 sm:mb-10 reveal-on-scroll shrink-0">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-yellow-100/90 border border-yellow-300/80 text-yellow-900 text-xs sm:text-sm font-black shadow-2xs">
+              <Sparkles className="w-4 h-4 text-yellow-600 animate-pulse" />
               What You Can Do
             </div>
             <h2
-              className="mt-4 text-3xl sm:text-4xl font-black tracking-normal capitalize"
-              style={{ wordSpacing: '0.25em' }}
+              className="mt-3 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight uppercase text-stone-900 leading-tight whitespace-normal sm:whitespace-nowrap"
+              style={{ wordSpacing: '0.2em' }}
             >
-              EVERYTHING YOU NEED TO KNOW BETTER
+              EVERYTHING YOU NEED TO <span className="bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 bg-clip-text text-transparent">KNOW BETTER</span>
             </h2>
-            <p className="mt-3 text-stone-600 text-sm sm:text-base">
+            <p className="mt-2 text-stone-600 text-xs sm:text-sm xl:text-base font-medium max-w-xl mx-auto leading-relaxed">
               Simple tools for learning, practice, motivation and communication.
             </p>
           </div>
 
-          <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
             {[
               {
                 id: 'smart-assessment',
                 icon: Target,
+                tag: 'Diagnostic Engine',
                 title: 'Smart Assessment',
                 subtitle: 'Adaptive diagnostic testing calibrated to ICSE & CBSE standards',
                 text: 'Take short assessments that show exactly which topics need attention.',
-                bg: 'bg-amber-100/70',
-                fg: 'text-amber-700',
-                hoverBorder: 'hover:border-amber-300',
+                cardBg: 'bg-amber-100/85 hover:bg-amber-100 border-amber-300/90 hover:border-amber-400',
+                tagStyle: 'bg-white/95 text-amber-900 border-amber-300/80',
+                titleHover: 'group-hover:text-amber-700',
+                cardHoverGlow: 'hover:shadow-xl hover:shadow-amber-500/15',
+                buttonDefault: 'bg-amber-500 text-white border-amber-600/40 shadow-xs shadow-amber-500/20',
+                buttonHover: 'group-hover:bg-amber-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-amber-500/30',
+                tags: ['Chapter Quizzes', 'Step-by-Step Marks', 'Instant Auto-Grade'],
                 highlights: [
                   'Chapter-wise diagnostic quizzes (5-10 mins)',
                   'Step-by-step marking scheme aligned to CBSE/ICSE blueprint',
@@ -828,12 +780,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {
                 id: 'study-buddy',
                 icon: Brain,
+                tag: 'AI Mentor',
                 title: 'Study Buddy Insights',
                 subtitle: 'mentor analyzing student learning behavior and common traps',
                 text: 'Study Buddy finds strengths, weak areas and common mistake patterns.',
-                bg: 'bg-yellow-100/70',
-                fg: 'text-yellow-700',
-                hoverBorder: 'hover:border-yellow-300',
+                cardBg: 'bg-yellow-100/85 hover:bg-yellow-100 border-yellow-300/90 hover:border-yellow-400',
+                tagStyle: 'bg-white/95 text-yellow-900 border-yellow-300/80',
+                titleHover: 'group-hover:text-yellow-800',
+                cardHoverGlow: 'hover:shadow-xl hover:shadow-yellow-500/15',
+                buttonDefault: 'bg-yellow-500 text-stone-900 border-yellow-600/40 shadow-xs shadow-yellow-500/20',
+                buttonHover: 'group-hover:bg-yellow-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-yellow-500/30',
+                tags: ['Misconception Tracker', 'Targeted Revisions', 'Smart Study Plan'],
                 highlights: [
                   'Identifies misconception patterns before exam day',
                   'Recommends targeted concept revision sheets',
@@ -844,12 +801,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {
                 id: 'personalized',
                 icon: TrendingUp,
+                tag: 'Adaptive Roadmap',
                 title: 'Personalized Learning',
                 subtitle: 'Dynamic learning roadmap that scales with student performance',
                 text: 'Get lessons, resources and practice based on your current level.',
-                bg: 'bg-orange-100/70',
-                fg: 'text-orange-700',
-                hoverBorder: 'hover:border-orange-300',
+                cardBg: 'bg-orange-100/85 hover:bg-orange-100 border-orange-300/90 hover:border-orange-400',
+                tagStyle: 'bg-white/95 text-orange-900 border-orange-300/80',
+                titleHover: 'group-hover:text-orange-700',
+                cardHoverGlow: 'hover:shadow-xl hover:shadow-orange-500/15',
+                buttonDefault: 'bg-orange-500 text-white border-orange-600/40 shadow-xs shadow-orange-500/20',
+                buttonHover: 'group-hover:bg-orange-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-orange-500/30',
+                tags: ['3-Tier Difficulty', 'Weak Topic Drills', 'Custom Paper Gen'],
                 highlights: [
                   '3-Tier Difficulty Calibration (Simple, Medium, Hard/HOTS)',
                   'Automatic remediation exercises for weak topics',
@@ -860,12 +822,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {
                 id: 'points-badges',
                 icon: Trophy,
+                tag: 'Gamified Rewards',
                 title: 'Points & Badges',
                 subtitle: 'Gamified rewards system to keep students engaged every day',
                 text: 'Earn points for correct answers and badges for milestones.',
-                bg: 'bg-emerald-100/70',
-                fg: 'text-emerald-700',
-                hoverBorder: 'hover:border-emerald-300',
+                cardBg: 'bg-emerald-100/85 hover:bg-emerald-100 border-emerald-300/90 hover:border-emerald-400',
+                tagStyle: 'bg-white/95 text-emerald-900 border-emerald-300/80',
+                titleHover: 'group-hover:text-emerald-700',
+                cardHoverGlow: 'hover:shadow-xl hover:shadow-emerald-500/15',
+                buttonDefault: 'bg-emerald-500 text-white border-emerald-600/40 shadow-xs shadow-emerald-500/20',
+                buttonHover: 'group-hover:bg-emerald-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-emerald-500/30',
+                tags: ['Accuracy XP', 'Milestone Badges', 'Daily Streak Bonus'],
                 highlights: [
                   'Earn XP points for quiz completions and accuracy',
                   'Unlock badges like "Math Wizard", "Formula Champ", "Streak Master"',
@@ -876,12 +843,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {
                 id: 'progress-tracking',
                 icon: BarChart3,
+                tag: 'Visual Analytics',
                 title: 'Progress Tracking',
                 subtitle: 'Visual analytics dashboard for students, teachers, and parents',
                 text: 'See scores, topic mastery, streaks and improvement over time.',
-                bg: 'bg-sky-100/70',
-                fg: 'text-sky-700',
-                hoverBorder: 'hover:border-sky-300',
+                cardBg: 'bg-sky-100/85 hover:bg-sky-100 border-sky-300/90 hover:border-sky-400',
+                tagStyle: 'bg-white/95 text-sky-900 border-sky-300/80',
+                titleHover: 'group-hover:text-sky-700',
+                cardHoverGlow: 'hover:shadow-xl hover:shadow-sky-500/15',
+                buttonDefault: 'bg-sky-500 text-white border-sky-600/40 shadow-xs shadow-sky-500/20',
+                buttonHover: 'group-hover:bg-sky-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-sky-500/30',
+                tags: ['Real-Time Charts', 'Topic Mastery %', 'PDF Dossiers'],
                 highlights: [
                   'Real-time accuracy & speed progress charts',
                   'Chapter-by-chapter mastery percentages',
@@ -892,12 +864,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {
                 id: 'parent-teacher',
                 icon: MessageSquare,
+                tag: 'Collaborative Loop',
                 title: 'Parent-Teacher Connect',
                 subtitle: 'Seamless parent notifications & automated email/PDF report dispatch',
                 text: 'Share progress and communicate securely about the student.',
-                bg: 'bg-rose-100/70',
-                fg: 'text-rose-700',
-                hoverBorder: 'hover:border-rose-300',
+                cardBg: 'bg-rose-100/85 hover:bg-rose-100 border-rose-300/90 hover:border-rose-400',
+                tagStyle: 'bg-white/95 text-rose-900 border-rose-300/80',
+                titleHover: 'group-hover:text-rose-700',
+                cardHoverGlow: 'hover:shadow-xl hover:shadow-rose-500/15',
+                buttonDefault: 'bg-rose-500 text-white border-rose-600/40 shadow-xs shadow-rose-500/20',
+                buttonHover: 'group-hover:bg-rose-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-rose-500/30',
+                tags: ['Automated PDF Dispatch', 'Parent Portal', 'Teacher Notes'],
                 highlights: [
                   'Automated PDF exam report sent directly to parent email',
                   'Parent dashboard link for child activity monitoring',
@@ -906,7 +883,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ]
               },
             ].map((feature) => {
-              const Icon = feature.icon;
               return (
                 <div
                   key={feature.id}
@@ -914,25 +890,42 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     setActiveFeatureModal(feature.id);
                     setDemoMcqSelected(null);
                   }}
-                  className={`group bg-white rounded-2xl border border-stone-200/80 p-5 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-stone-200/80 transition-all duration-300 reveal-on-scroll cursor-pointer relative overflow-hidden ${feature.hoverBorder}`}
+                  className={`group relative ${feature.cardBg} rounded-2xl sm:rounded-3xl border p-5 sm:p-6 shadow-sm hover:shadow-xl ${feature.cardHoverGlow} hover:-translate-y-1.5 active:translate-y-0 transition-all duration-300 reveal-on-scroll cursor-pointer overflow-hidden flex flex-col justify-between`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl ${feature.bg} ${feature.fg} flex items-center justify-center shrink-0 shadow-inner transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-                        <Icon className="w-5 h-5" />
+                  <div>
+                    {/* Header: Category Badge + Title & Action Button */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div>
+                        <span className={`inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md border ${feature.tagStyle} mb-1.5 shadow-2xs`}>
+                          {feature.tag}
+                        </span>
+                        <h3 className={`font-black text-stone-900 text-lg sm:text-xl leading-snug ${feature.titleHover} transition-colors`}>
+                          {feature.title}
+                        </h3>
                       </div>
-                      <h3 className="font-black text-stone-800 text-base leading-snug group-hover:text-amber-600 transition-colors">
-                        {feature.title}
-                      </h3>
+
+                      <span className={`text-[11px] font-black px-3 py-1 rounded-full border ${feature.buttonDefault} ${feature.buttonHover} transition-all duration-300 shrink-0 inline-flex items-center gap-1 shadow-2xs`}>
+                        Preview <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
+                      </span>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 group-hover:bg-amber-100 group-hover:text-amber-900 transition-all">
-                      Preview ↗
-                    </span>
+
+                    {/* Description Text */}
+                    <p className="text-xs sm:text-sm text-stone-700 leading-relaxed font-semibold">
+                      {feature.text}
+                    </p>
                   </div>
 
-                  <p className="mt-3 text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
-                    {feature.text}
-                  </p>
+                  {/* Micro-Features Bottom Badges */}
+                  <div className="mt-5 pt-3.5 border-t border-stone-300/50 flex flex-wrap gap-1.5">
+                    {feature.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white/90 border border-stone-200/80 text-stone-800 shadow-2xs group-hover:bg-white group-hover:border-stone-300 transition-colors"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               );
             })}
@@ -1278,52 +1271,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ACTIONS & DEMO */}
       <section id="actions-demo" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white scroll-mt-[90px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold shadow-sm">
-              <Lightbulb className="w-3.5 h-3.5 text-yellow-600 animate-pulse" />
+          <div className="text-center max-w-4xl mx-auto reveal-on-scroll">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-yellow-100/90 border border-yellow-200/80 text-yellow-800 text-xs sm:text-sm font-bold shadow-2xs">
+              <Lightbulb className="w-4 h-4 text-yellow-600 animate-pulse" />
               Actions &amp; Demo
             </div>
             <h2
-              className="mt-4 text-3xl sm:text-4xl font-black text-stone-900 tracking-normal"
-              style={{ wordSpacing: '0.25em' }}
+              className="mt-3 text-2xl sm:text-3xl lg:text-3xl xl:text-4xl font-black text-stone-900 tracking-tight leading-tight whitespace-normal sm:whitespace-nowrap"
             >
               EXPERIENCE Edu<span className="text-yellow-500">Junction</span> IN <span className="text-yellow-500">ACTION</span> 🚀
             </h2>
-            <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
+            <p className="mt-2 text-stone-600 text-xs sm:text-sm xl:text-base font-medium max-w-xl mx-auto leading-relaxed">
               Watch our interactive walkthrough video and try our hands-on demo below.
             </p>
-          </div>
-
-          <div className="mt-12 grid md:grid-cols-4 gap-5">
-            {[
-              ['01', 'Assess', 'Take a quiz or diagnostic test.', '📝', 'bg-amber-50/80 hover:border-amber-300 hover:shadow-amber-200/60', 'bg-amber-300 text-amber-900'],
-              ['02', 'Analyze', 'Study Buddy identifies strong and weak topics.', '🤖', 'bg-sky-50/80 hover:border-sky-300 hover:shadow-sky-200/60', 'bg-sky-300 text-sky-900'],
-              ['03', 'Learn', 'Follow lessons, resources and practice.', '📚', 'bg-rose-50/80 hover:border-rose-300 hover:shadow-rose-200/60', 'bg-rose-300 text-rose-900'],
-              ['04', 'Improve', 'Retest, earn rewards and move up.', '🚀', 'bg-emerald-50/80 hover:border-emerald-300 hover:shadow-emerald-200/60', 'bg-emerald-300 text-emerald-900'],
-            ].map(([number, title, text, emoji, colorClass, badgeClass], i) => (
-              <div
-                key={number}
-                className={`group relative p-6 rounded-3xl ${colorClass} border border-stone-200/70 backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-2.5 hover:shadow-2xl`}
-              >
-                <div className="flex items-center justify-between">
-                  {/* Number badge (No black background on hover) */}
-                  <span className={`w-10 h-10 rounded-xl ${badgeClass} flex items-center justify-center text-xs font-black shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-                    {number}
-                  </span>
-                  {/* Cute Emoji Bounce & Rotate Animation */}
-                  <span className="text-3xl transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-12 inline-block">
-                    {emoji}
-                  </span>
-                </div>
-
-                <h3 className="mt-5 font-black text-lg text-stone-800 transition-colors duration-300 group-hover:text-amber-600">
-                  {title}
-                </h3>
-                <p className="mt-2 text-sm text-stone-600 leading-relaxed">
-                  {text}
-                </p>
-              </div>
-            ))}
           </div>
 
           {/* INTERACTIVE PLATFORM DEMO VIDEO */}
@@ -1350,104 +1310,73 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="absolute bottom-5 right-1/4 w-80 h-80 bg-orange-200/50 rounded-full blur-3xl animate-pulse delay-700 pointer-events-none" />
 
         <div className="max-w-6xl mx-auto relative z-10 px-4">
-          {/* MAGIC WORD ARENA (With 3D Floating Icons hugging this card) */}
+          {/* ACADEMIC CONCEPT ARENA */}
           <div className="max-w-4xl mx-auto relative z-10 px-4">
 
-            {/* 🌟 3D FLOATING ICONS (Positioned directly around Magic Word Arena) */}
-            {/* 1. Top-Left: Smiling Happy Sun */}
-            <img
-              src="/decorations/sun.png"
-              alt="Happy Sun"
-              className="absolute -top-7 -left-2 sm:-left-6 lg:-left-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
-            />
-
-            {/* 2. Top-Right: Glowing Magic Book */}
-            <img
-              src="/decorations/magic-book.png"
-              alt="Magic Book"
-              className="absolute -top-7 -right-2 sm:-right-6 lg:-right-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
-              style={{ animationDelay: '1.5s' }}
-            />
-
-            {/* 3. Middle-Left: ABC Alphabet Blocks */}
-            <img
-              src="/decorations/abc-blocks.png"
-              alt="ABC Blocks"
-              className="hidden md:block absolute top-[55%] -left-2 sm:-left-6 lg:-left-10 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
-              style={{ animationDelay: '0.8s' }}
-            />
-
-            {/* 4. Middle-Right: Pencil with Stars */}
-            <img
-              src="/decorations/pencil-stars.png"
-              alt="Pencil & Stars"
-              className="hidden md:block absolute top-[55%] -right-2 sm:-right-6 lg:-right-10 -translate-y-1/2 w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 object-contain drop-shadow-lg animate-float-3d pointer-events-none select-none z-20"
-              style={{ animationDelay: '2.2s' }}
-            />
-
-            {/* 5. Bottom-Left: Puzzle Blocks */}
-            <img
-              src="/decorations/puzzle-blocks.png"
-              alt="Puzzle Blocks"
-              className="absolute -bottom-7 -left-2 sm:-left-6 lg:-left-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
-              style={{ animationDelay: '2.8s' }}
-            />
-
-            {/* 6. Bottom-Right: Blasting Rocket */}
-            <img
-              src="/decorations/rocket-abc.png"
-              alt="ABC Rocket"
-              className="absolute -bottom-7 -right-2 sm:-right-6 lg:-right-10 w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 object-contain drop-shadow-xl animate-float-3d pointer-events-none select-none z-20"
-              style={{ animationDelay: '3.4s' }}
-            />
-
-            {/* Magic Word Arena Heading */}
+            {/* Academic Concept Arena Heading */}
             <div className="text-center mb-8 reveal-on-scroll">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-200/60 border border-amber-300 text-amber-900 text-xs font-black mb-2 shadow-sm animate-bounce">
-                <span>✨</span> Magic Word Arena
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-100/90 border border-amber-300 text-amber-900 text-xs font-black mb-2 shadow-2xs">
+                <span>⚡</span> Academic Concept Arena
               </div>
-              <h3 className="text-2xl md:text-3xl font-black text-slate-800">
-                READ CLUES & BUILD WORDS 🚀
+              <h3
+                className="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-normal capitalize"
+                style={{ wordSpacing: '0.25em' }}
+              >
+                READ CLUES &amp; BUILD WORDS 🚀
               </h3>
+              <p className="mt-2 text-stone-600 text-xs sm:text-sm font-semibold max-w-lg mx-auto">
+                Test your science, math &amp; general knowledge foundation across Class 5–12 syllabus!
+              </p>
             </div>
 
             {/* 2-COLUMN GRID SYSTEM (LEFT CLUE + RIGHT GAME) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
 
-              {/* LEFT SIDE: CUTE CLUE CARD & MASCOT LOGO */}
-              <div className="bg-gradient-to-br from-amber-100/80 via-orange-50/70 to-amber-50/90 backdrop-blur-xl border border-amber-200/90 rounded-3xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden">
+              {/* LEFT SIDE: CLUE CARD & LOGO */}
+              <div className="bg-gradient-to-br from-amber-100/80 via-orange-50/70 to-amber-50/90 backdrop-blur-xl border border-amber-200/90 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
 
-                {/* Mascot Dialogue Header */}
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="bg-white/90 border border-amber-200/80 rounded-2xl rounded-tl-none p-3 shadow-sm flex-1">
+                {/* Question & Subject Header */}
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/95 border border-amber-300/80 text-amber-900 shadow-2xs">
+                      📚 {activeWordObj.subject}
+                    </span>
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-200/80 text-amber-950">
+                      {activeWordObj.classLevel}
+                    </span>
+                  </div>
+
+                  <div className="bg-white/95 border border-amber-200/80 rounded-2xl rounded-tl-none p-3.5 sm:p-4 shadow-2xs">
                     <p className="text-sm md:text-base font-extrabold text-slate-800 leading-snug">
-                      {isWordComplete ? "Awesome! You nailed it! Click Next to try another one! 🎉" : activeWordObj.mascotMsg}
+                      {isWordComplete ? "Awesome! Concept Decoded! Click Next to try another one! 🎉" : activeWordObj.mascotMsg}
                     </p>
                   </div>
                 </div>
 
-                {/* Stylized Logo Badge Box (No Broken Images) */}
-                <div className={`relative my-2 py-6 rounded-2xl bg-gradient-to-r ${activeWordObj.gradient} shadow-inner flex flex-col items-center justify-center text-white border border-white/40`}>
-                  <div className="text-5xl drop-shadow-md mb-2 animate-pulse">
-                    {activeWordObj.logo}
+                {/* Clean Object Showcase Box (Without Circle, Isolated Like a PNG Image) */}
+                <div className="relative my-2 py-6 px-4 rounded-2xl bg-white/90 border border-amber-200/80 shadow-xs flex flex-col items-center justify-center text-center">
+                  <div className="mb-3 transform transition-transform duration-300 hover:scale-110 animate-gentle-float">
+                    <span className="text-6xl sm:text-7xl drop-shadow-md select-none leading-none inline-block filter">
+                      {activeWordObj.logo}
+                    </span>
                   </div>
-                  <span className="text-xs font-black tracking-wider bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 shadow-sm text-center">
+                  <span className="text-xs sm:text-sm font-bold text-stone-800 bg-amber-100/90 border border-amber-300/80 px-4 py-1.5 rounded-full shadow-2xs">
                     {activeWordObj.hint}
                   </span>
                 </div>
 
                 {/* Secret Hint Revealer Button */}
-                <div className="mt-3">
+                <div className="mt-3.5">
                   {!showSecretHint ? (
                     <button
                       onClick={() => setShowSecretHint(true)}
-                      className="w-full bg-white/80 hover:bg-white text-amber-900 border border-amber-300 text-[11px] font-black py-2 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full bg-white/90 hover:bg-white text-amber-900 border border-amber-300 text-xs font-black py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer hover:border-amber-400"
                     >
-                      <span>💡</span> Need Extra Clue?
+                      <span>💡</span> Need Extra Clue / Formula?
                     </button>
                   ) : (
-                    <div className="bg-amber-200/70 border border-amber-300 rounded-xl p-2.5 text-center animate-fade-in">
-                      <p className="text-[11px] font-black text-amber-950">
+                    <div className="bg-amber-100/90 border border-amber-300 rounded-xl p-3 text-center animate-fade-in shadow-2xs">
+                      <p className="text-xs font-bold text-amber-950">
                         {activeWordObj.secretHint}
                       </p>
                     </div>
@@ -1457,37 +1386,49 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               {/* RIGHT SIDE: GAME BOARD */}
-              <div className="bg-white/90 backdrop-blur-xl border border-amber-200/80 rounded-3xl p-6 shadow-[0_15px_35px_rgba(251,191,36,0.15)] flex flex-col justify-between">
+              <div className="bg-white/95 backdrop-blur-xl border border-amber-200/80 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between">
 
                 <div>
                   {/* Top Game Bar */}
                   <div className="flex items-center justify-between pb-3 mb-4 border-b border-amber-100">
-                    <span className="text-xs font-black text-amber-900 tracking-wider flex items-center gap-1 uppercase">
-                      <span>🎮</span> Word Board
+                    <span className="text-xs font-black text-amber-900 tracking-wider flex items-center gap-1.5 uppercase">
+                      <span>🎮</span> Concept Board ({currentWordIndex + 1}/{ACADEMIC_WORDS.length})
                     </span>
 
-                    <button
-                      onClick={resetCurrentWord}
-                      className="text-[11px] font-bold text-amber-700 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-3 py-1 rounded-full transition-all cursor-pointer flex items-center gap-1"
-                    >
-                      <span>🔄</span> Reset
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {userLetters.length > 0 && !isWordComplete && (
+                        <button
+                          onClick={handleUndoLetter}
+                          className="text-xs font-bold text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                          title="Undo last letter"
+                        >
+                          <RotateCcw className="w-3 h-3" /> Back
+                        </button>
+                      )}
+                      <button
+                        onClick={resetCurrentWord}
+                        className="text-xs font-bold text-amber-700 hover:text-amber-900 bg-amber-100/80 hover:bg-amber-200/80 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                      >
+                        <RotateCcw className="w-3 h-3" /> Reset
+                      </button>
+                    </div>
                   </div>
 
                   {/* Target Word Slots */}
-                  <div className="text-center my-10">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-10">
-                      Tap correct letters in order
+                  <div className="text-center my-6 sm:my-8">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-6">
+                      Tap letters below in sequence to solve the concept
                     </p>
 
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
                       {activeWordObj.word.split('').map((char, idx) => {
                         const filledChar = userLetters[idx];
                         return (
                           <div
                             key={idx}
-                            className={`w-10 h-11 rounded-xl flex items-center justify-center text-lg font-black transition-all duration-300 border ${filledChar
-                              ? 'bg-gradient-to-tr from-amber-400 to-orange-400 text-white border-amber-300 shadow-md scale-105'
+                            onClick={() => filledChar && handleUndoLetter()}
+                            className={`w-11 h-12 sm:w-12 sm:h-14 rounded-xl flex items-center justify-center text-lg sm:text-xl font-black transition-all duration-300 border cursor-pointer select-none ${filledChar
+                              ? 'bg-gradient-to-tr from-amber-400 to-orange-400 text-white border-amber-300 shadow-sm scale-105'
                               : 'bg-slate-100/80 border-slate-200 text-slate-300'
                               }`}
                           >
@@ -1502,28 +1443,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 {/* Option Letters OR Success Screen */}
                 {!isWordComplete ? (
                   <div className="mt-2">
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                      {shuffledOptions.map((letter, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => handleLetterClick(letter)}
-                          className="w-10 h-10 rounded-xl bg-gradient-to-br from-white to-amber-50 hover:from-amber-100 hover:to-orange-100 border border-amber-200/80 text-amber-900 font-black text-base shadow-sm hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
-                        >
-                          {letter}
-                        </button>
-                      ))}
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+                      {shuffledOptions.map((letter, idx) => {
+                        const isUsed = usedOptionIndices.includes(idx);
+                        return (
+                          <button
+                            key={idx}
+                            disabled={isUsed}
+                            onClick={() => handleLetterClick(letter, idx)}
+                            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl font-black text-base sm:text-lg border transition-all cursor-pointer flex items-center justify-center ${isUsed
+                              ? 'opacity-25 pointer-events-none scale-90 bg-stone-100 border-stone-200 text-stone-300 shadow-none'
+                              : 'bg-gradient-to-br from-white to-amber-50 hover:from-amber-100 hover:to-orange-100 border border-amber-200/80 text-amber-900 shadow-2xs hover:shadow-xs hover:scale-105 active:scale-95'
+                              }`}
+                          >
+                            {letter}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-2 animate-bounce">
+                  <div className="text-center py-3">
                     <div className="text-sm font-black text-emerald-600 mb-3">
-                      🎉 Super Star! Word Completed! 🌟
+                      🎉 Excellent! Concept Decoded! 🌟
                     </div>
                     <button
                       onClick={nextWord}
-                      className="bg-gradient-to-r from-emerald-400 to-teal-500 hover:opacity-90 text-white font-black text-xs px-6 py-2.5 rounded-2xl shadow-md active:scale-95 transition-all cursor-pointer tracking-wider"
+                      className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-white font-black text-xs sm:text-sm px-6 py-2.5 rounded-2xl shadow-sm active:scale-95 transition-all cursor-pointer tracking-wider inline-flex items-center gap-1.5"
                     >
-                      Next Challenge ➡️
+                      Next Concept ➡️
                     </button>
                   </div>
                 )}
@@ -1539,9 +1487,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* 💎 WHY EDUJUNCTION (EDITORIAL STORY & VALUE NARRATIVE) */}
       <section id="why-edujunction" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-[90px]">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-amber-100/30 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-yellow-100/20 rounded-full blur-3xl pointer-events-none" />
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
@@ -1553,13 +1498,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="mt-4 text-3xl sm:text-4xl lg:text-4xl font-black text-stone-900 tracking-normal leading-tight whitespace-nowrap overflow-x-auto pb-2"
               style={{ wordSpacing: '0.25em' }}
             >
-              Edu<span className="text-yellow-500">Junction</span> vs <span className="text-yellow-500">OTHER</span> PLATFORMS
+              Edu<span className="text-yellow-500">Junction</span> Vs <span className="text-yellow-500">Other</span> Platforms
             </h2>
           </div>
 
-          {/* 2-Column Open / Borderless Layout: Left Description & Right 3D Motion Image */}
+          {/* 2-Column Open / Borderless Layout: Left 3D Motion Image & Right Description */}
           <div className="mt-10 lg:mt-12 grid lg:grid-cols-12 gap-6 lg:gap-8 items-center reveal-on-scroll">
-            {/* Left Side: Description */}
+            {/* Left Side: Realistic Student Floating Cutout (Borderless, Transparent PNG on pure white) */}
+            <div className="lg:col-span-5 flex items-center justify-center relative">
+              <div className="relative w-full flex items-center justify-center">
+                <img
+                  src="/why-edujunction-student-cutout.png"
+                  alt="Student studying with EduJunction"
+                  className="w-full max-w-[380px] sm:max-w-[420px] lg:max-w-[450px] h-auto max-h-[440px] object-contain select-none transition-transform duration-500 hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+
+            {/* Right Side: Description */}
             <div className="lg:col-span-7 space-y-4">
               <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
                 While traditional platforms offer generic PDFs with zero diagnostic insights, <strong className="text-stone-900 font-bold">EduJunction</strong> brings the exact <strong className="text-amber-800 font-bold">Upcoming ICSE, ISC &amp; CBSE board blueprints</strong> to life with step-by-step scoring rubrics. Our built-in <strong className="text-stone-900 font-bold">Study Buddy</strong> identifies why a student struggled, pinpointing conceptual traps and prerequisite knowledge gaps before exam day.
@@ -1567,21 +1524,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
                 Every test submission automatically compiles and emails an authentic <strong className="text-stone-900 font-bold">PDF Diagnostic Dossier</strong> directly to parents with chapter-wise mastery breakdowns, ensuring seamless transparency. Inside the exam interface, students can solve numericals, draft diagrams, and utilize digital scratchpads directly with our <strong className="text-stone-900 font-bold">Interactive STEM Canvas</strong>. We believe quality education should be accessible and student-centric — empowering learners with <strong className="text-amber-800 font-bold">fair, modular, per-paper pricing</strong> and absolutely no forced annual lock-ins, putting students in complete control of their success.
               </p>
-            </div>
-
-            {/* Right Side: Realistic Student Floating Cutout (Borderless, Transparent PNG) */}
-            <div className="lg:col-span-5 flex items-center justify-center relative">
-              {/* Soft Ambient Glow */}
-              <div className="absolute -inset-4 bg-gradient-to-tr from-amber-300/25 via-yellow-200/30 to-orange-300/15 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="relative w-full flex items-center justify-center">
-                <img
-                  src="/why-edujunction-student-cutout.png"
-                  alt="Student studying with EduJunction"
-                  className="w-full max-w-[380px] sm:max-w-[420px] lg:max-w-[450px] h-auto max-h-[440px] object-contain select-none drop-shadow-[0_18px_36px_rgba(120,53,15,0.18)] transition-transform duration-500 hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
             </div>
           </div>
         </div>
@@ -1674,90 +1616,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* PERSONALIZATION EXAMPLE */}
-      <section id="personalization" className="py-20 bg-white relative z-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs font-bold">
-              <Brain className="w-3.5 h-3.5" />
-              Study Buddy Personalization
-            </div>
-            <h2
-              className="mt-4 text-3xl sm:text-4xl font-black tracking-normal capitalize"
-              style={{ wordSpacing: '0.25em' }}
-            >
-              NOT THE SAME LESSON FOR EVERYONE
-            </h2>
-            <p className="mt-3 text-stone-600">
-              Example: Rahul struggles with Geometry, so the platform changes his next steps.
-            </p>
-          </div>
-
-          <div className="mt-16 relative">
-            <style>{`
-              @keyframes float-card {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-8px); }
-              }
-              .animate-float-card {
-                animation: float-card 4s ease-in-out infinite;
-              }
-            `}</style>
-
-            <div className="hidden lg:block absolute top-1/2 left-[5%] right-[5%] h-1.5 bg-gradient-to-r from-blue-200 via-purple-300 to-green-300 -translate-y-1/2 rounded-full opacity-60"></div>
-
-            <div className="grid lg:grid-cols-5 gap-6 lg:gap-4 relative z-10">
-              {[
-                ['📝', 'Assessment', 'Rahul scores 60%', 'bg-blue-100 border-blue-200', 'text-blue-700', 'lg:-translate-y-4'],
-                ['🔍', 'Study Buddy Finds', 'Geometry is weak', 'bg-red-100 border-red-200', 'text-red-700', 'lg:translate-y-4'],
-                ['📚', 'Recommends', 'Lesson + practice', 'bg-purple-100 border-purple-200', 'text-purple-700', 'lg:-translate-y-4'],
-                ['🎯', 'Retest', 'Mini mock exam', 'bg-orange-100 border-orange-200', 'text-orange-700', 'lg:translate-y-4'],
-                ['🎉', 'Improves', '60% → 82%', 'bg-green-100 border-green-200', 'text-green-700', 'lg:-translate-y-4'],
-              ].map(([icon, title, text, colorClass, textClass, offsetClass], i) => (
-                <div key={title} className={`relative flex flex-col items-center group ${offsetClass} reveal-on-scroll`} style={{ transitionDelay: `${i * 100}ms` }}>
-                  <div className="animate-float-card w-full">
-                    <div className="transition-transform hover:-translate-y-3 duration-300 relative">
-                      <div className="absolute inset-0 bg-white/40 blur-xl rounded-full group-hover:bg-yellow-400/20 transition-colors"></div>
-
-                      <div className={`relative w-full h-[190px] p-6 sm:p-8 lg:p-6 rounded-[2rem] bg-white/90 backdrop-blur-xl border border-white shadow-xl shadow-stone-200/50 flex flex-col items-center justify-center text-center z-10 overflow-hidden`}>
-                        <div className={`absolute top-0 right-0 w-24 h-24 ${colorClass} blur-3xl opacity-50 rounded-full -mr-10 -mt-10`}></div>
-
-                        <div className={`w-16 h-16 rounded-[1.25rem] flex items-center justify-center text-3xl ${colorClass} shadow-sm border border-white/50 mb-4 relative z-10`}>
-                          {icon}
-                        </div>
-                        <h3 className={`h-7 flex items-center justify-center font-black text-lg ${textClass} mb-1.5 relative z-10`}>{title}</h3>
-                        <p className="min-h-5 text-sm font-semibold text-stone-500 relative z-10">{text}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {i < 4 && <div className="lg:hidden w-1 h-8 bg-gradient-to-b from-stone-200 to-stone-300 rounded-full my-2"></div>}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-20 relative overflow-hidden rounded-[2.5rem] border border-yellow-200 bg-gradient-to-br from-yellow-50 via-white to-amber-50 p-8 sm:p-10 shadow-2xl shadow-yellow-500/10 reveal-on-scroll">
-            <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-yellow-300 rounded-full blur-[80px] opacity-40"></div>
-            <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-amber-400 rounded-full blur-[80px] opacity-20"></div>
-
-            <div className="relative z-10 flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left">
-              <div className="relative w-16 h-16 shrink-0 rounded-[1.25rem] bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/30" aria-label="High ability student thinking badge">
-                <Brain className="w-10 h-10" strokeWidth={1.75} />
-                <span className="absolute right-2 top-1 text-sm font-black leading-none">+</span>
-                <span className="absolute right-1.5 top-4 h-1.5 w-1.5 rounded-full bg-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black text-stone-900">Advanced students get harder content.</h3>
-                <p className="mt-3 text-stone-600 font-medium text-lg leading-relaxed max-w-3xl text-justify [text-align-last:left]">
-                  If a student consistently performs strongly, the platform dynamically adapts, moving them to <strong className="font-bold text-amber-700">HOTS (Higher Order Thinking Skills)</strong> questions, challenge quizzes, and advanced mock exams.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -2064,7 +1922,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 features: [
                   'Complete NCERT & Exemplar Solutions',
                   'Past 10 Years Solved Papers (PYQs)',
-                  'Step-by-Step AI Evaluation Rubric',
+                  'Step-by-Step Evaluation Rubric',
                 ],
                 subjects: ['Mathematics', 'Science', 'Social Science', 'English'],
                 stats: { questions: '15,000+', mockTests: '12 Full Mocks', passRate: '98.4%' },
