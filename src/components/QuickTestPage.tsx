@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Loader2,
   ChevronDown,
+  Printer,
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
 import { PublicHeader } from './common/PublicHeader';
@@ -336,6 +337,9 @@ export const QuickTestPage: React.FC = () => {
       const newCount = completedTestsCount + 1;
       setCompletedTestsCount(newCount);
       localStorage.setItem(GUEST_TEST_COUNT_KEY, newCount.toString());
+      if (newCount >= MAX_FREE_TESTS) {
+        setShowPaywallModal(true);
+      }
     } catch (err: any) {
       console.error('Failed to evaluate demo test:', err);
       alert('Failed to evaluate test. Please check connection.');
@@ -364,7 +368,7 @@ export const QuickTestPage: React.FC = () => {
   const answeredCount = Object.keys(answers).length;
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] font-sans text-stone-900 flex flex-col selection:bg-amber-200">
+    <div className="quick-test-page min-h-screen bg-[#FFFDF8] font-sans text-stone-900 flex flex-col selection:bg-amber-200">
       <PublicHeader />
 
       <div className="border-b border-amber-200/70 bg-white/80">
@@ -396,7 +400,7 @@ export const QuickTestPage: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+        <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
 
         {/* ============================================================== */}
         {/* VIEW 1: SETUP SCREEN (When not started & tests available)      */}
@@ -673,14 +677,14 @@ export const QuickTestPage: React.FC = () => {
                 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-normal [word-spacing:0.25em] leading-tight max-w-2xl"
                 style={{ wordSpacing: '0.25em' }}
               >
-                Great Effort! You've Completed Your{' '}
+                Well Done! Your Next Learning Step Is{' '}
                 <span className="bg-gradient-to-r from-amber-600 via-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                  Free Practice Tests!
+                  Just Ahead
                 </span>
               </h2>
 
               <p className="mt-3 text-stone-700 text-xs sm:text-sm lg:text-base font-medium max-w-2xl leading-relaxed">
-                You've experienced EduJunction's syllabus-accurate question bank and instant evaluation. Create your free student or parent account in 30 seconds to unlock the full learning platform.
+              Your two free demo tests are complete. Create a free account to save your progress and continue with personalized practice, instant feedback, and your Study Buddy.
               </p>
             </div>
 
@@ -946,9 +950,18 @@ export const QuickTestPage: React.FC = () => {
         {/* VIEW 3: INSTANT RESULT & EXPLANATION SCORECARD                */}
         {/* ============================================================== */}
         {isExamCompleted && (
-          <div className="space-y-6">
+          <div className="space-y-6 print-results">
             {/* Top Score Banner */}
             <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xl shadow-stone-200/40 p-6 sm:p-8 text-center relative overflow-hidden">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="no-print absolute top-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 shadow-sm transition-colors hover:border-amber-300 hover:bg-amber-50 hover:text-amber-900"
+                aria-label="Print demo test results"
+                title="Print results"
+              >
+                <Printer className="h-4 w-4" />
+              </button>
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-400 to-yellow-300 flex items-center justify-center text-stone-950 mx-auto shadow-lg shadow-amber-400/30 mb-4">
                 <Trophy className="w-8 h-8" />
               </div>
@@ -1198,7 +1211,7 @@ export const QuickTestPage: React.FC = () => {
           onClick={() => setShowPaywallModal(false)}
         >
           <div
-            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-stone-200 p-6 sm:p-8 overflow-hidden text-center"
+            className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-stone-200 p-6 sm:p-8 overflow-hidden text-center animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header Icon */}
@@ -1207,10 +1220,10 @@ export const QuickTestPage: React.FC = () => {
             </div>
 
             <h3 className="text-2xl font-black text-stone-900 tracking-tight">
-              You've Completed Your 2 Free Demo Tests! 🎉
+              Well done! Ready to keep learning? 🎉
             </h3>
             <p className="mt-2 text-stone-600 text-xs sm:text-sm font-medium leading-relaxed">
-              Create your free student or parent account in 30 seconds to unlock unlimited practice tests, 50,000+ board questions, and your personalized AI Study Buddy.
+              Create a free account to save your progress and unlock personalized practice, instant AI feedback, and your Study Buddy. Get started in under a minute.
             </p>
 
             {/* Value Props */}
