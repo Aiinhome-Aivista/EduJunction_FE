@@ -163,7 +163,7 @@ export default function App() {
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-      const landingPaths = ['/home', '/features', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/for-everyone'];
+      const landingPaths = ['/home', '/actions-demo'];
       if (landingPaths.includes(location.pathname)) {
         window.history.replaceState(null, '', '/');
         navigate('/', { replace: true });

@@ -14,19 +14,26 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
   const isBlogActive = location.pathname.startsWith("/blog");
   const isFeaturesActive = location.pathname === "/features";
   const isPricingActive = location.pathname === "/pricing";
-  const isHomeActive = location.pathname === "/" || location.pathname === "/home";
+  const isQuickTestActive = location.pathname.startsWith("/quick-test");
+  const isHomeActive =
+    location.pathname === "/" ||
+    location.pathname === "/home" ||
+    location.pathname === "/free-mock-papers-2027" ||
+    location.pathname === "/model-papers-2027" ||
+    location.pathname === "/actions-demo" ||
+    location.pathname === "/for-everyone";
   const isLoggedIn = !!getStoredTokens();
 
   const [activeSection, setActiveSection] = useState<'home' | 'features' | 'free-mock-papers-2027' | 'actions-demo' | 'for-everyone'>('home');
 
   // Track active section and dynamically update browser URL in real-time as user scrolls (Landing only)
   React.useEffect(() => {
-    if (isBlogActive || isFeaturesActive || isPricingActive) return;
+    if (isBlogActive || isFeaturesActive || isPricingActive || isQuickTestActive) return;
 
     const sectionIds = [
       { id: 'hero', key: 'home' as const, path: '/' },
+      { id: 'actions-demo', key: 'home' as const, path: '/' },
       { id: 'free-mock-papers-2027', key: 'free-mock-papers-2027' as const, path: '/free-mock-papers-2027' },
-      { id: 'actions-demo', key: 'actions-demo' as const, path: '/' },
       { id: 'for-everyone', key: 'for-everyone' as const, path: '/for-everyone' },
     ];
 

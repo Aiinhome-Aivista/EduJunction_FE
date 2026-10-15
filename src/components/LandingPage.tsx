@@ -216,7 +216,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-      const landingSubPaths = ['/home', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/magic-word-arena', '/for-everyone'];
+      const landingSubPaths = ['/home', '/actions-demo', '/magic-word-arena'];
       if (landingSubPaths.includes(location.pathname)) {
         window.history.replaceState(null, '', '/');
         navigate('/', { replace: true });
@@ -237,8 +237,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       return;
     }
 
+    const pathnameTarget = (location.pathname === '/free-mock-papers-2027' || location.pathname === '/model-papers-2027')
+      ? 'free-mock-papers-2027'
+      : null;
     const hashTarget = location.hash ? location.hash.replace('#', '') : null;
-    const targetId = hashTarget === 'model-papers-2027' ? 'free-mock-papers-2027' : hashTarget;
+    const targetId = hashTarget === 'model-papers-2027' ? 'free-mock-papers-2027' : (hashTarget || pathnameTarget);
 
     if (targetId && targetId !== 'home' && targetId !== '' && targetId !== 'hero') {
       const scrollToEl = () => {
@@ -649,8 +652,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* ACTIONS & DEMO */}
-      <section id="actions-demo" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white scroll-mt-[90px]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="actions-demo" className="pt-12 sm:pt-16 pb-16 sm:pb-20 bg-gradient-to-b from-amber-50/50 via-stone-50/40 to-amber-50/30 border-t border-amber-200/70 relative scroll-mt-[90px] overflow-hidden">
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-yellow-200/30 blur-3xl pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto reveal-on-scroll">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-yellow-100/90 border border-yellow-200/80 text-yellow-800 text-xs sm:text-sm font-bold shadow-2xs">
               <Lightbulb className="w-4 h-4 text-yellow-600 animate-pulse" />
@@ -778,7 +783,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">15-Min timed test</p>
                   </div>
                   <div className="p-1.5 lg:p-2 rounded-xl bg-amber-50/60 border border-amber-200/70">
-                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">📊 Diagnostic Insights</p>
+                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">📊 Insights</p>
                     <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">Concept error detection</p>
                   </div>
                   <div className="p-1.5 lg:p-2 rounded-xl bg-amber-50/60 border border-amber-200/70 col-span-2">
@@ -1213,7 +1218,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   'Instant Model Answers & Step-by-Step Marking Rules',
                   'Targeted Revision Recommendations after every submission'
                 ],
-                demoTitle: 'Interactive Live Preview: MCQ Diagnostic',
+                demoTitle: 'Interactive Live Preview: MCQ',
                 demoWidget: (
                   <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-3">
                     <div className="flex items-center justify-between text-xs font-bold text-amber-900">
@@ -1589,7 +1594,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 While traditional platforms offer generic PDFs with zero diagnostic insights, <strong className="text-stone-900 font-bold">EduJunction</strong> brings the exact <strong className="text-amber-800 font-bold">Upcoming ICSE, ISC &amp; CBSE board blueprints</strong> to life with step-by-step scoring rubrics. Our built-in <strong className="text-stone-900 font-bold">Study Buddy</strong> identifies why a student struggled, pinpointing conceptual traps and prerequisite knowledge gaps before exam day.
               </p>
               <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
-                Every test submission automatically compiles and emails an authentic <strong className="text-stone-900 font-bold">PDF Diagnostic Dossier</strong> directly to parents with chapter-wise mastery breakdowns, ensuring seamless transparency. Inside the exam interface, students can solve numericals, draft diagrams, and utilize digital scratchpads directly with our <strong className="text-stone-900 font-bold">Interactive STEM Canvas</strong>. We believe quality education should be accessible and student-centric — empowering learners with <strong className="text-amber-800 font-bold">fair, modular, per-paper pricing</strong> and absolutely no forced annual lock-ins, putting students in complete control of their success.
+                Every test submission automatically compiles and emails an authentic <strong className="text-stone-900 font-bold">PDF Dossier</strong> directly to parents with chapter-wise mastery breakdowns, ensuring seamless transparency. Inside the exam interface, students can solve numericals, draft diagrams, and utilize digital scratchpads directly with our <strong className="text-stone-900 font-bold">Interactive STEM Canvas</strong>. We believe quality education should be accessible and student-centric — empowering learners with <strong className="text-amber-800 font-bold">fair, modular, per-paper pricing</strong> and absolutely no forced annual lock-ins, putting students in complete control of their success.
               </p>
             </div>
           </div>
@@ -1685,62 +1690,97 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* GAMIFICATION */}
-      <section className="py-20 bg-gradient-to-br from-amber-50 via-white to-amber-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-10 items-stretch">
+      <section className="py-12 sm:py-14 bg-gradient-to-br from-amber-50 via-white to-amber-50">
+        <div className="max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
 
-            {/* 1st CARD (Thoda andar ki or shifted with Left Padding) */}
-            <div className="reveal-on-scroll flex flex-col justify-between pl-2 sm:pl-4">
+            {/* 1st CARD (Left narrative & feature grid) */}
+            <div className="reveal-on-scroll flex flex-col justify-between pl-1 sm:pl-2">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-amber-200 text-amber-700 text-xs font-bold">
-                  <Trophy className="w-3.5 h-3.5" />
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white border border-amber-200 text-amber-700 text-xs font-bold shadow-2xs">
+                  <Trophy className="w-3.5 h-3.5 text-amber-600" />
                   Learning, but make it fun
                 </div>
-                <h2
-                  className="mt-4 text-3xl sm:text-4xl font-black tracking-normal capitalize"
-                  style={{ wordSpacing: '0.25em' }}
-                >
-                  Rewards that make children want to keep going
+                <h2 className="mt-2.5 text-2xl sm:text-3xl lg:text-[2rem] xl:text-[2.15rem] font-black tracking-tight text-stone-900 leading-[1.2]">
+                  Rewards that make children <br className="hidden sm:inline" />want to keep going
                 </h2>
-                <p className="mt-4 text-stone-600 leading-relaxed text-justify [text-align-last:left]">
+                <p className="mt-2 text-stone-600 text-xs sm:text-sm leading-relaxed text-justify [text-align-last:left]">
                   Correct answers earn points. Milestones unlock badges. Daily activity builds streaks. Students can see a friendly leaderboard and take short educational brain breaks.
                 </p>
               </div>
 
-              <div className="mt-7 grid sm:grid-cols-2 gap-4">
+              <div className="mt-5 grid grid-cols-2 gap-3">
                 {[
-                  ['⭐', 'Points', 'Earn for correct answers', 'bg-yellow-100 text-yellow-700'],
-                  ['🏆', 'Badges', 'Unlock subject milestones', 'bg-orange-100 text-orange-700'],
-                  ['🔥', 'Streaks', 'Keep learning every day', 'bg-red-100 text-red-700'],
-                  ['🥇', 'Leaderboard', 'See friendly rankings', 'bg-blue-100 text-blue-700'],
-                ].map(([icon, title, text, colorClass]) => (
-                  <div key={title} className="bg-white/80 backdrop-blur-sm rounded-[1.5rem] border border-white p-5 shadow-lg shadow-amber-900/5 group hover:-translate-y-1 transition-transform">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${colorClass} shadow-inner mb-3`}>{icon}</div>
-                    <div className="font-black text-stone-800">{title}</div>
-                    <div className="text-xs font-semibold text-stone-500 mt-1">{text}</div>
+                  {
+                    icon: '⭐',
+                    title: 'Points',
+                    text: 'Earn for correct answers',
+                    cardBg: 'bg-gradient-to-br from-amber-100 via-amber-200/80 to-yellow-100/90 border-amber-300/90 shadow-amber-900/5',
+                    iconBox: 'bg-white/90 border-amber-200/90 text-amber-700',
+                    titleColor: 'text-amber-950',
+                    textColor: 'text-amber-900/85',
+                  },
+                  {
+                    icon: '🏆',
+                    title: 'Badges',
+                    text: 'Unlock subject milestones',
+                    cardBg: 'bg-gradient-to-br from-purple-100 via-violet-200/80 to-fuchsia-100/90 border-purple-300/90 shadow-purple-900/5',
+                    iconBox: 'bg-white/90 border-purple-200/90 text-purple-700',
+                    titleColor: 'text-purple-950',
+                    textColor: 'text-purple-900/85',
+                  },
+                  {
+                    icon: '🔥',
+                    title: 'Streaks',
+                    text: 'Keep learning every day',
+                    cardBg: 'bg-gradient-to-br from-rose-100 via-red-200/80 to-orange-100/90 border-rose-300/90 shadow-rose-900/5',
+                    iconBox: 'bg-white/90 border-rose-200/90 text-rose-700',
+                    titleColor: 'text-rose-950',
+                    textColor: 'text-rose-900/85',
+                  },
+                  {
+                    icon: '🥇',
+                    title: 'Leaderboard',
+                    text: 'See friendly rankings',
+                    cardBg: 'bg-gradient-to-br from-sky-100 via-blue-200/80 to-cyan-100/90 border-sky-300/90 shadow-sky-900/5',
+                    iconBox: 'bg-white/90 border-sky-200/90 text-sky-700',
+                    titleColor: 'text-sky-950',
+                    textColor: 'text-sky-900/85',
+                  },
+                ].map(({ icon, title, text, cardBg, iconBox, titleColor, textColor }) => (
+                  <div
+                    key={title}
+                    className={`rounded-2xl border p-3.5 sm:p-4 shadow-sm group hover:-translate-y-0.5 hover:shadow-md transition-all ${cardBg}`}
+                  >
+                    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-lg sm:text-xl border shadow-2xs mb-2 transition-transform group-hover:scale-105 ${iconBox}`}>
+                      {icon}
+                    </div>
+                    <div className={`font-black text-xs sm:text-sm ${titleColor}`}>{title}</div>
+                    <div className={`text-[11px] sm:text-xs font-semibold mt-0.5 leading-snug ${textColor}`}>{text}</div>
                   </div>
                 ))}
               </div>
             </div>
-            {/* 2nd CARD */}
-            <div className="group/card relative rounded-[2rem] border border-amber-200 shadow-xl hover:shadow-2xl p-6 sm:p-7 bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden reveal-on-scroll flex flex-col justify-between h-full transition-all duration-300 hover:-translate-y-1">
-              <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-yellow-300 rounded-full blur-3xl opacity-30 group-hover/card:opacity-50 transition-opacity"></div>
+
+            {/* 2nd CARD (Right Interactive Rewards Showcase) */}
+            <div className="group/card relative rounded-2xl sm:rounded-3xl border border-amber-200 shadow-lg hover:shadow-xl p-4 sm:p-5 bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden reveal-on-scroll flex flex-col justify-between h-full transition-all duration-300">
+              <div className="absolute top-0 right-0 -mt-10 -mr-10 w-36 h-36 bg-yellow-300 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
 
               {/* Header Section */}
               <div className="relative z-10 flex items-center justify-between shrink-0">
                 <div>
-                  <div className="text-xs text-amber-700 font-bold uppercase tracking-wider">This Week</div>
-                  <div className="text-2xl font-black text-stone-900 mt-1 group-hover/card:text-amber-700 transition-colors">
+                  <div className="text-[10px] sm:text-xs text-amber-700 font-bold uppercase tracking-wider">This Week</div>
+                  <div className="text-lg sm:text-xl font-black text-stone-900 mt-0.5 group-hover/card:text-amber-700 transition-colors">
                     Rahul's Rewards
                   </div>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg shadow-yellow-500/30 transition-transform duration-300 group-hover/card:scale-110 group-hover/card:rotate-6">
-                  <Award className="w-6 h-6 text-white" />
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-md shadow-yellow-500/25 transition-transform duration-300 group-hover/card:scale-105">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
               </div>
 
-              {/* mt-6 se Rahul's Rewards ke baad thoda extra space diya hai, aur gap-2.5 se baki boxes ke beech ka gap kam kar diya hai */}
-              <div className="relative z-10 flex-1 flex flex-col justify-between gap-2.5 mt-6">
+              {/* Reward items list */}
+              <div className="relative z-10 flex-1 flex flex-col justify-between gap-2 mt-3.5 sm:mt-4">
                 {[
                   ['Correct answers', '+120 XP', 'text-amber-600', 'bg-white/80 hover:bg-white'],
                   ['7-day streak', '+70 XP', 'text-amber-600', 'bg-white/80 hover:bg-white'],
@@ -1749,26 +1789,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ].map(([label, value, color, bg]) => (
                   <div
                     key={label}
-                    className={`flex items-center justify-between px-4 py-4 rounded-2xl ${bg} border border-white shadow-sm transition-all duration-300 hover:scale-[1.01] hover:shadow-md cursor-pointer`}
+                    className={`flex items-center justify-between px-3.5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl ${bg} border border-white/80 shadow-xs transition-all duration-200 hover:shadow-sm cursor-pointer`}
                   >
-                    <span className="text-sm font-bold text-stone-700">{label}</span>
-                    <span className={`text-sm font-black ${color}`}>{value}</span>
+                    <span className="text-xs sm:text-sm font-bold text-stone-700">{label}</span>
+                    <span className={`text-xs sm:text-sm font-black ${color}`}>{value}</span>
                   </div>
                 ))}
 
                 {/* 5th Box: Brain Break */}
-                <div className="px-4 py-3 rounded-2xl bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-200/60 transition-all duration-300 hover:scale-[1.01] hover:border-amber-300 shadow-sm">
-                  <div className="flex items-center gap-2 font-black text-sm text-stone-900">
-                    <Gamepad2 className="w-4 h-4 text-amber-600 animate-pulse shrink-0" />
+                <div className="px-3.5 py-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-200/60 shadow-xs">
+                  <div className="flex items-center gap-2 font-black text-xs sm:text-sm text-stone-900">
+                    <Gamepad2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 animate-pulse shrink-0" />
                     <span>Brain Break</span>
                   </div>
-                  <p className="text-xs font-semibold text-stone-600 mt-0.5 leading-tight">
+                  <p className="text-[11px] sm:text-xs font-semibold text-stone-600 mt-0.5 leading-tight">
                     Solve 3 quick puzzles and unlock a fun fact.
                   </p>
                 </div>
               </div>
             </div>
-
 
           </div>
         </div>
@@ -1955,11 +1994,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200/80 shadow-2xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-rose-600" />
-                Step-by-Step AI Evaluation
+                Step-by-Step Evaluation
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200/80 shadow-2xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                Free Diagnostic Tier Included
+                Free Tier Included
               </span>
             </div>
           </div>
@@ -2104,30 +2143,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 defaultSubject: 'Mathematics',
               },
             ].map((track) => {
-              const TrackIcon = track.icon;
               return (
                 <div
                   key={track.id}
-                  onClick={() => setPreviewTrack(track)}
+                  onClick={() => navigate('/quick-test')}
                   className={`group relative flex flex-col justify-between bg-white rounded-3xl border ${track.theme.cardBorder} p-6 shadow-sm hover:shadow-2xl ${track.theme.glow} hover:-translate-y-2 transition-all duration-300 cursor-pointer`}
                 >
-                  {/* Top Row: Icon + Badges */}
+                  {/* Top Row: Badges */}
                   <div>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${track.theme.iconGrad} flex items-center justify-center text-white shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 shrink-0`}>
-                        <TrackIcon className="w-6 h-6 stroke-[2.2]" />
-                      </div>
-                      <div className="flex flex-col items-end gap-1.5">
-                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold border ${track.theme.badgeBg} shadow-2xs`}>
-                          {track.level}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold border ${track.theme.badgeBg} shadow-2xs`}>
+                        {track.level}
+                      </span>
+                      {track.popularTag && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-300/60 shadow-2xs">
+                          <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                          {track.popularTag}
                         </span>
-                        {track.popularTag && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-300/60 shadow-2xs">
-                            <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
-                            {track.popularTag}
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
 
                     {/* Titles */}
@@ -2170,23 +2203,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        openAuth('register', 'student');
+                        navigate('/quick-test');
                       }}
                       className={`w-full py-2.5 px-3 rounded-xl ${track.theme.actionBtn} font-black text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-98 transition-all duration-200 cursor-pointer`}
                     >
                       <span>Start Free Practice</span>
                       <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPreviewTrack(track);
-                      }}
-                      className="w-full py-2 px-3 rounded-xl border border-stone-200 bg-stone-50/80 hover:bg-stone-100 text-stone-700 hover:text-stone-900 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                    >
-                      <span>Preview Syllabus & Mocks</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-600" />
                     </button>
                   </div>
                 </div>
@@ -2197,30 +2219,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* HIGH-CONVERTING BOTTOM CTA BAR */}
           <div className="mt-14 text-center flex flex-col items-center reveal-on-scroll">
             <div className="inline-flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={() => openAuth('register', 'student')}
-                className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-stone-950 font-black text-sm sm:text-base shadow-amber-500/25 hover:shadow-amber-500/40 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 cursor-pointer"
-              >
-                <span>Get Started Free — Pick Any Track</span>
-                <ArrowRight className="w-5 h-5 text-stone-950 transition-transform group-hover:translate-x-1.5" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const el = document.getElementById('free-mock-papers-2027') || document.getElementById('demo');
-                  if (el) {
-                    el.scrollIntoView({ behavior: 'smooth' });
-                  } else {
-                    openAuth('login');
-                  }
-                }}
-                className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-white border border-stone-200/90 hover:border-amber-300 hover:bg-amber-50/40 text-stone-700 hover:text-stone-900 font-bold text-sm shadow-xs transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
-                <span>Try Instant 10-Mark Diagnostic Test</span>
-              </button>
             </div>
 
             {/* TRUST BADGES */}
@@ -2229,13 +2227,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <ShieldCheck className="w-4 h-4 text-emerald-600" /> No credit card required
               </span>
               <span className="flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-amber-600" /> Instant step-by-step AI grading
+                <Zap className="w-4 h-4 text-amber-600" /> Instant step-by-step grading
               </span>
               <span className="flex items-center gap-1.5">
                 <BookOpen className="w-4 h-4 text-blue-600" /> Latest 2025–26 CBSE & ICSE syllabus
               </span>
               <span className="flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-purple-600" /> Free diagnostic test included
+                <Users className="w-4 h-4 text-purple-600" /> Free test included
               </span>
             </div>
           </div>
