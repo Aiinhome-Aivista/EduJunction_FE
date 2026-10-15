@@ -1774,10 +1774,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="flex items-start justify-between">
                     <div
                       className={`w-12 h-12 rounded-2xl ${role === "student"
+                        ? "bg-yellow-50 text-yellow-600"
+                        : role === "teacher"
                           ? "bg-yellow-50 text-yellow-600"
-                          : role === "teacher"
-                            ? "bg-yellow-50 text-yellow-600"
-                            : "bg-sky-50 text-sky-600"
+                          : "bg-sky-50 text-sky-600"
                         } flex items-center justify-center`}
                     >
                       <Icon className="w-6 h-6" />
@@ -1996,8 +1996,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 key={subject}
                 onClick={() => runDemo(subject)}
                 className={`px-4 py-2.5 rounded-xl text-xs font-bold ${selectedSubject === subject
-                    ? "bg-yellow-400 text-stone-900"
-                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                  ? "bg-yellow-400 text-stone-900"
+                  : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                   }`}
               >
                 {subject === "math" ? "📐 Class 10 Math" : "🧬 Class 8 Science"}
@@ -2035,8 +2035,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       window.setTimeout(() => setIsEvaluating(false), 350);
                     }}
                     className={`px-3 py-2 rounded-xl border text-xs font-bold ${selectedAttempt === index
-                        ? "bg-white border-yellow-400 text-yellow-700"
-                        : "bg-white border-stone-200 text-stone-600"
+                      ? "bg-white border-yellow-400 text-yellow-700"
+                      : "bg-white border-stone-200 text-stone-600"
                       }`}
                   >
                     {response.label} · {response.tag}
@@ -2066,8 +2066,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
                 <div
                   className={`px-3 py-1.5 rounded-xl text-sm font-black ${currentAttempt.score >= 9
-                      ? "bg-yellow-50 text-yellow-700"
-                      : "bg-yellow-50 text-amber-700"
+                    ? "bg-yellow-50 text-yellow-700"
+                    : "bg-yellow-50 text-amber-700"
                     }`}
                 >
                   {currentAttempt.score}/10
@@ -2148,8 +2148,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </h2>
             <p className="mt-3.5 text-stone-600 text-sm sm:text-base font-medium leading-relaxed max-w-2xl mx-auto">
               Comprehensive, syllabus-accurate practice for school board
-              excellence and high-rigor competitive foundations. Complete with
-              NCERT solutions, previous year papers, and instant AI step
+              excellence. Complete with
+              NCERT solutions, previous year papers, and instant step
               feedback.
             </p>
 
@@ -2622,8 +2622,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div
                   key={faq.q}
                   className={`bg-white/80 backdrop-blur-md rounded-2xl border transition-all duration-300 overflow-hidden ${open
-                      ? "border-yellow-300 shadow-xl shadow-yellow-500/10"
-                      : "border-stone-200 hover:border-yellow-200 hover:shadow-md"
+                    ? "border-yellow-300 shadow-xl shadow-yellow-500/10"
+                    : "border-stone-200 hover:border-yellow-200 hover:shadow-md"
                     }`}
                 >
                   <button
@@ -2633,8 +2633,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <span className="text-lg text-stone-900">{faq.q}</span>
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${open
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-stone-100 text-stone-400"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-stone-100 text-stone-400"
                         }`}
                     >
                       <ChevronDown
