@@ -204,3 +204,16 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-5px); }
 }
+
+@keyframes gentleFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+.animate-gentle-float {
+  animation: gentleFloat 2.6s ease-in-out infinite;
+}
