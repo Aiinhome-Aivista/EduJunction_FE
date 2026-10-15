@@ -110,8 +110,8 @@ export const FeaturesPage: React.FC = () => {
               </span>
             </h1>
 
-            <p className="mt-4 text-stone-700 text-sm sm:text-base lg:text-lg font-medium max-w-2xl mx-auto leading-relaxed">
-              From instant 0.05s step grading and 2027 curriculum-verified model papers to adaptive learning paths and parent dossiers — explore the architecture engineered for academic excellence.
+            <p className="mt-4 text-stone-700 text-sm sm:text-base lg:text-lg font-medium max-w-4xl mx-auto leading-relaxed">
+              From instant 0.05s step grading and 2027 curriculum-verified model papers to adaptive learning paths<br className="hidden sm:block" /> and parent dossiers — explore the architecture engineered for academic excellence.
             </p>
 
             {/* Persona cards */}
@@ -406,7 +406,7 @@ export const FeaturesPage: React.FC = () => {
               </div>
 
               {/* Pillar 6: Verification Guarantee */}
-              <div className="p-6 sm:p-8 rounded-3xl bg-yellow-400 text-stone-950 flex flex-col justify-between">
+              <div className="p-6 sm:p-8 rounded-3xl bg-yellow-400 text-stone-950 border border-amber-300 hover:bg-amber-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
                 <div>
                   <div className="w-12 h-12 rounded-2xl bg-stone-950 text-amber-400 flex items-center justify-center font-black shadow-md mb-5">
                     <ShieldCheck className="w-6 h-6" />
@@ -600,46 +600,6 @@ export const FeaturesPage: React.FC = () => {
           </div>
         </section>
 
-        {/* ============================================================== */}
-        {/* BOTTOM HIGH-CONVERTING CTA BANNER                              */}
-        {/* ============================================================== */}
-        <section className="py-16 sm:py-20 bg-gradient-to-r from-stone-950 via-stone-900 to-stone-950 text-white text-center relative overflow-hidden">
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/20 text-amber-300 text-xs font-black mb-4">
-              <Zap className="w-3.5 h-3.5" />
-              <span>Zero Risk • Instant Start</span>
-            </div>
-            <h2
-              className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-normal [word-spacing:0.25em] leading-tight uppercase"
-              style={{ wordSpacing: '0.25em' }}
-            >
-              READY TO ACCELERATE YOUR BOARD PREPARATION?
-            </h2>
-            <p className="mt-3.5 text-stone-300 text-xs sm:text-base max-w-2xl mx-auto leading-relaxed">
-              Take an instant 5-minute diagnostic test or unlock comprehensive board model papers with verified solutions.
-            </p>
-
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
-              <button
-                type="button"
-                onClick={() => navigate('/quick-test')}
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-black text-sm sm:text-base shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>Take a Free Quick Test</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/pricing')}
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm sm:text-base border border-white/20 transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>Explore Pricing & Mock Packs</span>
-              </button>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* Footer */}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { GraduationCap, Mail } from "lucide-react";
 
 export interface PublicFooterProps {
@@ -8,42 +8,9 @@ export interface PublicFooterProps {
 }
 
 export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQuickDemo }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
   const facebookUrl = import.meta.env.VITE_FACEBOOK_URL || "https://www.facebook.com/edujunction.co.in";
   const supportEmail = "support@edujunction.co.in";
   const supportMailto = "https://mail.google.com/mail/u/0/?fs=1&to=support@edujunction.co.in&tf=cm";
-
-  const handleFooterNav = (sectionId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-
-    const isLanding =
-      location.pathname === "/" ||
-      location.pathname === "/home" ||
-      location.pathname === "/landing" ||
-      location.pathname === "/features" ||
-      location.pathname === "/free-mock-papers-2027" ||
-      location.pathname === "/model-papers-2027" ||
-      location.pathname === "/actions-demo" ||
-      location.pathname === "/for-everyone";
-
-    if (!isLanding) {
-      navigate(sectionId === 'hero' ? '/' : `/${sectionId}`);
-      return;
-    }
-
-    if (sectionId === 'hero' || sectionId === 'top' || sectionId === '' || sectionId === 'home') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      const el = document.getElementById(sectionId) || (sectionId === 'features' ? document.getElementById('why-edujunction') : (sectionId === 'for-everyone' ? document.getElementById('roles') : null));
-      if (el) {
-        const header = document.querySelector('header');
-        const headerHeight = header ? header.getBoundingClientRect().height : 72;
-        const y = el.getBoundingClientRect().top + window.pageYOffset - headerHeight - 16;
-        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
-      }
-    }
-  };
 
   return (
     <footer className="bg-stone-950 text-stone-500 border-t border-stone-800">
@@ -76,9 +43,9 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
           <div>
             <div className="text-white text-xs font-black uppercase tracking-wider">Platform</div>
             <div className="mt-3 space-y-2 text-xs">
-              <button type="button" onClick={(e) => handleFooterNav('features', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">Features</button>
-              <button type="button" onClick={(e) => handleFooterNav('free-mock-papers-2027', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">Free Mock Papers 2027</button>
-              <button type="button" onClick={(e) => handleFooterNav('actions-demo', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">Pricing</button>
+              <Link to="/features" onClick={() => window.scrollTo(0, 0)} className="block text-stone-400 hover:text-white transition-colors">Features</Link>
+              <Link to="/pricing" onClick={() => window.scrollTo(0, 0)} className="block text-stone-400 hover:text-white transition-colors">Pricing</Link>
+              <Link to="/#free-mock-papers-2027" className="block text-stone-400 hover:text-white transition-colors">Free Mock Test</Link>
               {/* <button type="button" onClick={(e) => handleFooterNav('for-everyone', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">For Everyone</button> */}
               <Link to="/blog" className="block hover:text-white transition-colors">Blogs</Link>
             </div>

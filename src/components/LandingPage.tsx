@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { PublicHeader } from './common/PublicHeader';
-import { PublicFooter } from './common/PublicFooter';
+import React, { useEffect, useState, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { PublicHeader } from "./common/PublicHeader";
+import { PublicFooter } from "./common/PublicFooter";
 import {
   GraduationCap,
   Sparkles,
@@ -37,79 +37,82 @@ import {
   Star,
   RotateCcw,
   HelpCircle,
-} from 'lucide-react';
-import ApiServices from '../services/ApiServices';
-import { ACADEMIC_WORDS } from '../data/academicArenaData';
+} from "lucide-react";
+import ApiServices from "../services/ApiServices";
+import { ACADEMIC_WORDS } from "../data/academicArenaData";
 
 interface LandingPageProps {
-  onOpenAuth: (mode?: 'login' | 'register', persona?: 'parent' | 'student') => void;
-  onQuickDemo?: (role?: 'admin' | 'parent') => void;
+  onOpenAuth: (
+    mode?: "login" | "register",
+    persona?: "parent" | "student",
+  ) => void;
+  onQuickDemo?: (role?: "admin" | "parent") => void;
 }
 
-type Role = 'student' | 'teacher' | 'parent';
+type Role = "student" | "teacher" | "parent";
 
 const demoQuestions = {
   math: {
-    subject: 'Mathematics',
-    grade: 'Class 10 CBSE',
-    chapter: 'Quadratic Equations',
+    subject: "Mathematics",
+    grade: "Class 10 CBSE",
+    chapter: "Quadratic Equations",
     marks: 10,
     question:
-      'A motorboat travels 24 km upstream and downstream. The upstream trip takes 1 hour more. Find the speed of the stream.',
+      "A motorboat travels 24 km upstream and downstream. The upstream trip takes 1 hour more. Find the speed of the stream.",
     responses: [
       {
-        label: 'Strong Attempt',
-        tag: '10/10',
+        label: "Strong Attempt",
+        tag: "10/10",
         score: 10,
         studentWork:
-          'Let speed of stream = x km/h.\nUpstream = 18 − x, Downstream = 18 + x.\n24/(18 − x) − 24/(18 + x) = 1\nx² + 48x − 324 = 0\nx = 6 km/h.',
+          "Let speed of stream = x km/h.\nUpstream = 18 − x, Downstream = 18 + x.\n24/(18 − x) − 24/(18 + x) = 1\nx² + 48x − 324 = 0\nx = 6 km/h.",
         feedback:
-          'Excellent step-by-step reasoning. The equation, algebra and final constraint are correct.',
+          "Excellent step-by-step reasoning. The equation, algebra and final constraint are correct.",
         breakdown: [
-          ['Define variables', '2/2', true],
-          ['Set up time equation', '3/3', true],
-          ['Form quadratic', '3/3', true],
-          ['Validate the answer', '2/2', true],
+          ["Define variables", "2/2", true],
+          ["Set up time equation", "3/3", true],
+          ["Form quadratic", "3/3", true],
+          ["Validate the answer", "2/2", true],
         ],
       },
       {
-        label: 'Needs Help',
-        tag: '7/10',
+        label: "Needs Help",
+        tag: "7/10",
         score: 7,
         studentWork:
-          'Let speed of stream = x km/h.\nUpstream = 18 − x, Downstream = 18 + x.\n24/(18 − x) − 24/(18 + x) = 1\nx² + 48x + 324 = 0\nGot negative roots.',
+          "Let speed of stream = x km/h.\nUpstream = 18 − x, Downstream = 18 + x.\n24/(18 − x) − 24/(18 + x) = 1\nx² + 48x + 324 = 0\nGot negative roots.",
         feedback:
-          'A sign error appeared while moving a term across the equation. The next learning step focuses on transposition.',
+          "A sign error appeared while moving a term across the equation. The next learning step focuses on transposition.",
         breakdown: [
-          ['Define variables', '2/2', true],
-          ['Set up time equation', '3/3', true],
-          ['Form quadratic', '1/3', false],
-          ['Validate the answer', '1/2', false],
+          ["Define variables", "2/2", true],
+          ["Set up time equation", "3/3", true],
+          ["Form quadratic", "1/3", false],
+          ["Validate the answer", "1/2", false],
         ],
       },
     ],
   },
   science: {
-    subject: 'Science',
-    grade: 'Class 8',
-    chapter: 'Cell Structure & Functions',
+    subject: "Science",
+    grade: "Class 8",
+    chapter: "Cell Structure & Functions",
     marks: 10,
     question:
-      'Give three differences between plant and animal cells and explain why plant cells need a cell wall.',
+      "Give three differences between plant and animal cells and explain why plant cells need a cell wall.",
     responses: [
       {
-        label: 'Model Answer',
-        tag: '10/10',
+        label: "Model Answer",
+        tag: "10/10",
         score: 10,
         studentWork:
-          'Plant cells have a cell wall, plastids and a large central vacuole.\nAnimal cells do not have a cell wall or plastids and usually have smaller vacuoles.\nThe cell wall gives plant cells support and protection.',
+          "Plant cells have a cell wall, plastids and a large central vacuole.\nAnimal cells do not have a cell wall or plastids and usually have smaller vacuoles.\nThe cell wall gives plant cells support and protection.",
         feedback:
-          'Clear comparison with accurate reasoning and good use of scientific terms.',
+          "Clear comparison with accurate reasoning and good use of scientific terms.",
         breakdown: [
-          ['Cell wall difference', '2/2', true],
-          ['Plastid difference', '2/2', true],
-          ['Vacuole difference', '2/2', true],
-          ['Explain the reason', '4/4', true],
+          ["Cell wall difference", "2/2", true],
+          ["Plastid difference", "2/2", true],
+          ["Vacuole difference", "2/2", true],
+          ["Explain the reason", "4/4", true],
         ],
       },
     ],
@@ -122,32 +125,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] =
-    useState<keyof typeof demoQuestions>('math');
+    useState<keyof typeof demoQuestions>("math");
   const [selectedAttempt, setSelectedAttempt] = useState(0);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [activeRole, setActiveRole] = useState<Role>('student');
+  const [activeRole, setActiveRole] = useState<Role>("student");
   const [isBackendOnline, setIsBackendOnline] = useState<boolean | null>(true);
-  const [freeMockBoard, setFreeMockBoard] = useState<string>('CBSE');
-  const [freeMockClass, setFreeMockClass] = useState<string>('Class 10');
-  const [freeMockSubject, setFreeMockSubject] = useState<string>('Mathematics');
+  const [freeMockBoard, setFreeMockBoard] = useState<string>("CBSE");
+  const [freeMockClass, setFreeMockClass] = useState<string>("Class 10");
+  const [freeMockSubject, setFreeMockSubject] = useState<string>("Mathematics");
   const [isGeneratingMock, setIsGeneratingMock] = useState<boolean>(false);
   const [mockSuccessMsg, setMockSuccessMsg] = useState<string | null>(null);
   const [previewTrack, setPreviewTrack] = useState<any | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setPreviewTrack(null);
+      if (e.key === "Escape") setPreviewTrack(null);
     };
     if (previewTrack) {
-      window.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
     };
   }, [previewTrack]);
 
@@ -161,16 +164,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         subject: freeMockSubject,
       });
       if (res?.exam) {
-        localStorage.setItem('pending_free_exam', JSON.stringify(res.exam));
+        localStorage.setItem("pending_free_exam", JSON.stringify(res.exam));
         setMockSuccessMsg(
-          `🎉 Free 10-Mark Mock Test generated for ${freeMockBoard} ${freeMockClass} ${freeMockSubject}!`
+          `🎉 Free 10-Mark Mock Test generated for ${freeMockBoard} ${freeMockClass} ${freeMockSubject}!`,
         );
         setTimeout(() => {
-          openAuth('login');
+          openAuth("login");
         }, 1000);
       }
     } catch (err: any) {
-      openAuth('login');
+      openAuth("login");
     } finally {
       setIsGeneratingMock(false);
     }
@@ -182,24 +185,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('animate-fade-in-up');
+            entry.target.classList.add("animate-fade-in-up");
             observer.unobserve(entry.target);
           }
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
-    document.querySelectorAll('.reveal-on-scroll').forEach((el) => {
+    document.querySelectorAll(".reveal-on-scroll").forEach((el) => {
       observer.observe(el);
     });
 
     return () => observer.disconnect();
   }, []);
 
-
-
-  const openAuth = (mode: 'login' | 'register' = 'login', persona: 'parent' | 'student' = 'parent') => {
+  const openAuth = (
+    mode: "login" | "register" = "login",
+    persona: "parent" | "student" = "parent",
+  ) => {
     onOpenAuth(mode, persona);
   };
 
@@ -210,16 +214,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   useEffect(() => {
     if (isInitialMountRef.current) {
       isInitialMountRef.current = false;
-      if ('scrollRestoration' in window.history) {
-        window.history.scrollRestoration = 'manual';
+      if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = "manual";
       }
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
       const landingSubPaths = ['/home', '/actions-demo', '/magic-word-arena'];
       if (landingSubPaths.includes(location.pathname)) {
-        window.history.replaceState(null, '', '/');
-        navigate('/', { replace: true });
+        window.history.replaceState(null, "", "/");
+        navigate("/", { replace: true });
       }
     }
 
@@ -227,13 +231,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       window.history.replaceState(null, '', '/');
     }
 
-    if (location.search.includes('auth=login')) {
-      openAuth('login');
-      navigate('/', { replace: true });
+    if (location.search.includes("auth=login")) {
+      openAuth("login");
+      navigate("/", { replace: true });
       return;
-    } else if (location.search.includes('auth=register')) {
-      openAuth('register');
-      navigate('/', { replace: true });
+    } else if (location.search.includes("auth=register")) {
+      openAuth("register");
+      navigate("/", { replace: true });
       return;
     }
 
@@ -243,14 +247,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     const hashTarget = location.hash ? location.hash.replace('#', '') : null;
     const targetId = hashTarget === 'model-papers-2027' ? 'free-mock-papers-2027' : (hashTarget || pathnameTarget);
 
-    if (targetId && targetId !== 'home' && targetId !== '' && targetId !== 'hero') {
+    if (
+      targetId &&
+      targetId !== "home" &&
+      targetId !== "" &&
+      targetId !== "hero"
+    ) {
       const scrollToEl = () => {
-        const el = document.getElementById(targetId) || (targetId === 'features' ? document.getElementById('why-edujunction') : document.getElementById('free-mock-papers-2027'));
+        const el =
+          document.getElementById(targetId) ||
+          (targetId === "features"
+            ? document.getElementById("why-edujunction")
+            : document.getElementById("free-mock-papers-2027"));
         if (el) {
-          const header = document.querySelector('header');
-          const headerHeight = header ? header.getBoundingClientRect().height : 72;
-          const y = el.getBoundingClientRect().top + window.pageYOffset - headerHeight - 16;
-          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+          const header = document.querySelector("header");
+          const headerHeight = header
+            ? header.getBoundingClientRect().height
+            : 72;
+          const y =
+            el.getBoundingClientRect().top +
+            window.pageYOffset -
+            headerHeight -
+            16;
+          window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
         }
       };
       const scrollTimer = setTimeout(scrollToEl, 80);
@@ -303,64 +322,63 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const currentQuestion = demoQuestions[selectedSubject];
   const currentAttempt =
-    currentQuestion.responses[selectedAttempt] ||
-    currentQuestion.responses[0];
+    currentQuestion.responses[selectedAttempt] || currentQuestion.responses[0];
 
   const faqs = [
     {
-      q: 'How does the personalized learning Path work?',
-      a: 'The platform studies assessment performance, finds strong and weak topics, and recommends the next lesson, practice set or challenge. The Path changes as the student improves.',
+      q: "How does the personalized learning Path work?",
+      a: "The platform studies assessment performance, finds strong and weak topics, and recommends the next lesson, practice set or challenge. The Path changes as the student improves.",
     },
     {
-      q: 'What happens after a student makes mistakes?',
-      a: 'The system identifies the topic or mistake pattern and recommends focused learning resources, practice questions and, when appropriate, another mini-test.',
+      q: "What happens after a student makes mistakes?",
+      a: "The system identifies the topic or mistake pattern and recommends focused learning resources, practice questions and, when appropriate, another mini-test.",
     },
     {
-      q: 'What do advanced students receive?',
-      a: 'Students who consistently perform well can move to harder questions, HOTS (Higher Order Thinking Skills) practice, challenge quizzes and advanced mock exams instead of repeating basic content.',
+      q: "What do advanced students receive?",
+      a: "Students who consistently perform well can move to harder questions, HOTS (Higher Order Thinking Skills) practice, challenge quizzes and advanced mock exams instead of repeating basic content.",
     },
     {
-      q: 'Can parents and teachers see progress?',
-      a: 'Yes. Authorized parents and teachers can view relevant progress, reports, strengths and improvement areas, and communicate securely about the learning journey.',
+      q: "Can parents and teachers see progress?",
+      a: "Yes. Authorized parents and teachers can view relevant progress, reports, strengths and improvement areas, and communicate securely about the learning journey.",
     },
     {
-      q: 'Is learning only about tests?',
-      a: 'No. The platform combines assessment, personalized learning, practice, rewards, simple educational games and short fun moments to keep children engaged.',
+      q: "Is learning only about tests?",
+      a: "No. The platform combines assessment, personalized learning, practice, rewards, simple educational games and short fun moments to keep children engaged.",
     },
   ];
 
   const roleContent = {
     student: {
-      title: 'For Students',
-      subtitle: 'Learn at your own pace.',
+      title: "For Students",
+      subtitle: "Learn at your own pace.",
       icon: GraduationCap,
       bullets: [
-        'Personalized learning Path',
-        'Practice and mock tests',
-        'Points, badges and streaks',
-        'Fun games and brain breaks',
+        "Personalized learning Path",
+        "Practice and mock tests",
+        "Points, badges and streaks",
+        "Fun games and brain breaks",
       ],
     },
     teacher: {
-      title: 'Your Study Buddy',
-      subtitle: 'The smartest virtual teacher around.',
+      title: "Your Study Buddy",
+      subtitle: "The smartest virtual teacher around.",
       icon: BookOpen,
       bullets: [
-        'Instant step-by-step guidance',
-        'Finds weak spots in seconds',
-        'Recommends the best next lesson',
-        'Available 24/7 for support',
+        "Instant step-by-step guidance",
+        "Finds weak spots in seconds",
+        "Recommends the best next lesson",
+        "Available 24/7 for support",
       ],
     },
     parent: {
-      title: 'For Parents',
+      title: "For Parents",
       subtitle: "Stay connected with your child's progress.",
       icon: Users,
       bullets: [
-        'Progress and performance reports',
-        'Strength and weakness insights',
-        'Secure teacher communication',
-        'Support learning at home',
+        "Progress and performance reports",
+        "Strength and weakness insights",
+        "Secure teacher communication",
+        "Support learning at home",
       ],
     },
   };
@@ -382,8 +400,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     setIsWordComplete(false);
     setShowSecretHint(false);
 
-    const lettersArr = word.split('');
-    const extraPool = ['X', 'Z', 'M', 'K', 'L', 'P', 'R', 'T', 'B', 'D'];
+    const lettersArr = word.split("");
+    const extraPool = ["X", "Z", "M", "K", "L", "P", "R", "T", "B", "D"];
     const extraLetter = extraPool[Math.floor(Math.random() * extraPool.length)];
     const combined = [...lettersArr, extraLetter];
 
@@ -432,11 +450,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     loadWord(currentWordIndex);
   };
 
-  const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(null);
+  const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(
+    null,
+  );
   const [demoMcqSelected, setDemoMcqSelected] = useState<number | null>(null);
   const [demoBadgeClaimed, setDemoBadgeClaimed] = useState<boolean>(false);
 
-  const supportComposeUrl = 'https://mail.google.com/mail/u/0/?fs=1&to=support@edujunction.co.in&tf=cm';
+  const supportComposeUrl =
+    "https://mail.google.com/mail/u/0/?fs=1&to=support@edujunction.co.in&tf=cm";
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 overflow-x-clip">
       <style>{`
@@ -477,20 +498,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="w-full overflow-hidden relative py-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none shrink-0">
           <div
             className="flex items-center whitespace-nowrap w-max"
-            style={{ animation: 'navMarquee 80s linear infinite' }}
+            style={{ animation: "navMarquee 80s linear infinite" }}
           >
             {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
               <span key={i} className="flex items-center gap-3 pr-12">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-950 text-amber-300 text-[11px] font-black uppercase tracking-wider shadow-sm">
-                  <span>{i % 2 === 0 ? "✨" : "🎯"}</span> {i % 2 === 0 ? "NEW" : "TIPS"}
+                  <span>{i % 2 === 0 ? "✨" : "🎯"}</span>{" "}
+                  {i % 2 === 0 ? "NEW" : "TIPS"}
                 </span>
                 <span className="text-stone-950 font-medium text-sm sm:text-base tracking-normal">
                   {i % 2 === 0 ? (
                     <>
-                      Free Mock Test &amp; Model Test Papers for{' '}
-                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">CBSE</span>,{' '}
-                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ICSE</span> &amp;{' '}
-                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">ISC</span> Boards
+                      Free Mock Test &amp; Model Test Papers for{" "}
+                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">
+                        CBSE
+                      </span>
+                      ,{" "}
+                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">
+                        ICSE
+                      </span>{" "}
+                      &amp;{" "}
+                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">
+                        ISC
+                      </span>{" "}
+                      Boards
                     </>
                   ) : (
                     <>Practice smart. Prepare better.</>
@@ -530,7 +561,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   `}</style>
                   <button
                     type="button"
-                    onClick={() => navigate('/quick-test')}
+                    onClick={() => navigate("/quick-test")}
                     className="group relative inline-flex items-center animate-float-badge cursor-pointer"
                   >
                     {/* Button Surface with Tricolor Animated Flow - Squarish rounded-2xl matching Sign Up button */}
@@ -560,15 +591,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               {/* Subheading Description */}
               <p className="text-sm sm:text-base lg:text-lg text-stone-600 leading-relaxed max-w-xl sm:max-w-2xl text-justify [text-align-last:left]">
-                Take an assessment, understand where you need help, and get a
-                learning Path made for you. Learn, practice, play and improve
-                with your Study Buddy.
+                EduJunction is the leading Learning Platform for CBSE, ICSE &
+                ISC Success.
+                It empowers students to master every
+                subject with AI-guided practice, instant step-by-step feedback,
+                personalized study paths, and exam-ready mock tests. Transform
+                your prep, boost your confidence, and score top marks
+                effortlessly!
               </p>
 
               {/* CTA Action Buttons - Pushed lower down with generous top padding */}
               <div className="pt-6 sm:pt-8 lg:pt-10 flex flex-col sm:flex-row gap-3.5">
                 <button
-                  onClick={() => openAuth('register')}
+                  onClick={() => openAuth("register")}
                   className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-extrabold shadow-yellow-200 flex items-center justify-center gap-2.5 cursor-pointer text-sm sm:text-base border border-amber-400/60"
                 >
                   Sign Up For FREE <ArrowRight className="w-4 h-4" />
@@ -631,18 +666,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-6">
               {[
-                ['📝', 'Assess', 'Find what you know'],
-                ['🤖', 'Study Buddy Insights', 'Find where you need help'],
-                ['🎯', 'Personal Path', 'Get the right next step'],
-                ['🏆', 'Rewards', 'Stay motivated'],
+                ["📝", "Assess", "Find what you know"],
+                ["🤖", "Study Buddy Insights", "Find where you need help"],
+                ["🎯", "Personal Path", "Get the right next step"],
+                ["🏆", "Rewards", "Stay motivated"],
               ].map(([icon, title, text]) => (
                 <div key={title} className="flex items-center gap-3">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50/80 border border-amber-200/80 flex items-center justify-center text-lg sm:text-xl shrink-0 shadow-2xs">
                     {icon}
                   </div>
                   <div>
-                    <div className="font-extrabold text-xs sm:text-sm text-stone-900">{title}</div>
-                    <div className="text-[11px] sm:text-xs font-medium text-stone-600">{text}</div>
+                    <div className="font-extrabold text-xs sm:text-sm text-stone-900">
+                      {title}
+                    </div>
+                    <div className="text-[11px] sm:text-xs font-medium text-stone-600">
+                      {text}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -703,12 +742,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <h2
               className="mt-2 text-2xl sm:text-3xl lg:text-3xl xl:text-4xl font-black capitalize tracking-tight text-stone-900 leading-tight"
-              style={{ wordSpacing: '0.2em' }}
+              style={{ wordSpacing: "0.2em" }}
             >
-              <span className="text-yellow-500">FREE</span> MOCK TEST &amp; <span className="text-yellow-500">MODEL TEST PAPERS</span> FOR CBSE, ICSE &amp; ISC
+              <span className="text-yellow-500">FREE</span> MOCK TEST &amp;{" "}
+              <span className="text-yellow-500">MODEL TEST PAPERS</span> FOR
+              CBSE, ICSE &amp; ISC
             </h2>
             <p className="mt-1.5 text-stone-600 text-xs sm:text-sm xl:text-base font-medium max-w-xl mx-auto leading-relaxed">
-              Practice free unlimited CBSE, ICSE &amp; ISC mock tests, model question papers and online practice tests.
+              Practice free unlimited CBSE, ICSE &amp; ISC mock tests, model
+              question papers and online practice tests.
             </p>
           </div>
 
@@ -727,25 +769,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span className="text-lg drop-shadow-sm">📝</span>
                 </div>
                 <h3 className="text-lg sm:text-xl lg:text-xl xl:text-2xl font-black text-stone-950 tracking-tight leading-snug">
-                  Model Test Papers Available For :{' '}
+                  Model Test Papers Available For :{" "}
                   <span className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
                     CBSE, ICSE &amp; ISC 2027
                   </span>
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-900 leading-snug font-semibold text-justify [text-align-last:left]">
-                  Access full-length authentic specimen model papers: <b>CBSE (3h • 80m)</b>, <b>ICSE (2.5h • 80m)</b> and <b>ISC (3h • 70/80m)</b>. Built on 10–15 years of past question patterns and step-by-step marking rubrics.
+                  Access full-length authentic specimen model papers:{" "}
+                  <b>CBSE (3h • 80m)</b>, <b>ICSE (2.5h • 80m)</b> and{" "}
+                  <b>ISC (3h • 70/80m)</b>. Built on 10–15 years of past
+                  question patterns and step-by-step marking rubrics.
                 </p>
                 <div className="grid grid-cols-2 gap-1.5 pt-1">
                   {[
-                    '⏱️ CBSE: 3 Hours (80 Marks)',
-                    '⏱️ ICSE: 2.5 Hours (80 Marks)',
-                    '⏱️ ISC: 3 Hours (70/80 Marks)',
-                    '📄 PDF & Word Downloads',
-                    '10–15 Yrs Past Trends (2011–2026)',
-                    '🎯 Step-by-Step Marking Rules',
+                    "⏱️ CBSE: 3 Hours (80 Marks)",
+                    "⏱️ ICSE: 2.5 Hours (80 Marks)",
+                    "⏱️ ISC: 3 Hours (70/80 Marks)",
+                    "📄 PDF & Word Downloads",
+                    "10–15 Yrs Past Trends (2011–2026)",
+                    "🎯 Step-by-Step Marking Rules",
                   ].map((tag) => (
-                    <div key={tag} className="px-2 py-1 rounded-xl bg-white/90 backdrop-blur-sm border border-amber-900/10 text-stone-950 text-xs sm:text-[12.5px] font-bold flex items-center gap-1 shadow-2xs">
-                      <span className="text-emerald-700 font-extrabold text-sm">✓</span> {tag}
+                    <div
+                      key={tag}
+                      className="px-2 py-1 rounded-xl bg-white/90 backdrop-blur-sm border border-amber-900/10 text-stone-950 text-xs sm:text-[12.5px] font-bold flex items-center gap-1 shadow-2xs"
+                    >
+                      <span className="text-emerald-700 font-extrabold text-sm">
+                        ✓
+                      </span>{" "}
+                      {tag}
                     </div>
                   ))}
                 </div>
@@ -753,10 +804,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               <div className="pt-3 lg:pt-3 relative z-10">
                 <button
-                  onClick={() => openAuth('register')}
+                  onClick={() => openAuth("register")}
                   className="m-auto py-2.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-xs sm:text-sm shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
                 >
-                  Explore Model Test Papers <ArrowRight className="w-3.5 h-3.5 text-yellow-400 transition-transform group-hover:translate-x-1" />
+                  Explore Model Test Papers{" "}
+                  <ArrowRight className="w-3.5 h-3.5 text-yellow-400 transition-transform group-hover:translate-x-1" />
                 </button>
               </div>
             </div>
@@ -766,7 +818,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="space-y-1.5 lg:space-y-2 relative z-10">
                 <div className="flex items-center justify-between">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-100 border border-yellow-300/80 text-amber-950 text-xs font-black">
-                    <Zap className="w-3.5 h-3.5 text-yellow-600 fill-current" /> Free Mock Test Available
+                    <Zap className="w-3.5 h-3.5 text-yellow-600 fill-current" />{" "}
+                    Free Mock Test Available
                   </div>
                   <span className="text-lg">⚡</span>
                 </div>
@@ -774,28 +827,39 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   Free Subject-Wise Mock Test
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-snug font-medium text-justify [text-align-last:left]">
-                  Understand your child’s learning level in just 15 minutes. <b>Create a free Parent Account</b>, choose Board (CBSE, ICSE, ISC) and Class (5-12), and unlock instant diagnostic reports sent straight to your email.
+                  Understand your child’s learning level in just 15 minutes.{" "}
+                  <b>Create a free Parent Account</b>, choose Board (CBSE, ICSE,
+                  ISC) and Class (5-12), and unlock instant diagnostic reports
+                  sent straight to your email.
                 </p>
 
                 <div className="grid grid-cols-2 gap-1.5 pt-1">
                   <div className="p-1.5 lg:p-2 rounded-xl bg-amber-50/60 border border-amber-200/70">
-                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">📝 Free Mock Test</p>
-                    <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">15-Min timed test</p>
+                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">
+                      📝 Free Mock Test
+                    </p>
+                    <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">
+                      15-Min timed test
+                    </p>
                   </div>
                   <div className="p-1.5 lg:p-2 rounded-xl bg-amber-50/60 border border-amber-200/70">
                     <p className="text-xs sm:text-[13px] font-bold text-amber-900">📊 Insights</p>
                     <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">Concept error detection</p>
                   </div>
                   <div className="p-1.5 lg:p-2 rounded-xl bg-amber-50/60 border border-amber-200/70 col-span-2">
-                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">📧 Direct Emailed PDF Report</p>
-                    <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">Delivered to parent inbox upon submission</p>
+                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">
+                      📧 Direct Emailed PDF Report
+                    </p>
+                    <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">
+                      Delivered to parent inbox upon submission
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div className="pt-3 lg:pt-3 relative z-10 flex flex-col sm:flex-row items-center justify-center gap-2">
                 <button
-                  onClick={() => openAuth('register')}
+                  onClick={() => openAuth("register")}
                   className="w-fit py-2.5 px-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs sm:text-sm shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-95"
                 >
                   <Users className="w-3.5 h-3.5 shrink-0" />
@@ -804,13 +868,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
 
                 <button
-                  onClick={() => openAuth('login')}
+                  onClick={() => openAuth("login")}
                   className="w-fit py-2.5 px-3.5 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs sm:text-sm border border-stone-300 transition-all flex items-center justify-center cursor-pointer"
                 >
                   Sign In
                 </button>
               </div>
-
             </div>
           </div>
         </div>
@@ -1016,9 +1079,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <h2
               className="mt-3 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight uppercase text-stone-900 leading-tight whitespace-normal sm:whitespace-nowrap"
-              style={{ wordSpacing: '0.2em' }}
+              style={{ wordSpacing: "0.2em" }}
             >
-              EVERYTHING YOU NEED TO <span className="bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 bg-clip-text text-transparent">KNOW BETTER</span>
+              EVERYTHING YOU NEED TO{" "}
+              <span className="bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 bg-clip-text text-transparent">
+                KNOW BETTER
+              </span>
             </h2>
             <p className="mt-2 text-stone-600 text-xs sm:text-sm xl:text-base font-medium max-w-xl mx-auto leading-relaxed">
               Simple tools for learning, practice, motivation and communication.
@@ -1028,130 +1094,170 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
             {[
               {
-                id: 'smart-assessment',
+                id: "smart-assessment",
                 icon: Target,
-                tag: 'Diagnostic Engine',
-                title: 'Smart Assessment',
-                subtitle: 'Adaptive diagnostic testing calibrated to ICSE & CBSE standards',
-                text: 'Take short assessments that show exactly which topics need attention.',
-                cardBg: 'bg-amber-100/85 hover:bg-amber-100 border-amber-300/90 hover:border-amber-400',
-                tagStyle: 'bg-white/95 text-amber-900 border-amber-300/80',
-                titleHover: 'group-hover:text-amber-700',
-                cardHoverGlow: 'hover:shadow-xl hover:shadow-amber-500/15',
-                buttonDefault: 'bg-amber-500 text-white border-amber-600/40 shadow-xs shadow-amber-500/20',
-                buttonHover: 'group-hover:bg-amber-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-amber-500/30',
-                tags: ['Chapter Quizzes', 'Step-by-Step Marks', 'Instant Auto-Grade'],
+                tag: "Diagnostic Engine",
+                title: "Smart Assessment",
+                subtitle:
+                  "Adaptive diagnostic testing calibrated to ICSE & CBSE standards",
+                text: "Take short assessments that show exactly which topics need attention.",
+                cardBg:
+                  "bg-amber-100/85 hover:bg-amber-100 border-amber-300/90 hover:border-amber-400",
+                tagStyle: "bg-white/95 text-amber-900 border-amber-300/80",
+                titleHover: "group-hover:text-amber-700",
+                cardHoverGlow: "hover:shadow-xl hover:shadow-amber-500/15",
+                buttonDefault:
+                  "bg-amber-500 text-white border-amber-600/40 shadow-xs shadow-amber-500/20",
+                buttonHover:
+                  "group-hover:bg-amber-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-amber-500/30",
+                tags: [
+                  "Chapter Quizzes",
+                  "Step-by-Step Marks",
+                  "Instant Auto-Grade",
+                ],
                 highlights: [
-                  'Chapter-wise diagnostic quizzes (5-10 mins)',
-                  'Step-by-step marking scheme aligned to CBSE/ICSE blueprint',
-                  'Instant auto-grading with explanation for wrong answers',
-                  'Detects speed vs accuracy bottlenecks'
-                ]
+                  "Chapter-wise diagnostic quizzes (5-10 mins)",
+                  "Step-by-step marking scheme aligned to CBSE/ICSE blueprint",
+                  "Instant auto-grading with explanation for wrong answers",
+                  "Detects speed vs accuracy bottlenecks",
+                ],
               },
               {
-                id: 'study-buddy',
+                id: "study-buddy",
                 icon: Brain,
-                tag: 'AI Mentor',
-                title: 'Study Buddy Insights',
-                subtitle: 'mentor analyzing student learning behavior and common traps',
-                text: 'Study Buddy finds strengths, weak areas and common mistake patterns.',
-                cardBg: 'bg-yellow-100/85 hover:bg-yellow-100 border-yellow-300/90 hover:border-yellow-400',
-                tagStyle: 'bg-white/95 text-yellow-900 border-yellow-300/80',
-                titleHover: 'group-hover:text-yellow-800',
-                cardHoverGlow: 'hover:shadow-xl hover:shadow-yellow-500/15',
-                buttonDefault: 'bg-yellow-500 text-stone-900 border-yellow-600/40 shadow-xs shadow-yellow-500/20',
-                buttonHover: 'group-hover:bg-yellow-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-yellow-500/30',
-                tags: ['Misconception Tracker', 'Targeted Revisions', 'Smart Study Plan'],
+                tag: "AI Mentor",
+                title: "Study Buddy Insights",
+                subtitle:
+                  "mentor analyzing student learning behavior and common traps",
+                text: "Study Buddy finds strengths, weak areas and common mistake patterns.",
+                cardBg:
+                  "bg-yellow-100/85 hover:bg-yellow-100 border-yellow-300/90 hover:border-yellow-400",
+                tagStyle: "bg-white/95 text-yellow-900 border-yellow-300/80",
+                titleHover: "group-hover:text-yellow-800",
+                cardHoverGlow: "hover:shadow-xl hover:shadow-yellow-500/15",
+                buttonDefault:
+                  "bg-yellow-500 text-stone-900 border-yellow-600/40 shadow-xs shadow-yellow-500/20",
+                buttonHover:
+                  "group-hover:bg-yellow-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-yellow-500/30",
+                tags: [
+                  "Misconception Tracker",
+                  "Targeted Revisions",
+                  "Smart Study Plan",
+                ],
                 highlights: [
-                  'Identifies misconception patterns before exam day',
-                  'Recommends targeted concept revision sheets',
-                  'Tracks prerequisite gaps across previous classes',
-                  'Personalized  study scheduler'
-                ]
+                  "Identifies misconception patterns before exam day",
+                  "Recommends targeted concept revision sheets",
+                  "Tracks prerequisite gaps across previous classes",
+                  "Personalized  study scheduler",
+                ],
               },
               {
-                id: 'personalized',
+                id: "personalized",
                 icon: TrendingUp,
-                tag: 'Adaptive Roadmap',
-                title: 'Personalized Learning',
-                subtitle: 'Dynamic learning roadmap that scales with student performance',
-                text: 'Get lessons, resources and practice based on your current level.',
-                cardBg: 'bg-orange-100/85 hover:bg-orange-100 border-orange-300/90 hover:border-orange-400',
-                tagStyle: 'bg-white/95 text-orange-900 border-orange-300/80',
-                titleHover: 'group-hover:text-orange-700',
-                cardHoverGlow: 'hover:shadow-xl hover:shadow-orange-500/15',
-                buttonDefault: 'bg-orange-500 text-white border-orange-600/40 shadow-xs shadow-orange-500/20',
-                buttonHover: 'group-hover:bg-orange-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-orange-500/30',
-                tags: ['3-Tier Difficulty', 'Weak Topic Drills', 'Custom Paper Gen'],
+                tag: "Adaptive Roadmap",
+                title: "Personalized Learning",
+                subtitle:
+                  "Dynamic learning roadmap that scales with student performance",
+                text: "Get lessons, resources and practice based on your current level.",
+                cardBg:
+                  "bg-orange-100/85 hover:bg-orange-100 border-orange-300/90 hover:border-orange-400",
+                tagStyle: "bg-white/95 text-orange-900 border-orange-300/80",
+                titleHover: "group-hover:text-orange-700",
+                cardHoverGlow: "hover:shadow-xl hover:shadow-orange-500/15",
+                buttonDefault:
+                  "bg-orange-500 text-white border-orange-600/40 shadow-xs shadow-orange-500/20",
+                buttonHover:
+                  "group-hover:bg-orange-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-orange-500/30",
+                tags: [
+                  "3-Tier Difficulty",
+                  "Weak Topic Drills",
+                  "Custom Paper Gen",
+                ],
                 highlights: [
-                  '3-Tier Difficulty Calibration (Simple, Medium, Hard/HOTS)',
-                  'Automatic remediation exercises for weak topics',
-                  'Custom paper generator tailored to board syllabus',
-                  'Adaptive revision speed adjustments'
-                ]
+                  "3-Tier Difficulty Calibration (Simple, Medium, Hard/HOTS)",
+                  "Automatic remediation exercises for weak topics",
+                  "Custom paper generator tailored to board syllabus",
+                  "Adaptive revision speed adjustments",
+                ],
               },
               {
-                id: 'points-badges',
+                id: "points-badges",
                 icon: Trophy,
-                tag: 'Gamified Rewards',
-                title: 'Points & Badges',
-                subtitle: 'Gamified rewards system to keep students engaged every day',
-                text: 'Earn points for correct answers and badges for milestones.',
-                cardBg: 'bg-emerald-100/85 hover:bg-emerald-100 border-emerald-300/90 hover:border-emerald-400',
-                tagStyle: 'bg-white/95 text-emerald-900 border-emerald-300/80',
-                titleHover: 'group-hover:text-emerald-700',
-                cardHoverGlow: 'hover:shadow-xl hover:shadow-emerald-500/15',
-                buttonDefault: 'bg-emerald-500 text-white border-emerald-600/40 shadow-xs shadow-emerald-500/20',
-                buttonHover: 'group-hover:bg-emerald-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-emerald-500/30',
-                tags: ['Accuracy XP', 'Milestone Badges', 'Daily Streak Bonus'],
+                tag: "Gamified Rewards",
+                title: "Points & Badges",
+                subtitle:
+                  "Gamified rewards system to keep students engaged every day",
+                text: "Earn points for correct answers and badges for milestones.",
+                cardBg:
+                  "bg-emerald-100/85 hover:bg-emerald-100 border-emerald-300/90 hover:border-emerald-400",
+                tagStyle: "bg-white/95 text-emerald-900 border-emerald-300/80",
+                titleHover: "group-hover:text-emerald-700",
+                cardHoverGlow: "hover:shadow-xl hover:shadow-emerald-500/15",
+                buttonDefault:
+                  "bg-emerald-500 text-white border-emerald-600/40 shadow-xs shadow-emerald-500/20",
+                buttonHover:
+                  "group-hover:bg-emerald-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-emerald-500/30",
+                tags: ["Accuracy XP", "Milestone Badges", "Daily Streak Bonus"],
                 highlights: [
-                  'Earn XP points for quiz completions and accuracy',
+                  "Earn XP points for quiz completions and accuracy",
                   'Unlock badges like "Math Wizard", "Formula Champ", "Streak Master"',
-                  'Daily learning streak multiplier bonus',
-                  'Friendly leaderboards for peer motivation'
-                ]
+                  "Daily learning streak multiplier bonus",
+                  "Friendly leaderboards for peer motivation",
+                ],
               },
               {
-                id: 'progress-tracking',
+                id: "progress-tracking",
                 icon: BarChart3,
-                tag: 'Visual Analytics',
-                title: 'Progress Tracking',
-                subtitle: 'Visual analytics dashboard for students, teachers, and parents',
-                text: 'See scores, topic mastery, streaks and improvement over time.',
-                cardBg: 'bg-sky-100/85 hover:bg-sky-100 border-sky-300/90 hover:border-sky-400',
-                tagStyle: 'bg-white/95 text-sky-900 border-sky-300/80',
-                titleHover: 'group-hover:text-sky-700',
-                cardHoverGlow: 'hover:shadow-xl hover:shadow-sky-500/15',
-                buttonDefault: 'bg-sky-500 text-white border-sky-600/40 shadow-xs shadow-sky-500/20',
-                buttonHover: 'group-hover:bg-sky-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-sky-500/30',
-                tags: ['Real-Time Charts', 'Topic Mastery %', 'PDF Dossiers'],
+                tag: "Visual Analytics",
+                title: "Progress Tracking",
+                subtitle:
+                  "Visual analytics dashboard for students, teachers, and parents",
+                text: "See scores, topic mastery, streaks and improvement over time.",
+                cardBg:
+                  "bg-sky-100/85 hover:bg-sky-100 border-sky-300/90 hover:border-sky-400",
+                tagStyle: "bg-white/95 text-sky-900 border-sky-300/80",
+                titleHover: "group-hover:text-sky-700",
+                cardHoverGlow: "hover:shadow-xl hover:shadow-sky-500/15",
+                buttonDefault:
+                  "bg-sky-500 text-white border-sky-600/40 shadow-xs shadow-sky-500/20",
+                buttonHover:
+                  "group-hover:bg-sky-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-sky-500/30",
+                tags: ["Real-Time Charts", "Topic Mastery %", "PDF Dossiers"],
                 highlights: [
-                  'Real-time accuracy & speed progress charts',
-                  'Chapter-by-chapter mastery percentages',
-                  'Historical exam score trend analysis',
-                  'Exportable PDF performance dossiers'
-                ]
+                  "Real-time accuracy & speed progress charts",
+                  "Chapter-by-chapter mastery percentages",
+                  "Historical exam score trend analysis",
+                  "Exportable PDF performance dossiers",
+                ],
               },
               {
-                id: 'parent-teacher',
+                id: "parent-teacher",
                 icon: MessageSquare,
-                tag: 'Collaborative Loop',
-                title: 'Parent-Teacher Connect',
-                subtitle: 'Seamless parent notifications & automated email/PDF report dispatch',
-                text: 'Share progress and communicate securely about the student.',
-                cardBg: 'bg-rose-100/85 hover:bg-rose-100 border-rose-300/90 hover:border-rose-400',
-                tagStyle: 'bg-white/95 text-rose-900 border-rose-300/80',
-                titleHover: 'group-hover:text-rose-700',
-                cardHoverGlow: 'hover:shadow-xl hover:shadow-rose-500/15',
-                buttonDefault: 'bg-rose-500 text-white border-rose-600/40 shadow-xs shadow-rose-500/20',
-                buttonHover: 'group-hover:bg-rose-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-rose-500/30',
-                tags: ['Automated PDF Dispatch', 'Parent Portal', 'Teacher Notes'],
+                tag: "Collaborative Loop",
+                title: "Parent-Teacher Connect",
+                subtitle:
+                  "Seamless parent notifications & automated email/PDF report dispatch",
+                text: "Share progress and communicate securely about the student.",
+                cardBg:
+                  "bg-rose-100/85 hover:bg-rose-100 border-rose-300/90 hover:border-rose-400",
+                tagStyle: "bg-white/95 text-rose-900 border-rose-300/80",
+                titleHover: "group-hover:text-rose-700",
+                cardHoverGlow: "hover:shadow-xl hover:shadow-rose-500/15",
+                buttonDefault:
+                  "bg-rose-500 text-white border-rose-600/40 shadow-xs shadow-rose-500/20",
+                buttonHover:
+                  "group-hover:bg-rose-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-rose-500/30",
+                tags: [
+                  "Automated PDF Dispatch",
+                  "Parent Portal",
+                  "Teacher Notes",
+                ],
                 highlights: [
-                  'Automated PDF exam report sent directly to parent email',
-                  'Parent dashboard link for child activity monitoring',
-                  'Teacher note & feedback attachment support',
-                  'WhatsApp performance alerts'
-                ]
+                  "Automated PDF exam report sent directly to parent email",
+                  "Parent dashboard link for child activity monitoring",
+                  "Teacher note & feedback attachment support",
+                  "WhatsApp performance alerts",
+                ],
               },
             ].map((feature) => {
               return (
@@ -1167,16 +1273,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     {/* Header: Category Badge + Title & Action Button */}
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
-                        <span className={`inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md border ${feature.tagStyle} mb-1.5 shadow-2xs`}>
+                        <span
+                          className={`inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md border ${feature.tagStyle} mb-1.5 shadow-2xs`}
+                        >
                           {feature.tag}
                         </span>
-                        <h3 className={`font-black text-stone-900 text-lg sm:text-xl leading-snug ${feature.titleHover} transition-colors`}>
+                        <h3
+                          className={`font-black text-stone-900 text-lg sm:text-xl leading-snug ${feature.titleHover} transition-colors`}
+                        >
                           {feature.title}
                         </h3>
                       </div>
 
-                      <span className={`text-[11px] font-black px-3 py-1 rounded-full border ${feature.buttonDefault} ${feature.buttonHover} transition-all duration-300 shrink-0 inline-flex items-center gap-1 shadow-2xs`}>
-                        Preview <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
+                      <span
+                        className={`text-[11px] font-black px-3 py-1 rounded-full border ${feature.buttonDefault} ${feature.buttonHover} transition-all duration-300 shrink-0 inline-flex items-center gap-1 shadow-2xs`}
+                      >
+                        Preview{" "}
+                        <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                          ↗
+                        </span>
                       </span>
                     </div>
 
@@ -1558,7 +1673,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* 💎 WHY EDUJUNCTION (EDITORIAL STORY & VALUE NARRATIVE) */}
-      <section id="why-edujunction" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-[90px]">
+      <section
+        id="why-edujunction"
+        className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-[90px]"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
@@ -1568,7 +1686,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <h2
               className="mt-4 text-3xl sm:text-4xl lg:text-4xl font-black text-stone-900 tracking-normal leading-tight whitespace-nowrap overflow-x-auto pb-2"
-              style={{ wordSpacing: '0.25em' }}
+              style={{ wordSpacing: "0.25em" }}
             >
               Edu<span className="text-yellow-500">Junction</span> vs <span className="text-yellow-500">Other</span> Platforms
             </h2>
@@ -1591,7 +1709,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {/* Right Side: Description */}
             <div className="lg:col-span-7 space-y-4">
               <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
-                While traditional platforms offer generic PDFs with zero diagnostic insights, <strong className="text-stone-900 font-bold">EduJunction</strong> brings the exact <strong className="text-amber-800 font-bold">Upcoming ICSE, ISC &amp; CBSE board blueprints</strong> to life with step-by-step scoring rubrics. Our built-in <strong className="text-stone-900 font-bold">Study Buddy</strong> identifies why a student struggled, pinpointing conceptual traps and prerequisite knowledge gaps before exam day.
+                While traditional platforms offer generic PDFs with zero
+                diagnostic insights,{" "}
+                <strong className="text-stone-900 font-bold">
+                  EduJunction
+                </strong>{" "}
+                brings the exact{" "}
+                <strong className="text-amber-800 font-bold">
+                  Upcoming ICSE, ISC &amp; CBSE board blueprints
+                </strong>{" "}
+                to life with step-by-step scoring rubrics. Our built-in{" "}
+                <strong className="text-stone-900 font-bold">
+                  Study Buddy
+                </strong>{" "}
+                identifies why a student struggled, pinpointing conceptual traps
+                and prerequisite knowledge gaps before exam day.
               </p>
               <p className="text-stone-600 text-base sm:text-lg lg:text-[17.5px] leading-relaxed sm:leading-[1.85] text-justify [text-align-last:left]">
                 Every test submission automatically compiles and emails an authentic <strong className="text-stone-900 font-bold">PDF Dossier</strong> directly to parents with chapter-wise mastery breakdowns, ensuring seamless transparency. Inside the exam interface, students can solve numericals, draft diagrams, and utilize digital scratchpads directly with our <strong className="text-stone-900 font-bold">Interactive STEM Canvas</strong>. We believe quality education should be accessible and student-centric — empowering learners with <strong className="text-amber-800 font-bold">fair, modular, per-paper pricing</strong> and absolutely no forced annual lock-ins, putting students in complete control of their success.
@@ -1618,7 +1750,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <h2
               className="mt-4 text-3xl sm:text-4xl font-black capitalize tracking-normal text-stone-900 drop-shadow-xs"
-              style={{ wordSpacing: '0.25em' }}
+              style={{ wordSpacing: "0.25em" }}
             >
               BUILT FOR EVERYONE AROUND THE LEARNER
             </h2>
@@ -1628,7 +1760,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           <div className="mt-12 grid lg:grid-cols-3 gap-5">
-            {(['parent', 'student', 'teacher'] as Role[]).map((role, i) => {
+            {(["parent", "student", "teacher"] as Role[]).map((role, i) => {
               const content = roleContent[role];
               const Icon = content.icon;
               const active = activeRole === role;
@@ -1640,22 +1772,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   style={{ transitionDelay: `${i * 100}ms` }}
                 >
                   <div className="flex items-start justify-between">
-                    <div className={`w-12 h-12 rounded-2xl ${role === 'student'
-                      ? 'bg-yellow-50 text-yellow-600'
-                      : role === 'teacher'
-                        ? 'bg-yellow-50 text-yellow-600'
-                        : 'bg-sky-50 text-sky-600'
-                      } flex items-center justify-center`}>
+                    <div
+                      className={`w-12 h-12 rounded-2xl ${role === "student"
+                          ? "bg-yellow-50 text-yellow-600"
+                          : role === "teacher"
+                            ? "bg-yellow-50 text-yellow-600"
+                            : "bg-sky-50 text-sky-600"
+                        } flex items-center justify-center`}
+                    >
                       <Icon className="w-6 h-6" />
                     </div>
                   </div>
 
                   <h3 className="mt-5 text-xl font-black">{content.title}</h3>
-                  <p className="mt-1 text-sm font-semibold text-stone-500">{content.subtitle}</p>
+                  <p className="mt-1 text-sm font-semibold text-stone-500">
+                    {content.subtitle}
+                  </p>
 
                   <ul className="mt-5 space-y-3">
                     {content.bullets.map((bullet) => (
-                      <li key={bullet} className="flex items-center gap-2.5 text-sm text-stone-700">
+                      <li
+                        key={bullet}
+                        className="flex items-center gap-2.5 text-sm text-stone-700"
+                      >
                         <CheckCircle2 className="w-4 h-4 text-yellow-500 shrink-0" />
                         {bullet}
                       </li>
@@ -1665,21 +1804,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      if (role === 'parent') {
-                        openAuth('register');
-                      } else if (role === 'student') {
-                        openAuth('login');
+                      if (role === "parent") {
+                        openAuth("register");
+                      } else if (role === "student") {
+                        openAuth("login");
                       } else {
                         smoothScrollTo('actions-demo', 1100);
                       }
                     }}
                     className="mt-6 text-sm font-extrabold text-yellow-500 flex items-center gap-1"
                   >
-                    {role === 'student'
-                      ? 'Start Learning'
-                      : role === 'teacher'
-                        ? 'See How It Works'
-                        : 'Parent Login'}
+                    {role === "student"
+                      ? "Start Learning"
+                      : role === "teacher"
+                        ? "See How It Works"
+                        : "Parent Login"}
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -1782,10 +1921,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Reward items list */}
               <div className="relative z-10 flex-1 flex flex-col justify-between gap-2 mt-3.5 sm:mt-4">
                 {[
-                  ['Correct answers', '+120 XP', 'text-amber-600', 'bg-white/80 hover:bg-white'],
-                  ['7-day streak', '+70 XP', 'text-amber-600', 'bg-white/80 hover:bg-white'],
-                  ['Geometry badge', 'Unlocked!', 'text-amber-600', 'bg-amber-100/60 hover:bg-amber-100'],
-                  ['Leaderboard', '#3', 'text-amber-600', 'bg-white/80 hover:bg-white'],
+                  [
+                    "Correct answers",
+                    "+120 XP",
+                    "text-amber-600",
+                    "bg-white/80 hover:bg-white",
+                  ],
+                  [
+                    "7-day streak",
+                    "+70 XP",
+                    "text-amber-600",
+                    "bg-white/80 hover:bg-white",
+                  ],
+                  [
+                    "Geometry badge",
+                    "Unlocked!",
+                    "text-amber-600",
+                    "bg-amber-100/60 hover:bg-amber-100",
+                  ],
+                  [
+                    "Leaderboard",
+                    "#3",
+                    "text-amber-600",
+                    "bg-white/80 hover:bg-white",
+                  ],
                 ].map(([label, value, color, bg]) => (
                   <div
                     key={label}
@@ -1808,7 +1967,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </section>
@@ -1822,26 +1980,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <h2
               className="mt-4 text-3xl sm:text-4xl font-black tracking-normal capitalize"
-              style={{ wordSpacing: '0.25em' }}
+              style={{ wordSpacing: "0.25em" }}
             >
               UNBOX THE FUTURE OF GRADING
             </h2>
             <p className="mt-3 text-stone-600">
-              Try a sample student attempt and see how the platform gives useful feedback.
+              Try a sample student attempt and see how the platform gives useful
+              feedback.
             </p>
           </div>
 
           <div className="mt-8 flex flex-wrap justify-center gap-2 reveal-on-scroll">
-            {(['math', 'science'] as const).map((subject) => (
+            {(["math", "science"] as const).map((subject) => (
               <button
                 key={subject}
                 onClick={() => runDemo(subject)}
                 className={`px-4 py-2.5 rounded-xl text-xs font-bold ${selectedSubject === subject
-                  ? 'bg-yellow-400 text-stone-900'
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    ? "bg-yellow-400 text-stone-900"
+                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                   }`}
               >
-                {subject === 'math' ? '📐 Class 10 Math' : '🧬 Class 8 Science'}
+                {subject === "math" ? "📐 Class 10 Math" : "🧬 Class 8 Science"}
               </button>
             ))}
           </div>
@@ -1850,8 +2009,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="rounded-3xl bg-stone-50 border border-stone-200 p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-stone-500">{currentQuestion.grade}</div>
-                  <h3 className="font-black text-lg">{currentQuestion.subject}</h3>
+                  <div className="text-xs text-stone-500">
+                    {currentQuestion.grade}
+                  </div>
+                  <h3 className="font-black text-lg">
+                    {currentQuestion.subject}
+                  </h3>
                 </div>
                 <span className="px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold">
                   {currentQuestion.marks} marks
@@ -1872,8 +2035,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       window.setTimeout(() => setIsEvaluating(false), 350);
                     }}
                     className={`px-3 py-2 rounded-xl border text-xs font-bold ${selectedAttempt === index
-                      ? 'bg-white border-yellow-400 text-yellow-700'
-                      : 'bg-white border-stone-200 text-stone-600'
+                        ? "bg-white border-yellow-400 text-yellow-700"
+                        : "bg-white border-stone-200 text-stone-600"
                       }`}
                   >
                     {response.label} · {response.tag}
@@ -1893,14 +2056,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <Brain className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="font-black text-sm">Study Buddy Analysis</div>
-                    <div className="text-[10px] text-stone-400">Step-by-step feedback</div>
+                    <div className="font-black text-sm">
+                      Study Buddy Analysis
+                    </div>
+                    <div className="text-[10px] text-stone-400">
+                      Step-by-step feedback
+                    </div>
                   </div>
                 </div>
                 <div
                   className={`px-3 py-1.5 rounded-xl text-sm font-black ${currentAttempt.score >= 9
-                    ? 'bg-yellow-50 text-yellow-700'
-                    : 'bg-yellow-50 text-amber-700'
+                      ? "bg-yellow-50 text-yellow-700"
+                      : "bg-yellow-50 text-amber-700"
                     }`}
                 >
                   {currentAttempt.score}/10
@@ -1930,7 +2097,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         {step}
                       </span>
                       <span
-                        className={`text-xs font-black ${pass ? 'text-yellow-600' : 'text-rose-600'
+                        className={`text-xs font-black ${pass ? "text-yellow-600" : "text-rose-600"
                           }`}
                       >
                         {marks}
@@ -1953,19 +2120,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-
-
-
-
       {/* CURRICULUM & LEARNING TRACKS */}
-      <section id="curriculum-tracks" className="relative py-24 bg-gradient-to-b from-stone-50/70 via-white to-amber-50/20 overflow-hidden">
+      <section
+        id="curriculum-tracks"
+        className="relative py-24 bg-gradient-to-b from-stone-50/70 via-white to-amber-50/20 overflow-hidden"
+      >
         {/* Subtle Decorative Background Glows */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[320px] bg-gradient-to-b from-amber-200/25 via-amber-100/10 to-transparent blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-20 w-80 h-80 bg-sky-200/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-20 w-80 h-80 bg-rose-200/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-
           {/* CENTERED HEADER */}
           <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-300/60 text-amber-900 text-xs font-extrabold shadow-2xs mb-4">
@@ -1974,12 +2139,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <h2
               className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-normal text-stone-900 capitalize"
-              style={{ wordSpacing: '0.25em' }}
+              style={{ wordSpacing: "0.25em" }}
             >
-              CHOOSE THE LEARNING TRACK <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">THAT FITS</span>
+              CHOOSE THE LEARNING TRACK{" "}
+              <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">
+                THAT FITS
+              </span>
             </h2>
             <p className="mt-3.5 text-stone-600 text-sm sm:text-base font-medium leading-relaxed max-w-2xl mx-auto">
-              Comprehensive, syllabus-accurate practice for school board excellence and high-rigor competitive foundations. Complete with NCERT solutions, previous year papers, and instant AI step feedback.
+              Comprehensive, syllabus-accurate practice for school board
+              excellence and high-rigor competitive foundations. Complete with
+              NCERT solutions, previous year papers, and instant AI step
+              feedback.
             </p>
 
             {/* Quick Value Highlights Strip */}
@@ -2007,140 +2178,181 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                id: 'cbse-10',
-                title: 'CBSE Board',
-                level: 'Class 10',
-                popularTag: 'Most Popular',
-                subtitle: 'Board Exam & NCERT Practice',
-                description: 'Master core concepts with line-by-line NCERT solutions, chapter-wise question banks, and official marking rubrics.',
+                id: "cbse-10",
+                title: "CBSE Board",
+                level: "Class 10",
+                popularTag: "Most Popular",
+                subtitle: "Board Exam & NCERT Practice",
+                description:
+                  "Master core concepts with line-by-line NCERT solutions, chapter-wise question banks, and official marking rubrics.",
                 icon: BookOpen,
                 theme: {
-                  cardBorder: 'border-amber-200/90 hover:border-amber-400',
-                  badgeBg: 'bg-amber-100/90 text-amber-900 border-amber-300/80',
-                  iconGrad: 'from-amber-400 via-amber-500 to-orange-500 shadow-amber-500/30',
-                  glow: 'hover:shadow-amber-500/15',
-                  accentHover: 'group-hover:text-amber-600',
-                  checkColor: 'text-amber-600',
-                  actionBtn: 'bg-stone-900 hover:bg-amber-500 text-white hover:text-stone-950',
+                  cardBorder: "border-amber-200/90 hover:border-amber-400",
+                  badgeBg: "bg-amber-100/90 text-amber-900 border-amber-300/80",
+                  iconGrad:
+                    "from-amber-400 via-amber-500 to-orange-500 shadow-amber-500/30",
+                  glow: "hover:shadow-amber-500/15",
+                  accentHover: "group-hover:text-amber-600",
+                  checkColor: "text-amber-600",
+                  actionBtn:
+                    "bg-stone-900 hover:bg-amber-500 text-white hover:text-stone-950",
                 },
                 features: [
-                  'Complete NCERT & Exemplar Solutions',
-                  'Past 10 Years Solved Papers (PYQs)',
-                  'Step-by-Step Evaluation Rubric',
+                  "Complete NCERT & Exemplar Solutions",
+                  "Past 10 Years Solved Papers (PYQs)",
+                  "Step-by-Step Evaluation Rubric",
                 ],
-                subjects: ['Mathematics', 'Science', 'Social Science', 'English'],
-                stats: { questions: '15,000+', mockTests: '12 Full Mocks', passRate: '98.4%' },
+                subjects: [
+                  "Mathematics",
+                  "Science",
+                  "Social Science",
+                  "English",
+                ],
+                stats: {
+                  questions: "15,000+",
+                  mockTests: "12 Full Mocks",
+                  passRate: "98.4%",
+                },
                 sampleTopics: [
-                  'Quadratic Equations & Arithmetic Progressions',
-                  'Light: Reflection, Refraction & Human Eye',
-                  'Life Processes, Reproduction & Heredity',
-                  'Real-world Case Study & Competency Questions',
+                  "Quadratic Equations & Arithmetic Progressions",
+                  "Light: Reflection, Refraction & Human Eye",
+                  "Life Processes, Reproduction & Heredity",
+                  "Real-world Case Study & Competency Questions",
                 ],
-                board: 'CBSE',
-                classGrade: 'Class 10',
-                defaultSubject: 'Mathematics',
+                board: "CBSE",
+                classGrade: "Class 10",
+                defaultSubject: "Mathematics",
               },
               {
-                id: 'cbse-isc-12',
-                title: 'CBSE & ISC Senior',
-                level: 'Class 12',
-                popularTag: 'Pre-University',
-                subtitle: 'Advanced Board & CUET Prep',
-                description: 'In-depth derivations, formula vaults, specimen board papers, and conceptual bridge training for CUET & entrance tests.',
+                id: "cbse-isc-12",
+                title: "CBSE & ISC Senior",
+                level: "Class 12",
+                popularTag: "Pre-University",
+                subtitle: "Advanced Board & CUET Prep",
+                description:
+                  "In-depth derivations, formula vaults, specimen board papers, and conceptual bridge training for CUET & entrance tests.",
                 icon: GraduationCap,
                 theme: {
-                  cardBorder: 'border-sky-200/90 hover:border-sky-400',
-                  badgeBg: 'bg-sky-100/90 text-sky-900 border-sky-300/80',
-                  iconGrad: 'from-sky-400 via-blue-500 to-indigo-600 shadow-sky-500/30',
-                  glow: 'hover:shadow-sky-500/15',
-                  accentHover: 'group-hover:text-sky-600',
-                  checkColor: 'text-sky-600',
-                  actionBtn: 'bg-stone-900 hover:bg-sky-600 text-white',
+                  cardBorder: "border-sky-200/90 hover:border-sky-400",
+                  badgeBg: "bg-sky-100/90 text-sky-900 border-sky-300/80",
+                  iconGrad:
+                    "from-sky-400 via-blue-500 to-indigo-600 shadow-sky-500/30",
+                  glow: "hover:shadow-sky-500/15",
+                  accentHover: "group-hover:text-sky-600",
+                  checkColor: "text-sky-600",
+                  actionBtn: "bg-stone-900 hover:bg-sky-600 text-white",
                 },
                 features: [
-                  'Complete Derivations & Formula Vault',
-                  'Official Specimen & Model Mock Papers',
-                  'CUET & Board Dual Readiness Drills',
+                  "Complete Derivations & Formula Vault",
+                  "Official Specimen & Model Mock Papers",
+                  "CUET & Board Dual Readiness Drills",
                 ],
-                subjects: ['Physics', 'Chemistry', 'Mathematics', 'Biology'],
-                stats: { questions: '20,000+', mockTests: '15 Full Mocks', passRate: '99.1%' },
+                subjects: ["Physics", "Chemistry", "Mathematics", "Biology"],
+                stats: {
+                  questions: "20,000+",
+                  mockTests: "15 Full Mocks",
+                  passRate: "99.1%",
+                },
                 sampleTopics: [
-                  'Calculus, Integrals & Differential Equations',
-                  'Electrostatics, Magnetism & Wave Optics',
-                  'Organic Reaction Mechanisms & Kinetics',
-                  'Genetics, Molecular Biology & Biotechnology',
+                  "Calculus, Integrals & Differential Equations",
+                  "Electrostatics, Magnetism & Wave Optics",
+                  "Organic Reaction Mechanisms & Kinetics",
+                  "Genetics, Molecular Biology & Biotechnology",
                 ],
-                board: 'CBSE',
-                classGrade: 'Class 12',
-                defaultSubject: 'Physics',
+                board: "CBSE",
+                classGrade: "Class 12",
+                defaultSubject: "Physics",
               },
               {
-                id: 'icse-10',
-                title: 'ICSE Board',
-                level: 'Class 10',
-                popularTag: 'In-Depth Theory',
-                subtitle: 'ICSE Exam & Subject Practice',
-                description: 'Comprehensive syllabus coverage mapped to Selina & Concise textbooks with structured subjective evaluation & diagrams.',
+                id: "icse-10",
+                title: "ICSE Board",
+                level: "Class 10",
+                popularTag: "In-Depth Theory",
+                subtitle: "ICSE Exam & Subject Practice",
+                description:
+                  "Comprehensive syllabus coverage mapped to Selina & Concise textbooks with structured subjective evaluation & diagrams.",
                 icon: FileText,
                 theme: {
-                  cardBorder: 'border-rose-200/90 hover:border-rose-400',
-                  badgeBg: 'bg-rose-100/90 text-rose-900 border-rose-300/80',
-                  iconGrad: 'from-rose-400 via-pink-500 to-purple-600 shadow-rose-500/30',
-                  glow: 'hover:shadow-rose-500/15',
-                  accentHover: 'group-hover:text-rose-600',
-                  checkColor: 'text-rose-600',
-                  actionBtn: 'bg-stone-900 hover:bg-rose-600 text-white',
+                  cardBorder: "border-rose-200/90 hover:border-rose-400",
+                  badgeBg: "bg-rose-100/90 text-rose-900 border-rose-300/80",
+                  iconGrad:
+                    "from-rose-400 via-pink-500 to-purple-600 shadow-rose-500/30",
+                  glow: "hover:shadow-rose-500/15",
+                  accentHover: "group-hover:text-rose-600",
+                  checkColor: "text-rose-600",
+                  actionBtn: "bg-stone-900 hover:bg-rose-600 text-white",
                 },
                 features: [
-                  'Selina & Concise Textbook Mapping',
-                  'Structured Subjective Theory Rubrics',
-                  'Diagram & Practical Question Banks',
+                  "Selina & Concise Textbook Mapping",
+                  "Structured Subjective Theory Rubrics",
+                  "Diagram & Practical Question Banks",
                 ],
-                subjects: ['Maths', 'Physics', 'Chemistry', 'Biology', 'English'],
-                stats: { questions: '14,000+', mockTests: '10 Full Mocks', passRate: '97.8%' },
+                subjects: [
+                  "Maths",
+                  "Physics",
+                  "Chemistry",
+                  "Biology",
+                  "English",
+                ],
+                stats: {
+                  questions: "14,000+",
+                  mockTests: "10 Full Mocks",
+                  passRate: "97.8%",
+                },
                 sampleTopics: [
-                  'Commercial Mathematics: GST & Banking',
-                  'Force, Work, Power & Sound Waves',
-                  'Periodic Properties & Chemical Bonding',
-                  'Plant Physiology & Circulatory System',
+                  "Commercial Mathematics: GST & Banking",
+                  "Force, Work, Power & Sound Waves",
+                  "Periodic Properties & Chemical Bonding",
+                  "Plant Physiology & Circulatory System",
                 ],
-                board: 'ICSE',
-                classGrade: 'Class 10',
-                defaultSubject: 'Mathematics',
+                board: "ICSE",
+                classGrade: "Class 10",
+                defaultSubject: "Mathematics",
               },
               {
-                id: 'competitive-prep',
-                title: 'Competitive Prep',
-                level: 'HOTS / Foundation',
-                popularTag: 'High Rigor',
-                subtitle: 'Challenging Practice & Drills',
-                description: 'Higher-order thinking skills, Olympiad question sets, NTSE speed drills, and early bridge foundations for JEE & NEET.',
+                id: "competitive-prep",
+                title: "Competitive Prep",
+                level: "HOTS / Foundation",
+                popularTag: "High Rigor",
+                subtitle: "Challenging Practice & Drills",
+                description:
+                  "Higher-order thinking skills, Olympiad question sets, NTSE speed drills, and early bridge foundations for JEE & NEET.",
                 icon: Sparkles,
                 theme: {
-                  cardBorder: 'border-emerald-200/90 hover:border-emerald-400',
-                  badgeBg: 'bg-emerald-100/90 text-emerald-900 border-emerald-300/80',
-                  iconGrad: 'from-emerald-400 via-teal-500 to-teal-700 shadow-emerald-500/30',
-                  glow: 'hover:shadow-emerald-500/15',
-                  accentHover: 'group-hover:text-emerald-600',
-                  checkColor: 'text-emerald-600',
-                  actionBtn: 'bg-stone-900 hover:bg-emerald-600 text-white',
+                  cardBorder: "border-emerald-200/90 hover:border-emerald-400",
+                  badgeBg:
+                    "bg-emerald-100/90 text-emerald-900 border-emerald-300/80",
+                  iconGrad:
+                    "from-emerald-400 via-teal-500 to-teal-700 shadow-emerald-500/30",
+                  glow: "hover:shadow-emerald-500/15",
+                  accentHover: "group-hover:text-emerald-600",
+                  checkColor: "text-emerald-600",
+                  actionBtn: "bg-stone-900 hover:bg-emerald-600 text-white",
                 },
                 features: [
-                  'Multi-Concept HOTS Problems',
-                  'Olympiad & NTSE Speed Drills',
-                  'National Percentile Benchmark Tests',
+                  "Multi-Concept HOTS Problems",
+                  "Olympiad & NTSE Speed Drills",
+                  "National Percentile Benchmark Tests",
                 ],
-                subjects: ['Advanced Maths', 'Science HOTS', 'Aptitude & Logic'],
-                stats: { questions: '12,000+', mockTests: '20 Speed Drills', passRate: 'Top 5%' },
+                subjects: [
+                  "Advanced Maths",
+                  "Science HOTS",
+                  "Aptitude & Logic",
+                ],
+                stats: {
+                  questions: "12,000+",
+                  mockTests: "20 Speed Drills",
+                  passRate: "Top 5%",
+                },
                 sampleTopics: [
-                  'Non-Routine Algebraic Olympiad Challenges',
-                  'Multi-Concept Kinematics & Mechanics',
-                  'Logical Reasoning & Mathematical Induction',
-                  'Real-time Percentile & Accuracy Analytics',
+                  "Non-Routine Algebraic Olympiad Challenges",
+                  "Multi-Concept Kinematics & Mechanics",
+                  "Logical Reasoning & Mathematical Induction",
+                  "Real-time Percentile & Accuracy Analytics",
                 ],
-                board: 'CBSE',
-                classGrade: 'Class 10',
-                defaultSubject: 'Mathematics',
+                board: "CBSE",
+                classGrade: "Class 10",
+                defaultSubject: "Mathematics",
               },
             ].map((track) => {
               return (
@@ -2164,7 +2376,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </div>
 
                     {/* Titles */}
-                    <h3 className={`mt-5 font-black text-stone-900 text-lg sm:text-xl tracking-tight ${track.theme.accentHover} transition-colors`}>
+                    <h3
+                      className={`mt-5 font-black text-stone-900 text-lg sm:text-xl tracking-tight ${track.theme.accentHover} transition-colors`}
+                    >
                       {track.title}
                     </h3>
                     <div className="text-xs font-bold text-stone-600 mt-1">
@@ -2177,8 +2391,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     {/* Key Features List */}
                     <div className="mt-4 pt-4 border-t border-stone-100 space-y-2">
                       {track.features.map((feature) => (
-                        <div key={feature} className="flex items-start gap-2 text-xs font-medium text-stone-700">
-                          <CheckCircle2 className={`w-3.5 h-3.5 ${track.theme.checkColor} shrink-0 mt-0.5`} />
+                        <div
+                          key={feature}
+                          className="flex items-start gap-2 text-xs font-medium text-stone-700"
+                        >
+                          <CheckCircle2
+                            className={`w-3.5 h-3.5 ${track.theme.checkColor} shrink-0 mt-0.5`}
+                          />
                           <span className="leading-tight">{feature}</span>
                         </div>
                       ))}
@@ -2224,20 +2443,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {/* TRUST BADGES */}
             <div className="mt-6 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs font-semibold text-stone-500">
               <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" /> No credit card required
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> No credit
+                card required
               </span>
               <span className="flex items-center gap-1.5">
                 <Zap className="w-4 h-4 text-amber-600" /> Instant step-by-step grading
               </span>
               <span className="flex items-center gap-1.5">
-                <BookOpen className="w-4 h-4 text-blue-600" /> Latest 2025–26 CBSE & ICSE syllabus
+                <BookOpen className="w-4 h-4 text-blue-600" /> Latest 2025–26
+                CBSE & ICSE syllabus
               </span>
               <span className="flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-purple-600" /> Free test included
               </span>
             </div>
           </div>
-
         </div>
 
         {/* INTERACTIVE TRACK PREVIEW MODAL */}
@@ -2253,17 +2473,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Header */}
               <div className="flex items-start justify-between pb-4 border-b border-stone-100">
                 <div className="flex items-center gap-3.5">
-                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${previewTrack.theme.iconGrad} flex items-center justify-center text-white shadow-md`}>
-                    {React.createElement(previewTrack.icon, { className: 'w-6 h-6 stroke-[2.2]' })}
+                  <div
+                    className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${previewTrack.theme.iconGrad} flex items-center justify-center text-white shadow-md`}
+                  >
+                    {React.createElement(previewTrack.icon, {
+                      className: "w-6 h-6 stroke-[2.2]",
+                    })}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-xl font-black text-stone-900">{previewTrack.title}</h3>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${previewTrack.theme.badgeBg}`}>
+                      <h3 className="text-xl font-black text-stone-900">
+                        {previewTrack.title}
+                      </h3>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${previewTrack.theme.badgeBg}`}
+                      >
                         {previewTrack.level}
                       </span>
                     </div>
-                    <p className="text-xs font-semibold text-stone-500 mt-0.5">{previewTrack.subtitle}</p>
+                    <p className="text-xs font-semibold text-stone-500 mt-0.5">
+                      {previewTrack.subtitle}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -2278,22 +2508,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {/* Stats Tiles */}
               <div className="grid grid-cols-3 gap-3 my-5">
                 <div className="p-3 rounded-2xl bg-stone-50 border border-stone-100 text-center">
-                  <div className="text-lg font-black text-stone-900">{previewTrack.stats.questions}</div>
-                  <div className="text-[11px] font-semibold text-stone-500">Practice Questions</div>
+                  <div className="text-lg font-black text-stone-900">
+                    {previewTrack.stats.questions}
+                  </div>
+                  <div className="text-[11px] font-semibold text-stone-500">
+                    Practice Questions
+                  </div>
                 </div>
                 <div className="p-3 rounded-2xl bg-stone-50 border border-stone-100 text-center">
-                  <div className="text-lg font-black text-stone-900">{previewTrack.stats.mockTests}</div>
-                  <div className="text-[11px] font-semibold text-stone-500">Mock Assessments</div>
+                  <div className="text-lg font-black text-stone-900">
+                    {previewTrack.stats.mockTests}
+                  </div>
+                  <div className="text-[11px] font-semibold text-stone-500">
+                    Mock Assessments
+                  </div>
                 </div>
                 <div className="p-3 rounded-2xl bg-stone-50 border border-stone-100 text-center">
-                  <div className="text-lg font-black text-amber-600">{previewTrack.stats.passRate}</div>
-                  <div className="text-[11px] font-semibold text-stone-500">Benchmark Score</div>
+                  <div className="text-lg font-black text-amber-600">
+                    {previewTrack.stats.passRate}
+                  </div>
+                  <div className="text-[11px] font-semibold text-stone-500">
+                    Benchmark Score
+                  </div>
                 </div>
               </div>
 
               {/* Subjects Covered */}
               <div className="mb-5">
-                <div className="text-xs font-black uppercase tracking-wider text-stone-400 mb-2">Subjects Included</div>
+                <div className="text-xs font-black uppercase tracking-wider text-stone-400 mb-2">
+                  Subjects Included
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {previewTrack.subjects.map((sub: string) => (
                     <span
@@ -2308,10 +2552,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               {/* Sample Topics & Syllabus Highlights */}
               <div className="mb-6">
-                <div className="text-xs font-black uppercase tracking-wider text-stone-400 mb-2">Core Topics & Syllabus Highlights</div>
+                <div className="text-xs font-black uppercase tracking-wider text-stone-400 mb-2">
+                  Core Topics & Syllabus Highlights
+                </div>
                 <div className="space-y-2">
                   {previewTrack.sampleTopics.map((topic: string) => (
-                    <div key={topic} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-stone-50 border border-stone-100/90 text-xs font-semibold text-stone-700">
+                    <div
+                      key={topic}
+                      className="flex items-center gap-2.5 p-2.5 rounded-xl bg-stone-50 border border-stone-100/90 text-xs font-semibold text-stone-700"
+                    >
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                       <span>{topic}</span>
                     </div>
@@ -2332,7 +2581,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   type="button"
                   onClick={() => {
                     setPreviewTrack(null);
-                    openAuth('register', 'student');
+                    openAuth("register", "student");
                   }}
                   className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-stone-950 font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer transition-all"
                 >
@@ -2351,7 +2600,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-yellow-200/20 blur-[100px] rounded-full pointer-events-none z-0"></div>
 
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
-
           {/* Heading & Badge */}
           <div className="text-center reveal-on-scroll relative z-20">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-100/80 border border-yellow-200 text-yellow-800 text-xs font-bold shadow-sm">
@@ -2360,7 +2608,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <h2
               className="mt-6 text-4xl sm:text-5xl font-black tracking-normal text-stone-900 capitalize"
-              style={{ wordSpacing: '0.25em' }}
+              style={{ wordSpacing: "0.25em" }}
             >
               Your Questions, Our Answers
             </h2>
@@ -2373,7 +2621,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               return (
                 <div
                   key={faq.q}
-                  className={`bg-white/80 backdrop-blur-md rounded-2xl border transition-all duration-300 overflow-hidden ${open ? 'border-yellow-300 shadow-xl shadow-yellow-500/10' : 'border-stone-200 hover:border-yellow-200 hover:shadow-md'
+                  className={`bg-white/80 backdrop-blur-md rounded-2xl border transition-all duration-300 overflow-hidden ${open
+                      ? "border-yellow-300 shadow-xl shadow-yellow-500/10"
+                      : "border-stone-200 hover:border-yellow-200 hover:shadow-md"
                     }`}
                 >
                   <button
@@ -2381,9 +2631,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     className="w-full p-6 flex items-center justify-between gap-4 text-left font-bold text-stone-800 cursor-pointer"
                   >
                     <span className="text-lg text-stone-900">{faq.q}</span>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${open ? 'bg-yellow-100 text-yellow-700' : 'bg-stone-100 text-stone-400'
-                      }`}>
-                      <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${open
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-stone-100 text-stone-400"
+                        }`}
+                    >
+                      <ChevronDown
+                        className={`w-5 h-5 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+                      />
                     </div>
                   </button>
 
@@ -2396,14 +2652,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               );
             })}
           </div>
-
         </div>
       </section>
 
-
       {/* FOOTER */}
-      <PublicFooter isBackendOnline={isBackendOnline ?? undefined} onQuickDemo={onQuickDemo} />
+      <PublicFooter
+        isBackendOnline={isBackendOnline ?? undefined}
+        onQuickDemo={onQuickDemo}
+      />
     </div>
   );
 };
-
