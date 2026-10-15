@@ -26,7 +26,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
     const sectionIds = [
       { id: 'hero', key: 'home' as const, path: '/' },
       { id: 'free-mock-papers-2027', key: 'free-mock-papers-2027' as const, path: '/free-mock-papers-2027' },
-      { id: 'actions-demo', key: 'actions-demo' as const, path: '/actions-demo' },
+      { id: 'actions-demo', key: 'actions-demo' as const, path: '/' },
       { id: 'for-everyone', key: 'for-everyone' as const, path: '/for-everyone' },
     ];
 
@@ -106,7 +106,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
       location.pathname === "/actions-demo" ||
       location.pathname === "/for-everyone";
 
-    const targetPath = sectionId === 'hero' ? '/' : `/${sectionId}`;
+    const targetPath = (sectionId === 'hero' || sectionId === 'actions-demo') ? '/' : `/${sectionId}`;
 
     if (!isLanding) {
       navigate(targetPath);
@@ -137,8 +137,8 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
   const navButtonClasses = (isActive: boolean) => `
     px-4 py-2 rounded-full cursor-pointer transition-all duration-200
     ${isActive 
-      ? "bg-amber-100 text-yellow-800 font-bold shadow-sm" 
-      : "text-stone-600 hover:bg-stone-100 hover:text-yellow-600"}
+      ? "bg-yellow-400 text-stone-950 font-extrabold shadow-sm" 
+      : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"}
   `;
 
   return (
@@ -188,12 +188,12 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
             onClick={(e) => handleNavClick('free-mock-papers-2027', e)}
             className={`${navButtonClasses(isHomeActive && activeSection === 'free-mock-papers-2027')} flex items-center gap-1.5`}
           >
-            Free Mock Test <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-900 font-bold">2027</span>
+            Free Mock Test <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${isHomeActive && activeSection === 'free-mock-papers-2027' ? "bg-stone-950 text-yellow-400" : "bg-amber-200 text-amber-900"}`}>2027</span>
           </button>
           
           <Link 
             to="/blog" 
-            className={`px-4 py-2 rounded-full transition-all duration-200 ${isBlogActive ? "bg-amber-100 text-yellow-800 font-black shadow-sm" : "text-stone-600 hover:bg-stone-100 hover:text-yellow-600"}`}
+            className={`px-4 py-2 rounded-full transition-all duration-200 ${isBlogActive ? "bg-yellow-400 text-stone-950 font-extrabold shadow-sm" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"}`}
           >
             Blogs
           </Link>
@@ -246,12 +246,12 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
               key={sectionId as string}
               type="button"
               onClick={(e) => { setMob(false); handleNavClick(sectionId as string, e); }}
-              className={`block w-full text-left py-2.5 px-3 rounded-xl text-sm ${(!isBlogActive && isActive) ? "font-bold text-yellow-800 bg-amber-100" : "font-semibold text-stone-700 hover:bg-stone-100 hover:text-yellow-600"}`}
+              className={`block w-full text-left py-2.5 px-3 rounded-xl text-sm ${(!isBlogActive && isActive) ? "font-extrabold text-stone-950 bg-yellow-400 shadow-sm" : "font-semibold text-stone-700 hover:bg-stone-100 hover:text-stone-900"}`}
             >
               {label as string}
             </button>
           ))}
-          <Link to="/blog" onClick={() => setMob(false)} className={isBlogActive ? "block py-2.5 px-3 rounded-xl text-sm font-black text-yellow-800 bg-amber-100" : "block py-2.5 px-3 rounded-xl text-sm font-semibold text-stone-700 hover:bg-stone-100 hover:text-yellow-600"}>Blogs</Link>
+          <Link to="/blog" onClick={() => setMob(false)} className={isBlogActive ? "block py-2.5 px-3 rounded-xl text-sm font-extrabold text-stone-950 bg-yellow-400 shadow-sm" : "block py-2.5 px-3 rounded-xl text-sm font-semibold text-stone-700 hover:bg-stone-100 hover:text-stone-900"}>Blogs</Link>
           <div className="pt-3 border-t border-stone-100 flex gap-2">
             {isLoggedIn ? (
               <Link to="/dashboard" onClick={() => setMob(false)} className="flex-1 py-2.5 text-center rounded-xl bg-yellow-400 text-stone-900 font-bold text-sm">

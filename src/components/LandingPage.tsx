@@ -223,6 +223,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       }
     }
 
+    if (location.pathname === '/actions-demo') {
+      window.history.replaceState(null, '', '/');
+    }
+
     if (location.search.includes('auth=login')) {
       openAuth('login');
       navigate('/', { replace: true });
@@ -256,6 +260,42 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     setSelectedAttempt(0);
     setIsEvaluating(true);
     window.setTimeout(() => setIsEvaluating(false), 450);
+  };
+
+  const smoothScrollTo = (targetId: string, duration = 1100) => {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+
+    // Temporarily pause PublicHeader URL tracking so it doesn't jitter during smooth glide
+    (window as any).__disableUrlSyncUntil = Date.now() + duration + 400;
+    if (window.location.pathname === '/actions-demo') {
+      window.history.replaceState(null, '', '/');
+    }
+
+    const header = document.querySelector('header');
+    const headerHeight = header ? header.getBoundingClientRect().height : 72;
+    const targetY = Math.max(0, el.getBoundingClientRect().top + window.pageYOffset - headerHeight - 16);
+    const startY = window.pageYOffset;
+    const distance = targetY - startY;
+    const startTime = performance.now();
+
+    // Luxurious smooth cubic easeInOut curve for slow and gentle arrival
+    const easeInOutCubic = (t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    const step = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = easeInOutCubic(progress);
+
+      window.scrollTo(0, startY + distance * ease);
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+
+    requestAnimationFrame(step);
   };
 
   const currentQuestion = demoQuestions[selectedSubject];
@@ -461,9 +501,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* HERO MAIN CONTENT GRID (Vertically Centered with min-h-0) */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 flex-1 min-h-0 flex items-center w-full">
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-6 items-center w-full">
-            <div className="lg:col-span-7 space-y-3 lg:space-y-4">
-              {/* Top Badges (Quick Test & Study Buddy) */}
-              <div>
+            <div className="lg:col-span-7 flex flex-col justify-center">
+              {/* Top Badges (Quick Test & Study Buddy) - Positioned higher with generous bottom margin */}
+              <div className="mb-5 sm:mb-7 lg:mb-9">
                 {/* Floating Glowing Quick Test Badge (React Bits Style) */}
                 <div className="flex items-center justify-start">
                   <style>{`
@@ -506,8 +546,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               {/* Main Headline */}
               <h1
-                className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black leading-[1.08] tracking-normal [word-spacing:0.25em] capitalize"
-                style={{ wordSpacing: '0.25em' }}
+                className="text-5xl sm:text-6xl lg:text-6xl xl:text-7xl font-black leading-[1.05] tracking-tight [word-spacing:0.2em] capitalize mb-3.5 sm:mb-4 lg:mb-5"
+                style={{ wordSpacing: '0.2em' }}
               >
                 LEARN SMARTER
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-500 mt-1 sm:mt-1.5">
@@ -522,21 +562,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 with your Study Buddy.
               </p>
 
-              {/* CTA Action Buttons */}
-              <div className="pt-1 flex flex-col sm:flex-row gap-3.5">
+              {/* CTA Action Buttons - Pushed lower down with generous top padding */}
+              <div className="pt-6 sm:pt-8 lg:pt-10 flex flex-col sm:flex-row gap-3.5">
                 <button
                   onClick={() => openAuth('register')}
                   className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-extrabold shadow-yellow-200 flex items-center justify-center gap-2.5 cursor-pointer text-sm sm:text-base border border-amber-400/60"
                 >
                   Sign Up For FREE <ArrowRight className="w-4 h-4" />
                 </button>
-                <Link
-                  to="/actions-demo"
+                <button
+                  type="button"
+                  onClick={() => smoothScrollTo('actions-demo', 1100)}
                   className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white hover:text-yellow-300 font-bold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-sm text-sm sm:text-base border border-stone-800 cursor-pointer"
                 >
                   <Play className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   See How It Works
-                </Link>
+                </button>
               </div>
 
               {/* Process Steps (1. Assess -> 2. Analyze -> 3. Learn -> 4. Improve) - Squarish rounded-xl matching buttons */}
@@ -602,6 +643,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ACTIONS & DEMO */}
+      <section id="actions-demo" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white scroll-mt-[90px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-4xl mx-auto reveal-on-scroll">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-yellow-100/90 border border-yellow-200/80 text-yellow-800 text-xs sm:text-sm font-bold shadow-2xs">
+              <Lightbulb className="w-4 h-4 text-yellow-600 animate-pulse" />
+              Actions &amp; Demo
+            </div>
+            <h2
+              className="mt-3 text-2xl sm:text-3xl lg:text-3xl xl:text-4xl font-black text-stone-900 tracking-tight leading-tight whitespace-normal sm:whitespace-nowrap"
+            >
+              Experience Edu<span className="text-yellow-500">Junction</span> in <span className="text-yellow-500">Action</span> 🚀
+            </h2>
+            <p className="mt-2 text-stone-600 text-xs sm:text-sm xl:text-base font-medium max-w-xl mx-auto leading-relaxed">
+              Watch our interactive walkthrough video and try our hands-on demo below.
+            </p>
+          </div>
+
+          {/* INTERACTIVE PLATFORM DEMO VIDEO */}
+          <div className="mt-10 sm:mt-12 w-full flex justify-center reveal-on-scroll">
+            <div className="relative w-full max-w-4xl aspect-video rounded-3xl overflow-hidden bg-[#fffbeb] border border-stone-200/80 shadow-xl ring-1 ring-stone-900/5">
+              <iframe
+                src="/EduJunction-Getting-Started.html"
+                title="Getting Started with EduJunction"
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                loading="lazy"
+              />
             </div>
           </div>
         </div>
@@ -732,6 +807,189 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
             </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* ==================== 2-COLUMN WORD BUILDER SECTION ==================== */}
+      <section id="magic-word-arena" className="pt-4 sm:pt-6 pb-16 bg-amber-50/60 relative z-20 font-sans select-none px-4 scroll-mt-[90px] overflow-hidden">
+
+        {/* Background Soft Glows */}
+        <div className="absolute top-5 left-1/4 w-72 h-72 bg-yellow-200/50 rounded-full blur-3xl animate-pulse pointer-events-none" />
+        <div className="absolute bottom-5 right-1/4 w-80 h-80 bg-orange-200/50 rounded-full blur-3xl animate-pulse delay-700 pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto relative z-10 px-4">
+          {/* ACADEMIC CONCEPT ARENA */}
+          <div className="max-w-4xl mx-auto relative z-10 px-4">
+
+            {/* Academic Concept Arena Heading */}
+            <div className="text-center mb-8 reveal-on-scroll">
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-100/90 border border-amber-300 text-amber-900 text-xs font-black mb-2 shadow-2xs">
+                <span>⚡</span> Academic Concept Arena
+              </div>
+              <h3
+                className="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-normal capitalize"
+                style={{ wordSpacing: '0.25em' }}
+              >
+                READ CLUES &amp; BUILD WORDS 🚀
+              </h3>
+              <p className="mt-2 text-stone-600 text-xs sm:text-sm font-semibold max-w-lg mx-auto">
+                Test your science, math &amp; general knowledge foundation across Class 5–12 syllabus!
+              </p>
+            </div>
+
+            {/* 2-COLUMN GRID SYSTEM (LEFT CLUE + RIGHT GAME) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+
+              {/* LEFT SIDE: CLUE CARD & LOGO */}
+              <div className="bg-gradient-to-br from-amber-100/80 via-orange-50/70 to-amber-50/90 backdrop-blur-xl border border-amber-200/90 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
+
+                {/* Question & Subject Header */}
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/95 border border-amber-300/80 text-amber-900 shadow-2xs">
+                      📚 {activeWordObj.subject}
+                    </span>
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-200/80 text-amber-950">
+                      {activeWordObj.classLevel}
+                    </span>
+                  </div>
+
+                  <div className="bg-white/95 border border-amber-200/80 rounded-2xl rounded-tl-none p-3.5 sm:p-4 shadow-2xs">
+                    <p className="text-sm md:text-base font-extrabold text-slate-800 leading-snug">
+                      {isWordComplete ? "Awesome! Concept Decoded! Click Next to try another one! 🎉" : activeWordObj.mascotMsg}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Clean Object Showcase Box (Without Circle, Isolated Like a PNG Image) */}
+                <div className="relative my-2 py-6 px-4 rounded-2xl bg-white/90 border border-amber-200/80 shadow-xs flex flex-col items-center justify-center text-center">
+                  <div className="mb-3 transform transition-transform duration-300 hover:scale-110 animate-gentle-float">
+                    <span className="text-6xl sm:text-7xl drop-shadow-md select-none leading-none inline-block filter">
+                      {activeWordObj.logo}
+                    </span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-stone-800 bg-amber-100/90 border border-amber-300/80 px-4 py-1.5 rounded-full shadow-2xs">
+                    {activeWordObj.hint}
+                  </span>
+                </div>
+
+                {/* Secret Hint Revealer Button */}
+                <div className="mt-3.5">
+                  {!showSecretHint ? (
+                    <button
+                      onClick={() => setShowSecretHint(true)}
+                      className="w-full bg-white/90 hover:bg-white text-amber-900 border border-amber-300 text-xs font-black py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer hover:border-amber-400"
+                    >
+                      <span>💡</span> Need Extra Clue / Formula?
+                    </button>
+                  ) : (
+                    <div className="bg-amber-100/90 border border-amber-300 rounded-xl p-3 text-center animate-fade-in shadow-2xs">
+                      <p className="text-xs font-bold text-amber-950">
+                        {activeWordObj.secretHint}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+              {/* RIGHT SIDE: GAME BOARD */}
+              <div className="bg-white/95 backdrop-blur-xl border border-amber-200/80 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between">
+
+                <div>
+                  {/* Top Game Bar */}
+                  <div className="flex items-center justify-between pb-3 mb-4 border-b border-amber-100">
+                    <span className="text-xs font-black text-amber-900 tracking-wider flex items-center gap-1.5 uppercase">
+                      <span>🎮</span> Concept Board ({currentWordIndex + 1}/{ACADEMIC_WORDS.length})
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      {userLetters.length > 0 && !isWordComplete && (
+                        <button
+                          onClick={handleUndoLetter}
+                          className="text-xs font-bold text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                          title="Undo last letter"
+                        >
+                          <RotateCcw className="w-3 h-3" /> Back
+                        </button>
+                      )}
+                      <button
+                        onClick={resetCurrentWord}
+                        className="text-xs font-bold text-amber-700 hover:text-amber-900 bg-amber-100/80 hover:bg-amber-200/80 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                      >
+                        <RotateCcw className="w-3 h-3" /> Reset
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Target Word Slots */}
+                  <div className="text-center my-6 sm:my-8">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-6">
+                      Tap letters below in sequence to solve the concept
+                    </p>
+
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+                      {activeWordObj.word.split('').map((char, idx) => {
+                        const filledChar = userLetters[idx];
+                        return (
+                          <div
+                            key={idx}
+                            onClick={() => filledChar && handleUndoLetter()}
+                            className={`w-11 h-12 sm:w-12 sm:h-14 rounded-xl flex items-center justify-center text-lg sm:text-xl font-black transition-all duration-300 border cursor-pointer select-none ${filledChar
+                              ? 'bg-gradient-to-tr from-amber-400 to-orange-400 text-white border-amber-300 shadow-sm scale-105'
+                              : 'bg-slate-100/80 border-slate-200 text-slate-300'
+                              }`}
+                          >
+                            {filledChar || '_'}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Option Letters OR Success Screen */}
+                {!isWordComplete ? (
+                  <div className="mt-2">
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+                      {shuffledOptions.map((letter, idx) => {
+                        const isUsed = usedOptionIndices.includes(idx);
+                        return (
+                          <button
+                            key={idx}
+                            disabled={isUsed}
+                            onClick={() => handleLetterClick(letter, idx)}
+                            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl font-black text-base sm:text-lg border transition-all cursor-pointer flex items-center justify-center ${isUsed
+                              ? 'opacity-25 pointer-events-none scale-90 bg-stone-100 border-stone-200 text-stone-300 shadow-none'
+                              : 'bg-gradient-to-br from-white to-amber-50 hover:from-amber-100 hover:to-orange-100 border border-amber-200/80 text-amber-900 shadow-2xs hover:shadow-xs hover:scale-105 active:scale-95'
+                              }`}
+                          >
+                            {letter}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-3">
+                    <div className="text-sm font-black text-emerald-600 mb-3">
+                      🎉 Excellent! Concept Decoded! 🌟
+                    </div>
+                    <button
+                      onClick={nextWord}
+                      className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-white font-black text-xs sm:text-sm px-6 py-2.5 rounded-2xl shadow-sm active:scale-95 transition-all cursor-pointer tracking-wider inline-flex items-center gap-1.5"
+                    >
+                      Next Concept ➡️
+                    </button>
+                  </div>
+                )}
+
+              </div>
+
+            </div>
+
           </div>
         </div>
       </section>
@@ -1001,9 +1259,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               'study-buddy': {
                 icon: Brain,
                 title: 'Study Buddy Insights',
-                badge: ' Mentor Insights',
-                badgeColor: 'bg-yellow-100 text-yellow-900 border-yellow-300',
-                subtitle: 'Personalized  Learning Companion & Mistake Detector',
+                badge: 'Mentor Insights',
+                badgeColor: 'bg-yellow-100 text-yellow-950 border-yellow-300',
+                subtitle: 'Personalized Learning Companion & Mistake Detector',
                 description: 'Study Buddy acts as a 24/7 personal tutor that finds root causes of mistakes, recommends remedial practice, and builds long-term memory.',
                 highlights: [
                   'Pinpoints common exam traps and formula calculation slips',
@@ -1013,12 +1271,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ],
                 demoTitle: 'Live Insights Dashboard Preview',
                 demoWidget: (
-                  <div className="p-4 rounded-2xl bg-yellow-50/70 border border-yellow-200/80 space-y-3 text-xs">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-yellow-50/70 border border-yellow-200/80 space-y-2.5 text-xs">
                     <div className="flex items-center justify-between font-black text-stone-800">
                       <span>🤖 Study Buddy Misconception Radar</span>
                       <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full font-bold">Active Analysis</span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="grid sm:grid-cols-2 gap-2.5">
                       <div className="p-2.5 rounded-xl bg-white border border-stone-200 space-y-1">
                         <div className="flex justify-between font-bold text-stone-800">
                           <span>⚠️ Trait Identified: Sign Convention in Optics</span>
@@ -1053,31 +1311,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ],
                 demoTitle: 'Adaptive Progression Pathway',
                 demoWidget: (
-                  <div className="p-4 rounded-2xl bg-orange-50/60 border border-orange-200/80 space-y-3 text-xs">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-orange-50/60 border border-orange-200/80 space-y-2.5 text-xs">
                     <div className="font-black text-stone-800 flex justify-between items-center">
                       <span>🚀 Class 10 Math Roadmap</span>
                       <span className="text-orange-700 font-bold">Level 3 Unlocked</span>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-stone-200">
-                        <div className="w-6 h-6 rounded-full bg-emerald-500 text-white font-bold text-[10px] flex items-center justify-center">✓</div>
+                    <div className="grid sm:grid-cols-3 gap-2.5">
+                      <div className="flex items-center gap-2.5 p-2 bg-white rounded-xl border border-stone-200">
+                        <div className="w-5 h-5 rounded-full bg-emerald-500 text-white font-bold text-[10px] flex items-center justify-center shrink-0">✓</div>
                         <div>
-                          <div className="font-bold text-stone-800 text-[11px]">Level 1: Foundational Definitions</div>
-                          <div className="text-[10px] text-stone-500">Mastered (100% Accuracy)</div>
+                          <div className="font-bold text-stone-800 text-[11px]">Level 1: Foundational</div>
+                          <div className="text-[10px] text-stone-500">Mastered (100%)</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-stone-200">
-                        <div className="w-6 h-6 rounded-full bg-emerald-500 text-white font-bold text-[10px] flex items-center justify-center">✓</div>
+                      <div className="flex items-center gap-2.5 p-2 bg-white rounded-xl border border-stone-200">
+                        <div className="w-5 h-5 rounded-full bg-emerald-500 text-white font-bold text-[10px] flex items-center justify-center shrink-0">✓</div>
                         <div>
-                          <div className="font-bold text-stone-800 text-[11px]">Level 2: Standard Formula Application</div>
-                          <div className="text-[10px] text-stone-500">Mastered (94% Accuracy)</div>
+                          <div className="font-bold text-stone-800 text-[11px]">Level 2: Standard Formula</div>
+                          <div className="text-[10px] text-stone-500">Mastered (94%)</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 p-2 bg-amber-100 rounded-xl border border-amber-300">
-                        <div className="w-6 h-6 rounded-full bg-amber-500 text-white font-bold text-[10px] flex items-center justify-center animate-pulse">🔥</div>
+                      <div className="flex items-center gap-2.5 p-2 bg-amber-100 rounded-xl border border-amber-300">
+                        <div className="w-5 h-5 rounded-full bg-amber-500 text-white font-bold text-[10px] flex items-center justify-center animate-pulse shrink-0">🔥</div>
                         <div>
-                          <div className="font-bold text-amber-950 text-[11px]">Level 3: Board HOTS & Traps (Current)</div>
-                          <div className="text-[10px] text-amber-800">Active Challenge Set</div>
+                          <div className="font-bold text-amber-950 text-[11px]">Level 3: Board HOTS</div>
+                          <div className="text-[10px] text-amber-800">Active Challenge</div>
                         </div>
                       </div>
                     </div>
@@ -1099,7 +1357,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ],
                 demoTitle: 'Student Achievement Badge Showcase',
                 demoWidget: (
-                  <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 space-y-3 text-xs">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 space-y-2.5 text-xs">
                     <div className="flex justify-between items-center font-black text-emerald-950">
                       <span>🏆 Level 4 Board Scholar (850 / 1000 XP)</span>
                       <span className="text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">🔥 7 Day Streak</span>
@@ -1139,12 +1397,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ],
                 demoTitle: 'Analytics Performance Preview',
                 demoWidget: (
-                  <div className="p-4 rounded-2xl bg-sky-50/60 border border-sky-200/80 space-y-3 text-xs">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-sky-50/60 border border-sky-200/80 space-y-2.5 text-xs">
                     <div className="flex justify-between items-center font-black text-sky-950">
                       <span>📊 Subject Mastery Breakdown</span>
                       <span className="text-sky-700 font-bold bg-sky-100 px-2 py-0.5 rounded-full">+14% Score Increase</span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="grid sm:grid-cols-2 gap-3">
                       <div>
                         <div className="flex justify-between font-bold text-stone-700 text-[11px] mb-1">
                           <span>Mathematics (Class 10)</span>
@@ -1182,12 +1440,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 ],
                 demoTitle: 'Parent Email PDF Notification Preview',
                 demoWidget: (
-                  <div className="p-4 rounded-2xl bg-rose-50/60 border border-rose-200/80 space-y-2.5 text-xs">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-rose-50/60 border border-rose-200/80 space-y-2 text-xs">
                     <div className="flex items-center gap-2 font-black text-rose-950">
                       <span className="p-1 rounded bg-rose-200 text-rose-800">📄</span>
                       <span>Automated Parent Email Report</span>
                     </div>
-                    <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1.5 text-[11px]">
+                    <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-stone-200 space-y-1 text-[11px]">
                       <div className="flex justify-between font-bold text-stone-800">
                         <span>To: parent@edujunction.co.in</span>
                         <span className="text-emerald-600">✓ Delivered</span>
@@ -1195,7 +1453,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       <p className="text-stone-600">
                         "Dear Parent, your child completed <strong>ICSE Class 10 Physics Model Paper 1</strong> with <strong>88% score</strong>. Detailed PDF report is attached."
                       </p>
-                      <div className="pt-1 flex items-center justify-between font-bold text-amber-700">
+                      <div className="pt-0.5 flex items-center justify-between font-bold text-amber-700 text-[11px]">
                         <span>📎 Attached: Exam_Report_ICSE10_Physics.pdf</span>
                         <span className="text-[10px] bg-amber-100 px-2 py-0.5 rounded border border-amber-300">Ready</span>
                       </div>
@@ -1207,65 +1465,83 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             const featData = featuresMap[activeFeatureModal];
             if (!featData) return null;
-            const ModalIcon = featData.icon;
+            const modalThemes: Record<string, string> = {
+              'smart-assessment': 'from-amber-500/15 via-amber-50/80 to-white',
+              'study-buddy': 'from-yellow-500/15 via-yellow-50/80 to-white',
+              'personalized': 'from-orange-500/15 via-orange-50/80 to-white',
+              'points-badges': 'from-emerald-500/15 via-emerald-50/80 to-white',
+              'progress-tracking': 'from-sky-500/15 via-sky-50/80 to-white',
+              'parent-teacher': 'from-rose-500/15 via-rose-50/80 to-white',
+            };
+
+            const headerGradient = modalThemes[activeFeatureModal] || 'from-amber-500/15 via-amber-50/80 to-white';
 
             return (
               <div
                 onClick={() => setActiveFeatureModal(null)}
-                className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-stone-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+                className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-stone-950/75 backdrop-blur-md animate-in fade-in duration-200"
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-white w-full max-w-2xl sm:max-w-3xl rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col"
+                  className="bg-white w-full max-w-2xl sm:max-w-3xl lg:max-w-[800px] rounded-[26px] shadow-2xl border border-stone-200/90 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
                 >
-                  {/* Header */}
-                  <div className="p-4 sm:p-5 border-b border-stone-100 bg-gradient-to-r from-yellow-50 via-amber-50 to-white flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-md shadow-yellow-200 shrink-0">
-                        <ModalIcon className="w-5 h-5 sm:w-5.5 sm:h-5.5" />
+                  {/* Clean Header (No logo/icon box) */}
+                  <div className={`p-4 sm:p-5 px-6 border-b border-stone-200/70 bg-gradient-to-r ${headerGradient} flex items-center justify-between gap-4 shrink-0`}>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2.5 mb-1">
+                        <span className={`text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full border shadow-2xs ${featData.badgeColor}`}>
+                          {featData.badge}
+                        </span>
+                        <h3 className="text-lg sm:text-2xl font-black text-stone-900 tracking-tight">{featData.title}</h3>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-base sm:text-lg font-black text-stone-900">{featData.title}</h3>
-                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${featData.badgeColor}`}>
-                            {featData.badge}
-                          </span>
-                        </div>
-                        <p className="text-xs font-medium text-stone-600 mt-0.5">{featData.subtitle}</p>
-                      </div>
+                      <p className="text-xs sm:text-sm font-semibold text-stone-600 truncate">{featData.subtitle}</p>
                     </div>
                     <button
+                      type="button"
                       onClick={() => setActiveFeatureModal(null)}
-                      className="p-2 rounded-xl hover:bg-stone-200/60 text-stone-500 hover:text-stone-900 transition-colors cursor-pointer"
+                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/85 hover:bg-white text-stone-500 hover:text-stone-900 border border-stone-200/80 hover:border-stone-300 flex items-center justify-center transition-all duration-200 shadow-2xs hover:scale-105 shrink-0 cursor-pointer"
+                      aria-label="Close preview modal"
                     >
-                      <X className="w-5 h-5" />
+                      <X className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </div>
 
-                  {/* Body */}
-                  <div className="p-4 sm:p-6 space-y-3.5 sm:space-y-4">
-                    <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed text-justify [text-align-last:left]">
-                      {featData.description}
-                    </p>
+                  {/* Body (Balanced width, 2x2 highlights, no blinking dot) */}
+                  <div className="p-5 sm:p-6 space-y-4">
+                    {/* Description Callout */}
+                    <div className="p-3 sm:p-3.5 rounded-2xl bg-stone-50/90 border border-stone-200/80">
+                      <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed">
+                        {featData.description}
+                      </p>
+                    </div>
 
                     {/* Highlights Grid */}
-                    <div className="space-y-1.5">
-                      <h4 className="text-[11px] sm:text-xs font-black text-stone-900 uppercase tracking-wider">Key Feature Highlights:</h4>
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-black text-stone-900 uppercase tracking-wider">Key Feature Highlights</h4>
                       <div className="grid sm:grid-cols-2 gap-2">
                         {featData.highlights.map((h: string, idx: number) => (
-                          <div key={idx} className="flex items-center gap-2 p-2 rounded-xl bg-stone-50 border border-stone-200/80 text-[11px] sm:text-xs font-semibold text-stone-800">
-                            <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
-                            <span>{h}</span>
+                          <div key={idx} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-stone-200/90 shadow-2xs hover:border-stone-300 hover:shadow-xs transition-all">
+                            <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[10px] shadow-2xs">
+                              ✓
+                            </span>
+                            <span className="text-[11px] sm:text-xs font-bold text-stone-800 leading-snug">{h}</span>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Interactive Demo Widget */}
+                    {/* Interactive Demo Widget (Clean title, no dot) */}
                     {featData.demoWidget && (
-                      <div className="space-y-1.5 pt-2 border-t border-stone-100">
-                        <h4 className="text-[11px] sm:text-xs font-black text-stone-900 uppercase tracking-wider">{featData.demoTitle}:</h4>
-                        {featData.demoWidget}
+                      <div className="space-y-1.5 pt-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-black text-stone-900 uppercase tracking-wider">{featData.demoTitle}</h4>
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            Interactive Simulation
+                          </span>
+                        </div>
+                        <div className="rounded-2xl overflow-hidden shadow-xs">
+                          {featData.demoWidget}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1275,223 +1551,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           })()}
         </div>
       </section>
-
-      {/* ACTIONS & DEMO */}
-      <section id="actions-demo" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white scroll-mt-[90px]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-yellow-100/90 border border-yellow-200/80 text-yellow-800 text-xs sm:text-sm font-bold shadow-2xs">
-              <Lightbulb className="w-4 h-4 text-yellow-600 animate-pulse" />
-              Actions &amp; Demo
-            </div>
-            <h2
-              className="mt-3 text-2xl sm:text-3xl lg:text-3xl xl:text-4xl font-black text-stone-900 tracking-tight leading-tight whitespace-normal sm:whitespace-nowrap"
-            >
-              Experience Edu<span className="text-yellow-500">Junction</span> in <span className="text-yellow-500">Action</span> 🚀
-            </h2>
-            <p className="mt-2 text-stone-600 text-xs sm:text-sm xl:text-base font-medium max-w-xl mx-auto leading-relaxed">
-              Watch our interactive walkthrough video and try our hands-on demo below.
-            </p>
-          </div>
-
-          {/* INTERACTIVE PLATFORM DEMO VIDEO */}
-          <div className="mt-10 sm:mt-12 w-full flex justify-center reveal-on-scroll">
-            <div className="relative w-full max-w-4xl aspect-video rounded-3xl overflow-hidden bg-[#fffbeb] border border-stone-200/80 shadow-xl ring-1 ring-stone-900/5">
-              <iframe
-                src="/EduJunction-Getting-Started.html"
-                title="Getting Started with EduJunction"
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== 2-COLUMN WORD BUILDER SECTION ==================== */}
-      <section id="magic-word-arena" className="pt-4 sm:pt-6 pb-16 bg-amber-50/60 relative z-20 font-sans select-none px-4 scroll-mt-[90px] overflow-hidden">
-
-        {/* Background Soft Glows */}
-        <div className="absolute top-5 left-1/4 w-72 h-72 bg-yellow-200/50 rounded-full blur-3xl animate-pulse pointer-events-none" />
-        <div className="absolute bottom-5 right-1/4 w-80 h-80 bg-orange-200/50 rounded-full blur-3xl animate-pulse delay-700 pointer-events-none" />
-
-        <div className="max-w-6xl mx-auto relative z-10 px-4">
-          {/* ACADEMIC CONCEPT ARENA */}
-          <div className="max-w-4xl mx-auto relative z-10 px-4">
-
-            {/* Academic Concept Arena Heading */}
-            <div className="text-center mb-8 reveal-on-scroll">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-100/90 border border-amber-300 text-amber-900 text-xs font-black mb-2 shadow-2xs">
-                <span>⚡</span> Academic Concept Arena
-              </div>
-              <h3
-                className="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-normal capitalize"
-                style={{ wordSpacing: '0.25em' }}
-              >
-                READ CLUES &amp; BUILD WORDS 🚀
-              </h3>
-              <p className="mt-2 text-stone-600 text-xs sm:text-sm font-semibold max-w-lg mx-auto">
-                Test your science, math &amp; general knowledge foundation across Class 5–12 syllabus!
-              </p>
-            </div>
-
-            {/* 2-COLUMN GRID SYSTEM (LEFT CLUE + RIGHT GAME) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-
-              {/* LEFT SIDE: CLUE CARD & LOGO */}
-              <div className="bg-gradient-to-br from-amber-100/80 via-orange-50/70 to-amber-50/90 backdrop-blur-xl border border-amber-200/90 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
-
-                {/* Question & Subject Header */}
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/95 border border-amber-300/80 text-amber-900 shadow-2xs">
-                      📚 {activeWordObj.subject}
-                    </span>
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-200/80 text-amber-950">
-                      {activeWordObj.classLevel}
-                    </span>
-                  </div>
-
-                  <div className="bg-white/95 border border-amber-200/80 rounded-2xl rounded-tl-none p-3.5 sm:p-4 shadow-2xs">
-                    <p className="text-sm md:text-base font-extrabold text-slate-800 leading-snug">
-                      {isWordComplete ? "Awesome! Concept Decoded! Click Next to try another one! 🎉" : activeWordObj.mascotMsg}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Clean Object Showcase Box (Without Circle, Isolated Like a PNG Image) */}
-                <div className="relative my-2 py-6 px-4 rounded-2xl bg-white/90 border border-amber-200/80 shadow-xs flex flex-col items-center justify-center text-center">
-                  <div className="mb-3 transform transition-transform duration-300 hover:scale-110 animate-gentle-float">
-                    <span className="text-6xl sm:text-7xl drop-shadow-md select-none leading-none inline-block filter">
-                      {activeWordObj.logo}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-stone-800 bg-amber-100/90 border border-amber-300/80 px-4 py-1.5 rounded-full shadow-2xs">
-                    {activeWordObj.hint}
-                  </span>
-                </div>
-
-                {/* Secret Hint Revealer Button */}
-                <div className="mt-3.5">
-                  {!showSecretHint ? (
-                    <button
-                      onClick={() => setShowSecretHint(true)}
-                      className="w-full bg-white/90 hover:bg-white text-amber-900 border border-amber-300 text-xs font-black py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer hover:border-amber-400"
-                    >
-                      <span>💡</span> Need Extra Clue / Formula?
-                    </button>
-                  ) : (
-                    <div className="bg-amber-100/90 border border-amber-300 rounded-xl p-3 text-center animate-fade-in shadow-2xs">
-                      <p className="text-xs font-bold text-amber-950">
-                        {activeWordObj.secretHint}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-              </div>
-
-              {/* RIGHT SIDE: GAME BOARD */}
-              <div className="bg-white/95 backdrop-blur-xl border border-amber-200/80 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between">
-
-                <div>
-                  {/* Top Game Bar */}
-                  <div className="flex items-center justify-between pb-3 mb-4 border-b border-amber-100">
-                    <span className="text-xs font-black text-amber-900 tracking-wider flex items-center gap-1.5 uppercase">
-                      <span>🎮</span> Concept Board ({currentWordIndex + 1}/{ACADEMIC_WORDS.length})
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      {userLetters.length > 0 && !isWordComplete && (
-                        <button
-                          onClick={handleUndoLetter}
-                          className="text-xs font-bold text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1"
-                          title="Undo last letter"
-                        >
-                          <RotateCcw className="w-3 h-3" /> Back
-                        </button>
-                      )}
-                      <button
-                        onClick={resetCurrentWord}
-                        className="text-xs font-bold text-amber-700 hover:text-amber-900 bg-amber-100/80 hover:bg-amber-200/80 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1"
-                      >
-                        <RotateCcw className="w-3 h-3" /> Reset
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Target Word Slots */}
-                  <div className="text-center my-6 sm:my-8">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-6">
-                      Tap letters below in sequence to solve the concept
-                    </p>
-
-                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
-                      {activeWordObj.word.split('').map((char, idx) => {
-                        const filledChar = userLetters[idx];
-                        return (
-                          <div
-                            key={idx}
-                            onClick={() => filledChar && handleUndoLetter()}
-                            className={`w-11 h-12 sm:w-12 sm:h-14 rounded-xl flex items-center justify-center text-lg sm:text-xl font-black transition-all duration-300 border cursor-pointer select-none ${filledChar
-                              ? 'bg-gradient-to-tr from-amber-400 to-orange-400 text-white border-amber-300 shadow-sm scale-105'
-                              : 'bg-slate-100/80 border-slate-200 text-slate-300'
-                              }`}
-                          >
-                            {filledChar || '_'}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Option Letters OR Success Screen */}
-                {!isWordComplete ? (
-                  <div className="mt-2">
-                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
-                      {shuffledOptions.map((letter, idx) => {
-                        const isUsed = usedOptionIndices.includes(idx);
-                        return (
-                          <button
-                            key={idx}
-                            disabled={isUsed}
-                            onClick={() => handleLetterClick(letter, idx)}
-                            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl font-black text-base sm:text-lg border transition-all cursor-pointer flex items-center justify-center ${isUsed
-                              ? 'opacity-25 pointer-events-none scale-90 bg-stone-100 border-stone-200 text-stone-300 shadow-none'
-                              : 'bg-gradient-to-br from-white to-amber-50 hover:from-amber-100 hover:to-orange-100 border border-amber-200/80 text-amber-900 shadow-2xs hover:shadow-xs hover:scale-105 active:scale-95'
-                              }`}
-                          >
-                            {letter}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-3">
-                    <div className="text-sm font-black text-emerald-600 mb-3">
-                      🎉 Excellent! Concept Decoded! 🌟
-                    </div>
-                    <button
-                      onClick={nextWord}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-white font-black text-xs sm:text-sm px-6 py-2.5 rounded-2xl shadow-sm active:scale-95 transition-all cursor-pointer tracking-wider inline-flex items-center gap-1.5"
-                    >
-                      Next Concept ➡️
-                    </button>
-                  </div>
-                )}
-
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-      </section>
-
 
       {/* 💎 WHY EDUJUNCTION (EDITORIAL STORY & VALUE NARRATIVE) */}
       <section id="why-edujunction" className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-[90px]">
@@ -1506,7 +1565,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="mt-4 text-3xl sm:text-4xl lg:text-4xl font-black text-stone-900 tracking-normal leading-tight whitespace-nowrap overflow-x-auto pb-2"
               style={{ wordSpacing: '0.25em' }}
             >
-              Edu<span className="text-yellow-500">Junction</span> vs <span className="text-yellow-500">OTHER</span> PLATFORMS
+              Edu<span className="text-yellow-500">Junction</span> vs <span className="text-yellow-500">Other</span> Platforms
             </h2>
           </div>
 
@@ -1606,7 +1665,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       } else if (role === 'student') {
                         openAuth('login');
                       } else {
-                        navigate('/features#personalization');
+                        smoothScrollTo('actions-demo', 1100);
                       }
                     }}
                     className="mt-6 text-sm font-extrabold text-yellow-500 flex items-center gap-1"
@@ -1625,89 +1684,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* PERSONALIZATION EXAMPLE */}
-      <section id="personalization" className="py-20 bg-white relative z-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs font-bold">
-              <Brain className="w-3.5 h-3.5" />
-              Study Buddy Personalization
-            </div>
-            <h2
-              className="mt-4 text-3xl sm:text-4xl font-black tracking-normal capitalize"
-              style={{ wordSpacing: '0.25em' }}
-            >
-              NOT THE SAME LESSON FOR EVERYONE
-            </h2>
-            <p className="mt-3 text-stone-600">
-              Example: Rahul struggles with Geometry, so the platform changes his next steps.
-            </p>
-          </div>
-
-          <div className="mt-16 relative">
-            <style>{`
-              @keyframes float-card {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-8px); }
-              }
-              .animate-float-card {
-                animation: float-card 4s ease-in-out infinite;
-              }
-            `}</style>
-
-            <div className="hidden lg:block absolute top-1/2 left-[5%] right-[5%] h-1.5 bg-gradient-to-r from-blue-200 via-purple-300 to-green-300 -translate-y-1/2 rounded-full opacity-60"></div>
-
-            <div className="grid lg:grid-cols-5 gap-6 lg:gap-4 relative z-10">
-              {[
-                ['📝', 'Assessment', 'Rahul scores 60%', 'bg-blue-100 border-blue-200', 'text-blue-700', 'lg:-translate-y-4'],
-                ['🔍', 'Study Buddy Finds', 'Geometry is weak', 'bg-red-100 border-red-200', 'text-red-700', 'lg:translate-y-4'],
-                ['📚', 'Recommends', 'Lesson + practice', 'bg-purple-100 border-purple-200', 'text-purple-700', 'lg:-translate-y-4'],
-                ['🎯', 'Retest', 'Mini mock exam', 'bg-orange-100 border-orange-200', 'text-orange-700', 'lg:translate-y-4'],
-                ['🎉', 'Improves', '60% → 82%', 'bg-green-100 border-green-200', 'text-green-700', 'lg:-translate-y-4'],
-              ].map(([icon, title, text, colorClass, textClass, offsetClass], i) => (
-                <div key={title} className={`relative flex flex-col items-center group ${offsetClass} reveal-on-scroll`} style={{ transitionDelay: `${i * 100}ms` }}>
-                  <div className="animate-float-card w-full">
-                    <div className="transition-transform hover:-translate-y-3 duration-300 relative">
-                      <div className="absolute inset-0 bg-white/40 blur-xl rounded-full group-hover:bg-yellow-400/20 transition-colors"></div>
-
-                      <div className={`relative w-full h-[190px] p-6 sm:p-8 lg:p-6 rounded-[2rem] bg-white/90 backdrop-blur-xl border border-white shadow-xl shadow-stone-200/50 flex flex-col items-center justify-center text-center z-10 overflow-hidden`}>
-                        <div className={`absolute top-0 right-0 w-24 h-24 ${colorClass} blur-3xl opacity-50 rounded-full -mr-10 -mt-10`}></div>
-
-                        <div className={`w-16 h-16 rounded-[1.25rem] flex items-center justify-center text-3xl ${colorClass} shadow-sm border border-white/50 mb-4 relative z-10`}>
-                          {icon}
-                        </div>
-                        <h3 className={`h-7 flex items-center justify-center font-black text-lg ${textClass} mb-1.5 relative z-10`}>{title}</h3>
-                        <p className="min-h-5 text-sm font-semibold text-stone-500 relative z-10">{text}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {i < 4 && <div className="lg:hidden w-1 h-8 bg-gradient-to-b from-stone-200 to-stone-300 rounded-full my-2"></div>}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-20 relative overflow-hidden rounded-[2.5rem] border border-yellow-200 bg-gradient-to-br from-yellow-50 via-white to-amber-50 p-8 sm:p-10 shadow-2xl shadow-yellow-500/10 reveal-on-scroll">
-            <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-yellow-300 rounded-full blur-[80px] opacity-40"></div>
-            <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-amber-400 rounded-full blur-[80px] opacity-20"></div>
-
-            <div className="relative z-10 flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left">
-              <div className="relative w-16 h-16 shrink-0 rounded-[1.25rem] bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/30" aria-label="High ability student thinking badge">
-                <Brain className="w-10 h-10" strokeWidth={1.75} />
-                <span className="absolute right-2 top-1 text-sm font-black leading-none">+</span>
-                <span className="absolute right-1.5 top-4 h-1.5 w-1.5 rounded-full bg-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black text-stone-900">Advanced students get harder content.</h3>
-                <p className="mt-3 text-stone-600 font-medium text-lg leading-relaxed max-w-3xl text-justify [text-align-last:left]">
-                  If a student consistently performs strongly, the platform dynamically adapts, moving them to <strong className="font-bold text-amber-700">HOTS (Higher Order Thinking Skills)</strong> questions, challenge quizzes, and advanced mock exams.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
       {/* GAMIFICATION */}
       <section className="py-20 bg-gradient-to-br from-amber-50 via-white to-amber-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
