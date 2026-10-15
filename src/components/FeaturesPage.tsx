@@ -406,7 +406,7 @@ export const FeaturesPage: React.FC = () => {
               </div>
 
               {/* Pillar 6: Verification Guarantee */}
-              <div className="p-6 sm:p-8 rounded-3xl bg-yellow-400 text-stone-950 flex flex-col justify-between">
+              <div className="p-6 sm:p-8 rounded-3xl bg-yellow-400 text-stone-950 border border-amber-300 hover:bg-amber-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
                 <div>
                   <div className="w-12 h-12 rounded-2xl bg-stone-950 text-amber-400 flex items-center justify-center font-black shadow-md mb-5">
                     <ShieldCheck className="w-6 h-6" />
