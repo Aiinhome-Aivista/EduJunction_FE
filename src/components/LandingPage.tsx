@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { PublicHeader } from "./common/PublicHeader";
 import { PublicFooter } from "./common/PublicFooter";
@@ -137,12 +138,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [isGeneratingMock, setIsGeneratingMock] = useState<boolean>(false);
   const [mockSuccessMsg, setMockSuccessMsg] = useState<string | null>(null);
   const [previewTrack, setPreviewTrack] = useState<any | null>(null);
+  const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setPreviewTrack(null);
+      if (e.key === "Escape") {
+        setPreviewTrack(null);
+        setActiveFeatureModal(null);
+      }
     };
-    if (previewTrack) {
+    if (previewTrack || activeFeatureModal) {
       window.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
     } else {
@@ -152,7 +157,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "unset";
     };
-  }, [previewTrack]);
+  }, [previewTrack, activeFeatureModal]);
 
   const handleStartFreeMock = async () => {
     try {
@@ -450,9 +455,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     loadWord(currentWordIndex);
   };
 
-  const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(
-    null,
-  );
   const [demoMcqSelected, setDemoMcqSelected] = useState<number | null>(null);
   const [demoBadgeClaimed, setDemoBadgeClaimed] = useState<boolean>(false);
 
@@ -1596,14 +1598,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             const headerGradient = modalThemes[activeFeatureModal] || 'from-amber-500/15 via-amber-50/80 to-white';
 
-            return (
+            return createPortal(
               <div
                 onClick={() => setActiveFeatureModal(null)}
-                className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-stone-950/75 backdrop-blur-md animate-in fade-in duration-200"
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-stone-950/75 backdrop-blur-md animate-in fade-in duration-200"
               >
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-white w-full max-w-2xl sm:max-w-3xl lg:max-w-[800px] rounded-[26px] shadow-2xl border border-stone-200/90 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+                  className="bg-white w-full max-w-2xl sm:max-w-3xl lg:max-w-[800px] rounded-[26px] shadow-2xl border border-stone-200/90 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
                 >
                   {/* Clean Header (No logo/icon box) */}
                   <div className={`p-4 sm:p-5 px-6 border-b border-stone-200/70 bg-gradient-to-r ${headerGradient} flex items-center justify-between gap-4 shrink-0`}>
@@ -1626,8 +1628,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </button>
                   </div>
 
-                  {/* Body (Balanced width, 2x2 highlights, no blinking dot) */}
-                  <div className="p-5 sm:p-6 space-y-4">
+                  {/* Body (Balanced width, 2x2 highlights, scrollable if needed) */}
+                  <div className="p-5 sm:p-6 space-y-4 overflow-y-auto">
                     {/* Description Callout */}
                     <div className="p-3 sm:p-3.5 rounded-2xl bg-stone-50/90 border border-stone-200/80">
                       <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed">
@@ -1666,7 +1668,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     )}
                   </div>
                 </div>
-              </div>
+              </div>,
+              document.body
             );
           })()}
         </div>
@@ -2461,13 +2464,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
 
         {/* INTERACTIVE TRACK PREVIEW MODAL */}
-        {previewTrack && (
+        {previewTrack && createPortal(
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/60 backdrop-blur-sm animate-fade-in"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-stone-950/70 backdrop-blur-sm animate-fade-in"
             onClick={() => setPreviewTrack(null)}
           >
             <div
-              className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-stone-200 p-6 sm:p-8 max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-stone-200 p-6 sm:p-8 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
@@ -2590,7 +2593,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </section>
 
