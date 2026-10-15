@@ -213,7 +213,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-      const landingSubPaths = ['/home', '/features', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/magic-word-arena', '/for-everyone'];
+      const landingSubPaths = ['/home', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/magic-word-arena', '/for-everyone'];
       if (landingSubPaths.includes(location.pathname)) {
         window.history.replaceState(null, '', '/');
         navigate('/', { replace: true });
@@ -576,20 +576,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 >
                   Sign Up For FREE <ArrowRight className="w-4 h-4" />
                 </button>
-                <Link
-                  to="/actions-demo"
+                <a
+                  href="#actions-demo"
                   className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-white border border-stone-200 hover:border-yellow-400 hover:bg-yellow-50/80 text-stone-800 hover:text-yellow-900 font-bold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-xs text-sm sm:text-base"
                 >
                   <Play className="w-4 h-4 fill-current text-yellow-500" />
                   See How It Works
-                </Link>
+                </a>
               </div>
 
               {/* Process Steps (1. Assess -> 2. Analyze -> 3. Learn -> 4. Improve) - Squarish rounded-xl matching buttons */}
               <div className="pt-2 flex flex-wrap items-center gap-2.5 text-xs sm:text-sm font-bold text-stone-700">
                 {['Assess', 'Analyze', 'Learn', 'Improve'].map((item, i) => (
                   <React.Fragment key={item}>
-                    <span className="px-3.5 py-1.5 rounded-xl bg-yellow-50/90 border border-yellow-300 text-stone-900 shadow-2xs">
+                    <span
+                      className="px-3.5 py-1.5 rounded-xl text-white shadow-2xs"
+                      style={{
+                        backgroundColor: ['#fef3c7', '#f0f9ff', '#fff1f2', '#ecfdf5'][i],
+                        borderColor: ['#fcd34d', '#7dd3fc', '#fda4af', '#6ee7b7'][i],
+                        color: ['#78350f', '#0c4a6e', '#881337', '#064e3b'][i],
+                        borderWidth: '1px',
+                      }}
+                    >
                       {i + 1}. {item}
                     </span>
                     {i < 3 && <ArrowRight className="w-3.5 h-3.5 text-yellow-500 shrink-0" />}
@@ -1287,7 +1295,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="mt-4 text-3xl sm:text-4xl font-black text-stone-900 tracking-normal"
               style={{ wordSpacing: '0.25em' }}
             >
-              EXPERIENCE Edu<span className="text-yellow-500">Junction</span> IN <span className="text-yellow-500">ACTION</span> 🚀
+              Experience Edu<span className="text-yellow-500">Junction</span> in <span className="text-yellow-500">Action</span> 🚀
             </h2>
             <p className="mt-3 text-stone-600 text-sm sm:text-base font-medium">
               Watch our interactive walkthrough video and try our hands-on demo below.
@@ -1553,7 +1561,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="mt-4 text-3xl sm:text-4xl lg:text-4xl font-black text-stone-900 tracking-normal leading-tight whitespace-nowrap overflow-x-auto pb-2"
               style={{ wordSpacing: '0.25em' }}
             >
-              Edu<span className="text-yellow-500">Junction</span> vs <span className="text-yellow-500">OTHER</span> PLATFORMS
+              Edu<span className="text-yellow-500">Junction</span> vs <span className="text-black-500">Other</span> Platforms
             </h2>
           </div>
 
@@ -1656,10 +1664,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       } else if (role === 'student') {
                         openAuth('login');
                       } else {
-                        document.getElementById('personalization')?.scrollIntoView({
-                          behavior: 'smooth',
-                          block: 'start',
-                        });
+                        navigate('/features#personalization');
                       }
                     }}
                     className="mt-6 text-sm font-extrabold text-yellow-500 flex items-center gap-1"
@@ -1678,89 +1683,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* PERSONALIZATION EXAMPLE */}
-      <section id="personalization" className="py-20 bg-white relative z-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs font-bold">
-              <Brain className="w-3.5 h-3.5" />
-              Study Buddy Personalization
-            </div>
-            <h2
-              className="mt-4 text-3xl sm:text-4xl font-black tracking-normal capitalize"
-              style={{ wordSpacing: '0.25em' }}
-            >
-              NOT THE SAME LESSON FOR EVERYONE
-            </h2>
-            <p className="mt-3 text-stone-600">
-              Example: Rahul struggles with Geometry, so the platform changes his next steps.
-            </p>
-          </div>
-
-          <div className="mt-16 relative">
-            <style>{`
-              @keyframes float-card {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-8px); }
-              }
-              .animate-float-card {
-                animation: float-card 4s ease-in-out infinite;
-              }
-            `}</style>
-
-            <div className="hidden lg:block absolute top-1/2 left-[5%] right-[5%] h-1.5 bg-gradient-to-r from-blue-200 via-purple-300 to-green-300 -translate-y-1/2 rounded-full opacity-60"></div>
-
-            <div className="grid lg:grid-cols-5 gap-6 lg:gap-4 relative z-10">
-              {[
-                ['📝', 'Assessment', 'Rahul scores 60%', 'bg-blue-100 border-blue-200', 'text-blue-700', 'lg:-translate-y-4'],
-                ['🔍', 'Study Buddy Finds', 'Geometry is weak', 'bg-red-100 border-red-200', 'text-red-700', 'lg:translate-y-4'],
-                ['📚', 'Recommends', 'Lesson + practice', 'bg-purple-100 border-purple-200', 'text-purple-700', 'lg:-translate-y-4'],
-                ['🎯', 'Retest', 'Mini mock exam', 'bg-orange-100 border-orange-200', 'text-orange-700', 'lg:translate-y-4'],
-                ['🎉', 'Improves', '60% → 82%', 'bg-green-100 border-green-200', 'text-green-700', 'lg:-translate-y-4'],
-              ].map(([icon, title, text, colorClass, textClass, offsetClass], i) => (
-                <div key={title} className={`relative flex flex-col items-center group ${offsetClass} reveal-on-scroll`} style={{ transitionDelay: `${i * 100}ms` }}>
-                  <div className="animate-float-card w-full">
-                    <div className="transition-transform hover:-translate-y-3 duration-300 relative">
-                      <div className="absolute inset-0 bg-white/40 blur-xl rounded-full group-hover:bg-yellow-400/20 transition-colors"></div>
-
-                      <div className={`relative w-full h-[190px] p-6 sm:p-8 lg:p-6 rounded-[2rem] bg-white/90 backdrop-blur-xl border border-white shadow-xl shadow-stone-200/50 flex flex-col items-center justify-center text-center z-10 overflow-hidden`}>
-                        <div className={`absolute top-0 right-0 w-24 h-24 ${colorClass} blur-3xl opacity-50 rounded-full -mr-10 -mt-10`}></div>
-
-                        <div className={`w-16 h-16 rounded-[1.25rem] flex items-center justify-center text-3xl ${colorClass} shadow-sm border border-white/50 mb-4 relative z-10`}>
-                          {icon}
-                        </div>
-                        <h3 className={`h-7 flex items-center justify-center font-black text-lg ${textClass} mb-1.5 relative z-10`}>{title}</h3>
-                        <p className="min-h-5 text-sm font-semibold text-stone-500 relative z-10">{text}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {i < 4 && <div className="lg:hidden w-1 h-8 bg-gradient-to-b from-stone-200 to-stone-300 rounded-full my-2"></div>}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-20 relative overflow-hidden rounded-[2.5rem] border border-yellow-200 bg-gradient-to-br from-yellow-50 via-white to-amber-50 p-8 sm:p-10 shadow-2xl shadow-yellow-500/10 reveal-on-scroll">
-            <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-yellow-300 rounded-full blur-[80px] opacity-40"></div>
-            <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-amber-400 rounded-full blur-[80px] opacity-20"></div>
-
-            <div className="relative z-10 flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left">
-              <div className="relative w-16 h-16 shrink-0 rounded-[1.25rem] bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/30" aria-label="High ability student thinking badge">
-                <Brain className="w-10 h-10" strokeWidth={1.75} />
-                <span className="absolute right-2 top-1 text-sm font-black leading-none">+</span>
-                <span className="absolute right-1.5 top-4 h-1.5 w-1.5 rounded-full bg-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black text-stone-900">Advanced students get harder content.</h3>
-                <p className="mt-3 text-stone-600 font-medium text-lg leading-relaxed max-w-3xl text-justify [text-align-last:left]">
-                  If a student consistently performs strongly, the platform dynamically adapts, moving them to <strong className="font-bold text-amber-700">HOTS (Higher Order Thinking Skills)</strong> questions, challenge quizzes, and advanced mock exams.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
       {/* GAMIFICATION */}
       <section className="py-20 bg-gradient-to-br from-amber-50 via-white to-amber-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Clock,
   CheckCircle2,
@@ -18,9 +18,10 @@ import {
   AlertCircle,
   Loader2,
   ChevronDown,
-  GraduationCap,
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
+import { PublicHeader } from './common/PublicHeader';
+import { PublicFooter } from './common/PublicFooter';
 
 interface QuestionItem {
   id: number;
@@ -364,60 +365,35 @@ export const QuickTestPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FFFDF8] font-sans text-stone-900 flex flex-col selection:bg-amber-200">
-      {/* Top Navbar - Exactly matching Landing Page PublicHeader height and width */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-stone-200 h-[72px]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/"
-              className="flex items-center gap-3 text-stone-900 hover:opacity-90 transition-opacity cursor-pointer select-none"
-            >
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-lg shadow-yellow-200 shrink-0">
-                <GraduationCap className="w-5 h-5 sm:w-5.5 sm:h-5.5" />
-              </div>
-              <div>
-                <div className="font-black text-lg sm:text-xl tracking-tight text-stone-900">
-                  Edu<span className="text-yellow-500">Junction</span>
-                </div>
-                <div className="text-[10px] sm:text-[11px] text-stone-800 font-semibold hidden sm:block">
-                  Smarter Learning Platform
-                </div>
-              </div>
-            </Link>
+      <PublicHeader />
 
-            <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-extrabold">
-              <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              Instant Quick Test Demo
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Quota Badge */}
-            <div className="flex items-center gap-2">
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-black border ${completedTestsCount >= MAX_FREE_TESTS
-                  ? 'bg-amber-100 border-amber-300 text-amber-900'
-                  : completedTestsCount === 1
-                    ? 'bg-amber-50 border-amber-300 text-amber-800'
-                    : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                  }`}
-              >
-                {completedTestsCount >= MAX_FREE_TESTS
-                  ? '🏆 2 of 2 Free Tests Used'
-                  : `⚡ Free Demo: ${MAX_FREE_TESTS - completedTestsCount} of ${MAX_FREE_TESTS} Remaining`}
-              </span>
-            </div>
-
-            <button
-              onClick={() => navigate('/')}
-              className="p-2 rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
-              title="Return to Home"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+      <div className="border-b border-amber-200/70 bg-white/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
+          <span className="hidden md:inline-flex items-center gap-1.5 text-amber-900 text-xs font-extrabold">
+            <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            Instant Quick Test Demo
+          </span>
+          <span
+            className={`ml-auto px-3 py-1 rounded-full text-xs font-black border ${completedTestsCount >= MAX_FREE_TESTS
+              ? 'bg-amber-100 border-amber-300 text-amber-900'
+              : completedTestsCount === 1
+                ? 'bg-amber-50 border-amber-300 text-amber-800'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              }`}
+          >
+            {completedTestsCount >= MAX_FREE_TESTS
+              ? '🏆 2 of 2 Free Tests Used'
+              : `⚡ Free Demo: ${MAX_FREE_TESTS - completedTestsCount} of ${MAX_FREE_TESTS} Remaining`}
+          </span>
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+            title="Return to Home"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-      </header>
+      </div>
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
@@ -1287,6 +1263,8 @@ export const QuickTestPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      <PublicFooter />
     </div>
   );
 };
