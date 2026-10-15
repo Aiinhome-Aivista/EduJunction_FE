@@ -536,7 +536,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 >
                   <Play className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   See How It Works
-                </a>
+                </Link>
               </div>
 
               {/* Process Steps (1. Assess -> 2. Analyze -> 3. Learn -> 4. Improve) - Squarish rounded-xl matching buttons */}
