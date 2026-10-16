@@ -497,7 +497,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         className="relative overflow-hidden bg-white pt-[72px] min-h-screen lg:h-screen lg:max-h-screen flex flex-col justify-between"
       >
         {/* MARQUEE TICKER - Restricted to and scrolling with the Hero Section */}
-        <div className="w-full overflow-hidden relative py-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none shrink-0">
+        <div className="w-full overflow-hidden relative z-30 py-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none shrink-0">
           <div
             className="flex items-center whitespace-nowrap w-max"
             style={{ animation: "navMarquee 80s linear infinite" }}
@@ -596,14 +596,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 EduJunction is the leading Learning Platform for CBSE, ICSE &
                 ISC Success.
                 It empowers students to master every
-                subject with AI-guided practice, instant step-by-step feedback,
+                subject with practice, instant step-by-step feedback,
                 personalized study paths, and exam-ready mock tests. Transform
                 your prep, boost your confidence, and score top marks
                 effortlessly!
               </p>
 
               {/* CTA Action Buttons - Pushed lower down with generous top padding */}
-              <div className="pt-6 sm:pt-8 lg:pt-10 flex flex-col sm:flex-row gap-3.5">
+              <div className="pt-6 sm:pt-8 lg:pt-10 flex flex-col sm:flex-row gap-3.5 sm:gap-8">
                 <button
                   onClick={() => openAuth("register")}
                   className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-extrabold shadow-yellow-200 flex items-center justify-center gap-2.5 cursor-pointer text-sm sm:text-base border border-amber-400/60"
@@ -621,7 +621,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               {/* Process Steps (1. Assess -> 2. Analyze -> 3. Learn -> 4. Improve) - Squarish rounded-xl matching buttons */}
-              {/* <div className="pt-2 flex flex-wrap items-center gap-2.5 text-xs sm:text-sm font-bold text-stone-700">
+              <div className="mt-6 sm:mt-7 flex flex-wrap items-center gap-2.5 text-xs sm:text-sm font-bold text-stone-700">
                 {['Assess', 'Analyze', 'Learn', 'Improve'].map((item, i) => (
                   <React.Fragment key={item}>
                     <span
@@ -638,11 +638,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     {i < 3 && <ArrowRight className="w-3.5 h-3.5 text-yellow-500 shrink-0" />}
                   </React.Fragment>
                 ))}
-              </div> */}
+              </div>
             </div>
 
             {/* HERO RIGHT IMAGE */}
-            <div className="lg:col-span-5 relative flex justify-center items-center">
+            <div className="lg:col-span-5 relative flex justify-center items-center h-full min-h-0 py-1">
               <style>{`
                 @keyframes float-animation {
                   0% { transform: translateY(0px); }
@@ -657,14 +657,51 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <img
                 src="/hero-duo-students-cutout.png"
                 alt="EduJunction Study Buddies"
-                className="w-auto h-auto max-h-[440px] sm:max-h-[490px] lg:max-h-[530px] xl:max-h-[570px] max-w-full object-contain animate-float-hero select-none"
+                className="w-auto h-auto max-h-[360px] sm:max-h-[400px] lg:max-h-[min(460px,calc(100vh-230px))] xl:max-h-[min(490px,calc(100vh-230px))] max-w-full object-contain animate-float-hero select-none"
               />
             </div>
           </div>
         </div>
 
+        {/* <div className="w-full overflow-hidden relative z-30 py-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none shrink-0">
+          <div
+            className="flex items-center whitespace-nowrap w-max"
+            style={{ animation: "navMarquee 80s linear infinite" }}
+          >
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+              <span key={i} className="flex items-center gap-3 pr-12">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-950 text-amber-300 text-[11px] font-black uppercase tracking-wider shadow-sm">
+                  <span>{i % 2 === 0 ? "✨" : "🎯"}</span>{" "}
+                  {i % 2 === 0 ? "NEW" : "TIPS"}
+                </span>
+                <span className="text-stone-950 font-medium text-sm sm:text-base tracking-normal">
+                  {i % 2 === 0 ? (
+                    <>
+                      Free Mock Test &amp; Model Test Papers for{" "}
+                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">
+                        CBSE
+                      </span>
+                      ,{" "}
+                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">
+                        ICSE
+                      </span>{" "}
+                      &amp;{" "}
+                      <span className="bg-stone-950/10 px-1.5 py-0.5 rounded text-stone-950 font-black">
+                        ISC
+                      </span>{" "}
+                      Boards
+                    </>
+                  ) : (
+                    <>Practice smart. Prepare better.</>
+                  )}
+                </span>
+              </span>
+            ))}
+          </div>
+        </div> */}
+
         {/* INTEGRATED QUICK VALUE BAR (Assess, Insights, Path, Rewards) */}
-        <div className="w-full bg-white/85 backdrop-blur-md border-t border-amber-200/80 py-2.5 sm:py-3 relative z-20 shrink-0">
+        {/* <div className="w-full bg-white/85 backdrop-blur-md border-t border-amber-200/80 py-2.5 sm:py-3 relative z-20 shrink-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-6">
               {[
@@ -689,31 +726,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               ))}
             </div>
           </div>
-        </div>
+        </div> */}
       </section>
 
       {/* ACTIONS & DEMO */}
-      <section id="actions-demo" className="pt-12 sm:pt-16 pb-16 sm:pb-20 bg-gradient-to-b from-amber-50/50 via-stone-50/40 to-amber-50/30 border-t border-amber-200/70 relative scroll-mt-[90px] overflow-hidden">
+      <section id="actions-demo" className="pt-4 sm:pt-6 pb-10 sm:pb-14 bg-gradient-to-b from-amber-50/50 via-stone-50/40 to-amber-50/30 border-t border-amber-200/70 relative scroll-mt-[72px] overflow-hidden">
         <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-yellow-200/30 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-yellow-100/90 border border-yellow-200/80 text-yellow-800 text-xs sm:text-sm font-bold shadow-2xs">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/90 border border-yellow-200/80 text-yellow-800 text-xs sm:text-sm font-bold shadow-2xs">
               <Lightbulb className="w-4 h-4 text-yellow-600 animate-pulse" />
               Actions &amp; Demo
             </div>
             <h2
-              className="mt-3 text-2xl sm:text-3xl lg:text-3xl xl:text-4xl font-black text-stone-900 tracking-tight leading-tight whitespace-normal sm:whitespace-nowrap"
+              className="mt-2 text-2xl sm:text-3xl lg:text-3xl xl:text-4xl font-black text-stone-900 tracking-tight leading-tight whitespace-normal sm:whitespace-nowrap"
             >
               Experience Edu<span className="text-yellow-500">Junction</span> in <span className="text-yellow-500">Action</span> 🚀
             </h2>
-            <p className="mt-2 text-stone-600 text-xs sm:text-sm xl:text-base font-medium max-w-xl mx-auto leading-relaxed">
+            <p className="mt-1 text-stone-600 text-xs sm:text-sm xl:text-base font-medium max-w-xl mx-auto leading-relaxed">
               Watch our interactive walkthrough video and try our hands-on demo below.
             </p>
           </div>
 
           {/* INTERACTIVE PLATFORM DEMO VIDEO */}
-          <div className="mt-10 sm:mt-12 w-full flex justify-center reveal-on-scroll">
+          <div className="mt-4 sm:mt-5 w-full flex justify-center reveal-on-scroll">
             <div className="relative w-full max-w-4xl aspect-video rounded-3xl overflow-hidden bg-[#fffbeb] border border-stone-200/80 shadow-xl ring-1 ring-stone-900/5">
               <iframe
                 src="/EduJunction-Getting-Started.html"
@@ -2611,10 +2648,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               FAQ
             </div>
             <h2
-              className="mt-6 text-4xl sm:text-5xl font-black tracking-normal text-stone-900 capitalize"
+              className="mt-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-normal text-stone-900 capitalize whitespace-nowrap"
               style={{ wordSpacing: "0.25em" }}
             >
-              Your Questions, Our Answers
+              Your Questions Our Answers
             </h2>
           </div>
 
