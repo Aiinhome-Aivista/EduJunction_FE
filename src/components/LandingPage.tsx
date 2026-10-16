@@ -241,7 +241,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       navigate("/", { replace: true });
       return;
     } else if (location.search.includes("auth=register")) {
-      openAuth("register");
+      const persona = location.search.includes("role=student") ? "student" : "parent";
+      openAuth("register", persona);
       navigate("/", { replace: true });
       return;
     }
@@ -289,12 +290,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     window.setTimeout(() => setIsEvaluating(false), 450);
   };
 
-  const smoothScrollTo = (targetId: string, duration = 1100) => {
+  const smoothScrollTo = (targetId: string, duration = 950) => {
     const el = document.getElementById(targetId);
     if (!el) return;
 
     // Temporarily pause PublicHeader URL tracking so it doesn't jitter during smooth glide
-    (window as any).__disableUrlSyncUntil = Date.now() + duration + 400;
+    (window as any).__disableUrlSyncUntil = Date.now() + duration + 300;
     if (window.location.pathname === '/actions-demo') {
       window.history.replaceState(null, '', '/');
     }
@@ -306,7 +307,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     const distance = targetY - startY;
     const startTime = performance.now();
 
-    // Luxurious smooth cubic easeInOut curve for slow and gentle arrival
+    // Luxurious smooth cubic easeInOut curve for gentle pickup and velvety smooth arrival
     const easeInOutCubic = (t: number) =>
       t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
@@ -395,6 +396,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
   const [isWordComplete, setIsWordComplete] = useState(false);
   const [showSecretHint, setShowSecretHint] = useState(false);
+  const [wrongLetterIdx, setWrongLetterIdx] = useState<number | null>(null);
 
   const activeWordObj = ACADEMIC_WORDS[currentWordIndex] || ACADEMIC_WORDS[0];
 
@@ -404,6 +406,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     setUsedOptionIndices([]);
     setIsWordComplete(false);
     setShowSecretHint(false);
+    setWrongLetterIdx(null);
 
     const lettersArr = word.split("");
     const extraPool = ["X", "Z", "M", "K", "L", "P", "R", "T", "B", "D"];
@@ -437,6 +440,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       if (updated.length === targetWord.length) {
         setIsWordComplete(true);
       }
+    } else {
+      setWrongLetterIdx(optionIdx);
+      setTimeout(() => setWrongLetterIdx(null), 450);
     }
   };
 
@@ -449,11 +455,44 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const nextWord = () => {
     const nextIdx = (currentWordIndex + 1) % ACADEMIC_WORDS.length;
     setCurrentWordIndex(nextIdx);
+    loadWord(nextIdx);
   };
 
   const resetCurrentWord = () => {
     loadWord(currentWordIndex);
   };
+
+  // Desktop physical keyboard listener for Concept Arena
+  useEffect(() => {
+    const handleArenaKeyDown = (e: KeyboardEvent) => {
+      const activeTag = (document.activeElement as HTMLElement)?.tagName;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) return;
+      if (previewTrack || activeFeatureModal) return;
+
+      if (e.key === 'Backspace') {
+        handleUndoLetter();
+        return;
+      }
+
+      if (e.key === 'Enter' && isWordComplete) {
+        nextWord();
+        return;
+      }
+
+      if (e.key.length === 1 && /^[a-zA-Z]$/.test(e.key) && !isWordComplete) {
+        const char = e.key.toUpperCase();
+        const optIdx = shuffledOptions.findIndex(
+          (letter, idx) => letter === char && !usedOptionIndices.includes(idx)
+        );
+        if (optIdx !== -1) {
+          handleLetterClick(char, optIdx);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleArenaKeyDown);
+    return () => window.removeEventListener('keydown', handleArenaKeyDown);
+  }, [shuffledOptions, usedOptionIndices, userLetters, isWordComplete, activeWordObj, previewTrack, activeFeatureModal]);
 
   const [demoMcqSelected, setDemoMcqSelected] = useState<number | null>(null);
   const [demoBadgeClaimed, setDemoBadgeClaimed] = useState<boolean>(false);
@@ -485,6 +524,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         .animate-float-3d {
           animation: float-3d 6s ease-in-out infinite;
         }
+        .hero-grid {
+          background-image:
+            linear-gradient(to right, rgba(120, 113, 108, 0.12) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(120, 113, 108, 0.12) 1px, transparent 1px);
+          background-size: 56px 56px;
+          -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 20%, transparent 80%);
+                  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 20%, transparent 80%);
+        }
       `}</style>
       {/* FIXED NAVBAR (Only the header stays fixed if needed) */}
       <div className="fixed top-0 left-0 right-0 z-50 shadow-sm bg-white">
@@ -494,10 +541,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* HERO SECTION (Full Viewport 100vh with Integrated Quick Value Strip) */}
       <section
         id="hero"
-        className="relative overflow-hidden bg-white pt-[72px] min-h-screen lg:h-screen lg:max-h-screen flex flex-col justify-between"
+        className="relative isolate overflow-hidden bg-white pt-[72px] min-h-screen lg:h-screen lg:max-h-screen flex flex-col justify-between"
       >
+        {/* FULL HERO SQUARE GRID BACKGROUND */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-white via-stone-50/60 to-amber-50/40" />
+          <div className="hero-grid absolute inset-0" />
+          <div className="absolute -top-32 right-[-8%] h-[34rem] w-[34rem] rounded-full bg-amber-200/40 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-[-10rem] left-[-8rem] h-[28rem] w-[28rem] rounded-full bg-emerald-100/50 blur-3xl pointer-events-none" />
+        </div>
         {/* MARQUEE TICKER - Restricted to and scrolling with the Hero Section */}
-        <div className="w-full overflow-hidden relative z-30 py-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none shrink-0">
+        {/* <div className="w-full overflow-hidden relative z-30 py-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none shrink-0">
           <div
             className="flex items-center whitespace-nowrap w-max"
             style={{ animation: "navMarquee 80s linear infinite" }}
@@ -532,10 +586,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </span>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* HERO MAIN CONTENT GRID (Vertically Centered with min-h-0) */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 flex-1 min-h-0 flex items-center w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 flex-1 min-h-0 flex items-center w-full">
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-6 items-center w-full">
             <div className="lg:col-span-7 flex flex-col justify-center">
               {/* Top Badges (Quick Test & Study Buddy) - Positioned higher with generous bottom margin */}
@@ -612,8 +666,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => smoothScrollTo('actions-demo', 1100)}
-                  className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white hover:text-yellow-300 font-bold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-sm text-sm sm:text-base border border-stone-800 cursor-pointer"
+                  onClick={() => smoothScrollTo('actions-demo', 950)}
+                  className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-white hover:text-yellow-300 font-bold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-sm text-sm sm:text-base border border-stone-800 cursor-pointer"
                 >
                   <Play className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   See How It Works
@@ -645,25 +699,60 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="lg:col-span-5 relative flex justify-center items-center h-full min-h-0 py-1">
               <style>{`
                 @keyframes float-animation {
-                  0% { transform: translateY(0px); }
+                  0%, 100% { transform: translateY(0px); }
                   50% { transform: translateY(-8px); }
-                  100% { transform: translateY(0px); }
                 }
                 .animate-float-hero {
                   animation: float-animation 6s ease-in-out infinite;
+                }
+                @keyframes float-chip-1 {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-7px); }
+                }
+                @keyframes float-chip-2 {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-8px); }
+                }
+                .animate-float-chip-1 {
+                  animation: float-chip-1 5.5s ease-in-out infinite 0.4s;
+                }
+                .animate-float-chip-2 {
+                  animation: float-chip-2 6.2s ease-in-out infinite 1.2s;
                 }
               `}</style>
 
               <img
                 src="/hero-duo-students-cutout.png"
                 alt="EduJunction Study Buddies"
-                className="w-auto h-auto max-h-[360px] sm:max-h-[400px] lg:max-h-[min(460px,calc(100vh-230px))] xl:max-h-[min(490px,calc(100vh-230px))] max-w-full object-contain animate-float-hero select-none"
+                className="w-auto h-auto max-h-[380px] sm:max-h-[440px] lg:max-h-[min(34rem,calc(100vh-230px))] xl:max-h-[min(36rem,calc(100vh-230px))] max-w-full object-contain animate-float-hero select-none relative z-10"
               />
+
+              {/* Floating Glass Info Chip 1 (Top-Left) */}
+              <div className="group absolute left-[-40px] sm:left-[-48px] lg:left-[-36px] xl:left-[-24px] top-[16%] z-20 hidden items-center gap-2.5 rounded-2xl border border-white/60 bg-white/40 px-3.5 py-2.5 ring-1 ring-stone-900/5 backdrop-blur-md animate-float-chip-1 transition-all duration-300 hover:bg-white/60 lg:flex select-none">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100/90 text-amber-700">
+                  <Brain className="h-4 w-4" />
+                </span>
+                <span className="leading-tight">
+                  <span className="block text-[13px] font-semibold text-stone-900">Concept Mastery</span>
+                  <span className="block text-[11px] text-stone-600">Step-by-step feedback</span>
+                </span>
+              </div>
+
+              {/* Floating Glass Info Chip 2 (Bottom-Right) */}
+              <div className="group absolute bottom-[14%] right-[-36px] sm:right-[-44px] lg:right-[-32px] xl:right-[-20px] z-20 hidden items-center gap-2.5 rounded-2xl border border-white/60 bg-white/40 px-3.5 py-2.5 ring-1 ring-stone-900/5 backdrop-blur-md animate-float-chip-2 transition-all duration-300 hover:bg-white/60 lg:flex select-none">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100/90 text-emerald-700">
+                  <FileText className="h-4 w-4" />
+                </span>
+                <span className="leading-tight">
+                  <span className="block text-[13px] font-semibold text-stone-900">Exam-ready mock tests</span>
+                  <span className="block text-[11px] text-stone-600">Personalized study paths</span>
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* <div className="w-full overflow-hidden relative z-30 py-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none shrink-0">
+        <div className="w-full overflow-hidden relative z-30 py-1.5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 border-b border-amber-600/30 shadow-xs select-none shrink-0">
           <div
             className="flex items-center whitespace-nowrap w-max"
             style={{ animation: "navMarquee 80s linear infinite" }}
@@ -698,7 +787,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </span>
             ))}
           </div>
-        </div> */}
+        </div>
 
         {/* INTEGRATED QUICK VALUE BAR (Assess, Insights, Path, Rewards) */}
         {/* <div className="w-full bg-white/85 backdrop-blur-md border-t border-amber-200/80 py-2.5 sm:py-3 relative z-20 shrink-0">
@@ -751,7 +840,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* INTERACTIVE PLATFORM DEMO VIDEO */}
           <div className="mt-4 sm:mt-5 w-full flex justify-center reveal-on-scroll">
-            <div className="relative w-full max-w-4xl aspect-video rounded-3xl overflow-hidden bg-[#fffbeb] border border-stone-200/80 shadow-xl ring-1 ring-stone-900/5">
+            <div className="relative w-full max-w-4xl aspect-video rounded-3xl overflow-hidden bg-[#fffbeb] border border-stone-200/80">
               <iframe
                 src="/EduJunction-Getting-Started.html"
                 title="Getting Started with EduJunction"
@@ -795,44 +884,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="grid lg:grid-cols-2 gap-3.5 lg:gap-5 items-stretch">
             {/* 1. Free Mock Test Papers - ICSE, CBSE & ISC 2027 (PRIMARY HERO SPOTLIGHT) */}
-            <div className="rounded-3xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-500 text-stone-950 p-4 sm:p-5 lg:p-4.5 xl:p-5 shadow-xl shadow-amber-500/20 border-2 border-amber-300 ring-2 ring-amber-400/20 flex flex-col justify-between relative overflow-hidden group hover:shadow-amber-500/30 hover:-translate-y-0.5 transition-all duration-300">
-              {/* Shimmer Light Accent */}
-              <div className="absolute -top-24 -right-24 w-60 h-60 bg-white/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
+            <div className="rounded-3xl bg-gradient-to-br from-amber-200 via-yellow-100 to-amber-200/90 text-stone-950 p-4 sm:p-5 lg:p-5 xl:p-5.5 border-2 border-amber-300 hover:border-amber-500 hover:ring-2 hover:ring-amber-400/30 flex flex-col justify-between relative overflow-hidden group hover:-translate-y-1.5 hover:scale-[1.008] transition-all duration-300 ease-out">
+              {/* Interactive Hover Light Shimmer */}
+              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none z-20" />
 
               <div className="space-y-1.5 lg:space-y-2 relative z-10">
                 <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-stone-950 text-yellow-300 text-xs font-black uppercase tracking-wider shadow-xs">
-                    <Sparkles className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950 text-amber-300 text-xs font-black uppercase tracking-wider group-hover:scale-105 transition-transform duration-300">
+                    {/* <Sparkles className="w-3.5 h-3.5 text-yellow-400 animate-pulse" /> */}
                     2027 Flagship Edition
                   </div>
-                  <span className="text-lg drop-shadow-sm">📝</span>
                 </div>
                 <h3 className="text-lg sm:text-xl lg:text-xl xl:text-2xl font-black text-stone-950 tracking-tight leading-snug">
                   Model Test Papers Available For :{" "}
-                  <span className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+                  <span className="inline-block mt-0.5 px-2.5 py-0.5 rounded-xl bg-stone-950 text-amber-300 font-black group-hover:bg-amber-950 transition-colors duration-300">
                     CBSE, ICSE &amp; ISC 2027
                   </span>
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-900 leading-snug font-semibold text-justify [text-align-last:left]">
+                <p className="text-xs sm:text-sm text-stone-900 leading-relaxed font-semibold text-justify [text-align-last:left]">
                   Access full-length authentic specimen model papers:{" "}
-                  <b>CBSE (3h • 80m)</b>, <b>ICSE (2.5h • 80m)</b> and{" "}
-                  <b>ISC (3h • 70/80m)</b>. Built on 10–15 years of past
+                  <b className="text-stone-950 font-black">CBSE (3h • 80m)</b>, <b className="text-stone-950 font-black">ICSE (2.5h • 80m)</b> and{" "}
+                  <b className="text-stone-950 font-black">ISC (3h • 70/80m)</b>. Built on 10–15 years of past
                   question patterns and step-by-step marking rubrics.
                 </p>
                 <div className="grid grid-cols-2 gap-1.5 pt-1">
                   {[
-                    "⏱️ CBSE: 3 Hours (80 Marks)",
-                    "⏱️ ICSE: 2.5 Hours (80 Marks)",
-                    "⏱️ ISC: 3 Hours (70/80 Marks)",
-                    "📄 PDF & Word Downloads",
+                    "CBSE: 3 Hours (80 Marks)",
+                    "ICSE: 2.5 Hours (80 Marks)",
+                    "ISC: 3 Hours (70/80 Marks)",
+                    "PDF & Word Downloads",
                     "10–15 Yrs Past Trends (2011–2026)",
-                    "🎯 Step-by-Step Marking Rules",
+                    "Step-by-Step Marking Rules",
                   ].map((tag) => (
                     <div
                       key={tag}
-                      className="px-2 py-1 rounded-xl bg-white/90 backdrop-blur-sm border border-amber-900/10 text-stone-950 text-xs sm:text-[12.5px] font-bold flex items-center gap-1 shadow-2xs"
+                      className="px-2.5 py-1.5 rounded-xl bg-white border border-amber-300/80 text-stone-950 text-xs sm:text-[12.5px] font-bold flex items-center gap-1.5 hover:border-amber-400 group-hover:bg-white/95 transition-all"
                     >
-                      <span className="text-emerald-700 font-extrabold text-sm">
+                      <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] font-black shrink-0">
                         ✓
                       </span>{" "}
                       {tag}
@@ -843,50 +931,49 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               <div className="pt-3 lg:pt-3 relative z-10">
                 <button
-                  onClick={() => openAuth("register")}
-                  className="m-auto py-2.5 px-5 rounded-2xl bg-stone-950 hover:bg-stone-900 text-yellow-400 hover:text-yellow-300 font-black text-xs sm:text-sm shadow-stone-950/20 transition-all cursor-pointer hover:scale-[1.01] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3"
+                  onClick={() => openAuth("register", "student")}
+                  className="m-auto py-2.5 px-6 rounded-2xl bg-stone-950 hover:bg-stone-900 text-amber-300 hover:text-yellow-200 font-black text-xs sm:text-sm transition-all cursor-pointer group-hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3 border border-stone-800"
                 >
                   Explore Model Test Papers{" "}
-                  <ArrowRight className="w-3.5 h-3.5 text-yellow-400 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="w-3.5 h-3.5 text-amber-300 transition-transform group-hover:translate-x-1.5" />
                 </button>
               </div>
             </div>
 
             {/* 2. Free Mock Test: Subject-Wise 10-Mark Diagnostic Mock Test Available (SUPPORTING CARD) */}
-            <div className="rounded-3xl bg-white/95 backdrop-blur-sm border border-stone-200/90 text-stone-900 p-4 sm:p-5 lg:p-4.5 xl:p-5 shadow-md shadow-stone-900/5 flex flex-col justify-between relative overflow-hidden group hover:shadow-lg hover:border-amber-300/80 transition-all">
+            <div className="rounded-3xl bg-white border-2 border-stone-200/90 text-stone-900 p-4 sm:p-5 lg:p-5 xl:p-5.5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-300 transition-all duration-300">
               <div className="space-y-1.5 lg:space-y-2 relative z-10">
                 <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-100 border border-yellow-300/80 text-amber-950 text-xs font-black">
-                    <Zap className="w-3.5 h-3.5 text-yellow-600 fill-current" />{" "}
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/90 border border-yellow-300/90 text-amber-950 text-xs font-black">
+                    {/* <Zap className="w-3.5 h-3.5 text-yellow-600 fill-current" />{" "} */}
                     Free Mock Test Available
                   </div>
-                  <span className="text-lg">⚡</span>
                 </div>
                 <h3 className="text-lg sm:text-xl lg:text-xl xl:text-2xl font-black text-stone-900 tracking-tight leading-snug">
                   Free Subject-Wise Mock Test
                 </h3>
-                <p className="text-xs sm:text-sm text-stone-600 leading-snug font-medium text-justify [text-align-last:left]">
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium text-justify [text-align-last:left]">
                   Understand your child’s learning level in just 15 minutes.{" "}
-                  <b>Create a free Parent Account</b>, choose Board (CBSE, ICSE,
+                  <b className="text-stone-900">Create a free Parent Account</b>, choose Board (CBSE, ICSE,
                   ISC) and Class (5-12), and unlock instant diagnostic reports
                   sent straight to your email.
                 </p>
 
                 <div className="grid grid-cols-2 gap-1.5 pt-1">
-                  <div className="p-1.5 lg:p-2 rounded-xl bg-amber-50/60 border border-amber-200/70">
-                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">
-                      📝 Free Mock Test
+                  <div className="p-2 sm:p-2.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 transition-all">
+                    <p className="text-xs sm:text-[13px] font-extrabold text-amber-950">
+                      Free Mock Test
                     </p>
                     <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">
                       15-Min timed test
                     </p>
                   </div>
-                  <div className="p-1.5 lg:p-2 rounded-xl bg-amber-50/60 border border-amber-200/70">
-                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">📊 Insights</p>
+                  <div className="p-2 sm:p-2.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 transition-all">
+                    <p className="text-xs sm:text-[13px] font-extrabold text-amber-950">Insights</p>
                     <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">Concept error detection</p>
                   </div>
-                  <div className="p-1.5 lg:p-2 rounded-xl bg-amber-50/60 border border-amber-200/70 col-span-2">
-                    <p className="text-xs sm:text-[13px] font-bold text-amber-900">
+                  <div className="p-2 sm:p-2.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 transition-all col-span-2">
+                    <p className="text-xs sm:text-[13px] font-extrabold text-amber-950">
                       📧 Direct Emailed PDF Report
                     </p>
                     <p className="text-[11px] sm:text-xs text-stone-600 mt-0.5 font-medium">
@@ -899,7 +986,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="pt-3 lg:pt-3 relative z-10 flex flex-col sm:flex-row items-center justify-center gap-2">
                 <button
                   onClick={() => openAuth("register")}
-                  className="w-fit py-2.5 px-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs sm:text-sm shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-95"
+                  className="w-full sm:w-auto py-2.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.02] active:scale-95 border border-amber-300/80"
                 >
                   <Users className="w-3.5 h-3.5 shrink-0" />
                   Create Free Parent Account
@@ -908,7 +995,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                 <button
                   onClick={() => openAuth("login")}
-                  className="w-fit py-2.5 px-3.5 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs sm:text-sm border border-stone-300 transition-all flex items-center justify-center cursor-pointer"
+                  className="w-full sm:w-auto py-2.5 px-4 rounded-2xl bg-stone-50 hover:bg-stone-100 text-stone-800 font-extrabold text-xs sm:text-sm border border-stone-200 transition-all flex items-center justify-center cursor-pointer hover:border-stone-300"
                 >
                   Sign In
                 </button>
@@ -919,181 +1006,251 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
 
-      {/* ==================== 2-COLUMN WORD BUILDER SECTION ==================== */}
-      <section id="magic-word-arena" className="pt-4 sm:pt-6 pb-16 bg-amber-50/60 relative z-20 font-sans select-none px-4 scroll-mt-[90px] overflow-hidden">
+      <section id="magic-word-arena" className="min-h-[calc(100vh-72px)] flex flex-col justify-center py-10 sm:py-14 lg:py-16 bg-gradient-to-b from-amber-50/40 via-white to-amber-50/30 border-t border-amber-200/70 relative z-20 font-sans select-none px-4 scroll-mt-[72px] overflow-hidden">
+        <style>{`
+          @keyframes tile-shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-4px); }
+            40%, 80% { transform: translateX(4px); }
+          }
+          .animate-tile-shake {
+            animation: tile-shake 0.4s ease-in-out;
+          }
+          @keyframes pop-in {
+            0% { transform: scale(0.88); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+          .animate-pop-in {
+            animation: pop-in 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+          }
+        `}</style>
 
         {/* Background Soft Glows */}
-        <div className="absolute top-5 left-1/4 w-72 h-72 bg-yellow-200/50 rounded-full blur-3xl animate-pulse pointer-events-none" />
-        <div className="absolute bottom-5 right-1/4 w-80 h-80 bg-orange-200/50 rounded-full blur-3xl animate-pulse delay-700 pointer-events-none" />
+        <div className="absolute top-5 left-1/4 w-72 h-72 bg-yellow-200/25 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-5 right-1/4 w-80 h-80 bg-orange-200/20 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto relative z-10 px-4">
-          {/* ACADEMIC CONCEPT ARENA */}
-          <div className="max-w-4xl mx-auto relative z-10 px-4">
-
-            {/* Academic Concept Arena Heading */}
-            <div className="text-center mb-8 reveal-on-scroll">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-100/90 border border-amber-300 text-amber-900 text-xs font-black mb-2 shadow-2xs">
-                <span>⚡</span> Academic Concept Arena
-              </div>
-              <h3
-                className="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-normal capitalize"
-                style={{ wordSpacing: '0.25em' }}
-              >
-                READ CLUES &amp; BUILD WORDS 🚀
-              </h3>
-              <p className="mt-2 text-stone-600 text-xs sm:text-sm font-semibold max-w-lg mx-auto">
-                Test your science, math &amp; general knowledge foundation across Class 5–12 syllabus!
-              </p>
+        <div className="max-w-5xl mx-auto relative z-10 px-2 sm:px-4 w-full my-auto">
+          {/* Header */}
+          <div className="text-center mb-7 sm:mb-9 reveal-on-scroll">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-100/90 border border-amber-300/80 text-amber-900 text-xs font-black mb-2.5">
+              <span className="text-amber-500 animate-pulse">⚡</span> Academic Concept Arena
             </div>
+            <h3
+              className="text-2xl sm:text-3xl lg:text-4xl font-black text-stone-900 tracking-tight leading-tight capitalize"
+              style={{ wordSpacing: '0.2em' }}
+            >
+              READ CLUES &amp; BUILD WORDS 🚀
+            </h3>
+            <p className="mt-1.5 text-stone-600 text-xs sm:text-sm font-medium max-w-lg mx-auto leading-relaxed">
+              Test your science, math &amp; general knowledge foundation !
+            </p>
+          </div>
 
-            {/* 2-COLUMN GRID SYSTEM (LEFT CLUE + RIGHT GAME) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+          {/* 2-COLUMN GRID SYSTEM */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 items-stretch">
 
-              {/* LEFT SIDE: CLUE CARD & LOGO */}
-              <div className="bg-gradient-to-br from-amber-100/80 via-orange-50/70 to-amber-50/90 backdrop-blur-xl border border-amber-200/90 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
+            {/* LEFT SIDE: CLUE CARD */}
+            <div className="bg-gradient-to-br from-amber-100/90 via-yellow-50/90 to-amber-100/70 border-2 border-amber-300 hover:border-amber-500 hover:ring-2 hover:ring-amber-400/35 rounded-3xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden transition-all duration-300 group hover:-translate-y-1.5 hover:scale-[1.008] ease-out">
+              {/* Interactive Hover Light Shimmer */}
+              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none z-20" />
 
-                {/* Question & Subject Header */}
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-white/95 border border-amber-300/80 text-amber-900 shadow-2xs">
-                      📚 {activeWordObj.subject}
-                    </span>
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-200/80 text-amber-950">
-                      {activeWordObj.classLevel}
-                    </span>
-                  </div>
-
-                  <div className="bg-white/95 border border-amber-200/80 rounded-2xl rounded-tl-none p-3.5 sm:p-4 shadow-2xs">
-                    <p className="text-sm md:text-base font-extrabold text-slate-800 leading-snug">
-                      {isWordComplete ? "Awesome! Concept Decoded! Click Next to try another one! 🎉" : activeWordObj.mascotMsg}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Clean Object Showcase Box (Without Circle, Isolated Like a PNG Image) */}
-                <div className="relative my-2 py-6 px-4 rounded-2xl bg-white/90 border border-amber-200/80 shadow-xs flex flex-col items-center justify-center text-center">
-                  <div className="mb-3 transform transition-transform duration-300 hover:scale-110 animate-gentle-float">
-                    <span className="text-6xl sm:text-7xl drop-shadow-md select-none leading-none inline-block filter">
-                      {activeWordObj.logo}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-stone-800 bg-amber-100/90 border border-amber-300/80 px-4 py-1.5 rounded-full shadow-2xs">
-                    {activeWordObj.hint}
+              <div className="relative z-10">
+                {/* Subject Header */}
+                <div className="flex items-center justify-between gap-2 mb-3.5">
+                  <span className="text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-xl bg-amber-200/90 border border-amber-300 text-amber-950 flex items-center gap-1.5 group-hover:bg-amber-300/80 transition-colors">
+                    <span>📚</span> {activeWordObj.subject}
+                  </span>
+                  <span className="text-[11px] font-extrabold text-amber-900 bg-white/90 px-3 py-1 rounded-xl border border-amber-300/80 flex items-center gap-1">
+                    Clue
                   </span>
                 </div>
 
-                {/* Secret Hint Revealer Button */}
-                <div className="mt-3.5">
-                  {!showSecretHint ? (
-                    <button
-                      onClick={() => setShowSecretHint(true)}
-                      className="w-full bg-white/90 hover:bg-white text-amber-900 border border-amber-300 text-xs font-black py-2.5 rounded-xl transition-all shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer hover:border-amber-400"
-                    >
-                      <span>💡</span> Need Extra Clue / Formula?
-                    </button>
-                  ) : (
-                    <div className="bg-amber-100/90 border border-amber-300 rounded-xl p-3 text-center animate-fade-in shadow-2xs">
-                      <p className="text-xs font-bold text-amber-950">
-                        {activeWordObj.secretHint}
-                      </p>
-                    </div>
-                  )}
+                {/* Question / Concept Clue Box */}
+                <div className="bg-white/95 border border-amber-300/80 group-hover:border-amber-400 rounded-2xl p-4 transition-all">
+                  <div className="text-[11px] font-black uppercase tracking-wider text-amber-700 mb-1.5 flex items-center gap-1.5">
+                    <HelpCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span>Concept Clue</span>
+                  </div>
+                  <p className="text-sm sm:text-[15px] font-extrabold text-stone-900 leading-snug">
+                    {isWordComplete
+                      ? "🎉 Awesome! Concept Decoded! Click 'Next Concept' on the right to continue!"
+                      : activeWordObj.mascotMsg.replace(/^Question:\s*/i, "")}
+                  </p>
                 </div>
 
+                {/* Visual Showcase Centerpiece */}
+                <div className="relative my-3 py-4 sm:py-5 px-4 rounded-2xl bg-gradient-to-b from-white/90 via-amber-50/50 to-amber-100/40 border border-amber-300/70 group-hover:border-amber-400 flex flex-col items-center justify-center text-center overflow-hidden transition-all">
+                  <div className="absolute w-24 h-24 rounded-full bg-amber-200/40 blur-xl pointer-events-none" />
+                  <div className="relative z-10 mb-2 transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-2">
+                    <span className="text-5xl sm:text-6xl select-none leading-none inline-block filter drop-shadow-xs">
+                      {activeWordObj.logo}
+                    </span>
+                  </div>
+                  <span className="relative z-10 text-xs sm:text-[13px] font-bold text-stone-800 bg-amber-100/90 border border-amber-300/80 px-4 py-1.5 rounded-full inline-flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" /> {activeWordObj.hint}
+                  </span>
+                </div>
               </div>
 
-              {/* RIGHT SIDE: GAME BOARD */}
-              <div className="bg-white/95 backdrop-blur-xl border border-amber-200/80 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between">
-
-                <div>
-                  {/* Top Game Bar */}
-                  <div className="flex items-center justify-between pb-3 mb-4 border-b border-amber-100">
-                    <span className="text-xs font-black text-amber-900 tracking-wider flex items-center gap-1.5 uppercase">
-                      <span>🎮</span> Concept Board ({currentWordIndex + 1}/{ACADEMIC_WORDS.length})
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      {userLetters.length > 0 && !isWordComplete && (
-                        <button
-                          onClick={handleUndoLetter}
-                          className="text-xs font-bold text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1"
-                          title="Undo last letter"
-                        >
-                          <RotateCcw className="w-3 h-3" /> Back
-                        </button>
-                      )}
-                      <button
-                        onClick={resetCurrentWord}
-                        className="text-xs font-bold text-amber-700 hover:text-amber-900 bg-amber-100/80 hover:bg-amber-200/80 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1"
-                      >
-                        <RotateCcw className="w-3 h-3" /> Reset
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Target Word Slots */}
-                  <div className="text-center my-6 sm:my-8">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-6">
-                      Tap letters below in sequence to solve the concept
+              {/* Extra Clue / Formula Expandable */}
+              <div className="mt-2 relative z-10">
+                <button
+                  type="button"
+                  onClick={() => setShowSecretHint(!showSecretHint)}
+                  className="w-full bg-white/95 hover:bg-white text-amber-950 border border-amber-300 hover:border-amber-400 text-xs font-black py-2.5 px-4 rounded-xl transition-all flex items-center justify-between cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Need Extra Clue / Formula?
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-300 ${showSecretHint ? "rotate-180 text-amber-600" : "text-amber-500"
+                      }`}
+                  />
+                </button>
+                {showSecretHint && (
+                  <div className="mt-2 bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-300 rounded-xl p-3 text-center animate-pop-in">
+                    <p className="text-xs font-bold text-amber-950 leading-relaxed">
+                      {activeWordObj.secretHint}
                     </p>
-
-                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
-                      {activeWordObj.word.split('').map((char, idx) => {
-                        const filledChar = userLetters[idx];
-                        return (
-                          <div
-                            key={idx}
-                            onClick={() => filledChar && handleUndoLetter()}
-                            className={`w-11 h-12 sm:w-12 sm:h-14 rounded-xl flex items-center justify-center text-lg sm:text-xl font-black transition-all duration-300 border cursor-pointer select-none ${filledChar
-                              ? 'bg-gradient-to-tr from-amber-400 to-orange-400 text-white border-amber-300 shadow-sm scale-105'
-                              : 'bg-slate-100/80 border-slate-200 text-slate-300'
-                              }`}
-                          >
-                            {filledChar || '_'}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Option Letters OR Success Screen */}
-                {!isWordComplete ? (
-                  <div className="mt-2">
-                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
-                      {shuffledOptions.map((letter, idx) => {
-                        const isUsed = usedOptionIndices.includes(idx);
-                        return (
-                          <button
-                            key={idx}
-                            disabled={isUsed}
-                            onClick={() => handleLetterClick(letter, idx)}
-                            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl font-black text-base sm:text-lg border transition-all cursor-pointer flex items-center justify-center ${isUsed
-                              ? 'opacity-25 pointer-events-none scale-90 bg-stone-100 border-stone-200 text-stone-300 shadow-none'
-                              : 'bg-gradient-to-br from-white to-amber-50 hover:from-amber-100 hover:to-orange-100 border border-amber-200/80 text-amber-900 shadow-2xs hover:shadow-xs hover:scale-105 active:scale-95'
-                              }`}
-                          >
-                            {letter}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-3">
-                    <div className="text-sm font-black text-emerald-600 mb-3">
-                      🎉 Excellent! Concept Decoded! 🌟
-                    </div>
-                    <button
-                      onClick={nextWord}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-white font-black text-xs sm:text-sm px-6 py-2.5 rounded-2xl shadow-sm active:scale-95 transition-all cursor-pointer tracking-wider inline-flex items-center gap-1.5"
-                    >
-                      Next Concept ➡️
-                    </button>
                   </div>
                 )}
-
               </div>
+            </div>
+
+            {/* RIGHT SIDE: GAME BOARD (Fresh Mint & Emerald palette - distinct from Amber clue card) */}
+            <div className="bg-gradient-to-br from-emerald-50/90 via-teal-50/50 to-emerald-100/60 border-2 border-emerald-300 rounded-3xl p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden">
+              <div className="relative z-10">
+                {/* Top Game Bar */}
+                <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-emerald-200/80">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-[13px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white flex items-center gap-1.5 border border-emerald-400">
+                      <Gamepad2 className="w-3.5 h-3.5 text-white" />
+                      Concept Board
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {userLetters.length > 0 && !isWordComplete && (
+                      <button
+                        type="button"
+                        onClick={handleUndoLetter}
+                        className="text-xs font-bold text-stone-800 hover:text-stone-950 bg-white/95 hover:bg-white px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 border border-emerald-200"
+                        title="Undo last letter"
+                      >
+                        <RotateCcw className="w-3 h-3" /> Back
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={resetCurrentWord}
+                      className="text-xs font-bold text-emerald-950 hover:text-stone-950 bg-emerald-100/90 hover:bg-emerald-200 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 border border-emerald-300"
+                      title="Reset word"
+                    >
+                      <RotateCcw className="w-3 h-3" /> Reset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={nextWord}
+                      className="text-xs font-bold text-teal-950 hover:text-stone-950 bg-teal-100/90 hover:bg-teal-200 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-0.5 border border-teal-300"
+                      title="Skip to next concept"
+                    >
+                      <span>Skip</span>
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Target Word Slots Stage */}
+                <div className="text-center my-3 bg-white/95 border-2 border-emerald-200/90 rounded-2xl py-3 px-2">
+                  <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-100/90 border border-emerald-300/80 text-[11px] font-black uppercase tracking-wider text-emerald-950 mb-3">
+                    <span>✨</span> Tap letters below in sequence to solve
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 py-1">
+                    {activeWordObj.word.split('').map((char, idx) => {
+                      const filledChar = userLetters[idx];
+                      const isNextActive = idx === userLetters.length && !isWordComplete;
+
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => filledChar && handleUndoLetter()}
+                          title={filledChar ? "Tap to undo this letter" : undefined}
+                          className={`w-10 h-13 sm:w-12 sm:h-15 md:w-13 md:h-16 rounded-2xl flex items-center justify-center text-xl sm:text-2xl font-black transition-all duration-200 select-none ${filledChar
+                            ? 'bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 text-stone-950 border-2 border-amber-300 border-b-4 border-b-amber-600 cursor-pointer active:scale-95 animate-pop-in'
+                            : isNextActive
+                              ? 'bg-emerald-100/80 border-2 border-dashed border-emerald-500 text-emerald-700 font-black animate-pulse'
+                              : 'bg-stone-50 border-2 border-dashed border-stone-200 text-stone-300'
+                            }`}
+                        >
+                          {filledChar || (isNextActive ? '?' : '•')}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Option Letters (Keyboard) OR Success Screen */}
+              {!isWordComplete ? (
+                <div className="mt-3 pt-3 border-t border-emerald-200/80">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-emerald-950/80 uppercase tracking-wider mb-2.5 px-1">
+                    <span>Available Letters</span>
+                    <span className="text-[10px] text-emerald-800/80 font-semibold hidden sm:inline">
+                      Tip: You can also use your keyboard
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 sm:flex sm:flex-wrap sm:justify-center gap-1.5 sm:gap-2 max-w-xs sm:max-w-none mx-auto">
+                    {shuffledOptions.map((letter, idx) => {
+                      const isUsed = usedOptionIndices.includes(idx);
+                      const isWrong = wrongLetterIdx === idx;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          disabled={isUsed}
+                          onClick={() => handleLetterClick(letter, idx)}
+                          className={`w-full sm:w-11 md:w-12 h-11 sm:h-12 md:h-13 rounded-2xl font-black text-lg sm:text-xl border-2 transition-all flex items-center justify-center select-none ${isUsed
+                            ? 'opacity-20 pointer-events-none scale-90 bg-stone-100 border-stone-200 text-stone-300'
+                            : isWrong
+                              ? 'animate-tile-shake bg-rose-100 border-rose-400 text-rose-700 scale-95'
+                              : 'bg-white hover:bg-emerald-50 active:bg-emerald-100 border-emerald-300 border-b-4 border-b-emerald-500 active:border-b-2 active:translate-y-0.5 text-stone-900 hover:border-emerald-400 hover:scale-105 cursor-pointer'
+                            }`}
+                        >
+                          {letter}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-3 pt-3 border-t border-emerald-200/80 text-center py-3 animate-pop-in">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-950 text-xs sm:text-sm font-black mb-2.5">
+                    <span>🎉</span> Excellent! Concept Decoded: <span className="underline decoration-emerald-500">{activeWordObj.word}</span>
+                  </div>
+                  <p className="text-xs text-stone-700 font-medium mb-3 max-w-sm mx-auto">
+                    {activeWordObj.hint}
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={resetCurrentWord}
+                      className="bg-white hover:bg-stone-100 text-stone-800 font-bold text-xs px-4 py-2.5 rounded-xl border border-stone-300 cursor-pointer transition-all"
+                    >
+                      Replay ↺
+                    </button>
+                    <button
+                      type="button"
+                      onClick={nextWord}
+                      className="bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-xs sm:text-sm px-6 py-2.5 rounded-xl hover:scale-105 active:scale-95 transition-all cursor-pointer tracking-wider inline-flex items-center gap-1.5 border border-emerald-400"
+                    >
+                      <span>Next Concept</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
 
             </div>
 
@@ -1105,19 +1262,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* FEATURES */}
       <section
         id="features"
-        className="py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-stone-50/60 via-amber-50/20 to-white border-b border-stone-200/60 relative scroll-mt-[72px] overflow-hidden"
+        className="min-h-[calc(100vh-72px)] flex flex-col justify-center py-6 sm:py-8 lg:py-10 bg-gradient-to-b from-stone-50/60 via-amber-50/20 to-white border-b border-stone-200/60 relative scroll-mt-[72px] overflow-hidden"
       >
         <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-yellow-200/30 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-amber-200/25 blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col justify-center my-auto">
-          <div className="text-center max-w-4xl mx-auto mb-8 sm:mb-10 reveal-on-scroll shrink-0">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-yellow-100/90 border border-yellow-300/80 text-yellow-900 text-xs sm:text-sm font-black shadow-2xs">
+          <div className="text-center max-w-4xl mx-auto mb-5 sm:mb-6 reveal-on-scroll shrink-0">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-yellow-100/90 border border-yellow-300/80 text-yellow-900 text-xs sm:text-sm font-black shadow-2xs">
               <Sparkles className="w-4 h-4 text-yellow-600 animate-pulse" />
               What You Can Do
             </div>
             <h2
-              className="mt-3 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight uppercase text-stone-900 leading-tight whitespace-normal sm:whitespace-nowrap"
+              className="mt-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight uppercase text-stone-900 leading-tight whitespace-normal sm:whitespace-nowrap"
               style={{ wordSpacing: "0.2em" }}
             >
               EVERYTHING YOU NEED TO{" "}
@@ -1125,12 +1282,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 KNOW BETTER
               </span>
             </h2>
-            <p className="mt-2 text-stone-600 text-xs sm:text-sm xl:text-base font-medium max-w-xl mx-auto leading-relaxed">
+            <p className="mt-1 text-stone-600 text-xs sm:text-sm xl:text-base font-medium max-w-xl mx-auto leading-relaxed">
               Simple tools for learning, practice, motivation and communication.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 lg:gap-4.5">
             {[
               {
                 id: "smart-assessment",
@@ -1151,8 +1308,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   "group-hover:bg-amber-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-amber-500/30",
                 tags: [
                   "Chapter Quizzes",
-                  "Step-by-Step Marks",
-                  "Instant Auto-Grade",
+                  "Step-by-Step",
+                  "Auto-Grade",
                 ],
                 highlights: [
                   "Chapter-wise diagnostic quizzes (5-10 mins)",
@@ -1179,9 +1336,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 buttonHover:
                   "group-hover:bg-yellow-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-yellow-500/30",
                 tags: [
-                  "Misconception Tracker",
-                  "Targeted Revisions",
-                  "Smart Study Plan",
+                  "Misconceptions",
+                  "Targeted Revision",
+                  "Study Plan",
                 ],
                 highlights: [
                   "Identifies misconception patterns before exam day",
@@ -1208,9 +1365,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 buttonHover:
                   "group-hover:bg-orange-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-orange-500/30",
                 tags: [
-                  "3-Tier Difficulty",
-                  "Weak Topic Drills",
-                  "Custom Paper Gen",
+                  "3-Tier Levels",
+                  "Weak Drills",
+                  "Custom Papers",
                 ],
                 highlights: [
                   "3-Tier Difficulty Calibration (Simple, Medium, Hard/HOTS)",
@@ -1236,7 +1393,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   "bg-emerald-500 text-white border-emerald-600/40 shadow-xs shadow-emerald-500/20",
                 buttonHover:
                   "group-hover:bg-emerald-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-emerald-500/30",
-                tags: ["Accuracy XP", "Milestone Badges", "Daily Streak Bonus"],
+                tags: ["Accuracy XP", "Badges", "Daily Streaks"],
                 highlights: [
                   "Earn XP points for quiz completions and accuracy",
                   'Unlock badges like "Math Wizard", "Formula Champ", "Streak Master"',
@@ -1261,7 +1418,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   "bg-sky-500 text-white border-sky-600/40 shadow-xs shadow-sky-500/20",
                 buttonHover:
                   "group-hover:bg-sky-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-sky-500/30",
-                tags: ["Real-Time Charts", "Topic Mastery %", "PDF Dossiers"],
+                tags: ["Real-Time Charts", "Mastery %", "PDF Reports"],
                 highlights: [
                   "Real-time accuracy & speed progress charts",
                   "Chapter-by-chapter mastery percentages",
@@ -1287,7 +1444,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 buttonHover:
                   "group-hover:bg-rose-600 group-hover:scale-105 group-hover:shadow-md group-hover:shadow-rose-500/30",
                 tags: [
-                  "Automated PDF Dispatch",
+                  "Auto PDF",
                   "Parent Portal",
                   "Teacher Notes",
                 ],
@@ -1306,26 +1463,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     setActiveFeatureModal(feature.id);
                     setDemoMcqSelected(null);
                   }}
-                  className={`group relative ${feature.cardBg} rounded-2xl sm:rounded-3xl border p-5 sm:p-6 shadow-sm hover:shadow-xl ${feature.cardHoverGlow} hover:-translate-y-1.5 active:translate-y-0 transition-all duration-300 reveal-on-scroll cursor-pointer overflow-hidden flex flex-col justify-between`}
+                  className={`group relative ${feature.cardBg} rounded-2xl border p-4 sm:p-4.5 lg:p-5 shadow-sm hover:shadow-xl ${feature.cardHoverGlow} hover:-translate-y-1 active:translate-y-0 transition-all duration-300 reveal-on-scroll cursor-pointer overflow-hidden flex flex-col justify-between`}
                 >
                   <div>
                     {/* Header: Category Badge + Title & Action Button */}
-                    <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex items-start justify-between gap-2.5 mb-2">
                       <div>
                         <span
-                          className={`inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md border ${feature.tagStyle} mb-1.5 shadow-2xs`}
+                          className={`inline-block text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${feature.tagStyle} mb-1 shadow-2xs`}
                         >
                           {feature.tag}
                         </span>
                         <h3
-                          className={`font-black text-stone-900 text-lg sm:text-xl leading-snug ${feature.titleHover} transition-colors`}
+                          className={`font-black text-stone-900 text-base sm:text-lg leading-snug ${feature.titleHover} transition-colors`}
                         >
                           {feature.title}
                         </h3>
                       </div>
 
                       <span
-                        className={`text-[11px] font-black px-3 py-1 rounded-full border ${feature.buttonDefault} ${feature.buttonHover} transition-all duration-300 shrink-0 inline-flex items-center gap-1 shadow-2xs`}
+                        className={`text-[10px] sm:text-[11px] font-black px-2.5 py-1 rounded-full border ${feature.buttonDefault} ${feature.buttonHover} transition-all duration-300 shrink-0 inline-flex items-center gap-1 shadow-2xs`}
                       >
                         Preview{" "}
                         <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
@@ -1335,17 +1492,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </div>
 
                     {/* Description Text */}
-                    <p className="text-xs sm:text-sm text-stone-700 leading-relaxed font-semibold">
+                    <p className="text-xs sm:text-[13px] text-stone-700 leading-snug sm:leading-relaxed font-semibold">
                       {feature.text}
                     </p>
                   </div>
 
-                  {/* Micro-Features Bottom Badges */}
-                  <div className="mt-5 pt-3.5 border-t border-stone-300/50 flex flex-wrap gap-1.5">
+                  {/* Micro-Features Bottom Badges (Single Line) */}
+                  <div className="mt-3.5 pt-2.5 border-t border-stone-300/50 flex items-center justify-between gap-1.5 w-full">
                     {feature.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white/90 border border-stone-200/80 text-stone-800 shadow-2xs group-hover:bg-white group-hover:border-stone-300 transition-colors"
+                        className="flex-1 text-center text-[10px] sm:text-[10.5px] font-bold px-1.5 py-1 rounded-lg bg-white/95 border border-stone-200/80 text-stone-800 shadow-2xs group-hover:bg-white group-hover:border-stone-300 transition-colors whitespace-nowrap truncate"
+                        title={tag}
                       >
                         {tag}
                       </span>
@@ -1715,32 +1873,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 💎 WHY EDUJUNCTION (EDITORIAL STORY & VALUE NARRATIVE) */}
       <section
         id="why-edujunction"
-        className="pt-4 sm:pt-6 pb-16 sm:pb-20 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-[90px]"
+        className="min-h-[calc(100vh-72px)] flex flex-col justify-center py-8 sm:py-12 lg:py-14 bg-white border-b border-stone-200/70 relative overflow-hidden scroll-mt-[72px]"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full my-auto">
           {/* Section Header */}
-          <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
+          <div className="text-center max-w-4xl mx-auto reveal-on-scroll">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100/80 border border-amber-300 text-amber-900 text-xs font-black uppercase tracking-wider shadow-xs">
               <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
               Why EduJunction
             </div>
             <h2
-              className="mt-4 text-3xl sm:text-4xl lg:text-4xl font-black text-stone-900 tracking-normal leading-tight whitespace-nowrap overflow-x-auto pb-2"
-              style={{ wordSpacing: "0.25em" }}
+              className="mt-3.5 text-3xl sm:text-4xl md:text-5xl lg:text-[46px] xl:text-5xl font-black text-stone-900 tracking-tight leading-tight whitespace-normal sm:whitespace-nowrap"
+              style={{ wordSpacing: "0.15em" }}
             >
               Edu<span className="text-yellow-500">Junction</span> vs <span className="text-yellow-500">Other</span> Platforms
             </h2>
           </div>
 
           {/* 2-Column Open / Borderless Layout: Left 3D Motion Image & Right Description */}
-          <div className="mt-10 lg:mt-12 grid lg:grid-cols-12 gap-6 lg:gap-8 items-center reveal-on-scroll">
+          <div className="mt-8 lg:mt-10 grid lg:grid-cols-12 gap-6 lg:gap-8 items-center reveal-on-scroll">
             {/* Left Side: Realistic Student Floating Cutout (Borderless, Transparent PNG on pure white) */}
             <div className="lg:col-span-5 flex items-center justify-center relative">
               <div className="relative w-full flex items-center justify-center">
                 <img
                   src="/why-edujunction-student-cutout.png"
                   alt="Student studying with EduJunction"
-                  className="w-full max-w-[380px] sm:max-w-[420px] lg:max-w-[450px] h-auto max-h-[440px] object-contain select-none transition-transform duration-500 hover:scale-105"
+                  className="w-full max-w-[360px] sm:max-w-[400px] lg:max-w-[440px] h-auto max-h-[420px] object-contain select-none transition-transform duration-500 hover:scale-105"
                   loading="lazy"
                 />
               </div>
@@ -1776,30 +1934,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* PERSONAS / FOR EVERYONE */}
       <section
         id="for-everyone"
-        className="pt-4 sm:pt-6 pb-16 sm:pb-20 relative bg-cover bg-center bg-no-repeat border-y border-stone-200/80 scroll-mt-[90px] overflow-hidden"
-        style={{ backgroundImage: `url('/roles-study-bg.jpg')` }}
+        className="min-h-[calc(100vh-72px)] flex flex-col justify-center py-8 sm:py-10 lg:py-12 relative bg-gradient-to-b from-amber-50/40 via-yellow-50/20 to-white border-y border-amber-200/50 scroll-mt-[72px] overflow-hidden"
       >
-        {/* Crisp & Clear Overlay (No Blur Filter) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-white/20 to-white/40 pointer-events-none" />
+        <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-yellow-200/30 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-amber-200/25 blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/95 backdrop-blur-sm border border-stone-200 text-stone-800 text-xs font-bold shadow-sm">
-              <Users className="w-3.5 h-3.5" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full my-auto">
+          <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100/95 border border-amber-300 text-amber-950 text-xs sm:text-sm font-black shadow-2xs">
+              <Users className="w-4 h-4 text-amber-600 animate-pulse" />
               One Platform, Three Perspectives
             </div>
             <h2
-              className="mt-4 text-3xl sm:text-4xl font-black capitalize tracking-normal text-stone-900 drop-shadow-xs"
-              style={{ wordSpacing: "0.25em" }}
+              className="mt-3.5 text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-black capitalize tracking-tight text-stone-900 leading-tight"
+              style={{ wordSpacing: "0.2em" }}
             >
               BUILT FOR EVERYONE AROUND THE LEARNER
             </h2>
-            <p className="mt-3 text-stone-700 font-semibold drop-shadow-xs">
+            <p className="mt-2 text-stone-600 font-semibold text-xs sm:text-sm md:text-base">
               Students learn, teachers guide, and parents stay connected.
             </p>
           </div>
 
-          <div className="mt-12 grid lg:grid-cols-3 gap-5">
+          <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             {(["parent", "student", "teacher"] as Role[]).map((role, i) => {
               const content = roleContent[role];
               const Icon = content.icon;
@@ -1808,38 +1965,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               return (
                 <div
                   key={role}
-                  className="text-left rounded-3xl p-6 border-2 border-yellow-300/90 bg-white/95 backdrop-blur-md shadow-xl shadow-stone-900/5 hover:shadow-2xl hover:shadow-yellow-500/15 hover:-translate-y-1 transition-all duration-300 reveal-on-scroll"
+                  className="text-left rounded-3xl p-5 sm:p-6 border-2 border-amber-300/80 bg-white/95 backdrop-blur-md shadow-lg shadow-amber-500/5 hover:shadow-xl hover:shadow-amber-500/15 hover:border-amber-400 hover:-translate-y-1 transition-all duration-300 reveal-on-scroll flex flex-col justify-between"
                   style={{ transitionDelay: `${i * 100}ms` }}
                 >
-                  <div className="flex items-start justify-between">
-                    <div
-                      className={`w-12 h-12 rounded-2xl ${role === "student"
-                        ? "bg-yellow-50 text-yellow-600"
-                        : role === "teacher"
-                          ? "bg-yellow-50 text-yellow-600"
-                          : "bg-sky-50 text-sky-600"
-                        } flex items-center justify-center`}
-                    >
-                      <Icon className="w-6 h-6" />
-                    </div>
-                  </div>
-
-                  <h3 className="mt-5 text-xl font-black">{content.title}</h3>
-                  <p className="mt-1 text-sm font-semibold text-stone-500">
-                    {content.subtitle}
-                  </p>
-
-                  <ul className="mt-5 space-y-3">
-                    {content.bullets.map((bullet) => (
-                      <li
-                        key={bullet}
-                        className="flex items-center gap-2.5 text-sm text-stone-700"
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div
+                        className={`w-11 h-11 rounded-2xl ${role === "student"
+                          ? "bg-amber-100 text-amber-700"
+                          : role === "teacher"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-sky-100 text-sky-700"
+                          } flex items-center justify-center`}
                       >
-                        <CheckCircle2 className="w-4 h-4 text-yellow-500 shrink-0" />
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                    </div>
+
+                    <h3 className="mt-4 text-lg sm:text-xl font-black text-stone-900">{content.title}</h3>
+                    <p className="mt-1 text-xs sm:text-sm font-semibold text-stone-500">
+                      {content.subtitle}
+                    </p>
+
+                    <ul className="mt-4 space-y-2.5">
+                      {content.bullets.map((bullet) => (
+                        <li
+                          key={bullet}
+                          className="flex items-center gap-2.5 text-xs sm:text-sm text-stone-700 font-medium"
+                        >
+                          <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
                   <button
                     type="button"
@@ -1847,19 +2006,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       if (role === "parent") {
                         openAuth("register");
                       } else if (role === "student") {
-                        openAuth("login");
+                        openAuth("register", "student");
                       } else {
-                        smoothScrollTo('actions-demo', 1100);
+                        smoothScrollTo('actions-demo', 950);
                       }
                     }}
-                    className="mt-6 text-sm font-extrabold text-yellow-500 flex items-center gap-1"
+                    className="mt-5 text-xs sm:text-sm font-extrabold text-amber-600 hover:text-amber-700 flex items-center gap-1 group transition-colors"
                   >
                     {role === "student"
                       ? "Start Learning"
                       : role === "teacher"
                         ? "See How It Works"
                         : "Parent Login"}
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
               );
@@ -1869,15 +2028,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* GAMIFICATION */}
-      <section className="py-12 sm:py-14 bg-gradient-to-br from-amber-50 via-white to-amber-50">
-        <div className="max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section
+        id="gamification"
+        className="min-h-[calc(100vh-72px)] flex flex-col justify-center py-8 sm:py-10 lg:py-12 bg-gradient-to-br from-amber-50 via-white to-amber-50 border-b border-amber-200/50 relative overflow-hidden scroll-mt-[72px]"
+      >
+        <div className="max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full my-auto">
           <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
 
             {/* 1st CARD (Left narrative & feature grid) */}
             <div className="reveal-on-scroll flex flex-col justify-between pl-1 sm:pl-2">
               <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white border border-amber-200 text-amber-700 text-xs font-bold shadow-2xs">
-                  <Trophy className="w-3.5 h-3.5 text-amber-600" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/95 border border-amber-300 text-amber-950 text-xs font-black shadow-2xs">
+                  <Trophy className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
                   Learning, but make it fun
                 </div>
                 <h2 className="mt-2.5 text-2xl sm:text-3xl lg:text-[2rem] xl:text-[2.15rem] font-black tracking-tight text-stone-900 leading-[1.2]">
@@ -2011,32 +2173,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
       {/* INTERACTIVE DEMO */}
-      <section id="demo" className="py-20 bg-white border-y border-stone-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section
+        id="demo"
+        className="min-h-[calc(100vh-72px)] flex flex-col justify-center py-6 sm:py-8 lg:py-10 bg-white border-y border-stone-200/80 relative overflow-hidden scroll-mt-[72px]"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full my-auto">
           <div className="text-center max-w-2xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs font-bold">
-              <Play className="w-3.5 h-3.5 fill-current" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100/95 border border-amber-300 text-amber-950 text-xs sm:text-sm font-black shadow-2xs">
+              <Play className="w-3.5 h-3.5 fill-current text-amber-600 animate-pulse" />
               Interactive Demo
             </div>
             <h2
-              className="mt-4 text-3xl sm:text-4xl font-black tracking-normal capitalize"
-              style={{ wordSpacing: "0.25em" }}
+              className="mt-3 text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-stone-900 uppercase leading-tight"
+              style={{ wordSpacing: "0.2em" }}
             >
               UNBOX THE FUTURE OF GRADING
             </h2>
-            <p className="mt-3 text-stone-600">
+            <p className="mt-1.5 text-xs sm:text-sm font-medium text-stone-600 max-w-xl mx-auto leading-relaxed">
               Try a sample student attempt and see how the platform gives useful
               feedback.
             </p>
           </div>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-2 reveal-on-scroll">
+          <div className="mt-5 sm:mt-6 flex flex-wrap justify-center gap-2 reveal-on-scroll">
             {(["math", "science"] as const).map((subject) => (
               <button
                 key={subject}
                 onClick={() => runDemo(subject)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold ${selectedSubject === subject
-                  ? "bg-yellow-400 text-stone-900"
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedSubject === subject
+                  ? "bg-amber-400 text-stone-900 shadow-xs"
                   : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                   }`}
               >
@@ -2045,8 +2210,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             ))}
           </div>
 
-          <div className="mt-7 grid lg:grid-cols-2 gap-5 reveal-on-scroll">
-            <div className="rounded-3xl bg-stone-50 border border-stone-200 p-6">
+          <div className="mt-5 sm:mt-6 grid lg:grid-cols-2 gap-4 sm:gap-5 reveal-on-scroll">
+            <div className="rounded-3xl bg-stone-50 border border-stone-200 p-5 sm:p-5.5">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-xs text-stone-500">
@@ -2089,7 +2254,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white border border-stone-200 p-6 shadow-sm">
+            <div className="rounded-3xl bg-white border border-stone-200 p-5 sm:p-5.5 shadow-sm">
               <div className="flex items-center justify-between pb-4 border-b border-stone-100">
                 <div className="flex items-center gap-2">
                   <div className="w-9 h-9 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center">
@@ -2163,49 +2328,46 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* CURRICULUM & LEARNING TRACKS */}
       <section
         id="curriculum-tracks"
-        className="relative py-24 bg-gradient-to-b from-stone-50/70 via-white to-amber-50/20 overflow-hidden"
+        className="min-h-[calc(100vh-72px)] flex flex-col justify-between pt-7 sm:pt-9 lg:pt-10 pb-5 sm:pb-7 lg:pb-8 bg-gradient-to-b from-stone-50/70 via-white to-amber-50/20 relative overflow-hidden scroll-mt-[72px]"
       >
         {/* Subtle Decorative Background Glows */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[320px] bg-gradient-to-b from-amber-200/25 via-amber-100/10 to-transparent blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-20 w-80 h-80 bg-sky-200/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-20 w-80 h-80 bg-rose-200/20 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex-1 flex flex-col justify-between py-0.5">
           {/* CENTERED HEADER */}
-          <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-300/60 text-amber-900 text-xs font-extrabold shadow-2xs mb-4">
+          <div className="text-center max-w-5xl mx-auto reveal-on-scroll shrink-0">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100/95 border border-amber-300 text-amber-950 text-xs sm:text-sm font-black shadow-2xs mb-2.5 sm:mb-3">
               <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
               <span>Tailored Academic Tracks</span>
             </div>
             <h2
-              className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-normal text-stone-900 capitalize"
-              style={{ wordSpacing: "0.25em" }}
+              className="text-xl sm:text-2xl md:text-3xl lg:text-[32px] xl:text-[36px] font-black tracking-tight text-stone-900 uppercase leading-tight whitespace-normal sm:whitespace-nowrap"
+              style={{ wordSpacing: "0.15em" }}
             >
               CHOOSE THE LEARNING TRACK{" "}
               <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">
                 THAT FITS
               </span>
             </h2>
-            <p className="mt-3.5 text-stone-600 text-sm sm:text-base font-medium leading-relaxed max-w-2xl mx-auto">
-              Comprehensive, syllabus-accurate practice for school board
-              excellence. Complete with
-              NCERT solutions, previous year papers, and instant step
-              feedback.
+            <p className="mt-2 sm:mt-2.5 text-stone-600 text-xs sm:text-sm font-medium leading-relaxed max-w-4xl mx-auto whitespace-normal sm:whitespace-nowrap">
+              Syllabus-accurate practice with NCERT solutions, previous year papers, and instant step-by-step scoring.
             </p>
 
-            {/* Quick Value Highlights Strip */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs font-bold text-stone-600">
+            {/* Quick Value Highlights Strip (Compact) */}
+            <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 text-xs font-bold text-stone-600">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200/80 shadow-2xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
-                Latest 2025–26 Pattern
+                2025–26 Pattern
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200/80 shadow-2xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-sky-600" />
-                Past 10-Yr Solved Papers
+                10-Yr Solved PYQs
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200/80 shadow-2xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-rose-600" />
-                Step-by-Step Evaluation
+                Step-by-Step Scoring
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-stone-200/80 shadow-2xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -2215,7 +2377,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* RICH INTERACTIVE TRACKS GRID */}
-          <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="my-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4.5 lg:gap-5 w-full items-stretch">
             {[
               {
                 id: "cbse-10",
@@ -2399,16 +2561,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div
                   key={track.id}
                   onClick={() => navigate('/quick-test')}
-                  className={`group relative flex flex-col justify-between bg-white rounded-3xl border ${track.theme.cardBorder} p-6 shadow-sm hover:shadow-2xl ${track.theme.glow} hover:-translate-y-2 transition-all duration-300 cursor-pointer`}
+                  className={`group relative flex flex-col justify-between bg-white rounded-2xl sm:rounded-3xl border-2 ${track.theme.cardBorder} p-4 sm:p-4.5 shadow-sm hover:shadow-xl ${track.theme.glow} hover:-translate-y-1 transition-all duration-300 cursor-pointer h-full`}
                 >
                   {/* Top Row: Badges */}
                   <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold border ${track.theme.badgeBg} shadow-2xs`}>
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${track.theme.badgeBg} shadow-2xs`}>
                         {track.level}
                       </span>
                       {track.popularTag && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-300/60 shadow-2xs">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-800 border border-amber-300/60 shadow-2xs">
                           <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
                           {track.popularTag}
                         </span>
@@ -2417,38 +2579,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                     {/* Titles */}
                     <h3
-                      className={`mt-5 font-black text-stone-900 text-lg sm:text-xl tracking-tight ${track.theme.accentHover} transition-colors`}
+                      className={`mt-2 font-black text-stone-900 text-base sm:text-[17px] tracking-tight ${track.theme.accentHover} transition-colors leading-snug`}
                     >
                       {track.title}
                     </h3>
-                    <div className="text-xs font-bold text-stone-600 mt-1">
+                    <div className="text-xs font-bold text-stone-600 mt-0.5">
                       {track.subtitle}
                     </div>
-                    <p className="mt-2 text-xs text-stone-500 leading-relaxed font-normal">
-                      {track.description}
-                    </p>
 
                     {/* Key Features List */}
-                    <div className="mt-4 pt-4 border-t border-stone-100 space-y-2">
+                    <div className="mt-3.5 pt-2.5 border-t border-stone-100 space-y-2">
                       {track.features.map((feature) => (
                         <div
                           key={feature}
-                          className="flex items-start gap-2 text-xs font-medium text-stone-700"
+                          className="flex items-start gap-1.5 text-xs font-semibold text-stone-700 leading-snug"
                         >
                           <CheckCircle2
                             className={`w-3.5 h-3.5 ${track.theme.checkColor} shrink-0 mt-0.5`}
                           />
-                          <span className="leading-tight">{feature}</span>
+                          <span>{feature}</span>
                         </div>
                       ))}
                     </div>
 
                     {/* Subject Pills */}
-                    <div className="mt-4 pt-3 border-t border-stone-100/90 flex flex-wrap gap-1.5">
+                    <div className="mt-3 pt-2.5 border-t border-stone-100/90 flex flex-wrap gap-1.5">
                       {track.subjects.map((sub) => (
                         <span
                           key={sub}
-                          className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-stone-100 text-stone-600 group-hover:bg-stone-200/70 transition-colors"
+                          className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-stone-100 text-stone-700 group-hover:bg-stone-200/80 transition-colors"
                         >
                           {sub}
                         </span>
@@ -2457,14 +2616,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
 
                   {/* Card Actions */}
-                  <div className="mt-6 pt-4 border-t border-stone-100/90 flex flex-col gap-2">
+                  <div className="mt-3.5 pt-2.5 border-t border-stone-100/90 flex flex-col gap-1">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate('/quick-test');
                       }}
-                      className={`w-full py-2.5 px-3 rounded-xl ${track.theme.actionBtn} font-black text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-98 transition-all duration-200 cursor-pointer`}
+                      className={`w-full py-2.5 px-3 rounded-xl ${track.theme.actionBtn} font-black text-xs flex items-center justify-center gap-1.5 shadow-2xs active:scale-98 transition-all duration-200 cursor-pointer`}
                     >
                       <span>Start Free Practice</span>
                       <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
@@ -2475,26 +2634,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             })}
           </div>
 
-          {/* HIGH-CONVERTING BOTTOM CTA BAR */}
-          <div className="mt-14 text-center flex flex-col items-center reveal-on-scroll">
-            <div className="inline-flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-            </div>
-
-            {/* TRUST BADGES */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs font-semibold text-stone-500">
+          {/* HIGH-CONVERTING BOTTOM TRUST BAR */}
+          <div className="text-center flex flex-col items-center reveal-on-scroll shrink-0 pt-1 pb-1">
+            <div className="flex flex-wrap items-center justify-center gap-y-1.5 gap-x-5 text-xs font-semibold text-stone-500">
               <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" /> No credit
-                card required
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> No credit card required
               </span>
               <span className="flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-amber-600" /> Instant step-by-step grading
+                <Zap className="w-3.5 h-3.5 text-amber-600" /> Instant step-by-step grading
               </span>
               <span className="flex items-center gap-1.5">
-                <BookOpen className="w-4 h-4 text-blue-600" /> Latest 2025–26
-                CBSE & ICSE syllabus
+                <BookOpen className="w-3.5 h-3.5 text-blue-600" /> Latest 2025–26 CBSE & ICSE syllabus
               </span>
               <span className="flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-purple-600" /> Free test included
+                <Users className="w-3.5 h-3.5 text-purple-600" /> Free test included
               </span>
             </div>
           </div>
