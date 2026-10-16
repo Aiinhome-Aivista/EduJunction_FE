@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Sparkles,
@@ -32,31 +32,10 @@ import { PublicHeader } from './common/PublicHeader';
 import { PublicFooter } from './common/PublicFooter';
 import { LoginPage } from './LoginPage';
 import ApiServices, { getStoredTokens } from '../services/ApiServices';
-import { Board, ClassGrade } from '../types';
-
-const BOARDS: Board[] = ['CBSE', 'ICSE', 'ISC'];
-
-const BOARD_CLASSES_MAP: Record<string, ClassGrade[]> = {
-  CBSE: ['Class 10', 'Class 12'],
-  ICSE: ['Class 10'],
-  ISC: ['Class 12'],
-};
-
-const SUBJECTS_BY_BOARD_CLASS: Record<string, string[]> = {
-  CBSE_10: ['Mathematics', 'Science (Physics/Chem/Bio)', 'Social Science', 'English'],
-  CBSE_12: ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'English', 'Computer Science'],
-  ICSE_10: ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'History & Civics', 'Geography', 'English'],
-  ISC_12: ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'English', 'Computer Science'],
-};
 
 export const PricingPage: React.FC = () => {
   const navigate = useNavigate();
   const isLoggedIn = !!getStoredTokens();
-
-  // Selected Board & Class filter
-  const [selectedBoard, setSelectedBoard] = useState<Board>('CBSE');
-  const [selectedClass, setSelectedClass] = useState<ClassGrade>('Class 10');
-  const [selectedSubject, setSelectedSubject] = useState<string>('Mathematics');
 
   // FAQ Accordion State
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
@@ -79,26 +58,6 @@ export const PricingPage: React.FC = () => {
   const openAuth = (mode: 'login' | 'register' = 'register', role: 'parent' | 'student' = 'student') => {
     setAuthModal({ isOpen: true, mode, defaultRole: role });
   };
-
-  // Sync available classes when board changes
-  useEffect(() => {
-    const classes = BOARD_CLASSES_MAP[selectedBoard] || ['Class 5'];
-    if (!classes.includes(selectedClass)) {
-      setSelectedClass(classes[0]);
-    }
-  }, [selectedBoard]);
-
-  // Sync available subjects
-  const currentSubjects = useMemo(() => {
-    const key = `${selectedBoard}_${selectedClass.replace('Class ', '')}`;
-    return SUBJECTS_BY_BOARD_CLASS[key] || SUBJECTS_BY_BOARD_CLASS['CBSE_10'];
-  }, [selectedBoard, selectedClass]);
-
-  useEffect(() => {
-    if (!currentSubjects.includes(selectedSubject)) {
-      setSelectedSubject(currentSubjects[0] || 'Mathematics');
-    }
-  }, [currentSubjects]);
 
   // Fetch active plans from backend if available
   useEffect(() => {
@@ -153,23 +112,24 @@ export const PricingPage: React.FC = () => {
 
       <main className="flex-1">
         {/* ============================================================== */}
-        {/* HERO SECTION                                                   */}
         {/* ============================================================== */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-amber-50/70 via-white to-stone-50 pt-16 sm:pt-20 pb-12 sm:pb-16 border-b border-amber-200/40">
+        {/* HERO & PRICING PLANS SECTION (FITS 100VH)                      */}
+        {/* ============================================================== */}
+        <section className="min-h-[calc(100vh-72px)] lg:h-[calc(100vh-72px)] flex flex-col justify-center relative overflow-hidden bg-gradient-to-br from-amber-50/70 via-white to-stone-50 py-3 sm:py-5 border-b border-amber-200/40">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
           <div className="absolute top-48 -left-32 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center w-full">
             {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/90 border border-amber-300/80 text-amber-950 text-xs font-black mb-4 shadow-2xs">
-              <Sparkles className="w-4 h-4 text-amber-600 fill-amber-500 animate-pulse" />
-              <span>Transparent & Accessible Board Prep Pricing</span>
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-100/90 border border-amber-300/80 text-amber-950 text-[11px] font-black mb-4 sm:mb-5 shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500 animate-pulse" />
+              <span>Transparent &amp; Accessible Board Prep Pricing</span>
             </div>
 
             {/* Main Headline with Word Spacing */}
             <h1
-              className="text-3xl sm:text-5xl lg:text-6xl font-black text-stone-900 tracking-normal [word-spacing:0.25em] leading-[1.15] max-w-4xl mx-auto uppercase"
-              style={{ wordSpacing: '0.25em' }}
+              className="text-3xl sm:text-5xl lg:text-6xl font-black text-stone-900 tracking-normal [word-spacing:0.2em] leading-[1.12] max-w-4xl mx-auto uppercase"
+              style={{ wordSpacing: '0.2em' }}
             >
               INVEST IN TOP RANKS,{' '}
               <span className="bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 bg-clip-text text-transparent">
@@ -177,117 +137,52 @@ export const PricingPage: React.FC = () => {
               </span>
             </h1>
 
-            <p className="mt-4 text-stone-700 text-sm sm:text-base lg:text-lg font-medium max-w-2xl mx-auto leading-relaxed">
-              Transparent, student-friendly pricing for CBSE, ICSE & ISC candidates. Start with our 100% free diagnostic tier — zero credit card required.
+            <p className="mt-3.5 sm:mt-4 text-stone-700 text-xs sm:text-sm font-medium max-w-xl mx-auto leading-relaxed">
+              Transparent, student-friendly pricing for CBSE, ICSE &amp; ISC candidates. Start free with instant result — zero credit card required.
             </p>
 
-            {/* Interactive Target Board & Class Filter */}
-            <div className="mt-8 max-w-2xl mx-auto p-4 sm:p-5 rounded-3xl bg-yellow-300  to-yellow-400 border border-amber-400 hover:shadow-xl shadow-amber-500/20">
-              <div className="text-xs font-black text-stone-900 uppercase tracking-wider mb-3 text-center">
-                Configure Pricing for Your Academic Target
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {/* Board Selector */}
-                <div>
-                  <label className="block text-[11px] font-black text-stone-900 mb-1">Target Board</label>
-                  <select
-                    value={selectedBoard}
-                    onChange={(e) => setSelectedBoard(e.target.value as Board)}
-                    className="w-full py-2.5 px-3 rounded-xl bg-white/90 border border-amber-500/60 text-xs font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-900/30"
-                  >
-                    {BOARDS.map((b) => (
-                      <option key={b} value={b}>{b} Board</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Class Selector */}
-                <div>
-                  <label className="block text-[11px] font-black text-stone-900 mb-1">Class / Grade</label>
-                  <select
-                    value={selectedClass}
-                    onChange={(e) => setSelectedClass(e.target.value as ClassGrade)}
-                    className="w-full py-2.5 px-3 rounded-xl bg-white/90 border border-amber-500/60 text-xs font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-900/30"
-                  >
-                    {(BOARD_CLASSES_MAP[selectedBoard] || ['Class 10']).map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Subject Selector */}
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[11px] font-black text-stone-900 mb-1">Primary Subject</label>
-                  <select
-                    value={selectedSubject}
-                    onChange={(e) => setSelectedSubject(e.target.value)}
-                    className="w-full py-2.5 px-3 rounded-xl bg-white/90 border border-amber-500/60 text-xs font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-900/30"
-                  >
-                    {currentSubjects.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================== */}
-        {/* 4-TIER PRICING MATRIX                                          */}
-        {/* ============================================================== */}
-        <section className="py-16 sm:py-20 bg-stone-50/50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid md:grid-cols-2 gap-6 items-stretch max-w-5xl mx-auto">
+            {/* Side-by-side Pricing Cards */}
+            <div className="grid md:grid-cols-2 gap-4 lg:gap-6 items-stretch max-w-3xl lg:max-w-4xl mx-auto mt-5 sm:mt-6 text-left">
               {/* TIER 1: FREE STARTER TIER */}
-              <div className="rounded-3xl bg-white border border-stone-200 p-6 sm:p-7 shadow-sm hover:shadow-xl hover:border-stone-300 transition-all flex flex-col justify-between">
+              <div className="rounded-2xl bg-white border border-stone-200 p-4 sm:p-5 shadow-sm hover:shadow-xl hover:border-stone-300 transition-all flex flex-col justify-between">
                 <div>
-                  <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-stone-100 text-stone-700">
-                    Free Starter
-                  </span>
-                  <h3 className="mt-4 text-xl font-black text-stone-900">Zero-Risk Diagnostic</h3>
-                  <p className="mt-1.5 text-xs text-stone-500 leading-relaxed font-normal">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-stone-100 text-stone-700">
+                      Free Starter
+                    </span>
+                    <span className="text-[10px] text-emerald-700 font-bold">No card or login needed</span>
+                  </div>
+                  <h3 className="mt-2 text-base sm:text-lg font-black text-stone-900">Zero-Risk</h3>
+                  <p className="mt-0.5 text-[11px] text-stone-500 leading-snug font-normal">
                     Experience verified curriculum questions and instant 0.05s evaluation.
                   </p>
 
-                  <div className="mt-5 pb-5 border-b border-stone-100">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-black text-stone-950">₹0</span>
-                      <span className="text-xs text-stone-500 font-bold">/ forever</span>
-                    </div>
-                    <div className="text-[11px] text-emerald-700 font-bold mt-1">No credit card or login needed</div>
+                  <div className="mt-2 pb-2 border-b border-stone-100 flex items-baseline gap-1">
+                    <span className="text-2xl sm:text-3xl font-black text-stone-950">₹0</span>
+                    <span className="text-xs text-stone-500 font-bold">/ forever</span>
                   </div>
 
-                  <ul className="mt-5 space-y-2.5 text-xs text-stone-700">
-                    <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span><strong>2 Free Practice Tests</strong> (Full 5-Min Diagnostics)</span>
+                  <ul className="mt-2 space-y-1.5 text-[11px] sm:text-xs text-stone-700">
+                    <li className="flex items-start gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>2 Free Practice Tests</strong> (Full 5-Min Assessment)</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>Instant 0.05s AI score &amp; weak-spot radar</span>
+                    <li className="flex items-start gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                      <span>Instant score &amp; weak-spot radar</span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>Free Student &amp; Parent dashboard access</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-stone-400">
-                      <X className="w-4 h-4 text-stone-300 shrink-0 mt-0.5" />
-                      <span>Full 3-Hour Board Specimen Mocks</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-stone-400">
-                      <X className="w-4 h-4 text-stone-300 shrink-0 mt-0.5" />
-                      <span>Printable Offline PDF Answer Papers</span>
+                    <li className="flex items-start gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                      <span>Free PDF download of the Assessment Report</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="mt-8 pt-4 border-t border-stone-100">
+                <div className="mt-3.5 pt-2 border-t border-stone-100">
                   <button
                     type="button"
                     onClick={() => handleTierAction('free')}
-                    className="w-full py-3 px-4 rounded-xl border border-stone-300 bg-stone-50 hover:bg-stone-300 text-stone-900 font-black text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full py-2 px-3.5 rounded-xl border border-stone-300 bg-stone-50 hover:bg-stone-200 text-stone-900 font-black text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <span>Start Free Practice Now</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -296,44 +191,43 @@ export const PricingPage: React.FC = () => {
               </div>
 
               {/* ACTIVE MODEL PAPER PLAN */}
-              <div className="rounded-3xl bg-gradient-to-b from-amber-500/10 via-white to-amber-100/20 border-2 border-amber-400 p-6 sm:p-7 hover:shadow-xl shadow-amber-400/15 relative flex flex-col justify-between">
+              <div className="rounded-2xl bg-gradient-to-b from-amber-500/10 via-white to-amber-100/20 border-2 border-amber-400 p-4 sm:p-5 hover:shadow-xl shadow-amber-400/15 relative flex flex-col justify-between">
                 <div>
-                  <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
-                    Model Paper Plan
-                  </span>
-                  <h3 className="mt-4 text-xl font-black text-stone-900">{activePlan.planName}</h3>
-                  <p className="mt-1.5 text-xs text-stone-600 leading-relaxed font-normal">
-                    {activePlan.description || `A ${activePlan.durationMinutes || 180}-minute model paper with ${activePlan.totalMarks || 80} marks, aligned to your selected board and class.`}
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                      Model Paper Plan
+                    </span>
+                  </div>
+                  <h3 className="mt-2 text-base sm:text-lg font-black text-stone-900">{activePlan.planName}</h3>
+                  <p className="mt-0.5 text-[11px] text-stone-600 leading-snug font-normal">
+                    {activePlan.description || `A ${activePlan.durationMinutes || 180}-minute model paper with ${activePlan.totalMarks || 80} marks, aligned to your curriculum.`}
                   </p>
 
-                  <div className="mt-5 pb-5 border-b border-amber-200/80">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-4xl font-black text-stone-950">₹{activePlan.priceInr ?? 300}</span>
-                      <span className="text-xs text-stone-500 font-bold">/ paper</span>
-                    </div>
-                    {/* <div className="text-[11px] text-amber-900 font-bold mt-1">{selectedBoard} {selectedClass} • {activePlan.durationMinutes || 180} minutes • {activePlan.totalMarks || 80} marks</div> */}
+                  <div className="mt-2 pb-2 border-b border-amber-200/80 flex items-baseline gap-1.5">
+                    <span className="text-2xl sm:text-3xl font-black text-stone-950">₹{activePlan.priceInr ?? 300}</span>
+                    <span className="text-xs text-stone-500 font-bold">/ paper</span>
                   </div>
 
-                  <ul className="mt-5 space-y-2.5 text-xs text-stone-800 font-medium">
+                  <ul className="mt-2 space-y-1.5 text-[11px] sm:text-xs text-stone-800 font-medium">
                     {(activePlan.features?.length ? activePlan.features : [
-                      'Board-aligned model question paper',
-                      'Step-by-step evaluation',
-                      'Review your results and learning gaps',
+                      'Board-aligned 3-hour model question paper',
+                      'Step-by-step AI grading & rubric marks',
+                      'Printable offline PDF answer paper',
                     ]).map((feature: string) => (
-                      <li key={feature} className="flex items-start gap-2">
-                        <Check className="w-4 h-4 text-amber-700 shrink-0 mt-0.5 stroke-[2.5]" />
+                      <li key={feature} className="flex items-start gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5 stroke-[2.5]" />
                         <span>{feature}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="mt-8 pt-4 border-t border-amber-200/80">
+                <div className="mt-3.5 pt-2 border-t border-amber-200/80">
                   <button
                     type="button"
                     onClick={() => handleTierAction('paid')}
                     disabled={isLoadingPlans}
-                    className="w-full py-3 px-4 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-black text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-amber-500/20 active:scale-98 disabled:opacity-60 disabled:cursor-wait"
+                    className="w-full py-2 px-3.5 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-black text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-amber-500/20 active:scale-98 disabled:opacity-60 disabled:cursor-wait"
                   >
                     <span>{isLoadingPlans ? 'Loading plan…' : `Get Model Paper (₹${activePlan.priceInr ?? 300})`}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -388,9 +282,9 @@ export const PricingPage: React.FC = () => {
         {/* ============================================================== */}
         {/* FREQUENTLY ASKED QUESTIONS ACCORDION                           */}
         {/* ============================================================== */}
-        <section className="py-20 bg-stone-50">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
+        <section className="min-h-screen flex flex-col justify-center py-16 bg-stone-50">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div className="text-center mb-10">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100 text-amber-900 text-xs font-black mb-3">
                 <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
                 <span>Got Questions?</span>
