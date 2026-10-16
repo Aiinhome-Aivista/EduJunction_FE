@@ -241,7 +241,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       navigate("/", { replace: true });
       return;
     } else if (location.search.includes("auth=register")) {
-      openAuth("register");
+      const persona = location.search.includes("role=student") ? "student" : "parent";
+      openAuth("register", persona);
       navigate("/", { replace: true });
       return;
     }
@@ -289,12 +290,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     window.setTimeout(() => setIsEvaluating(false), 450);
   };
 
-  const smoothScrollTo = (targetId: string, duration = 1100) => {
+  const smoothScrollTo = (targetId: string, duration = 950) => {
     const el = document.getElementById(targetId);
     if (!el) return;
 
     // Temporarily pause PublicHeader URL tracking so it doesn't jitter during smooth glide
-    (window as any).__disableUrlSyncUntil = Date.now() + duration + 400;
+    (window as any).__disableUrlSyncUntil = Date.now() + duration + 300;
     if (window.location.pathname === '/actions-demo') {
       window.history.replaceState(null, '', '/');
     }
@@ -306,7 +307,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     const distance = targetY - startY;
     const startTime = performance.now();
 
-    // Luxurious smooth cubic easeInOut curve for slow and gentle arrival
+    // Luxurious smooth cubic easeInOut curve for gentle pickup and velvety smooth arrival
     const easeInOutCubic = (t: number) =>
       t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
@@ -665,8 +666,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => smoothScrollTo('actions-demo', 1100)}
-                  className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white hover:text-yellow-300 font-bold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-sm text-sm sm:text-base border border-stone-800 cursor-pointer"
+                  onClick={() => smoothScrollTo('actions-demo', 950)}
+                  className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-white hover:text-yellow-300 font-bold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-sm text-sm sm:text-base border border-stone-800 cursor-pointer"
                 >
                   <Play className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   See How It Works
@@ -930,7 +931,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               <div className="pt-3 lg:pt-3 relative z-10">
                 <button
-                  onClick={() => openAuth("register")}
+                  onClick={() => openAuth("register", "student")}
                   className="m-auto py-2.5 px-6 rounded-2xl bg-stone-950 hover:bg-stone-900 text-amber-300 hover:text-yellow-200 font-black text-xs sm:text-sm transition-all cursor-pointer group-hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 group-hover:gap-3 border border-stone-800"
                 >
                   Explore Model Test Papers{" "}
@@ -1177,10 +1178,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                           onClick={() => filledChar && handleUndoLetter()}
                           title={filledChar ? "Tap to undo this letter" : undefined}
                           className={`w-10 h-13 sm:w-12 sm:h-15 md:w-13 md:h-16 rounded-2xl flex items-center justify-center text-xl sm:text-2xl font-black transition-all duration-200 select-none ${filledChar
-                              ? 'bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 text-stone-950 border-2 border-amber-300 border-b-4 border-b-amber-600 cursor-pointer active:scale-95 animate-pop-in'
-                              : isNextActive
-                                ? 'bg-emerald-100/80 border-2 border-dashed border-emerald-500 text-emerald-700 font-black animate-pulse'
-                                : 'bg-stone-50 border-2 border-dashed border-stone-200 text-stone-300'
+                            ? 'bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 text-stone-950 border-2 border-amber-300 border-b-4 border-b-amber-600 cursor-pointer active:scale-95 animate-pop-in'
+                            : isNextActive
+                              ? 'bg-emerald-100/80 border-2 border-dashed border-emerald-500 text-emerald-700 font-black animate-pulse'
+                              : 'bg-stone-50 border-2 border-dashed border-stone-200 text-stone-300'
                             }`}
                         >
                           {filledChar || (isNextActive ? '?' : '•')}
@@ -1211,10 +1212,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                           disabled={isUsed}
                           onClick={() => handleLetterClick(letter, idx)}
                           className={`w-full sm:w-11 md:w-12 h-11 sm:h-12 md:h-13 rounded-2xl font-black text-lg sm:text-xl border-2 transition-all flex items-center justify-center select-none ${isUsed
-                              ? 'opacity-20 pointer-events-none scale-90 bg-stone-100 border-stone-200 text-stone-300'
-                              : isWrong
-                                ? 'animate-tile-shake bg-rose-100 border-rose-400 text-rose-700 scale-95'
-                                : 'bg-white hover:bg-emerald-50 active:bg-emerald-100 border-emerald-300 border-b-4 border-b-emerald-500 active:border-b-2 active:translate-y-0.5 text-stone-900 hover:border-emerald-400 hover:scale-105 cursor-pointer'
+                            ? 'opacity-20 pointer-events-none scale-90 bg-stone-100 border-stone-200 text-stone-300'
+                            : isWrong
+                              ? 'animate-tile-shake bg-rose-100 border-rose-400 text-rose-700 scale-95'
+                              : 'bg-white hover:bg-emerald-50 active:bg-emerald-100 border-emerald-300 border-b-4 border-b-emerald-500 active:border-b-2 active:translate-y-0.5 text-stone-900 hover:border-emerald-400 hover:scale-105 cursor-pointer'
                             }`}
                         >
                           {letter}
@@ -2005,9 +2006,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       if (role === "parent") {
                         openAuth("register");
                       } else if (role === "student") {
-                        openAuth("login");
+                        openAuth("register", "student");
                       } else {
-                        smoothScrollTo('actions-demo', 1100);
+                        smoothScrollTo('actions-demo', 950);
                       }
                     }}
                     className="mt-5 text-xs sm:text-sm font-extrabold text-amber-600 hover:text-amber-700 flex items-center gap-1 group transition-colors"
