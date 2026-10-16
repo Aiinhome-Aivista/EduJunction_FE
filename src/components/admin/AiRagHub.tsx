@@ -1046,8 +1046,12 @@ export const AiRagHub: React.FC = () => {
               : 'text-stone-500 hover:text-stone-800'
               }`}
           >
-            <Database className="w-4 h-4 text-yellow-600" />
-            Curriculum & Vector Ingestion
+            {loadingStatus ? (
+              <Loader2 className="w-4 h-4 text-yellow-600 animate-spin" />
+            ) : (
+              <Database className="w-4 h-4 text-yellow-600" />
+            )}
+            <span>Curriculum & Vector Ingestion</span>
           </button>
           <button
             onClick={() => setActiveTab('playground')}
@@ -1083,7 +1087,7 @@ export const AiRagHub: React.FC = () => {
               <Sparkles className="w-4 h-4 text-amber-500" />
             </div>
             <p className="text-2xl font-black text-stone-900">
-              {ragStatus?.total_topics ?? 0}
+              {loadingStatus ? '...' : (ragStatus?.total_topics ?? 0)}
             </p>
             <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" /> Mapped Core Learning Concepts
@@ -1095,7 +1099,9 @@ export const AiRagHub: React.FC = () => {
               <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Indexed Chunks</span>
               <Layers className="w-4 h-4 text-yellow-600" />
             </div>
-            <p className="text-2xl font-black text-stone-900">{ragStatus?.total_chunks || 0}</p>
+            <p className="text-2xl font-black text-stone-900">
+              {loadingStatus ? '...' : (ragStatus?.total_chunks || 0)}
+            </p>
             <p className="text-[11px] text-stone-400 font-medium">300-500 token semantic segments</p>
           </div>
 
@@ -1104,7 +1110,9 @@ export const AiRagHub: React.FC = () => {
               <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Textbook Repository</span>
               <FileText className="w-4 h-4 text-blue-600" />
             </div>
-            <p className="text-2xl font-black text-stone-900">{ragStatus?.total_documents || 0}</p>
+            <p className="text-2xl font-black text-stone-900">
+              {loadingStatus ? '...' : (ragStatus?.total_documents || 0)}
+            </p>
             <p className="text-[11px] text-stone-400 font-medium">Official Curriculum Chapters</p>
           </div>
 
@@ -1113,7 +1121,9 @@ export const AiRagHub: React.FC = () => {
               <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Runbooks</span>
               <BookOpen className="w-4 h-4 text-amber-600" />
             </div>
-            <p className="text-2xl font-black text-stone-900">{ragStatus?.total_runbooks || 0}</p>
+            <p className="text-2xl font-black text-stone-900">
+              {loadingStatus ? '...' : (ragStatus?.total_runbooks || 0)}
+            </p>
             <p className="text-[11px] text-stone-400 font-medium">Curated Concepts & Formulas</p>
           </div>
         </div>
@@ -1609,10 +1619,11 @@ export const AiRagHub: React.FC = () => {
               </div>
               <button
                 onClick={fetchRagStatus}
-                className="p-2 hover:bg-stone-100 rounded-xl text-stone-500 transition-colors self-end sm:self-center cursor-pointer"
+                disabled={loadingStatus}
+                className="p-2 hover:bg-stone-100 rounded-xl text-stone-500 transition-colors self-end sm:self-center cursor-pointer disabled:opacity-50"
                 title="Refresh Status"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className={`w-4 h-4 ${loadingStatus ? 'animate-spin text-amber-600' : ''}`} />
               </button>
             </div>
 
@@ -1641,8 +1652,12 @@ export const AiRagHub: React.FC = () => {
             )}
 
             {loadingStatus ? (
-              <div className="py-20 text-center text-stone-400 font-medium text-xs animate-pulse">
-                Loading indexed documents...
+              <div className="py-24 flex flex-col items-center justify-center text-center space-y-3">
+                <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-stone-800">Loading indexed documents...</p>
+                  <p className="text-xs text-stone-400">Fetching ChromaDB vector repository files and chunks</p>
+                </div>
               </div>
             ) : !ragStatus?.documents || ragStatus.documents.length === 0 ? (
               <div className="py-20 text-center text-stone-400 space-y-2">

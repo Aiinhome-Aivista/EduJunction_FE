@@ -50,6 +50,8 @@ import {
   ArrowLeft,
   ArrowRight,
   RefreshCw,
+  FileCheck,
+  ClipboardCheck,
 } from 'lucide-react';
 import ApiServices, {
   storeTokens,
@@ -79,6 +81,7 @@ import { MockTestHub } from './MockTestHub';
 import { LlmConfigManager } from './LlmConfigManager';
 import { SubscriptionAdminManager } from './SubscriptionAdminManager';
 import { SeoAdminManager } from './SeoAdminManager';
+import { TestSubmissionsAdminManager } from './TestSubmissionsAdminManager';
 
 const JoditEditor = lazy(() => import('jodit-react'));
 
@@ -4590,6 +4593,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, user }) => {
       case 'Cpu': return <Cpu className="w-5 h-5" />;
       case 'CreditCard': return <CreditCard className="w-5 h-5" />;
       case 'Globe': return <Globe className="w-5 h-5" />;
+      case 'FileCheck': return <FileCheck className="w-5 h-5" />;
+      case 'ClipboardCheck': return <ClipboardCheck className="w-5 h-5" />;
+      case 'Tag': case 'TagIcon': case 'Tags': return <TagIcon className="w-5 h-5" />;
+      case 'BookMarked': return <BookMarked className="w-5 h-5" />;
       default: return <LayoutDashboard className="w-5 h-5" />;
     }
   };
@@ -4634,6 +4641,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, user }) => {
       icon: <CreditCard className="w-5 h-5" />,
       label: 'Subscriptions & Payments',
       navId: 'admin-nav-subscriptions'
+    });
+  }
+
+  const hasTestSubmissionsNav = dynamicNavItems.some(item => item.id === 'test-submissions' || item.id === 'testsubmissions');
+  if (!hasTestSubmissionsNav) {
+    navItems.push({
+      id: 'test-submissions',
+      route: '/admin/test-submissions',
+      icon: <FileCheck className="w-5 h-5" />,
+      label: 'Test Submissions',
+      navId: 'admin-nav-test-submissions'
     });
   }
 
@@ -4826,6 +4844,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, user }) => {
               'mock-tests': <MockTestHub />,
               mocktests: <MockTestHub />,
               mocktest: <MockTestHub />,
+              'test-submissions': <TestSubmissionsAdminManager />,
+              testsubmissions: <TestSubmissionsAdminManager />,
               'ai-rag': <AiRagHub />,
               airag: <AiRagHub />,
               'llm-config': <LlmConfigManager />,
