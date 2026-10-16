@@ -1321,7 +1321,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {
                 id: "study-buddy",
                 icon: Brain,
-                tag: "AI Mentor",
+                tag: "Mentor",
                 title: "Study Buddy Insights",
                 subtitle:
                   "mentor analyzing student learning behavior and common traps",

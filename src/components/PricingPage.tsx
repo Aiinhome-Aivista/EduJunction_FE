@@ -304,7 +304,7 @@ export const PricingPage: React.FC = () => {
               {[
                 {
                   q: 'Can I try EduJunction for free before paying anything?',
-                  a: 'Yes, absolutely! You can start immediately with our Free Starter tier which includes 2 full 5-minute quick diagnostic tests with instant AI grading. No credit card, payment details, or lengthy forms are required.',
+                  a: 'Yes, absolutely! You can start immediately with our Free Starter tier which includes 2 full 5-minute quick tests with instant AI grading. No credit card, payment details, or lengthy forms are required.',
                 },
                 {
                   q: 'Are the questions aligned with the latest 2025–2026 board exam pattern?',
@@ -315,7 +315,7 @@ export const PricingPage: React.FC = () => {
                   a: 'Yes! All purchased model papers and subject packs come with one-click downloadable offline PDF question papers and complete step-by-step answer keys, formatted perfectly for standard A4 printing.',
                 },
                 {
-                  q: 'How does the instant AI step evaluation work for subjective questions?',
+                  q: 'How does the instant step evaluation work for subjective questions?',
                   a: 'Unlike generic test sites that only check multiple-choice answers, EduJunction uses step-marking rubrics formulated from official board evaluator guidelines. It breaks down numerical formulas, derivations, and explanations to award appropriate partial credit and highlight mistakes.',
                 },
                 {

@@ -726,7 +726,7 @@ export const QuickTestPage: React.FC = () => {
                   <div>
                     <h3 className="text-sm font-black text-stone-900"> Instant Step-by-Step Evaluation</h3>
                     <p className="text-xs text-stone-600 mt-1 leading-relaxed">
-                      Instant doubt solving, misconception diagnostics, and tailored textbook concept explanations.
+                      Instant doubt solving, misconception solving, and tailored textbook concept explanations.
                     </p>
                   </div>
                 </div>
@@ -1223,7 +1223,7 @@ export const QuickTestPage: React.FC = () => {
               Well done! Ready to keep learning? 🎉
             </h3>
             <p className="mt-2 text-stone-600 text-xs sm:text-sm font-medium leading-relaxed">
-              Create a free account to save your progress and unlock personalized practice, instant AI feedback, and your Study Buddy. Get started in under a minute.
+              Create a free account to save your progress and unlock personalized practice, instant feedback, and your Study Buddy. Get started in under a minute.
             </p>
 
             {/* Value Props */}
@@ -1238,7 +1238,7 @@ export const QuickTestPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Continuous weakness diagnostics & performance charts</span>
+                <span>Continuous weakness evaluation & performance charts</span>
               </div>
             </div>
 
