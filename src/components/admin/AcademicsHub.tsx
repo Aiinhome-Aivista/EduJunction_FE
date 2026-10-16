@@ -22,7 +22,8 @@ import {
   Folder,
   FolderOpen,
   History,
-  Database
+  Database,
+  Loader2
 } from 'lucide-react';
 import ApiServices from '../../services/ApiServices';
 import { BOARD_CLASSES_MAP } from '../../types';
@@ -581,8 +582,12 @@ export const AcademicsHub: React.FC = () => {
                 : 'text-stone-500 hover:text-stone-800'
               }`}
           >
-            <Layers className="w-4 h-4 text-yellow-600" />
-            Curriculum Tree
+            {loadingTree ? (
+              <Loader2 className="w-4 h-4 text-yellow-600 animate-spin" />
+            ) : (
+              <Layers className="w-4 h-4 text-yellow-600" />
+            )}
+            <span>Curriculum Tree</span>
           </button>
           <button
             onClick={() => setActiveTab('questions')}
@@ -591,8 +596,12 @@ export const AcademicsHub: React.FC = () => {
                 : 'text-stone-500 hover:text-stone-800'
               }`}
           >
-            <HelpCircle className="w-4 h-4 text-yellow-600" />
-            Question Bank ({totalQuestions})
+            {loadingQuestions ? (
+              <Loader2 className="w-4 h-4 text-yellow-600 animate-spin" />
+            ) : (
+              <HelpCircle className="w-4 h-4 text-yellow-600" />
+            )}
+            <span>Question Bank ({totalQuestions})</span>
           </button>
         </div>
       </div>
@@ -609,37 +618,46 @@ export const AcademicsHub: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-stone-400">1. Target Board</span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-700 border border-yellow-200/60">
-                  {tree.length} Boards
+                  {loadingTree ? 'Loading...' : `${tree.length} Boards`}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                {tree.map((b) => (
-                  <button
-                    key={b.id}
-                    onClick={() => {
-                      setSelectedBoardId(b.id);
-                      const valid = b.classes || [];
-                      if (valid.length > 0) {
-                        setSelectedClassId(valid[0].id);
-                        if (valid[0].subjects.length > 0) {
-                          setSelectedSubjectId(valid[0].subjects[0].id);
+              {loadingTree ? (
+                <div className="py-8 flex flex-col items-center justify-center gap-2 text-stone-400">
+                  <Loader2 className="w-5 h-5 text-yellow-600 animate-spin" />
+                  <span className="text-xs font-medium text-stone-500">Loading boards...</span>
+                </div>
+              ) : tree.length === 0 ? (
+                <div className="py-6 text-center text-xs text-stone-400">No boards configured</div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {tree.map((b) => (
+                    <button
+                      key={b.id}
+                      onClick={() => {
+                        setSelectedBoardId(b.id);
+                        const valid = b.classes || [];
+                        if (valid.length > 0) {
+                          setSelectedClassId(valid[0].id);
+                          if (valid[0].subjects.length > 0) {
+                            setSelectedSubjectId(valid[0].subjects[0].id);
+                          } else {
+                            setSelectedSubjectId(null);
+                          }
                         } else {
+                          setSelectedClassId(null);
                           setSelectedSubjectId(null);
                         }
-                      } else {
-                        setSelectedClassId(null);
-                        setSelectedSubjectId(null);
-                      }
-                    }}
-                    className={`px-3 py-2.5 rounded-xl text-xs font-bold text-left transition-all border ${selectedBoardId === b.id
-                        ? 'bg-yellow-400 text-stone-900 border-yellow-500 shadow-xs font-black scale-[1.02]'
-                        : 'bg-stone-50 text-stone-600 border-stone-200/60 hover:bg-stone-100'
-                      }`}
-                  >
-                    {b.board_name}
-                  </button>
-                ))}
-              </div>
+                      }}
+                      className={`px-3 py-2.5 rounded-xl text-xs font-bold text-left transition-all border ${selectedBoardId === b.id
+                          ? 'bg-yellow-400 text-stone-900 border-yellow-500 shadow-xs font-black scale-[1.02]'
+                          : 'bg-stone-50 text-stone-600 border-stone-200/60 hover:bg-stone-100'
+                        }`}
+                    >
+                      {b.board_name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Class Grade selector */}
@@ -714,16 +732,21 @@ export const AcademicsHub: React.FC = () => {
               </div>
               <button
                 onClick={fetchTree}
-                className="p-2 hover:bg-stone-100 rounded-xl text-stone-500 transition-colors"
+                disabled={loadingTree}
+                className="p-2 hover:bg-stone-100 rounded-xl text-stone-500 transition-colors disabled:opacity-50"
                 title="Refresh Taxonomy"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className={`w-4 h-4 ${loadingTree ? 'animate-spin text-yellow-600' : ''}`} />
               </button>
             </div>
 
             {loadingTree ? (
-              <div className="py-20 text-center text-stone-400 font-medium text-xs animate-pulse">
-                Loading curriculum hierarchy...
+              <div className="py-24 flex flex-col items-center justify-center text-center space-y-3">
+                <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-stone-800">Loading curriculum hierarchy...</p>
+                  <p className="text-xs text-stone-400">Fetching boards, classes, chapters, and topics</p>
+                </div>
               </div>
             ) : !activeSubject || activeSubject.chapters.length === 0 ? (
               <div className="py-20 text-center text-stone-400 space-y-2">
@@ -811,8 +834,11 @@ export const AcademicsHub: React.FC = () => {
                     setPage(1);
                   }}
                   placeholder="Search (question, topic, keyword, answer)..."
-                  className="w-full pl-9 pr-8 py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-xs font-semibold text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-white transition-all shadow-2xs"
+                  className={`w-full pl-9 ${searchQuery && loadingQuestions ? 'pr-14' : 'pr-8'} py-2 bg-stone-50 border border-stone-200/80 rounded-xl text-xs font-semibold text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:bg-white transition-all shadow-2xs`}
                 />
+                {loadingQuestions && (
+                  <Loader2 className={`w-3.5 h-3.5 text-yellow-600 animate-spin absolute ${searchQuery ? 'right-8' : 'right-3'} top-1/2 -translate-y-1/2 pointer-events-none`} />
+                )}
                 {searchQuery && (
                   <button
                     type="button"
@@ -964,8 +990,12 @@ export const AcademicsHub: React.FC = () => {
           {/* Question List Table */}
           <div className="bg-white rounded-3xl border border-stone-200/80 shadow-xs overflow-hidden">
             {loadingQuestions ? (
-              <div className="py-24 text-center text-stone-400 font-medium text-xs animate-pulse">
-                Fetching questions from Question Bank...
+              <div className="py-24 flex flex-col items-center justify-center text-center space-y-3">
+                <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-stone-800">Fetching questions from Question Bank...</p>
+                  <p className="text-xs text-stone-400">Please wait while questions are loaded</p>
+                </div>
               </div>
             ) : questions.length === 0 ? (
               <div className="py-24 text-center text-stone-400 space-y-2">

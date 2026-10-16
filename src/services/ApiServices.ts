@@ -283,6 +283,13 @@ class ApiServices {
     const params = filters ? new URLSearchParams(filters).toString() : '';
     return this.get(GET_APIS.adminAuditLogs(params));
   }
+  listAdminTestSubmissions(filters?: any) {
+    const params = filters ? new URLSearchParams(filters).toString() : '';
+    return this.get(GET_APIS.adminTestSubmissions(params));
+  }
+  getAdminTestSubmissionDetails(submissionId: string | number) {
+    return this.get(GET_APIS.adminTestSubmissionDetails(submissionId));
+  }
 
   // ── Blogs ─────────────────────────────────
   listBlogs(filters?: any) {

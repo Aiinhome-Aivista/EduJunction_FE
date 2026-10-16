@@ -63,6 +63,8 @@ export const GET_APIS = {
   adminDashboard: `${API_V1}/admin/dashboard`,
   adminUsers: (params?: string) => `${API_V1}/admin/users${params ? `?${params}` : ''}`,
   adminAuditLogs: (params?: string) => `${API_V1}/admin/audit-logs${params ? `?${params}` : ''}`,
+  adminTestSubmissions: (params?: string) => `${API_V1}/admin/test-submissions${params ? `?${params}` : ''}`,
+  adminTestSubmissionDetails: (id: string | number) => `${API_V1}/admin/test-submissions/${id}`,
   curriculumTree: `${API_V1}/admin/curriculum/tree`,
   adminQuestions: (params?: string) => `${API_V1}/admin/questions${params ? `?${params}` : ''}`,
   questionUploadHistory: (limit: number = 20) => `${API_V1}/admin/questions/upload-history?limit=${limit}`,
