@@ -23,7 +23,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
               </div>
               <span className="font-black text-white text-xl">Edu<span className="text-yellow-500">Junction</span></span>
             </div>
-            <p className="mt-3 text-xs leading-relaxed max-w-sm">
+            <p className="mt-3 text-xs leading-relaxed max-w-sm text-stone-200">
               Study Buddy-powered adaptive learning that connects students, teachers and parents.
             </p>
             <div className="mt-4 flex items-center gap-3">
@@ -32,7 +32,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="EduJunction on Facebook"
-                className="text-stone-400 hover:text-[#1877F2] transition-colors duration-200 inline-flex items-center justify-center"
+                className="text-stone-300 hover:text-[#1877F2] transition-colors duration-200 inline-flex items-center justify-center"
               >
                 <svg className="w-5 h-5 fill-current transition-transform hover:scale-110" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -43,26 +43,26 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
           <div>
             <div className="text-white text-xs font-black uppercase tracking-wider">Platform</div>
             <div className="mt-3 space-y-2 text-xs">
-              <Link to="/features" onClick={() => window.scrollTo(0, 0)} className="block text-stone-400 hover:text-white transition-colors">Features</Link>
-              <Link to="/pricing" onClick={() => window.scrollTo(0, 0)} className="block text-stone-400 hover:text-white transition-colors">Pricing</Link>
-              <Link to="/#free-mock-papers-2027" className="block text-stone-400 hover:text-white transition-colors">Free Mock Test</Link>
-              {/* <button type="button" onClick={(e) => handleFooterNav('for-everyone', e)} className="block text-stone-400 hover:text-white transition-colors cursor-pointer text-left">For Everyone</button> */}
-              <Link to="/blog" className="block hover:text-white transition-colors">Blogs</Link>
+              <Link to="/features" onClick={() => window.scrollTo(0, 0)} className="block text-white hover:text-yellow-400 transition-colors">Features</Link>
+              <Link to="/pricing" onClick={() => window.scrollTo(0, 0)} className="block text-white hover:text-yellow-400 transition-colors">Pricing</Link>
+              <Link to="/#free-mock-papers-2027" className="block text-white hover:text-yellow-400 transition-colors">Free Mock Test</Link>
+              {/* <button type="button" onClick={(e) => handleFooterNav('for-everyone', e)} className="block text-white hover:text-yellow-400 transition-colors cursor-pointer text-left">For Everyone</button> */}
+              <Link to="/blog" className="block text-white hover:text-yellow-400 transition-colors">Blogs</Link>
             </div>
           </div>
           <div>
             <div className="text-white text-xs font-black uppercase tracking-wider">Legal</div>
             <div className="mt-3 space-y-2 text-xs">
-              <Link to="/privacy" className="block hover:text-white transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="block hover:text-white transition-colors">Terms of Service</Link>
-              <Link to="/disclaimer" className="block hover:text-white transition-colors">Disclaimer</Link>
+              <Link to="/privacy" className="block text-white hover:text-yellow-400 transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="block text-white hover:text-yellow-400 transition-colors">Terms of Service</Link>
+              <Link to="/disclaimer" className="block text-white hover:text-yellow-400 transition-colors">Disclaimer</Link>
             </div>
           </div>
           <div>
             <div className="text-white text-xs font-black uppercase tracking-wider">Company & Support</div>
             <div className="mt-3 space-y-2 text-xs">
-              <Link to="/about" className="block hover:text-white transition-colors">About Us</Link>
-              <Link to="/contact" className="block hover:text-white transition-colors">Contact</Link>
+              <Link to="/about" className="block text-white hover:text-yellow-400 transition-colors">About Us</Link>
+              <Link to="/contact" className="block text-white hover:text-yellow-400 transition-colors">Contact</Link>
               <a
                 href={supportMailto}
                 target="_blank"
@@ -76,7 +76,7 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
           </div>
         </div>
         <div className="mt-8 pt-6 border-t border-stone-800 grid grid-cols-1 md:grid-cols-3 items-center gap-4 text-[11px]">
-          <div className="text-center md:text-left text-stone-500">
+          <div className="text-center md:text-left text-white/90">
             <span>© {new Date().getFullYear()} EduJunction. All rights reserved.</span>
           </div>
 
