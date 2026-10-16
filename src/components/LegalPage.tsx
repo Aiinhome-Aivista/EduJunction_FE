@@ -87,9 +87,9 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
           <button
             type="button"
             onClick={handleBack}
-            className="inline-flex items-center gap-2 text-xs font-bold text-stone-400 hover:text-amber-600 transition-colors uppercase tracking-wider group cursor-pointer bg-transparent border-0 p-0"
+            className="inline-flex items-center gap-2 text-xs font-bold text-stone-700 hover:text-stone-900 transition-colors uppercase tracking-wider group cursor-pointer bg-transparent border-0 p-0"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="w-4 h-4 text-stone-700 group-hover:text-stone-900 group-hover:-translate-x-1 transition-all" />
             Back
           </button>
         </div>
@@ -376,7 +376,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
             </div>
 
             {/* Policy Meta Footer */}
-            <div className="pt-6 border-t border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-stone-400">
+            <div className="pt-6 border-t border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-stone-900">
               <span>Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               <span>EduJunction Privacy Compliance</span>
             </div>
@@ -666,7 +666,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ type }) => {
             </div>
 
             {/* Policy Meta Footer */}
-            <div className="pt-6 border-t border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-stone-400">
+            <div className="pt-6 border-t border-stone-200 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-stone-900">
               <span>Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               <span>EduJunction Legal Terms Compliance</span>
             </div>

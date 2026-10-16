@@ -995,7 +995,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                 <button
                   onClick={() => openAuth("login")}
-                  className="w-full sm:w-auto py-2.5 px-4 rounded-2xl bg-stone-50 hover:bg-stone-100 text-stone-800 font-extrabold text-xs sm:text-sm border border-stone-200 transition-all flex items-center justify-center cursor-pointer hover:border-stone-300"
+                  className="w-full sm:w-auto py-2.5 px-5 rounded-2xl bg-stone-900 hover:bg-black text-white font-extrabold text-xs sm:text-sm border border-stone-900 transition-all flex items-center justify-center cursor-pointer shadow-sm hover:scale-[1.02] active:scale-95"
                 >
                   Sign In
                 </button>
@@ -2205,7 +2205,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                   }`}
               >
-                {subject === "math" ? "📐 Class 10 Math" : "🧬 Class 8 Science"}
+                {subject === "math" ? "Class 10 Math" : "Class 8 Science"}
               </button>
             ))}
           </div>

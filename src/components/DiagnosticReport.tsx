@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ExamSubmission, QuestionEvaluation } from '../types';
 import { getExamDisplaySubject } from '../utils/metricsEngine';
 import {
@@ -70,6 +70,18 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
       return acc;
     }, {} as Record<string, boolean>);
   });
+
+  useEffect(() => {
+    if (evaluations.length > 0) {
+      setExpandedQuestions((prev) => {
+        if (Object.keys(prev).length > 0) return prev;
+        return evaluations.reduce((acc, eq) => {
+          acc[eq.questionId] = !eq.isCorrect;
+          return acc;
+        }, {} as Record<string, boolean>);
+      });
+    }
+  }, [evaluations]);
 
   const toggleQuestionExpand = (qId: string) => {
     setExpandedQuestions((prev) => ({

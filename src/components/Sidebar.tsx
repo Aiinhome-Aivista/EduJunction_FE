@@ -154,13 +154,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 rounded-r-full ${isModelPaper ? 'bg-amber-500' : 'bg-yellow-400'}`}></div>
                     )}
                     <div className="relative shrink-0">
-                      <Icon className={`w-4 h-4 transition-colors relative z-10 ${
-                        isModelPaper
+                      <Icon className={`w-4 h-4 transition-colors relative z-10 ${isModelPaper
                           ? 'text-amber-600 group-hover:text-amber-700'
                           : isActive
                             ? 'text-yellow-600'
                             : 'text-stone-400 group-hover:text-stone-500'
-                      }`} />
+                        }`} />
                       {isSidebarCollapsed && isModelPaper && unlockedModelPapersCount > 0 && (
                         <span className="lg:block hidden absolute -top-1.5 -right-2 px-1 py-0.2 bg-amber-600 text-white text-[9px] font-black rounded-full shadow-xs">
                           {unlockedModelPapersCount}

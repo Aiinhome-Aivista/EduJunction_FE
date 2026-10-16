@@ -19,6 +19,9 @@ import {
   Loader2,
   ChevronDown,
   Printer,
+  Mail,
+  TrendingUp,
+  FileText,
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
 import { PublicHeader } from './common/PublicHeader';
@@ -48,7 +51,8 @@ interface QuestionReview {
 }
 
 const GUEST_TEST_COUNT_KEY = 'edujunction_quick_test_count';
-const MAX_FREE_TESTS = 2;
+const GUEST_TEST_HISTORY_KEY = 'edujunction_guest_test_history';
+const REMINDER_INTERVAL = 2; // Show reminder popup every 2 completed tests
 
 export const QuickTestPage: React.FC = () => {
   const navigate = useNavigate();
@@ -62,7 +66,7 @@ export const QuickTestPage: React.FC = () => {
       return 0;
     }
   });
-  const [showPaywallModal, setShowPaywallModal] = useState<boolean>(false);
+  const [showReminderModal, setShowReminderModal] = useState<boolean>(false);
 
   // Master Data Dynamic State (from DB /api/v1/master/board_class_dropdown and /api/v1/master/curriculum-options)
   const [dbBoards, setDbBoards] = useState<string[]>(['CBSE', 'ICSE', 'ISC']);
@@ -274,11 +278,6 @@ export const QuickTestPage: React.FC = () => {
       return;
     }
 
-    if (completedTestsCount >= MAX_FREE_TESTS) {
-      setShowPaywallModal(true);
-      return;
-    }
-
     try {
       setIsLoadingQuestions(true);
       setFetchError(null);
@@ -333,12 +332,40 @@ export const QuickTestPage: React.FC = () => {
       setIsExamCompleted(true);
       setExamStarted(false);
 
-      // Increment test quota
+      // Increment test quota & record test history in localStorage
       const newCount = completedTestsCount + 1;
       setCompletedTestsCount(newCount);
       localStorage.setItem(GUEST_TEST_COUNT_KEY, newCount.toString());
-      if (newCount >= MAX_FREE_TESTS) {
-        setShowPaywallModal(true);
+
+      const timeSpent = (questions.length * 60) - timeRemainingSeconds;
+      const testRecord = {
+        testId: `demo_${Date.now()}`,
+        board,
+        classGrade,
+        subject,
+        examTitle: `${subject} Quick Assessment`,
+        totalQuestions: questions.length,
+        score: data?.score ?? 0,
+        totalMarks: data?.totalMarks ?? questions.length,
+        percentage: data?.percentage ?? 0,
+        timeTakenSeconds: timeSpent > 0 ? timeSpent : 60,
+        submittedAt: new Date().toISOString(),
+        answers: payloadAnswers,
+        reviews: data?.review || [],
+      };
+
+      try {
+        const existingRaw = localStorage.getItem(GUEST_TEST_HISTORY_KEY);
+        const historyArr = existingRaw ? JSON.parse(existingRaw) : [];
+        historyArr.push(testRecord);
+        localStorage.setItem(GUEST_TEST_HISTORY_KEY, JSON.stringify(historyArr));
+      } catch (err) {
+        console.warn('Failed to save guest test record to localStorage:', err);
+      }
+
+      // Show reminder popup every 2 completed tests
+      if (newCount % REMINDER_INTERVAL === 0) {
+        setShowReminderModal(true);
       }
     } catch (err: any) {
       console.error('Failed to evaluate demo test:', err);
@@ -374,20 +401,12 @@ export const QuickTestPage: React.FC = () => {
       <div className="border-b border-amber-200/70 bg-white/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
           <span className="hidden md:inline-flex items-center gap-1.5 text-amber-900 text-xs font-extrabold">
-            <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
             Instant Quick Test Demo
           </span>
           <span
-            className={`ml-auto px-3 py-1 rounded-full text-xs font-black border ${completedTestsCount >= MAX_FREE_TESTS
-              ? 'bg-amber-100 border-amber-300 text-amber-900'
-              : completedTestsCount === 1
-                ? 'bg-amber-50 border-amber-300 text-amber-800'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              }`}
+            className="ml-auto px-3.5 py-1 rounded-full text-xs font-black border bg-amber-50 border-amber-300 text-amber-900"
           >
-            {completedTestsCount >= MAX_FREE_TESTS
-              ? '🏆 2 of 2 Free Tests Used'
-              : `⚡ Free Demo: ${MAX_FREE_TESTS - completedTestsCount} of ${MAX_FREE_TESTS} Remaining`}
+            Demo Practice Mode {completedTestsCount > 0 ? `• ${completedTestsCount} Tests Taken` : '• Free Practice'}
           </span>
           <button
             onClick={() => navigate('/')}
@@ -400,12 +419,12 @@ export const QuickTestPage: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-        <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
 
         {/* ============================================================== */}
-        {/* VIEW 1: SETUP SCREEN (When not started & tests available)      */}
+        {/* VIEW 1: SETUP SCREEN (When not in active exam or result)       */}
         {/* ============================================================== */}
-        {!examStarted && !isExamCompleted && completedTestsCount < MAX_FREE_TESTS && (
+        {!examStarted && !isExamCompleted && (
           <div className="bg-gradient-to-b from-white via-white to-amber-50/20 rounded-3xl border border-stone-200/90 shadow-xl shadow-stone-200/30 p-6 sm:p-9 lg:p-11 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-amber-200/30 via-yellow-100/20 to-transparent rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-100/20 rounded-full blur-2xl pointer-events-none -ml-16 -mb-16" />
@@ -614,7 +633,7 @@ export const QuickTestPage: React.FC = () => {
             <div className="mt-8 text-center relative z-10">
               <button
                 type="button"
-                disabled={!board || !classGrade || !subject || isLoadingQuestions || completedTestsCount >= MAX_FREE_TESTS}
+                disabled={!board || !classGrade || !subject || isLoadingQuestions}
                 onClick={handleStartExam}
                 className="group relative inline-flex items-center justify-center gap-3 px-10 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-stone-950 font-black text-sm sm:text-base hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer w-full sm:w-auto"
               >
@@ -641,138 +660,6 @@ export const QuickTestPage: React.FC = () => {
                   <Check className="w-3.5 h-3.5" /> All parameters selected! Click to launch your practice test
                 </p>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* ============================================================== */}
-        {/* VIEW 1B: DEDICATED MILESTONE & UNLOCK CONVERSION SCREEN        */}
-        {/* (When completedTestsCount >= MAX_FREE_TESTS & not in active exam)*/}
-        {/* ============================================================== */}
-        {!examStarted && !isExamCompleted && completedTestsCount >= MAX_FREE_TESTS && (
-          <div className="bg-gradient-to-br from-amber-50/70 via-white to-yellow-50/60 rounded-3xl border border-amber-200/90 shadow-2xl shadow-amber-500/10 p-6 sm:p-10 lg:p-12 relative overflow-hidden text-center animate-in fade-in duration-300">
-            {/* Ambient Lighting Orbs */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-amber-200/40 via-yellow-100/30 to-transparent rounded-full blur-3xl pointer-events-none -mr-24 -mt-24" />
-            <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-100/30 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
-
-            {/* Floating Hero Trophy */}
-            <div className="relative z-10 flex flex-col items-center">
-              <div className="relative mb-5">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-tr from-amber-400 via-amber-500 to-yellow-400 text-stone-950 flex items-center justify-center shadow-2xl shadow-amber-400/40 ring-8 ring-amber-100/80 transform hover:scale-105 transition-transform duration-300">
-                  <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-stone-950" />
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs sm:text-sm font-black shadow-md border-2 border-white">
-                  ✓
-                </div>
-              </div>
-
-              {/* Pill Milestone */}
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/90 border border-amber-300/80 text-amber-950 text-xs font-black mb-3.5 shadow-2xs">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-                <span>2 of 2 Free Demo Tests Completed</span>
-              </div>
-
-              {/* Main Headline */}
-              <h2
-                className="text-2xl sm:text-4xl font-black text-stone-900 tracking-normal [word-spacing:0.25em] leading-tight max-w-2xl"
-                style={{ wordSpacing: '0.25em' }}
-              >
-                Well Done! Your Next Learning Step Is{' '}
-                <span className="bg-gradient-to-r from-amber-600 via-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                  Just Ahead
-                </span>
-              </h2>
-
-              <p className="mt-3 text-stone-700 text-xs sm:text-sm lg:text-base font-medium max-w-2xl leading-relaxed">
-              Your two free demo tests are complete. Create a free account to save your progress and continue with personalized practice, instant feedback, and your Study Buddy.
-              </p>
-            </div>
-
-            {/* 4 Feature Unlocks (2x2 Grid) */}
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 max-w-4xl mx-auto text-left relative z-10">
-              <div className="p-4 sm:p-5 rounded-2xl bg-white/95 border border-amber-200/80 shadow-xs hover:border-amber-400 hover:shadow-md transition-all">
-                <div className="flex items-start gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                    <BookOpen className="w-5 h-5 text-amber-700" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-stone-900">Unlimited Mock Tests</h3>
-                    <p className="text-xs text-stone-600 mt-1 leading-relaxed">
-                      Chapter-wise, term-end, and full-syllabus tests calibrated for CBSE, ICSE & ISC from Class 5 to 12.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 sm:p-5 rounded-2xl bg-white/95 border border-amber-200/80 shadow-xs hover:border-amber-400 hover:shadow-md transition-all">
-                <div className="flex items-start gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-yellow-100 text-yellow-800 flex items-center justify-center shrink-0">
-                    <Trophy className="w-5 h-5 text-amber-700" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-stone-900">50,000+ Question Bank</h3>
-                    <p className="text-xs text-stone-600 mt-1 leading-relaxed">
-                      10-year past solved board papers with official marking rubrics and step-by-step model solutions.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 sm:p-5 rounded-2xl bg-white/95 border border-amber-200/80 shadow-xs hover:border-amber-400 hover:shadow-md transition-all">
-                <div className="flex items-start gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                    <Zap className="w-5 h-5 text-amber-600 fill-amber-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-stone-900"> Instant Step-by-Step Evaluation</h3>
-                    <p className="text-xs text-stone-600 mt-1 leading-relaxed">
-                      Instant doubt solving, misconception diagnostics, and tailored textbook concept explanations.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 sm:p-5 rounded-2xl bg-white/95 border border-amber-200/80 shadow-xs hover:border-amber-400 hover:shadow-md transition-all">
-                <div className="flex items-start gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="w-5 h-5 text-emerald-700" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-stone-900">Continuous Progress Tracking</h3>
-                    <p className="text-xs text-stone-600 mt-1 leading-relaxed">
-                      Weak-area diagnosis, percentile benchmarks, and synchronized parent-student insight reports.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Conversion CTA Group */}
-            <div className="mt-8 pt-6 border-t border-amber-200/70 relative z-10 flex flex-col items-center">
-              <button
-                type="button"
-                onClick={() => navigate('/?auth=register')}
-                className="group inline-flex items-center justify-center gap-3 px-9 py-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-stone-950 font-black text-sm sm:text-base hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 cursor-pointer w-full sm:w-auto"
-              >
-                <span>Create Free Account Now</span>
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-              </button>
-
-              <div className="mt-3.5 flex items-center gap-2 text-xs font-semibold text-stone-600">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>100% Free Forever Tier • Instant Access in 30 Seconds • No Credit Card</span>
-              </div>
-
-              <div className="mt-4 pt-3.5 border-t border-stone-200/60 text-xs text-stone-600 flex items-center gap-1.5">
-                <span>Already registered with us?</span>
-                <button
-                  type="button"
-                  onClick={() => navigate('/?auth=login')}
-                  className="font-black text-amber-700 hover:text-amber-800 underline cursor-pointer"
-                >
-                  Log In to Your Account
-                </button>
-              </div>
             </div>
           </div>
         )}
@@ -981,35 +868,25 @@ export const QuickTestPage: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                {completedTestsCount < MAX_FREE_TESTS ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsExamCompleted(false);
-                      setExamStarted(false);
-                    }}
-                    className="px-6 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer transition-colors"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    <span>Take 2nd Free Test (1 Left)</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowPaywallModal(true)}
-                    className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer transition-colors"
-                  >
-                    <Lock className="w-4 h-4" />
-                    <span>Unlock Full Question Bank</span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExamCompleted(false);
+                    setExamStarted(false);
+                  }}
+                  className="px-6 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-black text-xs flex items-center gap-2 shadow-sm cursor-pointer transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Take Another Quick Test</span>
+                </button>
 
                 <button
                   type="button"
-                  onClick={() => navigate('/?auth=register')}
+                  onClick={() => navigate('/?auth=register&role=student')}
                   className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 cursor-pointer transition-all"
                 >
-                  <span>Register Free to Save Progress</span>
+                  <Sparkles className="w-4 h-4 text-stone-950" />
+                  <span>Register Free & Save Reports</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -1203,76 +1080,93 @@ export const QuickTestPage: React.FC = () => {
       </main>
 
       {/* ============================================================== */}
-      {/* VIEW 4: CONVERSION PAYWALL MODAL (When Quota Reached)          */}
       {/* ============================================================== */}
-      {showPaywallModal && (
+      {/* RECURRING REMINDER MODAL (Shown after every 2 or 3 tests)      */}
+      {/* ============================================================== */}
+      {showReminderModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/60 backdrop-blur-sm animate-fade-in"
-          onClick={() => setShowPaywallModal(false)}
+          onClick={() => setShowReminderModal(false)}
         >
           <div
-            className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-stone-200 p-6 sm:p-8 overflow-hidden text-center animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+            className="relative w-full max-w-lg bg-white rounded-3xl border border-amber-200 p-6 sm:p-8 overflow-hidden text-center animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header Icon */}
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-400 to-yellow-300 flex items-center justify-center text-stone-950 mx-auto shadow-lg shadow-amber-400/30 mb-4">
-              <Lock className="w-8 h-8" />
+            {/* Ambient Background Warmth */}
+            <div className="absolute top-0 right-0 w-44 h-44 bg-amber-100/35 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+            <div className="absolute bottom-0 left-0 w-36 h-36 bg-yellow-100/25 rounded-full blur-2xl pointer-events-none -ml-12 -mb-12" />
+
+            {/* Top Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowReminderModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer z-10"
+              title="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header Icon: EduJunction Favicon Cap Logo with micro-interaction */}
+            <div className="group relative w-16 h-16 mx-auto mb-3.5 rounded-2xl flex items-center justify-center ring-4 ring-amber-100/80 overflow-hidden bg-yellow-400 hover:scale-105 hover:rotate-3 transition-transform duration-300 cursor-pointer">
+              <img src="/favicon.svg" alt="EduJunction Logo" className="w-full h-full object-contain pointer-events-none" />
+            </div>
+
+            {/* Celebratory Milestone Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100/90 border border-amber-300/80 text-amber-950 text-xs font-black mb-3">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>{completedTestsCount} Practice Tests Completed!</span>
             </div>
 
             <h3 className="text-2xl font-black text-stone-900 tracking-tight">
-              Well done! Ready to keep learning? 🎉
+              Save Your Learning Progress! 🚀
             </h3>
-            <p className="mt-2 text-stone-600 text-xs sm:text-sm font-medium leading-relaxed">
-              Create a free account to save your progress and unlock personalized practice, instant AI feedback, and your Study Buddy. Get started in under a minute.
+            <p className="mt-2 text-stone-600 text-xs sm:text-sm font-medium leading-relaxed max-w-md mx-auto">
+              You've completed <strong>{completedTestsCount} quick tests</strong>! Create a free account now to permanently save your scores, receive compiled report cards directly in your email, and track your ongoing learning growth.
             </p>
 
-            {/* Value Props */}
-            <div className="mt-5 text-left p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2 text-xs font-bold text-stone-700">
-              <div className="flex items-center gap-2">
+            {/* Value Props - Single Clean Container */}
+            <div className="mt-5 text-left p-4 rounded-2xl bg-amber-50/70 border border-amber-200/90 space-y-2.5 text-xs font-bold text-stone-700 relative z-10">
+              <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Unlimited chapter-wise and full-syllabus mock tests</span>
+                <span>Instant email delivery with your full test reports</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>10-year past solved board papers with AI step rubrics</span>
+                <span>Track your performance & accuracy across all subjects</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Continuous weakness diagnostics & performance charts</span>
+                <span>Detailed answer explanations & step-by-step model solutions</span>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="mt-6 flex flex-col sm:flex-row items-center gap-3">
+            <div className="mt-6 flex flex-col sm:flex-row items-center gap-3 relative z-10">
               <button
                 type="button"
                 onClick={() => {
-                  setShowPaywallModal(false);
-                  navigate('/?auth=register');
+                  setShowReminderModal(false);
+                  navigate('/?auth=register&role=student');
                 }}
-                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-400/25 cursor-pointer transition-all"
+                className="group w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs sm:text-sm cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 transform active:scale-[0.98]"
               >
-                Create Free Account (30s)
+                <span>Create Free Account</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1.5" />
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setShowPaywallModal(false);
-                  navigate('/?auth=login');
-                }}
-                className="w-full py-3.5 px-6 rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-700 font-bold text-xs sm:text-sm cursor-pointer transition-colors"
+                onClick={() => setShowReminderModal(false)}
+                className="w-full py-3.5 px-6 rounded-2xl border border-stone-200 bg-stone-50 hover:bg-amber-50/70 hover:border-amber-300 hover:text-amber-950 text-stone-700 font-bold text-xs sm:text-sm cursor-pointer transition-all duration-200 active:scale-[0.98]"
               >
-                Log In
+                Continue Practicing
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowPaywallModal(false)}
-              className="mt-4 text-xs font-bold text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
-            >
-              Maybe later, take me back
-            </button>
+            {/* Trust Footer */}
+            <p className="mt-3.5 text-[11px] font-semibold text-stone-500 flex items-center justify-center gap-1.5 relative z-10">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>100% Free Forever • Instant Access in 30 Seconds</span>
+            </p>
           </div>
         </div>
       )}

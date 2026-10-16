@@ -28,7 +28,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
 
   // Track active section and dynamically update browser URL in real-time as user scrolls (Landing only)
   React.useEffect(() => {
-    if (isBlogActive || isFeaturesActive || isPricingActive || isQuickTestActive) return;
+    if (!isHomeActive) return;
 
     const sectionIds = [
       { id: 'hero', key: 'home' as const, path: '/' },
@@ -81,7 +81,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isBlogActive, isFeaturesActive, isPricingActive]);
+  }, [isHomeActive]);
 
   const handleNavClick = (sectionId: string, e: React.MouseEvent) => {
     e.preventDefault();

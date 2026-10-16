@@ -101,9 +101,9 @@ export const InfoPage: React.FC<InfoPageProps> = ({ type }) => {
           <button
             type="button"
             onClick={handleBack}
-            className="inline-flex items-center gap-2 text-xs font-bold text-stone-400 hover:text-amber-600 transition-colors uppercase tracking-wider group cursor-pointer bg-transparent border-0 p-0"
+            className="inline-flex items-center gap-2 text-xs font-bold text-stone-700 hover:text-stone-900 transition-colors uppercase tracking-wider group cursor-pointer bg-transparent border-0 p-0"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="w-4 h-4 text-stone-700 group-hover:text-stone-900 group-hover:-translate-x-1 transition-all" />
             Back
           </button>
         </div>

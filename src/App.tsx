@@ -141,7 +141,14 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const activeTab = location.pathname.substring(1).split('/')[0] || 'dashboard';
-  const isCurrentRoutePermitted = (perms: PageAccess[]) => perms.some((p) =>
+  const isPublicRoute = (path: string) => {
+    const clean = path.replace(/^\//, '').split('/')[0] || '';
+    return ['landing', 'home', 'features', 'free-mock-papers-2027', 'model-papers-2027', 'actions-demo', 'for-everyone', 'blog', 'pricing', 'quick-test', 'subscription'].includes(clean);
+  };
+
+  const isCurrentRoutePermitted = (perms: PageAccess[]) =>
+    isPublicRoute(location.pathname) ||
+    perms.some((p) =>
       p.pageRoute === location.pathname ||
       (location.pathname === '/subscription' && p.pageRoute === '/pricing' &&
         (p.pageName.toLowerCase().includes('model test') ||
@@ -186,7 +193,7 @@ export default function App() {
   // Automatically dismiss active report view and scroll to top whenever the route changes
   useEffect(() => {
     setActiveSubmissionReport(null);
-    const landingPaths = ['/', '/home', '/features', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/for-everyone'];
+    const landingPaths = ['/', '/landing', '/home', '/features', '/free-mock-papers-2027', '/model-papers-2027', '/actions-demo', '/for-everyone'];
     if (!location.hash && !landingPaths.includes(location.pathname)) {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       document.documentElement.scrollTop = 0;
@@ -964,6 +971,17 @@ export default function App() {
     );
   }
 
+  // Public landing pages requested by authenticated users (e.g. clicking sidebar EduJunction logo)
+  if (['landing', 'home', 'features', 'free-mock-papers-2027', 'model-papers-2027', 'actions-demo', 'for-everyone'].includes(activeTab)) {
+    return (
+      <div className="relative w-full h-full min-h-screen overflow-x-hidden">
+        <LandingPage
+          onOpenAuth={(mode) => setAuthModalMode(mode || 'login')}
+        />
+      </div>
+    );
+  }
+
   // Admin-only session: render just the SuperAdminPanel — there's no
   // "family" for an ADMIN/SUPER_ADMIN account to show a parent dashboard for.
   if (isAdminSession) {
@@ -1040,15 +1058,6 @@ export default function App() {
   }
 
 
-  if (['home', 'features', 'free-mock-papers-2027', 'model-papers-2027', 'actions-demo', 'for-everyone'].includes(activeTab)) {
-    return (
-      <div className="relative w-full h-full min-h-screen overflow-x-hidden">
-        <LandingPage
-          onOpenAuth={(mode) => setAuthModalMode(mode || 'login')}
-        />
-      </div>
-    );
-  }
 
   const dummyParentAccount: ParentAccount = {
     id: 'dummy',

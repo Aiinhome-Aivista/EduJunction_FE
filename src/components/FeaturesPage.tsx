@@ -451,27 +451,27 @@ export const FeaturesPage: React.FC = () => {
           </div>
         </section>
 
-      {/* PERSONALIZATION EXAMPLE */}
-      <section id="personalization" className="min-h-screen flex flex-col justify-center py-6 sm:py-8 bg-white relative z-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10 reveal-on-scroll">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs font-bold mb-2">
-              <Brain className="w-3.5 h-3.5" />
-              Study Buddy Personalization
+        {/* PERSONALIZATION EXAMPLE */}
+        <section id="personalization" className="min-h-screen flex flex-col justify-center py-6 sm:py-8 bg-white relative z-20">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10 reveal-on-scroll">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs font-bold mb-2">
+                <Brain className="w-3.5 h-3.5" />
+                Study Buddy Personalization
+              </div>
+              <h2
+                className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-black tracking-normal capitalize"
+                style={{ wordSpacing: '0.25em' }}
+              >
+                NOT THE SAME LESSON FOR EVERYONE
+              </h2>
+              <p className="mt-4 sm:mt-5 text-stone-600 text-xs sm:text-sm lg:text-base font-medium">
+                Example: Rahul struggles with Geometry, so the platform changes his next steps.
+              </p>
             </div>
-            <h2
-              className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-black tracking-normal capitalize"
-              style={{ wordSpacing: '0.25em' }}
-            >
-              NOT THE SAME LESSON FOR EVERYONE
-            </h2>
-            <p className="mt-4 sm:mt-5 text-stone-600 text-xs sm:text-sm lg:text-base font-medium">
-              Example: Rahul struggles with Geometry, so the platform changes his next steps.
-            </p>
-          </div>
 
-          <div className="relative">
-            <style>{`
+            <div className="relative">
+              <style>{`
               @keyframes float-card {
                 0%, 100% { transform: translateY(0); }
                 50% { transform: translateY(-8px); }
@@ -481,59 +481,59 @@ export const FeaturesPage: React.FC = () => {
               }
             `}</style>
 
-            <div className="hidden lg:block absolute top-1/2 left-[5%] right-[5%] h-1.5 bg-gradient-to-r from-blue-200 via-purple-300 to-green-300 -translate-y-1/2 rounded-full opacity-60"></div>
+              <div className="hidden lg:block absolute top-1/2 left-[5%] right-[5%] h-1.5 bg-gradient-to-r from-blue-200 via-purple-300 to-green-300 -translate-y-1/2 rounded-full opacity-60"></div>
 
-            <div className="grid lg:grid-cols-5 gap-5 lg:gap-4 relative z-10">
-              {[
-                ['📝', 'Assessment', 'Rahul scores 60%', 'bg-blue-100 border-blue-200', 'text-blue-700', 'lg:-translate-y-4'],
-                ['🔍', 'Study Buddy Finds', 'Geometry is weak', 'bg-red-100 border-red-200', 'text-red-700', 'lg:translate-y-4'],
-                ['📚', 'Recommends', 'Lesson + practice', 'bg-purple-100 border-purple-200', 'text-purple-700', 'lg:-translate-y-4'],
-                ['🎯', 'Retest', 'Mini mock exam', 'bg-orange-100 border-orange-200', 'text-orange-700', 'lg:translate-y-4'],
-                ['🎉', 'Improves', '60% → 82%', 'bg-green-100 border-green-200', 'text-green-700', 'lg:-translate-y-4'],
-              ].map(([icon, title, text, colorClass, textClass, offsetClass], i) => (
-                <div key={title} className={`relative flex flex-col items-center group ${offsetClass} reveal-on-scroll`} style={{ transitionDelay: `${i * 100}ms` }}>
-                  <div className="animate-float-card w-full">
-                    <div className="transition-transform hover:-translate-y-3 duration-300 relative">
-                      <div className="absolute inset-0 bg-white/40 blur-xl rounded-full group-hover:bg-yellow-400/20 transition-colors"></div>
+              <div className="grid lg:grid-cols-5 gap-5 lg:gap-4 relative z-10">
+                {[
+                  ['📝', 'Assessment', 'Rahul scores 60%', 'bg-blue-100 border-blue-200', 'text-blue-700', 'lg:-translate-y-4'],
+                  ['🔍', 'Study Buddy Finds', 'Geometry is weak', 'bg-red-100 border-red-200', 'text-red-700', 'lg:translate-y-4'],
+                  ['📚', 'Recommends', 'Lesson + practice', 'bg-purple-100 border-purple-200', 'text-purple-700', 'lg:-translate-y-4'],
+                  ['🎯', 'Retest', 'Mini mock exam', 'bg-orange-100 border-orange-200', 'text-orange-700', 'lg:translate-y-4'],
+                  ['🎉', 'Improves', '60% → 82%', 'bg-green-100 border-green-200', 'text-green-700', 'lg:-translate-y-4'],
+                ].map(([icon, title, text, colorClass, textClass, offsetClass], i) => (
+                  <div key={title} className={`relative flex flex-col items-center group ${offsetClass} reveal-on-scroll`} style={{ transitionDelay: `${i * 100}ms` }}>
+                    <div className="animate-float-card w-full">
+                      <div className="transition-transform hover:-translate-y-3 duration-300 relative">
+                        <div className="absolute inset-0 bg-white/40 blur-xl rounded-full group-hover:bg-yellow-400/20 transition-colors"></div>
 
-                      <div className={`relative w-full h-[180px] p-5 sm:p-6 lg:p-5 rounded-[2rem] bg-white/90 backdrop-blur-xl border border-white shadow-xl shadow-stone-200/50 flex flex-col items-center justify-center text-center z-10 overflow-hidden`}>
-                        <div className={`absolute top-0 right-0 w-24 h-24 ${colorClass} blur-3xl opacity-50 rounded-full -mr-10 -mt-10`}></div>
+                        <div className={`relative w-full h-[180px] p-5 sm:p-6 lg:p-5 rounded-[2rem] bg-white/90 backdrop-blur-xl border border-white shadow-xl shadow-stone-200/50 flex flex-col items-center justify-center text-center z-10 overflow-hidden`}>
+                          <div className={`absolute top-0 right-0 w-24 h-24 ${colorClass} blur-3xl opacity-50 rounded-full -mr-10 -mt-10`}></div>
 
-                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.25rem] flex items-center justify-center text-2xl sm:text-3xl ${colorClass} shadow-sm border border-white/50 mb-3 sm:mb-3.5 relative z-10`}>
-                          {icon}
+                          <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.25rem] flex items-center justify-center text-2xl sm:text-3xl ${colorClass} shadow-sm border border-white/50 mb-3 sm:mb-3.5 relative z-10`}>
+                            {icon}
+                          </div>
+                          <h3 className={`h-7 flex items-center justify-center font-black text-base sm:text-lg ${textClass} mb-1 relative z-10`}>{title}</h3>
+                          <p className="min-h-5 text-xs sm:text-sm font-semibold text-stone-500 relative z-10">{text}</p>
                         </div>
-                        <h3 className={`h-7 flex items-center justify-center font-black text-base sm:text-lg ${textClass} mb-1 relative z-10`}>{title}</h3>
-                        <p className="min-h-5 text-xs sm:text-sm font-semibold text-stone-500 relative z-10">{text}</p>
                       </div>
                     </div>
+
+                    {i < 4 && <div className="lg:hidden w-1 h-8 bg-gradient-to-b from-stone-200 to-stone-300 rounded-full my-2"></div>}
                   </div>
+                ))}
+              </div>
+            </div>
 
-                  {i < 4 && <div className="lg:hidden w-1 h-8 bg-gradient-to-b from-stone-200 to-stone-300 rounded-full my-2"></div>}
+            <div className="mt-12 sm:mt-14 lg:mt-16 relative overflow-hidden rounded-[2rem] border border-yellow-200 bg-gradient-to-br from-yellow-50 via-white to-amber-50 p-6 sm:p-7 shadow-xl shadow-yellow-500/10 reveal-on-scroll">
+              <div className="absolute top-0 right-0 -mt-14 -mr-14 w-56 h-56 bg-yellow-300 rounded-full blur-[70px] opacity-40"></div>
+              <div className="absolute bottom-0 left-0 -mb-14 -ml-14 w-56 h-56 bg-amber-400 rounded-full blur-[70px] opacity-20"></div>
+
+              <div className="relative z-10 flex flex-col sm:flex-row gap-5 items-center sm:items-start text-center sm:text-left">
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-[1.25rem] bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/30" aria-label="High ability student thinking badge">
+                  <Brain className="w-8 h-8 sm:w-9 sm:h-9" strokeWidth={1.75} />
+                  <span className="absolute right-2 top-1 text-sm font-black leading-none">+</span>
+                  <span className="absolute right-1.5 top-4 h-1.5 w-1.5 rounded-full bg-white" />
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-12 sm:mt-14 lg:mt-16 relative overflow-hidden rounded-[2rem] border border-yellow-200 bg-gradient-to-br from-yellow-50 via-white to-amber-50 p-6 sm:p-7 shadow-xl shadow-yellow-500/10 reveal-on-scroll">
-            <div className="absolute top-0 right-0 -mt-14 -mr-14 w-56 h-56 bg-yellow-300 rounded-full blur-[70px] opacity-40"></div>
-            <div className="absolute bottom-0 left-0 -mb-14 -ml-14 w-56 h-56 bg-amber-400 rounded-full blur-[70px] opacity-20"></div>
-
-            <div className="relative z-10 flex flex-col sm:flex-row gap-5 items-center sm:items-start text-center sm:text-left">
-              <div className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-[1.25rem] bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/30" aria-label="High ability student thinking badge">
-                <Brain className="w-8 h-8 sm:w-9 sm:h-9" strokeWidth={1.75} />
-                <span className="absolute right-2 top-1 text-sm font-black leading-none">+</span>
-                <span className="absolute right-1.5 top-4 h-1.5 w-1.5 rounded-full bg-white" />
-              </div>
-              <div>
-                <h3 className="text-xl sm:text-2xl font-black text-stone-900">Advanced students get harder content.</h3>
-                <p className="mt-2 text-stone-600 font-medium text-sm sm:text-base leading-relaxed max-w-3xl text-justify [text-align-last:left]">
-                  If a student consistently performs strongly, the platform dynamically adapts, moving them to <strong className="font-bold text-amber-700">HOTS (Higher Order Thinking Skills)</strong> questions, challenge quizzes, and advanced mock exams.
-                </p>
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-black text-stone-900">Advanced students get harder content.</h3>
+                  <p className="mt-2 text-stone-600 font-medium text-sm sm:text-base leading-relaxed max-w-3xl text-justify [text-align-last:left]">
+                    If a student consistently performs strongly, the platform dynamically adapts, moving them to <strong className="font-bold text-amber-700">HOTS (Higher Order Thinking Skills)</strong> questions, challenge quizzes, and advanced mock exams.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
         {/* ============================================================== */}
         {/* ARCHITECTURE COMPARISON TABLE                                  */}
@@ -595,7 +595,7 @@ export const FeaturesPage: React.FC = () => {
                   <tr>
                     <td className="p-3.5 sm:p-4 font-bold text-stone-900">Live Parent Progress Alerts</td>
                     <td className="p-3.5 sm:p-4 bg-amber-50/50 font-black text-emerald-700 border-x border-amber-100">
-                      ✓ WhatsApp / Email Dossier
+                      ✓ Email Dossier
                     </td>
                     <td className="p-3.5 sm:p-4">Quarterly PTMs only</td>
                     <td className="p-3.5 sm:p-4">✗ No parent portal</td>
@@ -604,7 +604,7 @@ export const FeaturesPage: React.FC = () => {
                   <tr>
                     <td className="p-3.5 sm:p-4 font-bold text-stone-900">Cost &amp; Transparency</td>
                     <td className="p-4 sm:p-5 bg-amber-50/50 font-black text-amber-900 border-x border-amber-100">
-                      Free tier + ₹49/paper micro-pricing
+                      Free tier + ₹300/- paper Model Test Paper
                     </td>
                     <td className="p-4 sm:p-5">₹20,000–₹60,000 / year</td>
                     <td className="p-4 sm:p-5">Expensive bundled lock-ins</td>

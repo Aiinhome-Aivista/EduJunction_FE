@@ -204,13 +204,32 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         setIsGoogleSubmitting(true);
         setErrorMessage(null);
 
+        let guestTestHistory: any[] | undefined = undefined;
+        try {
+          const rawHistory = localStorage.getItem('edujunction_guest_test_history');
+          if (rawHistory) {
+            guestTestHistory = JSON.parse(rawHistory);
+          }
+        } catch (e) {
+          console.warn('Failed to parse guest test history:', e);
+        }
+
         const currentRoleParam = selectedPersona === 'student' ? 'STUDENT' : 'PARENT';
         const response = await ApiServices.googleLogin({
           token: tokenResponse.access_token,
           role: currentRoleParam,
+          guestTestHistory,
         });
 
         const result = response.data?.data || response.data || response;
+
+        // If registration was successful and had guest tests, clear local storage
+        if (guestTestHistory && guestTestHistory.length > 0) {
+          try {
+            localStorage.removeItem('edujunction_guest_test_history');
+            localStorage.removeItem('edujunction_quick_test_count');
+          } catch {}
+        }
 
         // If backend reports new parent user requires a username
         if (selectedPersona === 'parent' && result?.requiresUsername) {
@@ -521,6 +540,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         registerPayload.classGrade = classGrade;
       }
 
+      if (mode === 'register') {
+        try {
+          const rawHistory = localStorage.getItem('edujunction_guest_test_history');
+          if (rawHistory) {
+            registerPayload.guestTestHistory = JSON.parse(rawHistory);
+          }
+        } catch (e) {
+          console.warn('Failed to parse guest test history for registration:', e);
+        }
+      }
+
       const response =
         mode === 'login'
           ? await ApiServices.login({
@@ -532,6 +562,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           : await ApiServices.register(registerPayload);
 
       const result = response.data?.data || response.data || response;
+
+      if (mode === 'register') {
+        try {
+          localStorage.removeItem('edujunction_guest_test_history');
+          localStorage.removeItem('edujunction_quick_test_count');
+        } catch {}
+      }
 
       const accessToken =
         result.accessToken || result.tokens?.accessToken;

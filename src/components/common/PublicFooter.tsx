@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { GraduationCap, Mail } from "lucide-react";
 
 export interface PublicFooterProps {
@@ -8,9 +8,26 @@ export interface PublicFooterProps {
 }
 
 export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQuickDemo }) => {
+  const location = useLocation();
+  const currentPath = location.pathname;
   const facebookUrl = import.meta.env.VITE_FACEBOOK_URL || "https://www.facebook.com/edujunction.co.in";
   const supportEmail = "support@edujunction.co.in";
   const supportMailto = "https://mail.google.com/mail/u/0/?fs=1&to=support@edujunction.co.in&tf=cm";
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  };
+
+  const getLinkClasses = (path: string) => {
+    const isActive = currentPath === path;
+    return `block transition-all duration-150 ${
+      isActive
+        ? "text-yellow-400 font-extrabold tracking-wide"
+        : "text-white/80 hover:text-yellow-400"
+    }`;
+  };
 
   return (
     <footer className="bg-stone-950 text-stone-500 border-t border-stone-800">
@@ -43,26 +60,25 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
           <div>
             <div className="text-white text-xs font-black uppercase tracking-wider">Platform</div>
             <div className="mt-3 space-y-2 text-xs">
-              <Link to="/features" onClick={() => window.scrollTo(0, 0)} className="block text-white hover:text-yellow-400 transition-colors">Features</Link>
-              <Link to="/pricing" onClick={() => window.scrollTo(0, 0)} className="block text-white hover:text-yellow-400 transition-colors">Pricing</Link>
-              <Link to="/#free-mock-papers-2027" className="block text-white hover:text-yellow-400 transition-colors">Free Mock Test</Link>
-              {/* <button type="button" onClick={(e) => handleFooterNav('for-everyone', e)} className="block text-white hover:text-yellow-400 transition-colors cursor-pointer text-left">For Everyone</button> */}
-              <Link to="/blog" className="block text-white hover:text-yellow-400 transition-colors">Blogs</Link>
+              <Link to="/features" onClick={scrollToTop} className={getLinkClasses("/features")}>Features</Link>
+              <Link to="/pricing" onClick={scrollToTop} className={getLinkClasses("/pricing")}>Pricing</Link>
+              <Link to="/#free-mock-papers-2027" className="block text-white/80 hover:text-yellow-400 transition-colors">Free Mock Test</Link>
+              <Link to="/blog" onClick={scrollToTop} className={currentPath.startsWith("/blog") ? "block text-yellow-400 font-extrabold tracking-wide transition-all duration-150" : "block text-white/80 hover:text-yellow-400 transition-colors"}>Blogs</Link>
             </div>
           </div>
           <div>
             <div className="text-white text-xs font-black uppercase tracking-wider">Legal</div>
             <div className="mt-3 space-y-2 text-xs">
-              <Link to="/privacy" className="block text-white hover:text-yellow-400 transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="block text-white hover:text-yellow-400 transition-colors">Terms of Service</Link>
-              <Link to="/disclaimer" className="block text-white hover:text-yellow-400 transition-colors">Disclaimer</Link>
+              <Link to="/privacy" onClick={scrollToTop} className={getLinkClasses("/privacy")}>Privacy Policy</Link>
+              <Link to="/terms" onClick={scrollToTop} className={getLinkClasses("/terms")}>Terms of Service</Link>
+              <Link to="/disclaimer" onClick={scrollToTop} className={getLinkClasses("/disclaimer")}>Disclaimer</Link>
             </div>
           </div>
           <div>
             <div className="text-white text-xs font-black uppercase tracking-wider">Company & Support</div>
             <div className="mt-3 space-y-2 text-xs">
-              <Link to="/about" className="block text-white hover:text-yellow-400 transition-colors">About Us</Link>
-              <Link to="/contact" className="block text-white hover:text-yellow-400 transition-colors">Contact</Link>
+              <Link to="/about" onClick={scrollToTop} className={getLinkClasses("/about")}>About Us</Link>
+              <Link to="/contact" onClick={scrollToTop} className={getLinkClasses("/contact")}>Contact</Link>
               <a
                 href={supportMailto}
                 target="_blank"
