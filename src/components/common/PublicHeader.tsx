@@ -24,6 +24,12 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
     location.pathname === "/for-everyone";
   const isLoggedIn = !!getStoredTokens();
 
+  React.useEffect(() => {
+    if (isFeaturesActive || isPricingActive) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [isFeaturesActive, isPricingActive]);
+
   const [activeSection, setActiveSection] = useState<'home' | 'features' | 'free-mock-papers-2027' | 'actions-demo' | 'for-everyone'>('home');
 
   // Track active section and dynamically update browser URL in real-time as user scrolls (Landing only)
