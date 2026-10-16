@@ -141,6 +141,18 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const activeTab = location.pathname.substring(1).split('/')[0] || 'dashboard';
+  const isCurrentRoutePermitted = (perms: PageAccess[]) => perms.some((p) =>
+      p.pageRoute === location.pathname ||
+      (location.pathname === '/subscription' && p.pageRoute === '/pricing' &&
+        (p.pageName.toLowerCase().includes('model test') ||
+          p.pageName.toLowerCase().includes('model paper') ||
+          p.pageName.toLowerCase().includes('subscription')))
+    );
+    useEffect(() => {
+      if (!authRole && location.pathname === '/subscription') {
+        setAuthModalMode('login');
+      }
+    }, [authRole, location.pathname]);
   const setActiveTab = (tab: string) => {
     setActiveSubmissionReport(null);
     navigate('/' + tab);
@@ -574,7 +586,7 @@ export default function App() {
           const perms = await ApiServices.getMenuPermissions();
           if (!cancelled) {
             setPageAccess(perms);
-            const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
+            const isPermitted = isCurrentRoutePermitted(perms);
             if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
           }
         } else if (isTeacherSession) {
@@ -582,21 +594,21 @@ export default function App() {
           const perms = await ApiServices.getMenuPermissions();
           if (!cancelled) {
             setPageAccess(perms);
-            const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
+            const isPermitted = isCurrentRoutePermitted(perms);
             if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
           }
         } else if (isStudentSession) {
           // Student: load full student dashboard data before showing workspace
           const perms = await loadStudentData();
           if (!cancelled) {
-            const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
+            const isPermitted = isCurrentRoutePermitted(perms);
             if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
           }
         } else if (isParentSession) {
           // Parent: load full parent dashboard data + children before showing workspace
           const perms = await loadParentAndChildren();
           if (!cancelled) {
-            const isPermitted = perms.some((p: PageAccess) => p.pageRoute === location.pathname);
+            const isPermitted = isCurrentRoutePermitted(perms);
             if ((isRoot || !isPermitted) && perms.length > 0) navigate(perms[0].pageRoute, { replace: true });
           }
         } else {

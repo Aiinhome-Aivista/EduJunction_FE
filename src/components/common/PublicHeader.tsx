@@ -91,6 +91,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         navigate('/features');
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       }
       return;
     }
@@ -100,6 +101,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         navigate('/pricing');
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       }
       return;
     }
@@ -200,6 +202,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
           
           <Link 
             to="/blog" 
+            onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
             className={`px-4 py-2 rounded-full transition-all duration-200 ${isBlogActive ? "bg-yellow-400 text-stone-950 font-extrabold shadow-sm" : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"}`}
           >
             Blogs
@@ -258,7 +261,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({ onOpenAuth }) => {
               {label as string}
             </button>
           ))}
-          <Link to="/blog" onClick={() => setMob(false)} className={isBlogActive ? "block py-2.5 px-3 rounded-xl text-sm font-extrabold text-stone-950 bg-yellow-400 shadow-sm" : "block py-2.5 px-3 rounded-xl text-sm font-semibold text-stone-700 hover:bg-stone-100 hover:text-stone-900"}>Blogs</Link>
+          <Link to="/blog" onClick={() => { setMob(false); window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }} className={isBlogActive ? "block py-2.5 px-3 rounded-xl text-sm font-extrabold text-stone-950 bg-yellow-400 shadow-sm" : "block py-2.5 px-3 rounded-xl text-sm font-semibold text-stone-700 hover:bg-stone-100 hover:text-stone-900"}>Blogs</Link>
           <div className="pt-3 border-t border-stone-100 flex gap-2">
             {isLoggedIn ? (
               <Link to="/dashboard" onClick={() => setMob(false)} className="flex-1 py-2.5 text-center rounded-xl bg-yellow-400 text-stone-900 font-bold text-sm">

@@ -124,11 +124,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             const displayName = isModelPaper && unlockedModelPapersCount > 0
               ? `${page.pageName} (${unlockedModelPapersCount})`
               : page.pageName;
+            const destination = isModelPaper ? '/subscription' : page.pageRoute;
 
             return (
               <NavLink
                 key={page.id}
-                to={page.pageRoute}
+                to={destination}
                 onClick={() => {
                   setMobileSidebarOpen?.(false);
                   onNavigate?.();
