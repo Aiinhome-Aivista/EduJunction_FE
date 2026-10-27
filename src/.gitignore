@@ -6,3 +6,33 @@ coverage/
 *.log
 .env*
 !.env.example
+
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Android local configuration
+android/local.properties
+android/.gradle/
+android/**/build/
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Gradle generated files
+.gradle/
+
+# Android signing credentials
+*.jks
+*.keystore
+
+# Temporary files
+*.tmp
+*.swp
