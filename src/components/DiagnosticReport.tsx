@@ -467,7 +467,18 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                      {/* Mobile compact score pill */}
+                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black sm:hidden border ${eq.marksAwarded >= ((eq as any).questionMarks || 1)
+                        ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
+                        : eq.marksAwarded > 0
+                          ? 'bg-amber-100 text-amber-900 border-amber-200'
+                          : 'bg-rose-100 text-rose-900 border-rose-200'
+                        }`}>
+                        {eq.marksAwarded >= ((eq as any).questionMarks || 1) ? `+${eq.marksAwarded}` : '0'}
+                      </span>
+
+                      {/* Desktop full score pill */}
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold hidden sm:inline-block ${eq.marksAwarded >= ((eq as any).questionMarks || 1)
                         ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                         : eq.marksAwarded > 0

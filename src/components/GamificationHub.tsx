@@ -126,22 +126,47 @@ export const GamificationHub: React.FC<GamificationHubProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Top Gamification Status Banner */}
-      <div className="bg-white border border-stone-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Mobile-Only Sleek Compact Status Header */}
+      <div className="flex sm:hidden flex-col gap-2.5 p-3 rounded-2xl bg-white border border-stone-200/90 shadow-2xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-800 shrink-0">
+              <Crown className="w-4 h-4 text-amber-600" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xs font-bold text-stone-900 truncate">Level {childLevel} Scholar</h1>
+              <p className="text-[10px] text-stone-500 font-medium truncate">{childXP} Total XP Earned</p>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold bg-amber-50 text-amber-900 px-2.5 py-1 rounded-full border border-amber-200 shrink-0">
+            {progressToNextLevel}% to Lvl {childLevel + 1}
+          </span>
+        </div>
+        {/* Compact Progress Bar */}
+        <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-full transition-all duration-500"
+            style={{ width: `${progressToNextLevel}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Desktop Top Gamification Status Banner */}
+      <div className="hidden sm:flex bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-xs flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-yellow-50 border border-yellow-200 flex items-center justify-center text-3xl shrink-0 shadow-2xs">
-            {activeChild.avatar}
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0 shadow-2xs">
+            <Crown className="w-7 h-7 text-amber-600" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold text-stone-900">{activeChild.name}</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-stone-900">Leaderboard & Achievements</h1>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
                 <Crown className="w-3.5 h-3.5 text-amber-600" />
                 Level {childLevel} Scholar
               </span>
             </div>
             <p className="text-xs text-stone-500 mt-1">
-              {activeChild.classGrade} • {activeChild.targetBoard} • {activeChild.schoolName || 'School Student'}
+              {activeChild.classGrade} • {activeChild.targetBoard} • Global Ranks & Milestone Badges
             </p>
           </div>
         </div>
@@ -369,7 +394,7 @@ export const GamificationHub: React.FC<GamificationHubProps> = ({
                       </div>
 
                       <div className="w-10 h-10 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-xl shrink-0">
-                        {entry.avatar}
+                        {!entry.avatar || entry.avatar === '?' ? '👦' : entry.avatar}
                       </div>
 
                       <div className="min-w-0">

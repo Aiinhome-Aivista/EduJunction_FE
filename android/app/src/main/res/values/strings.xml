@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">EduJunction</string>
+    <string name="title_activity_main">EduJunction</string>
+    <string name="package_name">com.edujunction.app</string>
+    <string name="custom_url_scheme">com.edujunction.app</string>
+</resources>

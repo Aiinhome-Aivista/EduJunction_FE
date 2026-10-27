@@ -27,7 +27,18 @@ import {
   Zap,
   CalendarClock,
   Loader2,
-  Lock
+  Lock,
+  FlaskConical,
+  Globe,
+  Code,
+  Brain,
+  Target,
+  FileText,
+  User,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid
 } from 'lucide-react';
 import ApiServices from '../services/ApiServices';
 
@@ -49,6 +60,7 @@ const GRADES: ClassGrade[] = [
   'Class 5', 'Class 6', 'Class 7', 'Class 8',
   'Class 9', 'Class 10', 'Class 11', 'Class 12'
 ];
+
 interface DbTopic {
   id: number;
   name: string;
@@ -100,6 +112,96 @@ export const getExamBlueprint = (grade: string = 'Class 10') => {
     badgeText: '10 Questions • 15 Marks ',
     titleLabel: 'Exam',
     buttonText: 'Start Test',
+  };
+};
+
+export const getSubjectConfig = (subjectName: string) => {
+  const s = (subjectName || '').toLowerCase().trim();
+
+  // 1. Social Studies / Social Science / History / Geography / Civics / SST (Must be checked before 'science'!)
+  if (/social|sst|history|geography|civics|political|sociology/i.test(s)) {
+    return {
+      Icon: Globe,
+      bg: 'bg-amber-50/70 hover:bg-amber-100/80 border-amber-200/60 text-amber-950',
+      activeBg: 'bg-amber-400 text-stone-950 border-amber-500 shadow-sm ring-2 ring-amber-300 ring-offset-1 font-bold',
+      iconBg: 'bg-amber-100 text-amber-800',
+      activeIconBg: 'bg-stone-950 text-amber-400',
+    };
+  }
+
+  // 2. English / Grammar / Literature
+  if (/english|grammar|literature/i.test(s)) {
+    return {
+      Icon: BookOpen,
+      bg: 'bg-purple-50/70 hover:bg-purple-100/80 border-purple-200/60 text-purple-950',
+      activeBg: 'bg-purple-600 text-white border-purple-700 shadow-sm ring-2 ring-purple-300 ring-offset-1 font-bold',
+      iconBg: 'bg-purple-100 text-purple-700',
+      activeIconBg: 'bg-purple-700 text-white',
+    };
+  }
+
+  // 3. Hindi / Regional Languages (Bengali, Sanskrit, etc.)
+  if (/hindi|bengali|sanskrit|language/i.test(s)) {
+    return {
+      Icon: BookOpen,
+      bg: 'bg-pink-50/70 hover:bg-pink-100/80 border-pink-200/60 text-pink-950',
+      activeBg: 'bg-pink-600 text-white border-pink-700 shadow-sm ring-2 ring-pink-300 ring-offset-1 font-bold',
+      iconBg: 'bg-pink-100 text-pink-700',
+      activeIconBg: 'bg-pink-700 text-white',
+    };
+  }
+
+  // 4. Mathematics / Maths / Algebra / Geometry
+  if (/math|algebra|calculus|trig|arithmetic|geometry/i.test(s)) {
+    return {
+      Icon: Calculator,
+      bg: 'bg-sky-50/70 hover:bg-sky-100/80 border-sky-200/60 text-sky-950',
+      activeBg: 'bg-sky-500 text-white border-sky-600 shadow-sm ring-2 ring-sky-300 ring-offset-1 font-bold',
+      iconBg: 'bg-sky-100 text-sky-700',
+      activeIconBg: 'bg-sky-600 text-white',
+    };
+  }
+
+  // 5. Science / Physics / Chemistry / Biology
+  if (/science|physics|chemistry|biology/i.test(s)) {
+    return {
+      Icon: FlaskConical,
+      bg: 'bg-emerald-50/70 hover:bg-emerald-100/80 border-emerald-200/60 text-emerald-950',
+      activeBg: 'bg-emerald-600 text-white border-emerald-700 shadow-sm ring-2 ring-emerald-300 ring-offset-1 font-bold',
+      iconBg: 'bg-emerald-100 text-emerald-700',
+      activeIconBg: 'bg-emerald-700 text-white',
+    };
+  }
+
+  // 6. Computer Science / Coding / IT
+  if (/computer|python|code|cyber|informatic/i.test(s)) {
+    return {
+      Icon: Code,
+      bg: 'bg-indigo-50/70 hover:bg-indigo-100/80 border-indigo-200/60 text-indigo-950',
+      activeBg: 'bg-indigo-600 text-white border-indigo-700 shadow-sm ring-2 ring-indigo-300 ring-offset-1 font-bold',
+      iconBg: 'bg-indigo-100 text-indigo-700',
+      activeIconBg: 'bg-indigo-700 text-white',
+    };
+  }
+
+  // 7. Reasoning / Mental Ability
+  if (/reasoning|logic|aptitude/i.test(s)) {
+    return {
+      Icon: Brain,
+      bg: 'bg-teal-50/70 hover:bg-teal-100/80 border-teal-200/60 text-teal-950',
+      activeBg: 'bg-teal-600 text-white border-teal-700 shadow-sm ring-2 ring-teal-300 ring-offset-1 font-bold',
+      iconBg: 'bg-teal-100 text-teal-700',
+      activeIconBg: 'bg-teal-700 text-white',
+    };
+  }
+
+  // Default Fallback
+  return {
+    Icon: FileText,
+    bg: 'bg-orange-50/70 hover:bg-orange-100/80 border-orange-200/60 text-orange-950',
+    activeBg: 'bg-orange-500 text-white border-orange-600 shadow-sm ring-2 ring-orange-300 ring-offset-1 font-bold',
+    iconBg: 'bg-orange-100 text-orange-700',
+    activeIconBg: 'bg-orange-600 text-white',
   };
 };
 
@@ -287,7 +389,15 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
   const [showScratchpad, setShowScratchpad] = useState(false);
   const [scratchpadNote, setScratchpadNote] = useState('');
   const [generationStep, setGenerationStep] = useState('');
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [showQuestionPalette, setShowQuestionPalette] = useState(false);
   const autoAdvanceTimerRef = useRef<any>(null);
+
+  const formatOptionText = (rawOpt: string) => {
+    if (!rawOpt) return '';
+    const stripped = rawOpt.replace(/^(?:option\s+)?\(?[A-Da-d]\)?[\).\:\-]?\s+/i, '').trim();
+    return stripped || rawOpt;
+  };
 
   useEffect(() => {
     return () => {
@@ -592,17 +702,372 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
     const secs = timeRemainingSeconds % 60;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 hide-scrollbar">
+      <>
+        {/* ══════════════════════════════════════════════════════════════════════════════
+            MOBILE VIEW (Dedicated Fullscreen Native Exam Experience like Quizizz/Unacademy)
+            ══════════════════════════════════════════════════════════════════════════════ */}
+        <div className="flex sm:hidden fixed inset-0 z-50 bg-stone-50 flex-col">
+          {/* 1. Mobile Fixed Top Bar */}
+          <div className="h-14 bg-white border-b border-stone-200/90 px-3 flex items-center justify-between shrink-0 shadow-2xs">
+            {/* Exit Button */}
+            <button
+              type="button"
+              onClick={() => setShowExitModal(true)}
+              className="p-2 rounded-xl text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-colors active:scale-95 cursor-pointer"
+              title="Exit Test"
+            >
+              <X className="w-5 h-5 text-stone-700" />
+            </button>
 
-        {/* ═══════════════ TOP HEADER BAR (Scrolls with page) ═══════════════ */}
-        <div className="max-w-6xl mx-auto px-4 pt-3 pb-2">
-          <div className={`rounded-2xl overflow-hidden shadow-sm transition-all duration-500 ${isLowTime
-            ? 'bg-gradient-to-r from-rose-600 via-rose-500 to-orange-500'
-            : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500'
-            }`}
-            style={{ boxShadow: isLowTime ? '0 4px 20px rgba(239,68,68,0.20)' : '0 4px 20px rgba(251,191,36,0.20)' }}
-          >
-            {/* Decorative shimmer strip */}
+            {/* Exam Center Info */}
+            <div className="flex flex-col items-center min-w-0 px-2">
+              <span className="text-xs font-bold text-stone-900 truncate max-w-[150px]">
+                {activeExam.subject || 'Challenge'}
+              </span>
+              <span className="text-[10px] text-stone-500 font-medium">
+                Q {currentQuestionIdx + 1} of {totalQuestions}
+              </span>
+            </div>
+
+            {/* Timer & Submit */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-mono text-xs font-bold ${
+                isLowTime ? 'bg-red-50 text-red-600 border border-red-200 animate-pulse' : 'bg-amber-50 text-amber-900 border border-amber-200'
+              }`}>
+                <Clock className="w-3.5 h-3.5" />
+                <span>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConfirmSubmit(true)}
+                className="px-3 py-1 rounded-xl bg-stone-950 text-yellow-400 font-bold text-xs shadow-xs active:scale-95 cursor-pointer"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Top Progress Strip */}
+          <div className="w-full h-1 bg-stone-200/60 shrink-0">
+            <div
+              className="h-full bg-amber-400 transition-all duration-300 shadow-2xs"
+              style={{ width: `${((currentQuestionIdx + 1) / totalQuestions) * 100}%` }}
+            />
+          </div>
+
+          {/* 3. Scrollable Question & Options Body */}
+          <div className="flex-1 overflow-y-auto px-4 py-3.5 space-y-3.5 pb-24">
+            {/* Meta Row: Badges & Flag */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-bold text-stone-900 bg-stone-200/80 px-2 py-0.5 rounded-md">
+                  {currentQ.marks || 1} {(currentQ.marks || 1) > 1 ? 'Marks' : 'Mark'}
+                </span>
+                <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${
+                  (currentQ.difficulty || adaptiveDifficulty) === 'hard'
+                    ? 'bg-rose-100 text-rose-800'
+                    : (currentQ.difficulty || adaptiveDifficulty) === 'medium'
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-emerald-100 text-emerald-800'
+                }`}>
+                  {currentQ.difficulty || adaptiveDifficulty}
+                </span>
+                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                  {currentQ.type}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => toggleFlagQuestion(currentQ.id)}
+                className={`p-1.5 rounded-lg border transition-all active:scale-95 cursor-pointer ${
+                  flaggedQuestions[currentQ.id]
+                    ? 'bg-amber-50 border-amber-300 text-amber-600'
+                    : 'bg-white border-stone-200 text-stone-400 hover:text-stone-600'
+                }`}
+                title="Flag for review"
+              >
+                <Flag className={`w-3.5 h-3.5 ${flaggedQuestions[currentQ.id] ? 'fill-amber-500 text-amber-500' : ''}`} />
+              </button>
+            </div>
+
+            {/* Topic pill (if present) */}
+            {currentQ.topic && (
+              <div className="inline-flex items-center gap-1 text-[10px] font-medium text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-md">
+                <BookOpen className="w-3 h-3 text-stone-500 shrink-0" />
+                <span className="truncate">{currentQ.topic}</span>
+              </div>
+            )}
+
+            {/* Question Text */}
+            <div className="bg-white rounded-2xl border border-stone-200/90 p-4 shadow-2xs space-y-3">
+              <p className="text-stone-900 text-sm font-semibold leading-relaxed whitespace-pre-line">
+                {currentQ.questionText}
+              </p>
+
+              {/* Question Diagram / Image if present */}
+              {(currentQ.imageUrl || currentQ.image_url) && (
+                <div className="my-2 p-2 rounded-xl bg-stone-50 border border-stone-200/80 flex flex-col items-center">
+                  <img
+                    src={(currentQ.imageUrl || currentQ.image_url)?.startsWith('http') ? (currentQ.imageUrl || currentQ.image_url) : (import.meta.env.VITE_API_BASE_URL || '') + (currentQ.imageUrl || currentQ.image_url)}
+                    alt="Question Diagram"
+                    className="max-h-48 w-auto object-contain rounded-lg"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* MCQ Options */}
+            {(currentQ.type === 'mcq' || currentQ.type === 'logical') && currentQ.options && currentQ.options.length > 0 && (
+              <div className="space-y-2">
+                {currentQ.options.map((opt, oIdx) => {
+                  const letter = String.fromCharCode(65 + oIdx);
+                  const cleanText = formatOptionText(opt);
+                  const isSelected = answers[currentQ.id]?.toUpperCase() === letter
+                    || answers[currentQ.id]?.trim().toLowerCase() === cleanText.toLowerCase()
+                    || answers[currentQ.id] === opt;
+
+                  return (
+                    <button
+                      key={oIdx}
+                      type="button"
+                      onClick={() => handleSelectAnswer(currentQ.id, letter, true)}
+                      className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all active:scale-[0.98] cursor-pointer ${
+                        isSelected
+                          ? 'border-amber-400 bg-gradient-to-r from-amber-50 to-yellow-50/50 shadow-xs ring-1 ring-amber-400'
+                          : 'border-stone-200 bg-white hover:bg-stone-50'
+                      }`}
+                    >
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${
+                        isSelected
+                          ? 'bg-amber-400 text-stone-950 font-black shadow-2xs'
+                          : 'bg-stone-100 text-stone-600 border border-stone-200'
+                      }`}>
+                        {letter}
+                      </div>
+                      <span className={`text-xs sm:text-sm leading-snug flex-1 ${
+                        isSelected ? 'font-bold text-stone-900' : 'font-medium text-stone-700'
+                      }`}>
+                        {cleanText || opt}
+                      </span>
+                      {isSelected && (
+                        <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* SAQ Text Area */}
+            {(currentQ.type === 'saq' || (!currentQ.options || currentQ.options.length === 0) && currentQ.type !== 'numerical' && currentQ.type !== 'objective') && (
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                  Your Answer ({currentQ.marks || 2} Marks)
+                </label>
+                <textarea
+                  rows={4}
+                  value={answers[currentQ.id] || ''}
+                  onChange={(e) => handleSelectAnswer(currentQ.id, e.target.value)}
+                  placeholder="Type your explanation or solution here..."
+                  className="w-full p-3 rounded-2xl border border-stone-300 focus:border-amber-400 focus:ring-1 focus:ring-amber-200 text-stone-900 text-xs sm:text-sm outline-none resize-none bg-white"
+                />
+              </div>
+            )}
+
+            {/* Numerical Input */}
+            {currentQ.type === 'numerical' && (
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                  Numerical Value
+                </label>
+                <input
+                  type="text"
+                  value={answers[currentQ.id] || ''}
+                  onChange={(e) => handleSelectAnswer(currentQ.id, e.target.value)}
+                  placeholder="e.g. 6 or 3.14"
+                  className="w-full p-3 rounded-2xl border border-stone-300 focus:border-amber-400 focus:ring-1 focus:ring-amber-200 text-stone-900 font-mono text-sm outline-none bg-white"
+                />
+              </div>
+            )}
+
+            {/* Objective Input */}
+            {currentQ.type === 'objective' && (
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                  Objective Key Term
+                </label>
+                <input
+                  type="text"
+                  value={answers[currentQ.id] || ''}
+                  onChange={(e) => handleSelectAnswer(currentQ.id, e.target.value)}
+                  placeholder="e.g. Total Internal Reflection"
+                  className="w-full p-3 rounded-2xl border border-stone-300 focus:border-amber-400 focus:ring-1 focus:ring-amber-200 text-stone-900 text-xs sm:text-sm outline-none bg-white"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* 4. Mobile Fixed Bottom Navigation Bar */}
+          <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-stone-200/90 px-4 flex items-center justify-between z-30 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+            {/* Prev Button */}
+            <button
+              type="button"
+              disabled={currentQuestionIdx === 0}
+              onClick={() => setCurrentQuestionIdx((p) => p - 1)}
+              className="px-3.5 py-2 rounded-xl border border-stone-200 bg-stone-50 text-stone-700 font-bold text-xs disabled:opacity-40 flex items-center gap-1 active:scale-95 cursor-pointer disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Prev</span>
+            </button>
+
+            {/* Palette Button (Shows X of Y answered) */}
+            <button
+              type="button"
+              onClick={() => setShowQuestionPalette(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 font-bold text-xs active:scale-95 cursor-pointer"
+            >
+              <LayoutGrid className="w-3.5 h-3.5 text-amber-700" />
+              <span>{answeredCount}/{totalQuestions} Qs</span>
+            </button>
+
+            {/* Next / Submit Button */}
+            {currentQuestionIdx < totalQuestions - 1 ? (
+              <button
+                type="button"
+                onClick={handleNextQuestion}
+                className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-stone-950 font-bold text-xs shadow-xs flex items-center gap-1 active:scale-95 cursor-pointer"
+              >
+                <span>Next</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowConfirmSubmit(true)}
+                className="px-4 py-2 rounded-xl bg-stone-950 text-yellow-400 font-bold text-xs shadow-xs flex items-center gap-1 active:scale-95 cursor-pointer"
+              >
+                <span>Finish</span>
+                <CheckCircle2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* 5. Mobile Slide-Up Question Palette Sheet */}
+          {showQuestionPalette && (
+            <div className="fixed inset-0 z-50 flex flex-col justify-end">
+              <div
+                onClick={() => setShowQuestionPalette(false)}
+                className="fixed inset-0 bg-stone-950/40 backdrop-blur-sm transition-opacity"
+              />
+              <div className="relative bg-white rounded-t-3xl border-t border-stone-200 p-4 space-y-3 z-10 max-h-[70vh] flex flex-col animate-in slide-in-from-bottom-6 duration-200">
+                <div className="w-12 h-1 bg-stone-300 rounded-full mx-auto" />
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-sm text-stone-900">Question Palette</h3>
+                  <button
+                    onClick={() => setShowQuestionPalette(false)}
+                    className="p-1 rounded-full text-stone-400 hover:text-stone-700 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3 text-[10px] text-stone-600 font-medium">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" /> Answered ({answeredCount})
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-stone-200 inline-block" /> Remaining ({remainingCount})
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" /> Flagged ({Object.values(flaggedQuestions).filter(Boolean).length})
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-5 gap-2 overflow-y-auto py-2">
+                  {activeExam.questions.map((q, idx) => {
+                    const isAnswered = !!answers[q.id]?.trim();
+                    const isFlagged = !!flaggedQuestions[q.id];
+                    const isCurrent = idx === currentQuestionIdx;
+
+                    return (
+                      <button
+                        key={q.id}
+                        onClick={() => {
+                          setCurrentQuestionIdx(idx);
+                          setShowQuestionPalette(false);
+                        }}
+                        className={`h-10 rounded-xl font-bold text-xs flex items-center justify-center relative cursor-pointer active:scale-95 transition-all ${
+                          isCurrent
+                            ? 'bg-stone-950 text-white shadow-xs'
+                            : isAnswered
+                              ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                              : 'bg-stone-100 text-stone-700 border border-stone-200'
+                        }`}
+                      >
+                        {idx + 1}
+                        {isFlagged && (
+                          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 6. Mobile Exit Confirmation Modal */}
+          {showExitModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div
+                onClick={() => setShowExitModal(false)}
+                className="fixed inset-0 bg-stone-950/40 backdrop-blur-sm"
+              />
+              <div className="relative bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl border border-stone-200 text-center space-y-3 z-10 animate-in zoom-in-95 duration-150">
+                <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                  <AlertCircle className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-base text-stone-900">Leave Challenge?</h3>
+                <p className="text-xs text-stone-500 leading-relaxed">
+                  Your current responses for this test will not be submitted and will be lost.
+                </p>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    onClick={() => setShowExitModal(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-700 font-bold text-xs cursor-pointer active:scale-95"
+                  >
+                    Keep Testing
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowExitModal(false);
+                      setActiveExam(null);
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs cursor-pointer active:scale-95"
+                  >
+                    Quit Test
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════════════════════════
+            DESKTOP VIEW (100% UNCHANGED Original Layout)
+            ══════════════════════════════════════════════════════════════════════════════ */}
+        <div className="hidden sm:block min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 hide-scrollbar">
+
+          {/* ═══════════════ TOP HEADER BAR (Scrolls with page) ═══════════════ */}
+          <div className="max-w-6xl mx-auto px-4 pt-3 pb-2">
+            <div className={`rounded-2xl overflow-hidden shadow-sm transition-all duration-500 ${isLowTime
+              ? 'bg-gradient-to-r from-rose-600 via-rose-500 to-orange-500'
+              : 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500'
+              }`}
+              style={{ boxShadow: isLowTime ? '0 4px 20px rgba(239,68,68,0.20)' : '0 4px 20px rgba(251,191,36,0.20)' }}
+            >
+              {/* Decorative shimmer strip */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute -top-1 left-0 right-0 h-0.5 bg-white/40 rounded-full" />
               <div className="absolute top-0 -left-32 w-64 h-full bg-white/10 rotate-12 blur-2xl" />
@@ -1044,424 +1509,708 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ═══════════════ CONFIRM SUBMIT MODAL ═══════════════ */}
-        {showConfirmSubmit && (
-          <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-stone-100 animate-in fade-in zoom-in-95 duration-200">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-yellow-50 border border-yellow-200 flex items-center justify-center">
-                  <Award className="w-6 h-6 text-yellow-500" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-stone-900">Submit Exam?</h3>
-                  <p className="text-xs text-stone-400">{activeExam.totalMarks || blueprint.totalMarks} Marks • {activeExam.title}</p>
-                </div>
+      {/* ═══════════════ CONFIRM SUBMIT MODAL (Accessible on both Mobile & Desktop) ═══════════════ */}
+      {showConfirmSubmit && (
+        <div className="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-stone-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-yellow-50 border border-yellow-200 flex items-center justify-center">
+                <Award className="w-6 h-6 text-yellow-500" />
               </div>
-
-              {/* Stats summary in modal */}
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                <div className="text-center p-3 rounded-xl bg-emerald-50 border border-emerald-100">
-                  <p className="text-xl font-black text-emerald-600">{answeredCount}</p>
-                  <p className="text-[10px] text-emerald-500 font-semibold uppercase">Answered</p>
-                </div>
-                <div className="text-center p-3 rounded-xl bg-stone-50 border border-stone-100">
-                  <p className="text-xl font-black text-stone-600">{remainingCount}</p>
-                  <p className="text-[10px] text-stone-400 font-semibold uppercase">Skipped</p>
-                </div>
-                <div className="text-center p-3 rounded-xl bg-yellow-50 border border-yellow-100">
-                  <p className="text-xl font-black text-yellow-600">{totalQuestions}</p>
-                  <p className="text-[10px] text-yellow-500 font-semibold uppercase">Total</p>
-                </div>
-              </div>
-
-              {remainingCount > 0 && (
-                <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 mb-4 text-xs text-amber-800 font-medium">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
-                  <span>{remainingCount} unanswered question{remainingCount > 1 ? 's' : ''} will receive 0 marks.</span>
-                </div>
-              )}
-
-              <div className="flex items-center gap-3">
-                <button
-                  id="cancel-submit-modal-btn"
-                  disabled={isSubmitting}
-                  onClick={() => setShowConfirmSubmit(false)}
-                  className="flex-1 py-2.5 rounded-xl border-2 border-stone-200 text-sm font-bold text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-all"
-                >
-                  Continue Test
-                </button>
-                <button
-                  id="confirm-submit-exam-btn"
-                  disabled={isSubmitting}
-                  onClick={handleSubmitExam}
-                  className="flex-1 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-stone-900 text-sm font-black shadow-sm disabled:opacity-75 flex items-center justify-center gap-2 transition-all"
-                >
-                  {isSubmitting ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /><span>Evaluating...</span></>
-                  ) : (
-                    'Submit & View Results'
-                  )}
-                </button>
+              <div>
+                <h3 className="text-lg font-black text-stone-900">Submit Exam?</h3>
+                <p className="text-xs text-stone-400">{activeExam.totalMarks || blueprint.totalMarks} Marks • {activeExam.title}</p>
               </div>
             </div>
+
+            {/* Stats summary in modal */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="text-center p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+                <p className="text-xl font-black text-emerald-600">{answeredCount}</p>
+                <p className="text-[10px] text-emerald-500 font-semibold uppercase">Answered</p>
+              </div>
+              <div className="text-center p-3 rounded-xl bg-stone-50 border border-stone-100">
+                <p className="text-xl font-black text-stone-600">{remainingCount}</p>
+                <p className="text-[10px] text-stone-400 font-semibold uppercase">Skipped</p>
+              </div>
+              <div className="text-center p-3 rounded-xl bg-yellow-50 border border-yellow-100">
+                <p className="text-xl font-black text-yellow-600">{totalQuestions}</p>
+                <p className="text-[10px] text-yellow-500 font-semibold uppercase">Total</p>
+              </div>
+            </div>
+
+            {remainingCount > 0 && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 mb-4 text-xs text-amber-800 font-medium">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+                <span>{remainingCount} unanswered question{remainingCount > 1 ? 's' : ''} will receive 0 marks.</span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3">
+              <button
+                id="cancel-submit-modal-btn"
+                disabled={isSubmitting}
+                onClick={() => setShowConfirmSubmit(false)}
+                className="flex-1 py-2.5 rounded-xl border-2 border-stone-200 text-sm font-bold text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-all cursor-pointer"
+              >
+                Continue Test
+              </button>
+              <button
+                id="confirm-submit-exam-btn"
+                disabled={isSubmitting}
+                onClick={handleSubmitExam}
+                className="flex-1 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-stone-900 text-sm font-black shadow-sm disabled:opacity-75 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /><span>Evaluating...</span></>
+                ) : (
+                  'Submit & View Results'
+                )}
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+      </>
     );
   }
 
   // Configuration & Exam Setup Screen
   return (
     <div className="max-w-6xl mx-auto pt-0 pb-6 space-y-1.5">
-      {/* Hero Welcome Banner (Clean, Light Landing-Page Style) */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-3xl p-4 sm:p-5 border border-yellow-200/80 shadow-xs">
-        {/* Soft Ambient Glow Accents (matching landing page hero) */}
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-yellow-200/50 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-amber-200/40 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-2xl space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-yellow-200 text-yellow-800 text-xs font-bold shadow-xs">
-            <Zap className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-            <span>{blueprint.badgeText}</span>
+      {/* ══════════════════════════════════════════════════════════════════════════════
+          MOBILE VIEW (Zetzo & Internshala Style - Premium Native Mobile App UI)
+          ══════════════════════════════════════════════════════════════════════════════ */}
+      <div className="block sm:hidden space-y-3 pb-8">
+
+
+        {/* 1. Parent Assigned Priority Challenge (Matching Home Banner) */}
+        {assignedExam && (
+          <div className="flex items-center justify-between p-2.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 border border-yellow-300 shadow-sm text-stone-950 gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-stone-950/10 flex items-center justify-center text-stone-950 shrink-0">
+                <CalendarClock className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[9px] font-bold uppercase tracking-wider text-amber-950 flex items-center gap-1">
+                  <span>Assigned Challenge</span>
+                  <span className="text-stone-900 bg-white/40 px-1 py-0.2 rounded font-bold text-[8px]">
+                    {(assignedExam.difficulty || 'simple').toUpperCase()}
+                  </span>
+                </div>
+                <div className="text-xs font-bold text-stone-950 truncate">
+                  {assignedExam.subject} {assignedExam.chapterTopic ? `— ${assignedExam.chapterTopic}` : ''}
+                </div>
+                <div className="text-[10px] text-stone-800 font-medium truncate">
+                  {assignedExam.questionCount} Qs • {assignedExam.timeLimitMinutes}m • {blueprint.totalMarks} Marks
+                </div>
+              </div>
+            </div>
+            <button
+              disabled={isGenerating}
+              onClick={() => handleStartExam(true)}
+              className="shrink-0 px-3 py-1.5 rounded-xl bg-stone-950 text-yellow-400 font-bold text-[11px] shadow-xs active:scale-95 transition-all flex items-center gap-1 cursor-pointer disabled:opacity-60"
+            >
+              <span>{isGenerating ? 'Loading...' : 'Start'}</span>
+              <ArrowRight className="w-3 h-3 text-yellow-400" />
+            </button>
           </div>
+        )}
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
-            Exam Preparedness & Knowledge Assessment
-          </h1>
+        {/* 2. Remedial Focus Sprint Banner (if topic set) */}
+        {activeTopic && (
+          <div className="flex items-center justify-between p-2.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-950 shadow-2xs">
+            <div className="min-w-0 flex-1">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-rose-700 bg-rose-100 px-2 py-0.5 rounded-md inline-block">
+                Remedial Focus Sprint
+              </span>
+              <p className="text-xs font-bold text-stone-900 truncate mt-0.5">{activeTopic}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTopic(null)}
+              className="text-[10px] font-bold text-stone-600 bg-white border border-stone-200 px-2.5 py-1 rounded-xl shrink-0 cursor-pointer active:scale-95 hover:bg-stone-50"
+            >
+              Clear
+            </button>
+          </div>
+        )}
 
-          <p className="text-stone-600 text-xs sm:text-sm leading-relaxed font-normal">
-            Calibrated for Classes 10 & 12 across CBSE, ICSE, ISC.
-            Grounding Your Test In Authentic Syllabus Runbooks With Instant Misconception Analysis.
-          </p>
-
-          {/* Active Candidate Badge */}
-          <div className="inline-flex items-center gap-3 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-yellow-200/80 shadow-xs mt-1">
-            <span className="text-xl p-1 bg-yellow-100/70 rounded-xl border border-yellow-200/60">{activeChild?.avatar || '👦'}</span>
+        {/* 3. Parent Cross-Board Selector (only if parent persona) */}
+        {!isStudentPersona && (
+          <div className="bg-white rounded-2xl border border-stone-200/90 p-3.5 shadow-2xs space-y-2.5">
             <div>
-              <span className="text-stone-500 text-[10px] block font-semibold uppercase tracking-wider">Active Candidate Persona</span>
-              <span className="font-bold text-stone-900 text-xs sm:text-sm">{activeChild?.name} <span className="text-yellow-700 font-semibold">({activeChild?.classGrade} • {activeChild?.targetBoard})</span></span>
+              <span className="text-[11px] font-bold text-stone-700 uppercase tracking-wider block mb-1.5">
+                1. Target Board
+              </span>
+              <div className="flex gap-1.5 overflow-x-auto hide-scrollbar pb-0.5">
+                {BOARDS.map((b) => (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => setSelectedBoard(b)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${selectedBoard === b
+                      ? 'bg-amber-400 text-stone-950 shadow-2xs'
+                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    }`}
+                  >
+                    {b}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <span className="text-[11px] font-bold text-stone-700 uppercase tracking-wider block mb-1.5">
+                2. Grade / Class
+              </span>
+              <div className="flex gap-1.5 overflow-x-auto hide-scrollbar pb-0.5">
+                {GRADES.map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setSelectedGrade(g)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${selectedGrade === g
+                      ? 'bg-amber-400 text-stone-950 shadow-2xs'
+                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Exam Configuration Form */}
-      <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-5 sm:p-7">
-        <div className="flex items-center justify-between mb-5 pb-4 border-b border-stone-100">
-          <div>
-            <h2 className="text-lg font-bold text-stone-900">Configure {blueprint.titleLabel}</h2>
-            <p className="text-xs text-stone-500">Select board, grade, subject, and target challenge level</p>
-          </div>
-          <div className="text-right">
-            <span className="text-xs font-bold text-amber-700 bg-amber-50 px-3.5 py-1.5 rounded-full border border-amber-200 shadow-2xs">
-              {blueprint.questionCount} Questions • {blueprint.totalMarks} Marks
+        {/* 4. 4-Column Subject Selection Grid (Unified with Home Explore Subjects) */}
+        <div className="bg-white rounded-2xl border border-stone-200/90 p-3.5 shadow-2xs space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
+              <span>{isStudentPersona ? '1. Select Subject' : '3. Subject'}</span>
+              {selectedSubject && (
+                <span className="text-amber-800 font-bold normal-case text-xs">({selectedSubject})</span>
+              )}
+            </span>
+            <span className="text-[9px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-full">
+              {isLoadingSubjects ? 'Loading...' : '1-Tap Practice'}
             </span>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {assignedExam && (
-            <div className="md:col-span-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 rounded-2xl p-5 text-white shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shrink-0">
-                  📝
-                </div>
-                <div>
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-yellow-100 flex items-center gap-1.5">
-                    <CalendarClock className="w-3.5 h-3.5" />
-                    <span>Parent Assigned Challenge • {assignedExam.questionCount} Questions ({assignedExam.timeLimitMinutes} Mins)</span>
+          {/* 4-Column Cube Tiles Grid (Matching Home page exactly) */}
+          <div className="grid grid-cols-4 gap-2">
+            {dbSubjects.map((sub) => {
+              const isSelected = selectedSubject === sub;
+              const config = getSubjectConfig(sub);
+              const IconComp = config.Icon;
+              const shortName = sub === 'Mathematics' ? 'Maths' : sub === 'Social Studies' || sub === 'Social Science' ? 'Social' : sub === 'Computer Science' ? 'Computers' : sub;
+
+              return (
+                <button
+                  key={sub}
+                  type="button"
+                  onClick={() => {
+                    setSelectedSubject(sub);
+                    if (activeTopic) setActiveTopic(null);
+                  }}
+                  className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all cursor-pointer active:scale-95 ${
+                    isSelected
+                      ? 'bg-amber-400 text-stone-950 border-amber-500 shadow-xs ring-2 ring-amber-300 ring-offset-1'
+                      : `${config.bg} border-stone-200/70`
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                    isSelected ? 'bg-stone-950 text-amber-400' : config.iconBg
+                  }`}>
+                    <IconComp className="w-4 h-4" />
                   </div>
-                  <div className="text-base font-black text-white mt-0.5">
-                    {assignedExam.subject} {assignedExam.chapterTopic ? `— ${assignedExam.chapterTopic}` : ''} • {(assignedExam.difficulty || 'simple').toUpperCase()}
-                  </div>
-                  {assignedExam.parentInstructions && (
-                    <p className="text-xs text-yellow-100 mt-1 italic">"{assignedExam.parentInstructions}"</p>
-                  )}
-                </div>
-              </div>
-              <button
-                id="start-assigned-challenge-btn"
-                disabled={isGenerating}
-                onClick={() => handleStartExam(true)}
-                className="w-full md:w-auto px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-black text-yellow-400 font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer shrink-0 hover:scale-105 transition-all disabled:opacity-60"
-              >
-                <Play className="w-4 h-4 fill-current" />
-                <span>Start Assigned Challenge ({assignedExam.questionCount} Qs)</span>
-              </button>
-            </div>
-          )}
-
-          {activeTopic && (
-            <div className="md:col-span-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-rose-50/90 border border-rose-200 text-rose-950 shadow-2xs animate-in fade-in">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
-                  🎯
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-rose-700 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-md">
-                      Targeted Remedial Sprint
-                    </span>
-                    <span className="text-xs font-bold text-stone-700">({selectedSubject})</span>
-                  </div>
-                  <p className="text-sm font-black text-stone-900 mt-0.5">Focus Topic: {activeTopic}</p>
-                  <p className="text-[11px] text-rose-700">Adaptive exam calibrated to strengthen and master this specific topic.</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveTopic(null)}
-                className="text-xs font-bold text-stone-600 hover:text-stone-900 bg-white/80 hover:bg-white border border-rose-200 px-3 py-1.5 rounded-xl transition-all cursor-pointer shrink-0"
-              >
-                Clear & Reset
-              </button>
-            </div>
-          )}
-
-          {isStudentPersona ? (
-            /* Student View: Auto-locked Enrolled Syllabus Banner */
-            <div className="md:col-span-2 bg-gradient-to-r from-yellow-50/90 via-amber-50/70 to-yellow-50/90 rounded-2xl p-4 sm:p-5 border border-yellow-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-2xl shadow-xs border border-yellow-200 shrink-0">
-                  {activeChild?.avatar || '🎓'}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-stone-900">{activeChild?.name}</span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-400 text-stone-900">
-                      Enrolled Student
-                    </span>
-                  </div>
-                  <p className="text-xs text-stone-600 mt-1 flex items-center gap-2 flex-wrap">
-                    <span>Curriculum Board: <strong className="text-yellow-950 font-bold">{selectedBoard}</strong></span>
-                    <span className="text-stone-300">•</span>
-                    <span>Grade / Class: <strong className="text-yellow-950 font-bold">{selectedGrade}</strong></span>
-                  </p>
-                </div>
-              </div>
-              <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between gap-1.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-yellow-200">
-                <span className="text-[11px] font-semibold text-yellow-700 bg-yellow-50 px-2.5 py-0.5 rounded-full border border-yellow-300">
-                  ✓ Self-Practice
-                </span>
-                <span className="text-[10px] text-stone-400">Adaptive {blueprint.totalMarks}-Mark Challenge</span>
-              </div>
-            </div>
-          ) : (
-            /* Parent View: Full Cross-Board & Syllabus Calibration Freedom */
-            <>
-              <div className="md:col-span-2 p-3 bg-amber-50/80 rounded-xl border border-amber-200/80 text-xs text-amber-950 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>
-                  <strong>Parent Cross-Board Calibration:</strong> You have full freedom to benchmark <strong>{activeChild?.name}</strong> against other exam boards (e.g. ICSE, Cambridge, IIT-JEE Foundation) to test cross-syllabus readiness.
-                </span>
-              </div>
-
-              {/* Board Selector */}
-              <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                  1. Target Curriculum / Exam Board
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {BOARDS.map((b) => (
-                    <button
-                      key={b}
-                      id={`board-btn-${b}`}
-                      type="button"
-                      onClick={() => setSelectedBoard(b)}
-                      className={`py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all ${selectedBoard === b
-                        ? 'bg-yellow-400 text-stone-900 border-yellow-400 shadow-2xs'
-                        : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
-                        }`}
-                    >
-                      {b}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Grade / Class Selector */}
-              <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                  2. Student Class / Grade (Class 1 to 12)
-                </label>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {GRADES.map((g) => (
-                    <button
-                      key={g}
-                      id={`grade-btn-${g.replace(/\s+/g, '')}`}
-                      type="button"
-                      onClick={() => setSelectedGrade(g)}
-                      className={`py-2.5 px-2 rounded-xl border text-xs font-semibold transition-all ${selectedGrade === g
-                        ? 'bg-yellow-400 text-stone-900 border-yellow-400 shadow-2xs'
-                        : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
-                        }`}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Subject Selector (Dynamically populated from database subject_master) */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
-                {isStudentPersona ? '1. Select Subject for Practice' : '3. Subject'}
-              </label>
-              {isLoadingSubjects && (
-                <span className="text-[11px] text-amber-600 font-medium flex items-center gap-1">
-                  <Loader2 className="w-3 h-3 animate-spin" /> Fetching mapped subjects...
-                </span>
-              )}
-            </div>
-            <select
-              id="subject-dropdown-select"
-              value={selectedSubject}
-              disabled={isLoadingSubjects || dbSubjects.length === 0}
-              onChange={(e) => {
-                const newSub = e.target.value as Subject;
-                setSelectedSubject(newSub);
-                if (activeTopic) {
-                  setActiveTopic(null);
-                }
-              }}
-              className="w-full px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-800 text-sm font-medium focus:ring-2 focus:ring-yellow-500 focus:outline-hidden disabled:bg-stone-100 disabled:text-stone-400"
-            >
-              {isLoadingSubjects ? (
-                <option value="">Fetching mapped subjects from database...</option>
-              ) : dbSubjects.length === 0 ? (
-                <option value="">No subjects mapped in database for {selectedGrade} ({selectedBoard})</option>
-              ) : (
-                <>
-                  <option value="">Select your subject</option>
-                  {dbSubjects.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                  {selectedSubject && !dbSubjects.some(s => s.toLowerCase() === selectedSubject.toLowerCase()) && (
-                    <option key={selectedSubject} value={selectedSubject}>{selectedSubject}</option>
-                  )}
-                </>
-              )}
-            </select>
-
-            {/* Science Domain / Sub-Branch Selector (CBSE & General Science) */}
-            {String(selectedSubject || '').toLowerCase().trim() === 'science' && (
-              <div className="mt-3 p-3.5 bg-gradient-to-r from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-2xl border border-yellow-200/90 shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200">
-                <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-[11px] font-extrabold text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                    Science Domain Focus
+                  <span className={`text-[10px] mt-1 leading-tight text-center truncate max-w-full ${
+                    isSelected ? 'font-bold text-stone-950' : 'font-medium text-stone-700'
+                  }`}>
+                    {shortName}
                   </span>
-                  <span className="text-[10px] text-amber-800 font-bold bg-white px-2.5 py-0.5 rounded-full border border-yellow-300 shadow-2xs">
-                    {selectedBranch === 'all' ? 'Full Mixed Syllabus' : `${selectedBranch} Target Practice`}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[
-                    { id: 'all', label: 'All Science', icon: '🌐', desc: 'Mixed Blueprint' },
-                    { id: 'Physics', label: 'Physics', icon: '⚡', desc: 'Light, Electricity...' },
-                    { id: 'Chemistry', label: 'Chemistry', icon: '🧪', desc: 'Reactions, Acids...' },
-                    { id: 'Biology', label: 'Biology', icon: '🧬', desc: 'Life, Heredity...' },
-                  ].map((b) => {
-                    const isSelected = selectedBranch === b.id;
-                    return (
-                      <button
-                        key={b.id}
-                        type="button"
-                        id={`branch-btn-${b.id}`}
-                        onClick={() => setSelectedBranch(b.id as any)}
-                        className={`p-2.5 rounded-xl border text-left transition-all ${
-                          isSelected
-                            ? 'bg-amber-400 text-stone-950 border-amber-500 shadow-xs ring-2 ring-amber-300 ring-offset-1 font-bold scale-[1.02]'
-                            : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-yellow-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5 text-xs font-bold">
-                          <span className="text-sm">{b.icon}</span>
-                          <span>{b.label}</span>
-                        </div>
-                        <div className={`text-[9px] mt-0.5 line-clamp-1 ${isSelected ? 'text-amber-950 font-medium' : 'text-stone-400'}`}>
-                          {b.desc}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Difficulty Level (Always Unlocked & Interactive) */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
-                {isStudentPersona ? '2. Challenge Difficulty Level' : '4. Exam Level'}
-              </label>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {(['simple', 'medium', 'hard'] as ExamDifficulty[]).map((d) => {
-                const isSel = selectedDifficulty === d;
-                const labels: Record<ExamDifficulty, { title: string; subtitle: string }> = {
-                  simple: { title: 'Simple', subtitle: 'Foundation' },
-                  medium: { title: 'Medium', subtitle: 'Proficiency' },
-                  hard: { title: 'Hard', subtitle: 'HOTS / Olympiad' }
-                };
-                return (
-                  <button
-                    key={d}
-                    id={`diff-btn-${d}`}
-                    type="button"
-                    onClick={() => setSelectedDifficulty(d)}
-                    className={`py-2 px-3 rounded-xl border text-left transition-all ${isSel
-                      ? 'bg-stone-900 text-white border-stone-900 shadow-2xs'
-                      : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
+          {/* Science Sub-Branch Pill Selector (if Science is active) */}
+          {String(selectedSubject || '').toLowerCase().trim() === 'science' && (
+            <div className="mt-2.5 p-2.5 bg-gradient-to-r from-emerald-50 to-teal-50/60 rounded-xl border border-emerald-200/80 space-y-1.5">
+              <span className="text-[9px] font-bold text-emerald-950 uppercase tracking-wider block">
+                Science Sub-Domain:
+              </span>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[
+                  { id: 'all', label: 'All' },
+                  { id: 'Physics', label: 'Physics' },
+                  { id: 'Chemistry', label: 'Chemistry' },
+                  { id: 'Biology', label: 'Biology' },
+                ].map((b) => {
+                  const isSel = selectedBranch === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => setSelectedBranch(b.id as any)}
+                      className={`py-1.5 px-1 rounded-lg text-[10px] transition-all cursor-pointer text-center active:scale-95 ${
+                        isSel
+                          ? 'bg-emerald-600 text-white font-bold shadow-2xs'
+                          : 'bg-white border border-emerald-200 text-emerald-900 font-semibold hover:bg-emerald-50'
                       }`}
-                  >
-                    <div className="font-bold text-xs capitalize">{labels[d].title}</div>
-                    <div className={`text-[10px] ${isSel ? 'text-stone-300' : 'text-stone-400'}`}>
-                      {labels[d].subtitle}
-                    </div>
-                  </button>
-                );
-              })}
+                    >
+                      <span className="truncate">{b.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+          )}
+        </div>
+
+        {/* 5. Challenge Difficulty Level - Sleek Segmented Control */}
+        <div className="bg-white rounded-2xl border border-stone-200/90 p-3.5 shadow-2xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-stone-700 uppercase tracking-wider block">
+              {isStudentPersona ? '2. Challenge Difficulty Level' : '4. Exam Level'}
+            </span>
+            <span className="text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-full uppercase">
+              {selectedDifficulty}
+            </span>
+          </div>
+
+          <div className="p-1 bg-stone-100 rounded-xl flex gap-1 border border-stone-200/60">
+            {[
+              { id: 'simple' as ExamDifficulty, label: 'Simple', sub: 'Foundation' },
+              { id: 'medium' as ExamDifficulty, label: 'Medium', sub: 'Proficiency' },
+              { id: 'hard' as ExamDifficulty, label: 'Hard', sub: 'HOTS' },
+            ].map((d) => {
+              const isSel = selectedDifficulty === d.id;
+              return (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => setSelectedDifficulty(d.id)}
+                  className={`flex-1 py-1.5 px-1 text-center rounded-lg transition-all flex flex-col items-center justify-center cursor-pointer active:scale-95 ${
+                    isSel
+                      ? 'bg-stone-950 text-amber-400 font-bold shadow-2xs'
+                      : 'text-stone-600 hover:text-stone-900 font-semibold'
+                  }`}
+                >
+                  <span className="text-xs font-bold leading-tight">{d.label}</span>
+                  <span className={`text-[9px] ${isSel ? 'text-amber-200/80 font-medium' : 'text-stone-400 font-normal'}`}>
+                    {d.sub}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* RAG Knowledge Blueprint Preview */}
-        <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 mb-8">
-          <p className="text-xs text-stone-600 leading-relaxed">
-            Generating <strong className="text-stone-900">{blueprint.questionCount} questions ({blueprint.totalMarks} Marks)</strong> for <strong className="text-stone-900">{selectedGrade} {selectedBoard}{selectedSubject ? ` • ${selectedSubject}${String(selectedSubject).toLowerCase().trim() === 'science' && selectedBranch !== 'all' ? ` (${selectedBranch})` : ''}` : ''} ({selectedDifficulty.toUpperCase()})</strong> — {blueprint.breakdown}.
-          </p>
-        </div>
-
-        {/* Action Button */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-          <div className="text-xs text-stone-500">
-            Estimated duration: <strong className="text-stone-800">{blueprint.durationMinutes} minutes</strong> • {blueprint.totalMarks} Marks
+        {/* 6. Bottom Action Card & Start CTA (Unified with Home Button style) */}
+        <div className="bg-white rounded-2xl border border-stone-200/90 p-3.5 shadow-2xs space-y-2.5">
+          <div className="flex items-center justify-between text-[11px] text-stone-600 px-1 font-semibold">
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3 text-stone-500" />
+              <span>{blueprint.durationMinutes} Mins</span>
+            </span>
+            <span className="text-stone-300">•</span>
+            <span className="flex items-center gap-1">
+              <Target className="w-3 h-3 text-stone-500" />
+              <span>{blueprint.totalMarks} Marks</span>
+            </span>
+            <span className="text-stone-300">•</span>
+            <span className="flex items-center gap-1">
+              <FileText className="w-3 h-3 text-stone-500" />
+              <span>{blueprint.questionCount} Questions</span>
+            </span>
           </div>
 
           <button
-            id="start-exam-generate-btn"
-            disabled={isGenerating}
+            disabled={isGenerating || !selectedSubject}
             onClick={() => handleStartExam(false)}
-            className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-900 font-bold text-sm shadow-md shadow-yellow-200 flex items-center justify-center gap-2 transition-all disabled:opacity-60 cursor-pointer"
+            className={`w-full py-2.5 rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer disabled:opacity-50 ${
+              !selectedSubject
+                ? 'bg-stone-100 text-stone-400 border border-stone-200 cursor-not-allowed'
+                : 'bg-amber-400 hover:bg-amber-500 text-stone-950 shadow-amber-400/20'
+            }`}
           >
             {isGenerating ? (
               <>
-                <div className="w-4 h-4 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
+                <div className="w-3.5 h-3.5 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
                 <span>{generationStep || 'Building Exam...'}</span>
               </>
             ) : (
               <>
-                <Play className="w-4 h-4 fill-stone-900" />
-                <span>{activeTopic ? `Start Remedial Sprint: ${activeTopic}` : blueprint.buttonText}</span>
+                <span>
+                  {!selectedSubject
+                    ? 'Select a Subject First'
+                    : activeTopic
+                      ? `Start Sprint: ${activeTopic}`
+                      : `Start Practice Test (${selectedSubject})`
+                  }
+                </span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </>
             )}
           </button>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════════════
+          DESKTOP VIEW (100% UNCHANGED Original Layout)
+          ══════════════════════════════════════════════════════════════════════════════ */}
+      <div className="hidden sm:block space-y-4">
+        {/* Desktop Hero Welcome Banner (100% UNCHANGED) */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-3xl p-4 sm:p-5 border border-yellow-200/80 shadow-xs">
+          {/* Soft Ambient Glow Accents (matching landing page hero) */}
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-yellow-200/50 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-amber-200/40 blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-2xl space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-yellow-200 text-yellow-800 text-xs font-bold shadow-xs">
+              <Zap className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+              <span>{blueprint.badgeText}</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+              Exam Preparedness &amp; Knowledge Assessment
+            </h1>
+
+            <p className="text-stone-600 text-xs sm:text-sm leading-relaxed font-normal">
+              Calibrated for Classes 10 &amp; 12 across CBSE, ICSE, ISC.
+              Grounding Your Test In Authentic Syllabus Runbooks With Instant Misconception Analysis.
+            </p>
+
+            {/* Curriculum Calibration Pill */}
+            <div className="inline-flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-yellow-200/80 shadow-xs mt-1 text-xs font-semibold text-stone-700">
+              <span className="text-yellow-800 font-bold">{selectedGrade}</span>
+              <span className="text-stone-300">•</span>
+              <span className="text-stone-600">{selectedBoard} Syllabus</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Exam Configuration Form */}
+        <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-4 sm:p-7">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-stone-100">
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-stone-900">Configure {blueprint.titleLabel}</h2>
+              <p className="text-xs text-stone-500">Select board, grade, subject, and target challenge level</p>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="text-xs font-bold text-amber-700 bg-amber-50 px-3.5 py-1.5 rounded-full border border-amber-200 shadow-2xs whitespace-nowrap">
+                {blueprint.questionCount} Questions • {blueprint.totalMarks} Marks
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {assignedExam && (
+              <div className="md:col-span-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 rounded-2xl p-4 sm:p-5 text-white shadow-md flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl sm:text-2xl shrink-0">
+                    📝
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-yellow-100 flex flex-wrap items-center gap-1.5">
+                      <CalendarClock className="w-3.5 h-3.5" />
+                      <span>Parent Assigned Challenge • {assignedExam.questionCount} Questions ({assignedExam.timeLimitMinutes} Mins)</span>
+                    </div>
+                    <div className="text-sm sm:text-base font-black text-white mt-0.5 break-words">
+                      {assignedExam.subject} {assignedExam.chapterTopic ? `— ${assignedExam.chapterTopic}` : ''} • {(assignedExam.difficulty || 'simple').toUpperCase()}
+                    </div>
+                    {assignedExam.parentInstructions && (
+                      <p className="text-xs text-yellow-100 mt-1 italic">"{assignedExam.parentInstructions}"</p>
+                    )}
+                  </div>
+                </div>
+                <button
+                  id="start-assigned-challenge-btn"
+                  disabled={isGenerating}
+                  onClick={() => handleStartExam(true)}
+                  className="w-full md:w-auto px-5 py-3 rounded-xl bg-stone-900 hover:bg-black text-yellow-400 font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer shrink-0 active:scale-[0.98] transition-all disabled:opacity-60"
+                >
+                  <Play className="w-4 h-4 fill-current" />
+                  <span>Start Assigned Challenge ({assignedExam.questionCount} Qs)</span>
+                </button>
+              </div>
+            )}
+
+            {activeTopic && (
+              <div className="md:col-span-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl bg-rose-50/90 border border-rose-200 text-rose-950 shadow-2xs animate-in fade-in">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
+                    🎯
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-rose-700 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-md">
+                        Targeted Remedial Sprint
+                      </span>
+                      <span className="text-xs font-bold text-stone-700">({selectedSubject})</span>
+                    </div>
+                    <p className="text-sm font-black text-stone-900 mt-0.5">Focus Topic: {activeTopic}</p>
+                    <p className="text-[11px] text-rose-700">Adaptive exam calibrated to strengthen and master this specific topic.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTopic(null)}
+                  className="text-xs font-bold text-stone-600 hover:text-stone-900 bg-white/80 hover:bg-white border border-rose-200 px-3 py-1.5 rounded-xl transition-all cursor-pointer shrink-0"
+                >
+                  Clear & Reset
+                </button>
+              </div>
+            )}
+
+            {isStudentPersona ? (
+              /* Student View: Auto-locked Enrolled Syllabus Banner */
+              <div className="md:col-span-2 bg-gradient-to-r from-yellow-50/90 via-amber-50/70 to-yellow-50/90 rounded-2xl p-4 sm:p-5 border border-yellow-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-2xl shadow-xs border border-yellow-200 shrink-0">
+                    {!activeChild?.avatar || activeChild.avatar === '?' ? '👦' : activeChild.avatar}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-stone-900">{activeChild?.name}</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-400 text-stone-900">
+                        Enrolled Student
+                      </span>
+                    </div>
+                    <p className="text-xs text-stone-600 mt-1 flex items-center gap-2 flex-wrap">
+                      <span>Curriculum Board: <strong className="text-yellow-950 font-bold">{selectedBoard}</strong></span>
+                      <span className="text-stone-300">•</span>
+                      <span>Grade / Class: <strong className="text-yellow-950 font-bold">{selectedGrade}</strong></span>
+                    </p>
+                  </div>
+                </div>
+                <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between gap-1.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-yellow-200">
+                  <span className="text-[11px] font-semibold text-yellow-700 bg-yellow-50 px-2.5 py-0.5 rounded-full border border-yellow-300">
+                    ✓ Self-Practice
+                  </span>
+                  <span className="text-[10px] text-stone-400">Adaptive {blueprint.totalMarks}-Mark Challenge</span>
+                </div>
+              </div>
+            ) : (
+              /* Parent View: Full Cross-Board & Syllabus Calibration Freedom */
+              <>
+                <div className="md:col-span-2 p-3 bg-amber-50/80 rounded-xl border border-amber-200/80 text-xs text-amber-950 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>
+                    <strong>Parent Cross-Board Calibration:</strong> You have full freedom to benchmark <strong>{activeChild?.name}</strong> against other exam boards (e.g. ICSE, Cambridge, IIT-JEE Foundation) to test cross-syllabus readiness.
+                  </span>
+                </div>
+
+                {/* Board Selector */}
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                    1. Target Curriculum / Exam Board
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {BOARDS.map((b) => (
+                      <button
+                        key={b}
+                        id={`board-btn-${b}`}
+                        type="button"
+                        onClick={() => setSelectedBoard(b)}
+                        className={`py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all ${selectedBoard === b
+                          ? 'bg-yellow-400 text-stone-900 border-yellow-400 shadow-2xs'
+                          : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
+                          }`}
+                      >
+                        {b}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Grade / Class Selector */}
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                    2. Student Class / Grade (Class 1 to 12)
+                  </label>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {GRADES.map((g) => (
+                      <button
+                        key={g}
+                        id={`grade-btn-${g.replace(/\s+/g, '')}`}
+                        type="button"
+                        onClick={() => setSelectedGrade(g)}
+                        className={`py-2.5 px-2 rounded-xl border text-xs font-semibold transition-all ${selectedGrade === g
+                          ? 'bg-yellow-400 text-stone-900 border-yellow-400 shadow-2xs'
+                          : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
+                          }`}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Subject Selector (Dynamically populated from database subject_master) */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
+                  {isStudentPersona ? '1. Select Subject for Practice' : '3. Subject'}
+                </label>
+                {isLoadingSubjects && (
+                  <span className="text-[11px] text-amber-600 font-medium flex items-center gap-1">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Fetching mapped subjects...
+                  </span>
+                )}
+              </div>
+              <select
+                id="subject-dropdown-select"
+                value={selectedSubject}
+                disabled={isLoadingSubjects || dbSubjects.length === 0}
+                onChange={(e) => {
+                  const newSub = e.target.value as Subject;
+                  setSelectedSubject(newSub);
+                  if (activeTopic) {
+                    setActiveTopic(null);
+                  }
+                }}
+                className="w-full px-4 py-3 rounded-xl border border-stone-300 bg-white text-stone-800 text-sm font-medium focus:ring-2 focus:ring-yellow-500 focus:outline-hidden disabled:bg-stone-100 disabled:text-stone-400"
+              >
+                {isLoadingSubjects ? (
+                  <option value="">Fetching mapped subjects from database...</option>
+                ) : dbSubjects.length === 0 ? (
+                  <option value="">No subjects mapped in database for {selectedGrade} ({selectedBoard})</option>
+                ) : (
+                  <>
+                    <option value="">Select your subject</option>
+                    {dbSubjects.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                    {selectedSubject && !dbSubjects.some(s => s.toLowerCase() === selectedSubject.toLowerCase()) && (
+                      <option key={selectedSubject} value={selectedSubject}>{selectedSubject}</option>
+                    )}
+                  </>
+                )}
+              </select>
+
+              {/* Science Domain / Sub-Branch Selector (CBSE & General Science) */}
+              {String(selectedSubject || '').toLowerCase().trim() === 'science' && (
+                <div className="mt-3 p-3.5 bg-gradient-to-r from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-2xl border border-yellow-200/90 shadow-2xs animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <span className="text-[11px] font-extrabold text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      Science Domain Focus
+                    </span>
+                    <span className="text-[10px] text-amber-800 font-bold bg-white px-2.5 py-0.5 rounded-full border border-yellow-300 shadow-2xs">
+                      {selectedBranch === 'all' ? 'Full Mixed Syllabus' : `${selectedBranch} Target Practice`}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'all', label: 'All Science', icon: '🌐', desc: 'Mixed Blueprint' },
+                      { id: 'Physics', label: 'Physics', icon: '⚡', desc: 'Light, Electricity...' },
+                      { id: 'Chemistry', label: 'Chemistry', icon: '🧪', desc: 'Reactions, Acids...' },
+                      { id: 'Biology', label: 'Biology', icon: '🧬', desc: 'Life, Heredity...' },
+                    ].map((b) => {
+                      const isSelected = selectedBranch === b.id;
+                      return (
+                        <button
+                          key={b.id}
+                          type="button"
+                          id={`branch-btn-${b.id}`}
+                          onClick={() => setSelectedBranch(b.id as any)}
+                          className={`p-2.5 rounded-xl border text-left transition-all ${
+                            isSelected
+                              ? 'bg-amber-400 text-stone-950 border-amber-500 shadow-xs ring-2 ring-amber-300 ring-offset-1 font-bold scale-[1.02]'
+                              : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 hover:border-yellow-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5 text-xs font-bold">
+                            <span className="text-sm">{b.icon}</span>
+                            <span>{b.label}</span>
+                          </div>
+                          <div className={`text-[9px] mt-0.5 line-clamp-1 ${isSelected ? 'text-amber-950 font-medium' : 'text-stone-400'}`}>
+                            {b.desc}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Difficulty Level (Always Unlocked & Interactive) */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
+                  {isStudentPersona ? '2. Challenge Difficulty Level' : '4. Exam Level'}
+                </label>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(['simple', 'medium', 'hard'] as ExamDifficulty[]).map((d) => {
+                  const isSel = selectedDifficulty === d;
+                  const labels: Record<ExamDifficulty, { title: string; subtitle: string }> = {
+                    simple: { title: 'Simple', subtitle: 'Foundation' },
+                    medium: { title: 'Medium', subtitle: 'Proficiency' },
+                    hard: { title: 'Hard', subtitle: 'HOTS / Olympiad' }
+                  };
+                  return (
+                    <button
+                      key={d}
+                      id={`diff-btn-${d}`}
+                      type="button"
+                      onClick={() => setSelectedDifficulty(d)}
+                      className={`py-2 px-3 rounded-xl border text-left transition-all ${isSel
+                        ? 'bg-stone-900 text-white border-stone-900 shadow-2xs'
+                        : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
+                        }`}
+                    >
+                      <div className="font-bold text-xs capitalize">{labels[d].title}</div>
+                      <div className={`text-[10px] ${isSel ? 'text-stone-300' : 'text-stone-400'}`}>
+                        {labels[d].subtitle}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* RAG Knowledge Blueprint Preview */}
+          <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 mb-8">
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Generating <strong className="text-stone-900">{blueprint.questionCount} questions ({blueprint.totalMarks} Marks)</strong> for <strong className="text-stone-900">{selectedGrade} {selectedBoard}{selectedSubject ? ` • ${selectedSubject}${String(selectedSubject).toLowerCase().trim() === 'science' && selectedBranch !== 'all' ? ` (${selectedBranch})` : ''}` : ''} ({selectedDifficulty.toUpperCase()})</strong> — {blueprint.breakdown}.
+            </p>
+          </div>
+
+          {/* Action Button */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <div className="text-xs text-stone-500">
+              Estimated duration: <strong className="text-stone-800">{blueprint.durationMinutes} minutes</strong> • {blueprint.totalMarks} Marks
+            </div>
+
+            <button
+              id="start-exam-generate-btn"
+              disabled={isGenerating}
+              onClick={() => handleStartExam(false)}
+              className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-stone-900 font-bold text-sm shadow-md shadow-yellow-200 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer"
+            >
+              {isGenerating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
+                  <span>{generationStep || 'Building Exam...'}</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 fill-stone-900" />
+                  <span>{activeTopic ? `Start Remedial Sprint: ${activeTopic}` : blueprint.buttonText}</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

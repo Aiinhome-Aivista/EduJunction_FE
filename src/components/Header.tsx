@@ -158,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title={isParentActive ? `Parent Account (${parentAccount.name})` : `Active Student (${activeChild?.name})`}
               >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-50 to-amber-50 border border-yellow-200 flex items-center justify-center text-lg shadow-2xs group-hover:scale-105 transition-transform">
-                  {isParentActive ? '👨‍👩‍👧‍👦' : activeChild?.avatar || '👤'}
+                  {isParentActive ? '👨‍👩‍👧‍👦' : (!activeChild?.avatar || activeChild.avatar === '?' ? '👦' : activeChild.avatar)}
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-600 transition-transform duration-150" />
               </button>
@@ -218,7 +218,7 @@ export const Header: React.FC<HeaderProps> = ({
                           className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition-colors text-stone-700 hover:bg-stone-100 cursor-pointer"
                         >
                           <div className="flex items-center gap-2.5">
-                            <span className="text-lg">{child.avatar}</span>
+                            <span className="text-lg">{!child.avatar || child.avatar === '?' ? '👦' : child.avatar}</span>
                             <div>
                               <div className="font-medium text-stone-900">{child.name}</div>
                               <div className="text-[10px] text-stone-500">

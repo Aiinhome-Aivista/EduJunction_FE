@@ -87,13 +87,8 @@ export const PricingPage: React.FC = () => {
       return;
     }
 
-    if (isLoggedIn) {
-      navigate('/dashboard');
-      return;
-    }
-
-    // Prompt signup/login to complete purchase & link student account
-    openAuth('register', 'student');
+    // Always navigate to subscription page for model papers
+    navigate('/subscription');
   };
 
   const activePlan = dbPlans[0] || {
@@ -112,23 +107,22 @@ export const PricingPage: React.FC = () => {
 
       <main className="flex-1">
         {/* ============================================================== */}
+        {/* HERO & PRICING PLANS SECTION                                   */}
         {/* ============================================================== */}
-        {/* HERO & PRICING PLANS SECTION (FITS 100VH)                      */}
-        {/* ============================================================== */}
-        <section className="min-h-[calc(100vh-72px)] lg:h-[calc(100vh-72px)] flex flex-col justify-center relative overflow-hidden bg-gradient-to-br from-amber-50/70 via-white to-stone-50 py-3 sm:py-5 border-b border-amber-200/40">
+        <section className="min-h-[calc(100vh-72px)] flex flex-col justify-start relative bg-gradient-to-br from-amber-50/70 via-white to-stone-50 pt-8 sm:pt-12 pb-14 sm:pb-20 border-b border-amber-200/40">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
           <div className="absolute top-48 -left-32 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center w-full">
             {/* Pill Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-100/90 border border-amber-300/80 text-amber-950 text-[11px] font-black mb-4 sm:mb-5 shadow-2xs">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-100/90 border border-amber-300/80 text-amber-950 text-[11px] font-black mb-3 sm:mb-4 shadow-2xs">
               <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500 animate-pulse" />
               <span>Transparent &amp; Accessible Board Prep Pricing</span>
             </div>
 
             {/* Main Headline with Word Spacing */}
             <h1
-              className="text-3xl sm:text-5xl lg:text-6xl font-black text-stone-900 tracking-normal [word-spacing:0.2em] leading-[1.12] max-w-4xl mx-auto uppercase"
+              className="text-2xl sm:text-4xl lg:text-5xl font-black text-stone-900 tracking-normal [word-spacing:0.2em] leading-tight max-w-4xl mx-auto uppercase"
               style={{ wordSpacing: '0.2em' }}
             >
               INVEST IN TOP RANKS,{' '}
@@ -137,7 +131,7 @@ export const PricingPage: React.FC = () => {
               </span>
             </h1>
 
-            <p className="mt-3.5 sm:mt-4 text-stone-700 text-xs sm:text-sm font-medium max-w-xl mx-auto leading-relaxed">
+            <p className="mt-3 sm:mt-3.5 text-stone-700 text-xs sm:text-sm font-medium max-w-xl mx-auto leading-relaxed">
               Transparent, student-friendly pricing for CBSE, ICSE &amp; ISC candidates. Start free with instant result — zero credit card required.
             </p>
 

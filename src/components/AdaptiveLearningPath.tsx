@@ -67,13 +67,34 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Top Banner / Persona context */}
-      <div className="bg-white border border-stone-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Mobile-Only Sleek Compact Header */}
+      <div className="flex sm:hidden items-center justify-between p-3 rounded-2xl bg-white border border-stone-200/90 shadow-2xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-800 shrink-0">
+            <Compass className="w-4 h-4 text-amber-700" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-xs font-bold text-stone-900 truncate">
+              Adaptive Roadmap
+            </h1>
+            <p className="text-[10px] text-stone-500 font-medium truncate">
+              {activeChild.classGrade} &bull; {activeChild.targetBoard}
+            </p>
+          </div>
+        </div>
+        <div className="shrink-0 px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 text-[10px] font-bold flex items-center gap-1 shadow-2xs">
+          <Zap className="w-3 h-3 fill-amber-500 text-amber-500" />
+          <span>Lvl {activeChild.level || 6} &bull; {activeChild.xp || 1420} XP</span>
+        </div>
+      </div>
+
+      {/* Desktop Top Banner / Persona Context */}
+      <div className="hidden sm:flex bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-xs flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xl sm:text-2xl">{activeChild.avatar}</span>
+            <span className="text-xl sm:text-2xl">{!activeChild.avatar || activeChild.avatar === '?' ? '🧭' : activeChild.avatar}</span>
             <h1 className="text-xl sm:text-2xl font-bold text-stone-900">
-              Learning Junction: <span className="text-yellow-600">{activeChild.name}</span>
+              Learning Junction Roadmap
             </h1>
             <span className="text-xs font-semibold px-2.5 py-0.5 bg-yellow-50 text-yellow-700 rounded-full border border-yellow-300">
               {activeChild.classGrade} • {activeChild.targetBoard}
@@ -96,20 +117,20 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
         </div>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="bg-white border border-stone-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-bold text-stone-700 flex items-center gap-1">
+      {/* Filter Toolbar (Optimized for Mobile Touch) */}
+      <div className="bg-white border border-stone-200 rounded-2xl p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-0.5">
+          <span className="text-xs font-bold text-stone-500 shrink-0 flex items-center gap-1">
             <Filter className="w-3.5 h-3.5 text-stone-400" />
             Subject:
           </span>
-          <div className="flex gap-1 flex-wrap">
+          <div className="flex gap-1.5 shrink-0">
             {subjectsList.map((sub) => (
               <button
                 key={sub}
                 onClick={() => setSelectedSubject(sub)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all capitalize cursor-pointer ${selectedSubject === sub
-                  ? 'bg-yellow-400 text-stone-900 shadow-2xs'
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition-all capitalize cursor-pointer shrink-0 active:scale-95 ${selectedSubject === sub
+                  ? 'bg-amber-400 text-stone-950 shadow-2xs'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                   }`}
               >
@@ -119,12 +140,12 @@ export const AdaptiveLearningPath: React.FC<AdaptiveLearningPathProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-stone-700">Track:</span>
+        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+          <span className="text-xs font-bold text-stone-500">Track:</span>
           <select
             value={selectedLevel}
             onChange={(e) => setSelectedLevel(e.target.value as any)}
-            className="px-2.5 py-1 rounded-lg border border-stone-300 text-xs bg-white text-stone-800 focus:outline-hidden focus:ring-1 focus:ring-yellow-500 cursor-pointer"
+            className="px-2.5 py-1 rounded-xl border border-stone-200 text-xs bg-stone-50 text-stone-800 focus:outline-hidden focus:ring-1 focus:ring-yellow-500 cursor-pointer"
           >
             <option value="all">All Tracks</option>
             <option value="foundational">Foundational (Remedial)</option>

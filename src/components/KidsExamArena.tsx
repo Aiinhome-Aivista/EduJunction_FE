@@ -610,12 +610,10 @@ export const KidsExamArena: React.FC<KidsExamArenaProps> = ({
           </p>
 
           <div className="pt-2">
-            <div className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/30 shadow-md">
-              <span className="text-2xl bg-white p-1 rounded-full shadow-inner">{activeChild?.avatar || '👦'}</span>
-              <div className="text-left">
-                <span className="text-sky-100 text-[10px] font-bold block uppercase tracking-wider">Player 1 Ready:</span>
-                <span className="font-bold text-base text-white drop-shadow-xs">{activeChild?.name} ({selectedGrade} • {selectedBoard})</span>
-              </div>
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-xl border border-white/30 shadow-xs text-xs font-bold text-white">
+              <span>{selectedGrade}</span>
+              <span>•</span>
+              <span>{selectedBoard}</span>
             </div>
           </div>
         </div>

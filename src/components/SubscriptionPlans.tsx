@@ -657,22 +657,22 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
   );
 
   return (
-    <div className="max-w-7xl mx-auto pt-0 pb-6 space-y-1.5 animate-in fade-in duration-300">
+    <div className="max-w-7xl mx-auto pt-0 pb-28 space-y-2.5 sm:space-y-4 animate-in fade-in duration-300 px-0.5 sm:px-0">
       {/* Top Banner / Header (Clean, Light Theme matching Exam Schedule) */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-3xl p-4 sm:p-5 border border-yellow-200/80 shadow-xs">
+      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 border border-yellow-200/80 shadow-xs">
         {/* Soft Ambient Glow Accents */}
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-yellow-200/50 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-amber-200/40 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-3xl space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/80 text-amber-900 border border-yellow-300/60 text-xs font-bold shadow-2xs">
-            <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+        <div className="relative z-10 max-w-3xl space-y-1.5 sm:space-y-2">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-yellow-100/80 text-amber-900 border border-yellow-300/60 text-[10px] sm:text-xs font-bold shadow-2xs">
+            <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600 fill-amber-500" />
             <span>2027 {selectedBoard} Specimen Examination Series</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900">
+          <h1 className="text-lg sm:text-2xl lg:text-3xl font-black tracking-tight text-stone-900 leading-tight">
             Purchase Model Test Paper <span className="text-amber-600">/ Single Full Exam</span>
           </h1>
-          <p className="text-xs sm:text-sm text-stone-600 font-medium leading-relaxed">
+          <p className="text-[11px] sm:text-sm text-stone-600 font-medium leading-relaxed">
             Unlock 1 or more Full-Length 2027 Specimen Model Question Paper Sets (⏱️ <strong>{selectedBoardMeta.duration}</strong> • <strong>{selectedBoardMeta.marks} Marks</strong>) with authentic {selectedBoard} marking blueprint, stopwatch timing, step-by-step solutions, and instant PDF/Word downloads.
           </p>
         </div>
@@ -680,13 +680,13 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
 
       {/* Alerts */}
       {successMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-emerald-800 text-sm font-bold shadow-sm animate-in fade-in">
+        <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-emerald-800 text-xs sm:text-sm font-bold shadow-sm animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <span className="flex-1">{successMessage}</span>
           {onNavigateToExam && (
             <button
               onClick={() => onNavigateToExam(selectedBoard, selectedClass, selectedSubject)}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 shrink-0"
             >
               <span>Start Exam</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -696,37 +696,37 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
       )}
 
       {errorMessage && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-center gap-3 text-rose-800 text-sm font-bold shadow-sm animate-in fade-in">
+        <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-rose-50 border border-rose-200 flex items-center gap-3 text-rose-800 text-xs sm:text-sm font-bold shadow-sm animate-in fade-in">
           <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {/* Main Grid: Selection & Checkout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 items-start">
         {/* Left: Selector (Board, Class, Subject, Sets) */}
-        <div className="lg:col-span-7 bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl border border-stone-200/80 p-3.5 sm:p-6 lg:p-8 shadow-xs space-y-4 sm:space-y-6">
           <div>
-            <h2 className="text-xl font-black text-stone-900 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-amber-500" />
-              Choose Board, Class & Subject
+            <h2 className="text-base sm:text-xl font-black text-stone-900 flex items-center gap-2">
+              <BookOpen className="w-4 sm:w-5 h-4 sm:h-5 text-amber-500" />
+              Choose Board, Class &amp; Subject
             </h2>
-            <p className="text-xs text-stone-500 mt-1">
+            <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5 sm:mt-1">
               Select Your Board (CBSE, ICSE, ISC), Class, Subject, and The Number of Unique <b>2027 Model Paper Sets</b> You Want.
             </p>
           </div>
 
           {/* Parent Child Selector (Only if logged in as Parent with linked children) */}
           {isParent && childrenList.length > 0 && (
-            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-2.5">
+            <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-black uppercase text-amber-900 tracking-wider flex items-center gap-1.5">
+                <label className="text-[11px] sm:text-xs font-black uppercase text-amber-900 tracking-wider flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-amber-700" />
                   <span>Select Child to Assign Model Paper</span>
                 </label>
-                <span className="text-[10px] font-bold text-amber-900 bg-amber-200/80 px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-amber-300/60 shadow-2xs">
+                <span className="text-[9px] sm:text-[10px] font-bold text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full flex items-center gap-1 border border-amber-300/60 shadow-2xs">
                   <Sparkles className="w-2.5 h-2.5 text-amber-700" />
-                  Class 10 & 12 Board Prep
+                  Class 10 &amp; 12 Board Prep
                 </span>
               </div>
 
@@ -743,7 +743,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                   ))}
                 </select>
               ) : (
-                <div className="p-3 rounded-xl bg-amber-100/90 border border-amber-300/80 text-amber-900 text-xs font-medium leading-relaxed">
+                <div className="p-2.5 sm:p-3 rounded-xl bg-amber-100/90 border border-amber-300/80 text-amber-900 text-[11px] sm:text-xs font-medium leading-relaxed">
                   ℹ️ <strong>Board Exam Notice:</strong> 2027 Model Question Papers are designed exclusively for <strong>Class 10 and Class 12</strong> Board candidates. Your registered children ({childrenList.map((c) => `${c.name || 'Child'} [${c.classGrade || 'Grade'}]`).join(', ')}) are in junior grades and can take practice tests from <strong>Exam Arena</strong> and <strong>Parent Scheduled Exams</strong>.
                 </div>
               )}
@@ -751,11 +751,11 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
           )}
 
           {/* 1. Board Selection */}
-          <div className="space-y-2">
-            <label className="text-xs font-black uppercase text-stone-600 tracking-wider">
+          <div className="space-y-1.5 sm:space-y-2">
+            <label className="text-[11px] sm:text-xs font-black uppercase text-stone-600 tracking-wider">
               1. Select Board
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
               {BOARDS.map((board) => {
                 const isSel = selectedBoard === board;
                 return (
@@ -766,16 +766,16 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                       setSelectedBoard(board);
                       setSuccessMessage(null);
                     }}
-                    className={`py-3 px-4 rounded-2xl border text-center transition-all ${isSel
-                      ? 'border-amber-500 bg-amber-50/70 text-amber-950 font-black shadow-sm ring-2 ring-amber-400/20'
+                    className={`py-2 sm:py-3 px-1 sm:px-3 rounded-xl sm:rounded-2xl border text-center transition-all ${isSel
+                      ? 'border-amber-500 bg-amber-50/70 text-amber-950 font-black shadow-xs ring-2 ring-amber-400/20'
                       : 'border-stone-200 bg-stone-50/40 text-stone-700 hover:border-stone-300 font-bold'
                       }`}
                   >
-                    <div className="text-sm font-black">{board}</div>
-                    <div className="text-[10px] text-stone-500 mt-0.5">
-                      {board === 'CBSE' && '3 Hours • 80 Marks'}
-                      {board === 'ICSE' && '2.5 Hours • 80 Marks'}
-                      {board === 'ISC' && '3 Hours • 70/80 Marks'}
+                    <div className="text-xs sm:text-sm font-black">{board}</div>
+                    <div className="text-[9px] sm:text-[10px] text-stone-500 mt-0.5 leading-tight">
+                      {board === 'CBSE' && '3h • 80m'}
+                      {board === 'ICSE' && '2.5h • 80m'}
+                      {board === 'ISC' && '3h • 70/80m'}
                     </div>
                   </button>
                 );
@@ -784,16 +784,16 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
           </div>
 
           {/* 2. Class Selection */}
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-black uppercase text-stone-600 tracking-wider">
+              <label className="text-[11px] sm:text-xs font-black uppercase text-stone-600 tracking-wider">
                 2. Select Class
               </label>
-              <span className="text-[11px] text-stone-400 font-medium">
+              <span className="text-[10px] sm:text-[11px] text-stone-400 font-medium">
                 {selectedBoard === 'ICSE' ? 'Class 10 Only' : selectedBoard === 'ISC' ? 'Class 12 Only' : 'Board Classes (10 & 12)'}
               </span>
             </div>
-            <div className="flex flex-wrap gap-2.5">
+            <div className="flex flex-wrap gap-2 sm:gap-2.5">
               {availableClasses.map((cls) => {
                 const isSel = selectedClass === cls;
                 return (
@@ -804,7 +804,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                       setSelectedClass(cls);
                       setSuccessMessage(null);
                     }}
-                    className={`py-2 px-3.5 rounded-xl border text-xs font-bold transition-all ${isSel
+                    className={`py-1.5 sm:py-2 px-3 sm:px-3.5 rounded-xl border text-xs font-bold transition-all ${isSel
                       ? 'border-amber-500 bg-amber-50 text-amber-900 font-black ring-2 ring-amber-400/20 shadow-xs'
                       : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300'
                       }`}
@@ -817,9 +817,9 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
           </div>
 
           {/* 3. Subject Selection */}
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-black uppercase text-stone-600 tracking-wider flex items-center gap-1.5">
+              <label className="text-[11px] sm:text-xs font-black uppercase text-stone-600 tracking-wider flex items-center gap-1.5">
                 <BookOpen className="w-3.5 h-3.5 text-amber-500" />
                 <span>3. Select Subject</span>
               </label>
@@ -829,7 +829,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                 <span className="text-[10px] text-stone-400 font-medium">{selectedBoard} • {selectedClass}</span>
               )}
             </div>
-            <div className="flex flex-wrap gap-2.5">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2.5">
               {availableSubjects.map((sub) => {
                 const isSel = selectedSubject === sub;
                 const hasUnlocked = activeSubscriptions.some(
@@ -847,16 +847,16 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                       setSelectedSubject(sub);
                       setSuccessMessage(null);
                     }}
-                    className={`py-2.5 px-4 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${isSel
+                    className={`py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl border text-xs font-bold transition-all flex items-center justify-between sm:justify-start gap-1.5 ${isSel
                       ? 'border-amber-500 bg-amber-50 text-amber-950 font-black ring-2 ring-amber-400/20 shadow-xs'
                       : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300'
                       }`}
                   >
-                    <span>{sub}</span>
+                    <span className="truncate">{sub}</span>
                     {hasUnlocked ? (
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" title="Has unlocked set" />
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white shrink-0" title="Has unlocked set" />
                     ) : isSel ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                     ) : null}
                   </button>
                 );
@@ -865,22 +865,22 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
           </div>
 
           {/* 4. Number of Model Paper Sets */}
-          <div className="space-y-3 pt-1 border-t border-stone-100">
+          <div className="space-y-2.5 sm:space-y-3 pt-2 border-t border-stone-100">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-black uppercase text-stone-600 tracking-wider">
+              <label className="text-[11px] sm:text-xs font-black uppercase text-stone-600 tracking-wider">
                 4. Number of Model Question Sets
               </label>
-              <span className="text-xs font-bold text-amber-700">₹{unitPrice} per unique set</span>
+              <span className="text-[11px] sm:text-xs font-bold text-amber-700">₹{unitPrice} per unique set</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5">
               {/* Stepper */}
-              <div className="flex items-center justify-between sm:justify-start border border-stone-200 rounded-2xl bg-stone-50 p-1 shrink-0">
+              <div className="w-full sm:w-auto flex items-center justify-between sm:justify-start border border-stone-200 rounded-xl sm:rounded-2xl bg-stone-50 p-1 shrink-0">
                 <button
                   type="button"
                   disabled={quantity <= 1}
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-8 h-8 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-700 hover:bg-stone-100 disabled:opacity-40 transition-colors shadow-2xs"
+                  className="w-8 h-8 rounded-lg sm:rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-700 hover:bg-stone-100 disabled:opacity-40 transition-colors shadow-2xs"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
@@ -891,26 +891,26 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                   type="button"
                   disabled={quantity >= 10}
                   onClick={() => setQuantity((q) => Math.min(10, q + 1))}
-                  className="w-8 h-8 rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-700 hover:bg-stone-100 disabled:opacity-40 transition-colors shadow-2xs"
+                  className="w-8 h-8 rounded-lg sm:rounded-xl bg-white border border-stone-200 flex items-center justify-center text-stone-700 hover:bg-stone-100 disabled:opacity-40 transition-colors shadow-2xs"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {/* Quick Set Presets Auto-Arranged */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1">
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2 flex-1">
                 {[1, 2, 3, 5].map((cnt) => (
                   <button
                     key={cnt}
                     type="button"
                     onClick={() => setQuantity(cnt)}
-                    className={`py-2 px-2 rounded-xl text-xs border text-center transition-all ${quantity === cnt
+                    className={`py-1.5 sm:py-2 px-1 sm:px-2 rounded-xl text-xs border text-center transition-all ${quantity === cnt
                       ? 'border-amber-500 bg-amber-50 text-amber-950 font-black shadow-2xs ring-1 ring-amber-400/30'
                       : 'border-stone-200 bg-stone-50/50 text-stone-700 hover:bg-stone-100/70 hover:border-stone-300 font-bold'
                       }`}
                   >
-                    <span className="block font-black leading-tight">{cnt} Set{cnt > 1 ? 's' : ''}</span>
-                    <span className={`block text-[10px] mt-0.5 ${quantity === cnt ? 'text-amber-800 font-bold' : 'text-stone-500 font-medium'}`}>
+                    <span className="block font-black leading-tight text-[11px] sm:text-xs">{cnt} Set{cnt > 1 ? 's' : ''}</span>
+                    <span className={`block text-[9px] sm:text-[10px] mt-0.5 ${quantity === cnt ? 'text-amber-800 font-bold' : 'text-stone-500 font-medium'}`}>
                       ₹{cnt * unitPrice}
                     </span>
                   </button>
@@ -920,44 +920,44 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
           </div>
 
           {/* Checkout Action Card */}
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50/90 via-yellow-50/80 to-amber-100/60 border border-amber-300/80 space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-50/90 via-yellow-50/80 to-amber-100/60 border border-amber-300/80 space-y-3 sm:space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block">
                   Selected Model Paper Pass
                 </span>
-                <div className="text-sm sm:text-base font-black text-stone-900 mt-0.5">
+                <div className="text-xs sm:text-base font-black text-stone-900 mt-0.5">
                   {selectedBoard} {selectedClass} — {selectedSubject}{' '}
-                  <span className="text-amber-700 font-extrabold">({quantity} Unique Set{quantity > 1 ? 's' : ''})</span>
+                  <span className="text-amber-700 font-extrabold">({quantity} Set{quantity > 1 ? 's' : ''})</span>
                 </div>
                 {isParent && childrenList.length > 0 && selectedChildId && (
-                  <div className="text-[11px] text-amber-900 font-bold flex items-center gap-1.5 mt-1">
-                    <Users className="w-3.5 h-3.5 text-amber-700" />
+                  <div className="text-[10px] sm:text-[11px] text-amber-900 font-bold flex items-center gap-1.5 mt-0.5">
+                    <Users className="w-3 h-3 text-amber-700" />
                     <span>Assigning to: <strong>{childrenList.find((c) => c.id === selectedChildId)?.name || `Child #${selectedChildId}`}</strong></span>
                   </div>
                 )}
-                <div className="text-[11px] text-stone-600 font-medium flex items-center gap-2 mt-1">
-                  <span>⏱️ Duration: <strong>{selectedBoardMeta.durationShort}</strong></span>
+                <div className="text-[10px] sm:text-[11px] text-stone-600 font-medium flex items-center gap-2 mt-0.5">
+                  <span>⏱️ <strong>{selectedBoardMeta.durationShort}</strong></span>
                   <span>•</span>
                   <span>Marks: <strong>{selectedBoardMeta.marks}</strong></span>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-2xl sm:text-3xl font-black text-amber-950">
+              <div className="flex sm:flex-col items-baseline sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0 border-amber-200/60">
+                <div className="text-xl sm:text-3xl font-black text-amber-950">
                   ₹{totalPrice}
                 </div>
-                <div className="text-[10px] text-stone-500 font-semibold">Per Exam Paper</div>
+                <div className="text-[10px] text-stone-500 font-semibold sm:text-right">Per Exam Paper</div>
               </div>
             </div>
 
             {/* Explicit Mobile Number Field for Payment */}
-            <div className="bg-white/90 p-3.5 rounded-xl border border-amber-200/90 shadow-2xs space-y-1.5">
+            <div className="bg-white/90 p-3 sm:p-3.5 rounded-xl border border-amber-200/90 shadow-2xs space-y-1 sm:space-y-1.5">
               <label className="block text-xs font-bold text-stone-800 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Phone className="w-3.5 h-3.5 text-amber-600" />
-                  Mobile Number (for Payment & Receipt) <span className="text-rose-500">*</span>
+                  Mobile Number <span className="text-rose-500">*</span>
                 </span>
-                <span className="text-[10px] text-stone-400 font-semibold">10-Digit Mobile</span>
+                <span className="text-[9px] sm:text-[10px] text-stone-400 font-semibold">10-Digit Mobile</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -973,17 +973,17 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                     if (phoneError) setPhoneError(null);
                   }}
                   placeholder="Enter 10-digit mobile number"
-                  className={`w-full pl-16 pr-3 py-2 text-sm font-bold text-stone-900 bg-white border ${phoneError ? 'border-rose-400 focus:ring-rose-400' : 'border-stone-300 focus:ring-amber-500'
+                  className={`w-full pl-16 pr-3 py-2 text-xs sm:text-sm font-bold text-stone-900 bg-white border ${phoneError ? 'border-rose-400 focus:ring-rose-400' : 'border-stone-300 focus:ring-amber-500'
                     } rounded-lg focus:outline-none focus:ring-2`}
                 />
               </div>
               {phoneError ? (
-                <p className="text-[11px] font-bold text-rose-600 flex items-center gap-1">
+                <p className="text-[10px] sm:text-[11px] font-bold text-rose-600 flex items-center gap-1">
                   ⚠️ {phoneError}
                 </p>
               ) : (
-                <p className="text-[10px] text-stone-500 font-medium">
-                  We will send the Razorpay OTP & official PDF activation confirmation to this number.
+                <p className="text-[9px] sm:text-[10px] text-stone-500 font-medium">
+                  We will send the Razorpay OTP &amp; official PDF activation confirmation to this number.
                 </p>
               )}
             </div>
@@ -993,7 +993,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               disabled={isLoadingOrder}
               onClick={handleSubscribeNow}
               id="btn-subscribe-razorpay"
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-black text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+              className="w-full py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer"
             >
               {isLoadingOrder ? (
                 <>
@@ -1010,7 +1010,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               )}
             </button>
 
-            <div className="text-[11px] text-stone-500 text-center font-medium flex items-center justify-center gap-1.5">
+            <div className="text-[10px] sm:text-[11px] text-stone-500 text-center font-medium flex items-center justify-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
               <span>100% Secure Checkout powered by Razorpay. Instant activation upon payment.</span>
             </div>
@@ -1018,51 +1018,51 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
         </div>
 
         {/* Right Column: Specimen Overview & Active Passes Card */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-5 space-y-4 sm:space-y-6">
           {/* Specimen Details Card */}
-          <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-7 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h3 className="text-sm font-black text-stone-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" />
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/80 p-3.5 sm:p-6 lg:p-7 shadow-xs space-y-3 sm:space-y-4">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-2.5 sm:pb-3">
+              <h3 className="text-xs sm:text-sm font-black text-stone-900 flex items-center gap-2">
+                <Sparkles className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-500" />
                 What You Get ({selectedBoard} 2027 Specimen):
               </h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">
+              <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">
                 {selectedBoardMeta.patternName}
               </span>
             </div>
 
-            <ul className="space-y-3 text-xs text-stone-600 font-medium leading-relaxed">
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <ul className="space-y-2.5 sm:space-y-3 text-[11px] sm:text-xs text-stone-600 font-medium leading-relaxed">
+              <li className="flex items-start gap-2 sm:gap-2.5">
+                <CheckCircle2 className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-500 shrink-0 mt-0.5" />
                 <span><strong>Official Marking Blueprint:</strong> {selectedBoardMeta.blueprintSummary}.</span>
               </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <li className="flex items-start gap-2 sm:gap-2.5">
+                <CheckCircle2 className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-500 shrink-0 mt-0.5" />
                 <span><strong>Authentic {selectedBoardMeta.duration} Timing:</strong> {selectedBoardMeta.instructionsSnippet}</span>
               </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <li className="flex items-start gap-2 sm:gap-2.5">
+                <CheckCircle2 className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-500 shrink-0 mt-0.5" />
                 <span><strong>Full Total Score:</strong> Standard {selectedBoardMeta.marks} Marks authentic examination blueprint.</span>
               </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <span><strong>Interactive In-App Model Paper & Solution Viewer:</strong> View all authentic questions with step-by-step model answers directly in your browser.</span>
+              <li className="flex items-start gap-2 sm:gap-2.5">
+                <CheckCircle2 className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-500 shrink-0 mt-0.5" />
+                <span><strong>Interactive In-App Model Paper &amp; Solution Viewer:</strong> View all authentic questions with step-by-step model answers directly in your browser.</span>
               </li>
-              <li className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <li className="flex items-start gap-2 sm:gap-2.5">
+                <CheckCircle2 className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-500 shrink-0 mt-0.5" />
                 <span><strong>Adaptive Weak Topic Re-test:</strong> Identifies conceptual gaps and prepares targeted practice.</span>
               </li>
             </ul>
           </div>
 
           {/* Active Subscriptions / Passes Card */}
-          <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-7 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h3 className="text-sm font-black text-stone-900 flex items-center gap-2">
-                <Layers className="w-4 h-4 text-amber-500" />
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/80 p-3.5 sm:p-6 lg:p-7 shadow-xs space-y-3 sm:space-y-4">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-2.5 sm:pb-3">
+              <h3 className="text-xs sm:text-sm font-black text-stone-900 flex items-center gap-2">
+                <Layers className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-500" />
                 {isParent ? 'Unlocked Papers for Children' : 'My Unlocked Model Papers'}
               </h3>
-              <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full">
+              <span className="text-[10px] sm:text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
                 {activeSubscriptions.length} Unlocked
               </span>
             </div>
@@ -1074,12 +1074,12 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
               </div>
             ) : activeSubscriptions.length === 0 ? (
               <div className="py-8 text-center text-stone-400 space-y-1.5">
-                <FileText className="w-10 h-10 text-stone-300 mx-auto" />
+                <FileText className="w-8 sm:w-10 h-8 sm:h-10 text-stone-300 mx-auto" />
                 <p className="text-xs font-bold text-stone-700">No unlocked model test papers yet.</p>
-                <p className="text-[11px] text-stone-400">Select your board and subject on the left to unlock.</p>
+                <p className="text-[10px] sm:text-[11px] text-stone-400">Select your board and subject on the left to unlock.</p>
               </div>
             ) : (
-              <div className="space-y-3.5 max-h-[460px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[460px] overflow-y-auto pr-0.5">
                 {sortedSubscriptions.map((sub, idx) => {
                   const setLabel = sub.modelTestId?.includes('SET_')
                     ? `Set ${sub.modelTestId.split('SET_')[1]}`
@@ -1095,7 +1095,7 @@ export const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
                   return (
                     <div
                       key={sub.id || idx}
-                      className="p-4 rounded-2xl border border-stone-200/90 bg-gradient-to-b from-stone-50/80 to-amber-50/30 hover:border-amber-300 transition-all shadow-2xs space-y-3"
+                      className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-stone-200/90 bg-gradient-to-b from-stone-50/80 to-amber-50/30 hover:border-amber-300 transition-all shadow-2xs space-y-2.5 sm:space-y-3"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-1.5 flex-1">

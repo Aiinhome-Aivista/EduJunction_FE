@@ -33,7 +33,10 @@ import {
   Brain,
   Compass,
   ChevronRight,
-  Wind
+  Wind,
+  Gamepad2,
+  Layers,
+  Puzzle
 } from 'lucide-react';
 
 interface FunZoneProps {
@@ -460,8 +463,42 @@ export const FunZone: React.FC<FunZoneProps> = ({
         </div>
       )}
 
-      {/* Top Playful Hero Banner */}
-      <div className="bg-gradient-to-r from-yellow-500 via-amber-600 to-pink-500 rounded-3xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden">
+      {/* Mobile-Only Sleek Compact Header */}
+      <div className="flex sm:hidden items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-amber-500 to-pink-500 text-white shadow-xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0">
+            <Gamepad2 className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-xs font-bold truncate">
+              FunZone Arcade
+            </h2>
+            <p className="text-[10px] text-yellow-100 font-medium truncate">
+              {activeChild?.streakDays || 1}d Streak &bull; {activeChild?.xp || 1420} XP
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs cursor-pointer"
+            title={soundEnabled ? 'Mute' : 'Unmute'}
+          >
+            {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+          </button>
+          {onLaunchExam && (
+            <button
+              onClick={onLaunchExam}
+              className="px-2.5 py-1.5 rounded-xl bg-white text-stone-900 font-bold text-[10px] active:scale-95 transition-all shadow-xs cursor-pointer"
+            >
+              Exams →
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Top Playful Hero Banner (Desktop) */}
+      <div className="hidden sm:block bg-gradient-to-r from-yellow-500 via-amber-600 to-pink-500 rounded-3xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden">
         {/* Background decorative geometry */}
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 -mb-12 w-40 h-40 bg-pink-300/20 rounded-full blur-xl pointer-events-none" />
@@ -473,7 +510,7 @@ export const FunZone: React.FC<FunZoneProps> = ({
               <span>Brain Break & Entertainment Arcade</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Recharge, Laugh & Play, {activeChild?.name?.split(' ')[0] || 'Champion'}!
+              Recharge, Laugh & Play!
             </h1>
             <p className="text-xs sm:text-sm text-yellow-100 max-w-2xl leading-relaxed">
               Studying for board exams and competitive tests shouldn't be tedious. Explore funny scientist mishaps, witty puns, rapid-fire math duels, and memory challenges to refresh your focus!
@@ -526,16 +563,16 @@ export const FunZone: React.FC<FunZoneProps> = ({
       </div>
 
       {/* Main Game & Anecdote Navigation Bar */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-2 shadow-2xs flex items-center gap-1.5 overflow-x-auto">
+      <div className="bg-white rounded-2xl border border-stone-200 p-2 shadow-2xs flex items-center gap-1.5 overflow-x-auto hide-scrollbar">
         <button
           id="btn-tab-anecdotes"
           onClick={() => { triggerSound('click'); setActiveTab('anecdote-vault'); }}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'anecdote-vault'
-            ? 'bg-yellow-400 text-stone-900 shadow-xs'
+            ? 'bg-amber-400 text-stone-900 shadow-xs'
             : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
         >
-          <span>😄</span>
+          <Smile className="w-4 h-4 text-stone-900" />
           <span>The Chuckle Lab & Stories</span>
         </button>
 
@@ -543,11 +580,11 @@ export const FunZone: React.FC<FunZoneProps> = ({
           id="btn-tab-speed-math"
           onClick={() => { triggerSound('click'); setActiveTab('speed-math'); }}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'speed-math'
-            ? 'bg-yellow-400 text-stone-900 shadow-xs'
+            ? 'bg-amber-400 text-stone-900 shadow-xs'
             : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
         >
-          <span>⚡</span>
+          <Zap className="w-4 h-4 text-stone-900" />
           <span>Speed Math Duel</span>
         </button>
 
@@ -555,11 +592,11 @@ export const FunZone: React.FC<FunZoneProps> = ({
           id="btn-tab-memory"
           onClick={() => { triggerSound('click'); setActiveTab('memory-match'); }}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'memory-match'
-            ? 'bg-yellow-400 text-stone-900 shadow-xs'
+            ? 'bg-amber-400 text-stone-900 shadow-xs'
             : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
         >
-          <span>🃏</span>
+          <Layers className="w-4 h-4 text-stone-900" />
           <span>Concept Memory Flip</span>
         </button>
 
@@ -567,11 +604,11 @@ export const FunZone: React.FC<FunZoneProps> = ({
           id="btn-tab-scramble"
           onClick={() => { triggerSound('click'); setActiveTab('word-scramble'); }}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'word-scramble'
-            ? 'bg-yellow-400 text-stone-900 shadow-xs'
+            ? 'bg-amber-400 text-stone-900 shadow-xs'
             : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
         >
-          <span>🧩</span>
+          <Puzzle className="w-4 h-4 text-stone-900" />
           <span>Science Mystery Scramble</span>
         </button>
 
@@ -579,11 +616,11 @@ export const FunZone: React.FC<FunZoneProps> = ({
           id="btn-tab-breathing"
           onClick={() => { triggerSound('click'); setActiveTab('particle-pop'); }}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'particle-pop'
-            ? 'bg-yellow-400 text-stone-900 shadow-xs'
+            ? 'bg-amber-400 text-stone-900 shadow-xs'
             : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
         >
-          <span>🧘</span>
+          <Wind className="w-4 h-4 text-stone-900" />
           <span>2-Min Mind Reset</span>
         </button>
       </div>

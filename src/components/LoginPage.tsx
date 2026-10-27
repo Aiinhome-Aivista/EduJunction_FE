@@ -708,10 +708,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
   return (
     <div className="h-full w-full flex flex-col bg-white overflow-y-auto relative shadow-2xl">
-      <div className="w-full max-w-lg mx-auto px-6 py-6 sm:px-8 sm:py-8 flex-1 flex flex-col justify-start relative">
+      <div className="w-full max-w-lg mx-auto px-5 py-5 sm:px-8 sm:py-8 flex-1 flex flex-col justify-start relative">
 
-        {/* Header with Logo, Persona Switcher on right, and Close Button */}
-        <div className="flex items-center justify-between mb-4 sm:mb-5 pb-1">
+        {/* Header with Logo, Persona Switcher (Desktop), and Close Button */}
+        <div className="flex items-center justify-between mb-3 sm:mb-5 pb-1">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-yellow-400 text-stone-900 flex items-center justify-center shadow-xs shadow-yellow-400/30">
               <GraduationCap size={18} />
@@ -724,9 +724,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Minimal Bullet/Pill Persona Switcher in Header */}
+            {/* Desktop-only Persona Switcher in Header */}
             {mode !== 'forgot-password' && (
-              <div className="flex items-center gap-1.5">
+              <div className="hidden sm:flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => handlePersonaChange('parent')}
@@ -757,13 +757,44 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
             <button
               onClick={handleBack}
-              className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-colors -mr-1 cursor-pointer"
+              className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-colors -mr-1 cursor-pointer"
               aria-label="Close"
+              title="Close"
             >
               <X size={20} />
             </button>
           </div>
         </div>
+
+        {/* Mobile-only Segmented Switcher (Clean, full-width, no header overlap) */}
+        {mode !== 'forgot-password' && (
+          <div className="flex sm:hidden p-1 bg-stone-100/90 rounded-2xl border border-stone-200/80 mb-3.5 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => handlePersonaChange('parent')}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                selectedPersona === 'parent'
+                  ? 'bg-yellow-400 text-stone-950 shadow-xs font-black'
+                  : 'text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              <Users size={14} className={selectedPersona === 'parent' ? 'text-stone-950' : 'text-stone-400'} />
+              <span>Parent</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handlePersonaChange('student')}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                selectedPersona === 'student'
+                  ? 'bg-yellow-400 text-stone-950 shadow-xs font-black'
+                  : 'text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              <GraduationCap size={14} className={selectedPersona === 'student' ? 'text-stone-950' : 'text-stone-400'} />
+              <span>Student</span>
+            </button>
+          </div>
+        )}
 
         <div className="mb-4 sm:mb-5">
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900 mb-1.5">

@@ -123,7 +123,7 @@ export const ChildrenPage: React.FC<ChildrenPageProps> = ({
                   : 'text-stone-500 hover:text-stone-700 hover:bg-stone-200/50'
               }`}
             >
-              <span className="text-lg">{child.avatar || '👦'}</span>
+              <span className="text-lg">{!child.avatar || child.avatar === '?' ? '👦' : child.avatar}</span>
               {child.name}
             </button>
           ))}
@@ -140,7 +140,7 @@ export const ChildrenPage: React.FC<ChildrenPageProps> = ({
             {/* Avatar Container with Sleek Corner Badge (No Overlap) */}
             <div className="relative shrink-0">
               <div className="w-24 h-24 sm:w-28 sm:h-28 bg-gradient-to-br from-amber-50 to-stone-100 rounded-3xl border-2 border-stone-200/80 flex items-center justify-center text-5xl sm:text-6xl shadow-xs relative">
-                <span className="select-none">{activeChild.avatar || '👦'}</span>
+                <span className="select-none">{!activeChild.avatar || activeChild.avatar === '?' ? '👦' : activeChild.avatar}</span>
               </div>
               <div className="absolute -bottom-2 -right-2 bg-stone-900 text-yellow-400 border-2 border-white px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black shadow-md flex items-center gap-1">
                 <span>LVL</span>

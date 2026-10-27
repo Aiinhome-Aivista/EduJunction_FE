@@ -56,6 +56,7 @@ import {
 } from 'lucide-react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar, PageAccess } from './components/Sidebar';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { AIChatWidget } from './components/AIChatWidget2';
 import { ExamArena } from './components/ExamArena';
 import { KidsExamArena } from './components/KidsExamArena';
@@ -244,7 +245,8 @@ export default function App() {
       if (showPersonaMenu && personaMenuRef.current && !personaMenuRef.current.contains(target)) {
         setShowPersonaMenu(false);
       }
-      if (showNotificationMenu && notificationMenuRef.current && !notificationMenuRef.current.contains(target)) {
+      const isBellClick = (target as HTMLElement)?.closest?.('#notification-bell-btn');
+      if (showNotificationMenu && notificationMenuRef.current && !notificationMenuRef.current.contains(target) && !isBellClick) {
         setShowNotificationMenu(false);
       }
     };
@@ -997,7 +999,7 @@ export default function App() {
             className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-800"
           >
             <LogOut className="w-4 h-4" />
-            Log out
+            Log Out
           </button>
         </header>
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
@@ -1028,7 +1030,7 @@ export default function App() {
             className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-800"
           >
             <LogOut className="w-4 h-4" />
-            Log out
+            Log Out
           </button>
         </header>
         <div className="flex-1 max-w-3xl w-full mx-auto p-6 space-y-6">
@@ -1070,18 +1072,25 @@ export default function App() {
 
   const currentParentAccount = parentAccount || dummyParentAccount;
 
+  // Dynamic greeting based on current local time
+  const getTimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Good Morning!';
+    if (hour >= 12 && hour < 16) return 'Good Noon!';
+    if (hour >= 16 && hour < 20) return 'Good Evening!';
+    return 'Good Night!';
+  };
+
+  // Extract first name only so names never truncate awkwardly
+  const getFirstName = (fullName?: string) => {
+    if (!fullName) return '';
+    return fullName.trim().split(/\s+/)[0] || fullName;
+  };
+
   return (
     <div className="flex h-screen w-full bg-[#FFFDF8] font-sans text-stone-900 overflow-hidden">
-      {/* Mobile Sidebar Overlay */}
-      {mobileSidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-stone-900/60 backdrop-blur-sm lg:hidden transition-opacity"
-          onClick={() => setMobileSidebarOpen(false)}
-        />
-      )}
-
-      {/* Left Sidebar (High Density Theme with Global Collapse / Expand) */}
-      <div className={`fixed inset-y-0 left-0 z-50 flex flex-col transform transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} ${mobileSidebarOpen ? 'w-72 sm:w-64 translate-x-0 shadow-2xl' : '-translate-x-full'} print:hidden`}>
+      {/* Left Sidebar (Desktop Only - On Mobile, all extra menus are accessible inside Account / Profile Sheet) */}
+      <div className={`hidden lg:flex flex-col transform transition-all duration-300 ease-in-out lg:static ${isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} print:hidden`}>
         <Sidebar
           pageAccess={pageAccess}
           isSidebarCollapsed={isSidebarCollapsed}
@@ -1109,38 +1118,43 @@ export default function App() {
         )}
 
         <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-500 ${(isBootstrapping || ((!isAdminSession && !isTeacherSession) && !parentAccount)) ? 'blur-sm pointer-events-none opacity-60' : ''} print:w-full print:block print:overflow-visible`}>
-          {/* Top Header Bar */}
-          <header className="h-14 lg:h-16 bg-gradient-to-r from-yellow-50/90 via-white/90 to-orange-50/90 backdrop-blur-xl border-b border-stone-200/50 flex items-center justify-between px-4 sm:px-6 lg:px-8 flex-shrink-0 z-20 sticky top-0 print:hidden">
-            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-              {/* Mobile-only Sidebar Toggle (hidden on desktop) */}
-              <button
-                id="mobile-sidebar-toggle"
-                onClick={() => setMobileSidebarOpen(true)}
-                className="lg:hidden p-1.5 rounded-lg text-stone-600 hover:bg-stone-100 hover:text-yellow-600 transition-colors"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-
-
-              <h1 className="text-base sm:text-lg font-black bg-clip-text text-transparent bg-gradient-to-r from-stone-800 to-stone-500 truncate">
-                Welcome, {isParentActive ? (parentAccount?.name || 'Parent') : (activeChild?.name || 'Student')} <span className="text-stone-800">👋</span>
-              </h1>
-            </div>
-
-            {/* Persona Menu & Actions */}
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex flex-col items-end mr-2">
-                <span className="text-sm font-semibold text-stone-700">
-                  {new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
-                </span>
-                <span className="text-xs text-stone-400 font-medium">
-                  {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                </span>
+          {/* Top Header Bar (Warm Frosted White Theme - Cohesive with Dashboard) */}
+          <header className="h-14 lg:h-16 bg-gradient-to-r from-yellow-50/90 via-white/95 to-orange-50/90 backdrop-blur-xl border-b border-stone-200/60 flex items-center justify-between px-3 sm:px-6 lg:px-8 flex-shrink-0 z-20 sticky top-0 print:hidden text-stone-900 shadow-xs">
+            {/* Left Upper Corner: EduJunction Brand + Dynamic Class/Board Tag */}
+            <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+              <div className="flex items-center gap-2.5 shrink-0">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-xs shrink-0">
+                  <GraduationCap className="w-5 h-5" />
+                </div>
+                <div className="font-black text-lg sm:text-xl tracking-tight text-stone-900">
+                  Edu<span className="text-yellow-500">Junction</span>
+                </div>
               </div>
 
-              {/* Real-Time Notification Bell & Dropdown */}
-              <div className="relative" ref={notificationMenuRef}>
+              {/* Dynamic Class/Grade pill tag */}
+              {(activeChild?.classGrade || isParentActive) && (
                 <button
+                  onClick={() => {
+                    setShowPersonaMenu((prev) => !prev);
+                    setShowNotificationMenu(false);
+                  }}
+                  className="hidden xs:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50/80 hover:bg-amber-100 text-amber-950 border border-amber-200/80 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                  title="Switch Class or Student"
+                >
+                  <span className="truncate max-w-[100px] sm:max-w-none">
+                    {isParentActive ? 'Parent Portal' : `${activeChild?.classGrade || 'Class 10'}${activeChild?.targetBoard ? ` • ${activeChild.targetBoard}` : ''}`}
+                  </span>
+                  <ChevronDown className="w-3 h-3 text-amber-700" />
+                </button>
+              )}
+            </div>
+
+            {/* Right Upper Corner: Notification btn -> Profile Icon (From DB) -> User Name + Greeting Subtitle */}
+            <div className="flex items-center gap-2.5 sm:gap-3.5">
+              {/* Notification Button */}
+              <div>
+                <button
+                  id="notification-bell-btn"
                   onClick={() => {
                     const willOpen = !showNotificationMenu;
                     setShowNotificationMenu(willOpen);
@@ -1149,126 +1163,19 @@ export default function App() {
                       fetchNotifications();
                     }
                   }}
-                  className="relative p-2 rounded-full hover:bg-stone-100 text-stone-600 hover:text-stone-900 transition-colors cursor-pointer"
+                  className="relative w-9 h-9 rounded-full bg-stone-100 hover:bg-amber-100/70 border border-stone-200/80 hover:border-amber-300/80 text-stone-700 hover:text-amber-900 flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95 shadow-2xs"
                   title="Notifications"
                 >
-                  <Bell className="w-5 h-5" />
+                  <Bell className="w-4.5 h-4.5" />
                   {unreadNotifCount > 0 && (
-                    <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse border-2 border-white shadow-xs">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse border-2 border-white shadow-xs">
                       {unreadNotifCount > 9 ? '9+' : unreadNotifCount}
                     </span>
                   )}
                 </button>
-
-                {showNotificationMenu && (
-                  <div className="absolute right-0 mt-2 w-[360px] sm:w-[380px] bg-white rounded-3xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border border-stone-200/70 p-3 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right flex flex-col gap-2 max-h-[480px] overflow-hidden">
-
-                    {/* Header */}
-                    <div className="px-3 py-2 border-b border-stone-100 flex items-center justify-between shrink-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-stone-900">Notifications</span>
-                        {unreadNotifCount > 0 && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">
-                            {unreadNotifCount} new
-                          </span>
-                        )}
-                      </div>
-                      {unreadNotifCount > 0 && (
-                        <button
-                          onClick={handleMarkAllNotificationsRead}
-                          className="text-[11px] font-semibold text-yellow-700 hover:text-yellow-800 flex items-center gap-1 hover:underline cursor-pointer"
-                        >
-                          <CheckCheck className="w-3.5 h-3.5" />
-                          <span>Mark all as read</span>
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Notification Items List */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2 p-1 max-h-[380px]">
-                      {notifications.length === 0 ? (
-                        <div className="py-12 text-center space-y-2">
-                          <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-200/60 flex items-center justify-center text-lg mx-auto">
-                            🔔
-                          </div>
-                          <p className="text-xs font-bold text-stone-800">All caught up!</p>
-                          <p className="text-[11px] text-stone-400">No notifications at the moment.</p>
-                        </div>
-                      ) : (
-                        notifications.map((notif) => {
-                          const isSubmitted = notif.type === 'EXAM_SUBMITTED' || notif.type === 'SCHEDULED_EXAM_COMPLETED' || notif.metadata?.status === 'SUBMITTED';
-                          const isModelExam = notif.type === 'MODEL_EXAM_ASSIGNED' || notif.metadata?.type === 'MODEL_EXAM';
-                          const isPending = (notif.type === 'EXAM_ASSIGNED' || isModelExam) && !isSubmitted;
-
-                          return (
-                            <div
-                              key={notif.id}
-                              onClick={() => handleNotificationClick(notif)}
-                              className={`p-3 rounded-2xl border transition-all duration-150 flex items-start gap-3 cursor-pointer group text-left ${!notif.isRead
-                                ? 'bg-gradient-to-r from-amber-50/70 via-yellow-50/40 to-white border-amber-200/80 shadow-xs'
-                                : 'bg-white hover:bg-stone-50/80 border-stone-200/60 opacity-85 hover:opacity-100'
-                                }`}
-                            >
-                              {/* Icon Badge */}
-                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm mt-0.5 border shadow-2xs ${isModelExam
-                                ? 'bg-amber-400/30 border-amber-400 text-stone-900'
-                                : isPending
-                                  ? 'bg-amber-100/90 border-amber-200 text-amber-800'
-                                  : isSubmitted
-                                    ? 'bg-emerald-100/90 border-emerald-200 text-emerald-800'
-                                    : 'bg-yellow-100 border-yellow-200 text-yellow-800'
-                                }`}>
-                                {isModelExam ? '📜' : isPending ? '📝' : isSubmitted ? '🎯' : '🔔'}
-                              </div>
-
-                              {/* Text Body */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-1.5 mb-0.5">
-                                  <h4 className={`text-xs truncate ${!notif.isRead ? 'font-bold text-stone-900' : 'font-semibold text-stone-700'}`}>
-                                    {notif.title}
-                                  </h4>
-                                  <div className="flex items-center gap-1.5 shrink-0">
-                                    {/* Dynamic Status Badge */}
-                                    {isModelExam ? (
-                                      <span className="inline-flex items-center gap-0.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-amber-200 text-amber-950 border border-amber-300 shadow-2xs">
-                                        🎯 2027 Model Paper
-                                      </span>
-                                    ) : isPending ? (
-                                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200/80 shadow-2xs">
-                                        ⏳ Pending
-                                      </span>
-                                    ) : isSubmitted ? (
-                                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200/80 shadow-2xs">
-                                        ✓ Submitted
-                                      </span>
-                                    ) : null}
-                                    {!notif.isRead && (
-                                      <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-[11px] text-stone-600 line-clamp-2 leading-relaxed">
-                                  {notif.message}
-                                </p>
-                                <div className="flex items-center justify-between mt-2 pt-1 border-t border-stone-100 text-[10px] text-stone-400">
-                                  <span>
-                                    {notif.createdAt ? new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'}
-                                  </span>
-                                  <span className="text-yellow-700 font-semibold group-hover:underline flex items-center gap-0.5">
-                                    {isModelExam ? 'Start Model Exam →' : isPending ? 'Start Exam →' : isSubmitted ? 'View Report →' : 'View →'}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-
-                  </div>
-                )}
               </div>
 
+              {/* Profile Avatar + User Name ("Hi, [FirstName]") + Time-based Greeting Subtitle */}
               <div className="relative" ref={personaMenuRef}>
                 <button
                   id="header-persona-switcher"
@@ -1276,10 +1183,43 @@ export default function App() {
                     setShowPersonaMenu((prev) => !prev);
                     setShowNotificationMenu(false);
                   }}
-                  className="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-50 to-amber-50 border border-yellow-200 shadow-sm flex items-center justify-center text-xl hover:scale-105 transition-transform cursor-pointer"
+                  className="flex items-center gap-2 p-1 pr-1.5 sm:pr-2.5 rounded-2xl hover:bg-amber-50/70 border border-transparent hover:border-amber-200/60 transition-all cursor-pointer group text-left"
                   title={isParentActive ? `Parent Account (${parentAccount?.name})` : `Active Student (${activeChild?.name})`}
                 >
-                  {isParentActive ? '👨‍👩‍👧‍👦' : activeChild?.avatar || '👤'}
+                  {/* Dynamic Circular Profile Avatar Loaded Directly From DB */}
+                  <div className="w-9 h-9 rounded-full ring-2 ring-amber-400 bg-amber-100 flex items-center justify-center text-lg shadow-2xs shrink-0 overflow-hidden">
+                    {isParentActive ? (
+                      parentAccount?.avatar ? (
+                        parentAccount.avatar.startsWith('http') || parentAccount.avatar.startsWith('/') ? (
+                          <img src={parentAccount.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{parentAccount.avatar}</span>
+                        )
+                      ) : (
+                        <span>👨‍👩‍👧‍👦</span>
+                      )
+                    ) : (
+                      activeChild?.avatar && activeChild.avatar !== '?' ? (
+                        activeChild.avatar.startsWith('http') || activeChild.avatar.startsWith('/') ? (
+                          <img src={activeChild.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{activeChild.avatar}</span>
+                        )
+                      ) : (
+                        <span>🧑‍🎓</span>
+                      )
+                    )}
+                  </div>
+
+                  {/* User First Name + Time-based Greeting Subtitle */}
+                  <div className="flex flex-col text-left justify-center min-w-0">
+                    <span className="text-xs sm:text-sm font-extrabold text-stone-900 tracking-tight leading-tight group-hover:text-amber-700 transition-colors truncate max-w-[100px] sm:max-w-[150px]">
+                      Hi, {getFirstName(isParentActive ? parentAccount?.name : activeChild?.name) || 'Student'}
+                    </span>
+                    <span className="text-[10px] text-amber-600 font-bold tracking-tight leading-tight mt-0.5">
+                      {getTimeGreeting()}
+                    </span>
+                  </div>
                 </button>
 
                 {/* Dropdown Menu Modal */}
@@ -1291,7 +1231,7 @@ export default function App() {
                     {isStudentSession ? (
                       <div className="p-3">
                         <div className="flex items-center gap-3 p-2 bg-yellow-50/80 rounded-xl border border-yellow-200/60 mb-2">
-                          <span className="text-2xl">{activeChild?.avatar || '👦'}</span>
+                          <span className="text-2xl">{!activeChild?.avatar || activeChild.avatar === '?' ? '👦' : activeChild.avatar}</span>
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-bold text-stone-900 truncate">{activeChild?.name}</p>
                             <p className="text-[10px] text-stone-500 truncate">{activeChild?.classGrade} • {activeChild?.targetBoard}</p>
@@ -1304,7 +1244,7 @@ export default function App() {
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs text-stone-600 hover:bg-stone-100 hover:text-stone-900 font-medium transition-colors cursor-pointer"
                         >
                           <LogOut className="w-4 h-4 text-stone-400" />
-                          <span>Log out</span>
+                          <span>Log Out</span>
                         </button>
                       </div>
                     ) : (
@@ -1314,8 +1254,16 @@ export default function App() {
                           className={`w-full px-4 py-2.5 border-b border-stone-100 rounded-t-2xl flex items-center justify-between text-left transition-colors hover:bg-stone-50 ${isParentActive ? 'bg-yellow-50/60' : 'bg-stone-50/60'}`}
                         >
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-700 font-bold text-xs shrink-0">
-                              {(parentAccount?.name || "P").charAt(0).toUpperCase()}
+                            <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-base shrink-0 overflow-hidden">
+                              {parentAccount?.avatar ? (
+                                parentAccount.avatar.startsWith('http') || parentAccount.avatar.startsWith('/') ? (
+                                  <img src={parentAccount.avatar} alt="Parent" className="w-full h-full object-cover rounded-full" />
+                                ) : (
+                                  <span>{parentAccount.avatar}</span>
+                                )
+                              ) : (
+                                <span>👨‍👩‍👧‍👦</span>
+                              )}
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-xs font-bold text-stone-900 truncate">{parentAccount?.name} (Parent)</p>
@@ -1344,7 +1292,7 @@ export default function App() {
                                 className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs transition-colors text-stone-700 hover:bg-stone-100 cursor-pointer"
                               >
                                 <div className="flex items-center gap-2.5">
-                                  <span className="text-base">{child.avatar}</span>
+                                  <span className="text-base">{!child.avatar || child.avatar === '?' ? '👦' : child.avatar}</span>
                                   <div>
                                     <div className="font-medium text-stone-900">{child.name}</div>
                                     <div className="text-[10px] text-stone-500">
@@ -1363,7 +1311,7 @@ export default function App() {
                             className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs text-stone-500 hover:bg-stone-100 hover:text-stone-800 font-medium transition-colors"
                           >
                             <LogOut className="w-4 h-4" />
-                            <span>Log out</span>
+                            <span>Log Out</span>
                           </button>
                         </div>
                       </>
@@ -1375,7 +1323,7 @@ export default function App() {
           </header>
 
           {/* Scrollable Main Content Frame (High Density Theme) */}
-          <div className="flex-1 overflow-y-auto bg-stone-50 px-4 sm:px-6 lg:px-8 pt-1 pb-6 print:p-0 print:m-0 print:bg-white print:w-full print:block print:overflow-visible">
+          <div className="flex-1 overflow-y-auto bg-stone-50 px-3 sm:px-6 lg:px-8 pt-1 pb-24 lg:pb-6 print:p-0 print:m-0 print:bg-white print:w-full print:block print:overflow-visible">
 
 
             {activeSubmissionReport ? (
@@ -1609,6 +1557,157 @@ export default function App() {
           role={isStudentSession || activePersona === 'child' ? 'student' : 'parent'}
         />
       )}
+
+      {/* Page-Wide Notification Backdrop & Modal */}
+      {showNotificationMenu && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center sm:items-end justify-start pt-14 sm:pt-16 sm:pr-6 pointer-events-auto">
+          {/* Full-Screen Frosted Glass Backdrop Overlay */}
+          <div
+            onClick={() => setShowNotificationMenu(false)}
+            className="fixed inset-0 bg-stone-950/45 backdrop-blur-md transition-opacity animate-in fade-in duration-200 cursor-pointer"
+            aria-hidden="true"
+          />
+
+          {/* Modal Container */}
+          <div
+            ref={notificationMenuRef}
+            className="relative w-[calc(100%-1.75rem)] sm:w-[400px] max-w-lg bg-white rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] border border-stone-200/90 p-3.5 z-10 animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-2 max-h-[calc(100vh-5rem)] sm:max-h-[520px] overflow-hidden"
+          >
+            {/* Header */}
+            <div className="px-3 py-2 border-b border-stone-100 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-stone-900">Notifications</span>
+                {unreadNotifCount > 0 && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">
+                    {unreadNotifCount} new
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {unreadNotifCount > 0 && (
+                  <button
+                    onClick={handleMarkAllNotificationsRead}
+                    className="text-[11px] font-semibold text-yellow-700 hover:text-yellow-800 flex items-center gap-1 hover:underline cursor-pointer"
+                  >
+                    <CheckCheck className="w-3.5 h-3.5" />
+                    <span>Mark all as read</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowNotificationMenu(false)}
+                  className="p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+                  title="Close"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Notification Items List */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2 p-1 max-h-[380px] sm:max-h-[420px]">
+              {notifications.length === 0 ? (
+                <div className="py-12 text-center space-y-2">
+                  <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-200/60 flex items-center justify-center text-lg mx-auto">
+                    🔔
+                  </div>
+                  <p className="text-xs font-bold text-stone-800">All caught up!</p>
+                  <p className="text-[11px] text-stone-400">No notifications at the moment.</p>
+                </div>
+              ) : (
+                notifications.map((notif) => {
+                  const isSubmitted = notif.type === 'EXAM_SUBMITTED' || notif.type === 'SCHEDULED_EXAM_COMPLETED' || notif.metadata?.status === 'SUBMITTED';
+                  const isModelExam = notif.type === 'MODEL_EXAM_ASSIGNED' || notif.metadata?.type === 'MODEL_EXAM';
+                  const isPending = (notif.type === 'EXAM_ASSIGNED' || isModelExam) && !isSubmitted;
+
+                  return (
+                    <div
+                      key={notif.id}
+                      onClick={() => handleNotificationClick(notif)}
+                      className={`p-3 rounded-2xl border transition-all duration-150 flex items-start gap-3 cursor-pointer group text-left ${!notif.isRead
+                        ? 'bg-gradient-to-r from-amber-50/70 via-yellow-50/40 to-white border-amber-200/80 shadow-xs'
+                        : 'bg-white hover:bg-stone-50/80 border-stone-200/60 opacity-85 hover:opacity-100'
+                        }`}
+                    >
+                      {/* Icon Badge */}
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm mt-0.5 border shadow-2xs ${isModelExam
+                        ? 'bg-amber-400/30 border-amber-400 text-stone-900'
+                        : isPending
+                          ? 'bg-amber-100/90 border-amber-200 text-amber-800'
+                          : isSubmitted
+                            ? 'bg-emerald-100/90 border-emerald-200 text-emerald-800'
+                            : 'bg-yellow-100 border-yellow-200 text-yellow-800'
+                        }`}>
+                        {isModelExam ? '📜' : isPending ? '📝' : isSubmitted ? '🎯' : '🔔'}
+                      </div>
+
+                      {/* Text Body */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1.5 mb-0.5">
+                          <h4 className={`text-xs truncate ${!notif.isRead ? 'font-bold text-stone-900' : 'font-semibold text-stone-700'}`}>
+                            {notif.title}
+                          </h4>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {/* Dynamic Status Badge */}
+                            {isModelExam ? (
+                              <span className="inline-flex items-center gap-0.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-amber-200 text-amber-950 border border-amber-300 shadow-2xs">
+                                🎯 2027 Model Paper
+                              </span>
+                            ) : isPending ? (
+                              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200/80 shadow-2xs">
+                                ⏳ Pending
+                              </span>
+                            ) : isSubmitted ? (
+                              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200/80 shadow-2xs">
+                                ✓ Submitted
+                              </span>
+                            ) : null}
+                            {!notif.isRead && (
+                              <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-stone-600 line-clamp-2 leading-relaxed">
+                          {notif.message}
+                        </p>
+                        <div className="flex items-center justify-between mt-2 pt-1 border-t border-stone-100 text-[10px] text-stone-400">
+                          <span>
+                            {notif.createdAt ? new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'}
+                          </span>
+                          <span className="text-yellow-700 font-semibold group-hover:underline flex items-center gap-0.5">
+                            {isModelExam ? 'Start Model Exam →' : isPending ? 'Start Exam →' : isSubmitted ? 'View Report →' : 'View →'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Bottom Navigation (Hidden on Desktop) */}
+      <MobileBottomNav
+        pageAccess={pageAccess}
+        activePersona={activePersona}
+        parentAccount={parentAccount}
+        activeChild={activeChild}
+        isParentActive={isParentActive}
+        isStudentSession={isStudentSession}
+        unreadNotifCount={unreadNotifCount}
+        onSwitchToParent={handleSwitchToParent}
+        onSwitchToChild={handleSwitchToChild}
+        onOpenAddChildModal={() => setShowAddChildModal(true)}
+        onLogout={handleLogout}
+        onNavigate={() => {
+          setActiveSubmissionReport(null);
+          setArenaPresetSubject(undefined);
+          setArenaPresetDifficulty(undefined);
+          setArenaPresetTopic(undefined);
+        }}
+      />
     </div>
   );
 }

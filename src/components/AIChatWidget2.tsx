@@ -216,10 +216,20 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({ activeChild, childre
   };
 
   return (
-    <div ref={widgetRef} className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <>
+      {/* Background Blur Overlay when Chat is open */}
       {isOpen && (
-        <div className="bg-white border border-stone-200 shadow-2xl rounded-2xl w-80 sm:w-96 h-[28rem] mb-4 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
-          <div className="bg-gradient-to-r from-yellow-500 to-amber-500 p-4 text-white flex justify-between items-center shadow-xs">
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-stone-950/40 backdrop-blur-sm z-40 transition-opacity animate-in fade-in duration-200"
+          aria-hidden="true"
+        />
+      )}
+
+      <div ref={widgetRef} className="fixed bottom-20 md:bottom-6 right-3 sm:right-6 z-50 flex flex-col items-end">
+        {isOpen && (
+          <div className="bg-white border border-stone-200 shadow-2xl rounded-3xl w-[calc(100vw-1.5rem)] max-w-sm sm:w-96 h-[29rem] max-h-[calc(100vh-7.5rem)] mb-3 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <div className="bg-gradient-to-r from-yellow-500 to-amber-500 p-4 text-white flex justify-between items-center shadow-xs">
             <div className="flex items-center gap-2">
               <div className="bg-white/20 p-1.5 rounded-lg">
                 <Bot className="w-5 h-5 text-white" />
@@ -341,5 +351,6 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({ activeChild, childre
         </button>
       )}
     </div>
+    </>
   );
 };

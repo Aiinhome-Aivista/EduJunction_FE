@@ -241,3 +241,27 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 .animate-gentle-float {
   animation: gentleFloat 2.6s ease-in-out infinite;
 }
+
+/* ========== Mobile Hybrid App & Touch Utilities ========== */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Touch-optimized horizontal scrolling without ugly scrollbars */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth native momentum scrolling for iOS/Android WebView */
+* {
+  -webkit-tap-highlight-color: transparent;
+}

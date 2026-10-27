@@ -83,11 +83,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             setMobileSidebarOpen?.(false);
             onNavigate?.();
           }}
-          className="flex items-center gap-2 cursor-pointer hover:opacity-85 transition-opacity group"
+          className="flex items-center gap-2.5 cursor-pointer hover:opacity-85 transition-opacity group"
           title="Go to EduJunction Landing Page"
         >
-          <Icons.GraduationCap className="w-6 h-6 text-yellow-500 flex-shrink-0 group-hover:scale-105 transition-transform" />
-          <span className={`text-lg font-black tracking-tight transition-all ${isSidebarCollapsed ? 'lg:hidden' : ''}`}>
+          <div className="w-9 h-9 rounded-2xl bg-yellow-400 text-stone-900 flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+            <Icons.GraduationCap className="w-5 h-5 flex-shrink-0" />
+          </div>
+          <span className={`text-lg sm:text-xl font-black tracking-tight transition-all ${isSidebarCollapsed ? 'lg:hidden' : ''}`}>
             <span className="text-stone-900">Edu</span><span className="text-yellow-500">Junction</span>
           </span>
         </NavLink>
@@ -182,10 +184,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={onLogout}
           className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-stone-600 rounded-lg hover:bg-stone-50 hover:text-stone-900 transition-colors ${isSidebarCollapsed ? 'lg:justify-center lg:px-0' : ''
             }`}
-          title="Log out"
+          title="Log Out"
         >
           <LogOut className="w-4 h-4 flex-shrink-0 text-stone-400" />
-          <span className={`truncate ${isSidebarCollapsed ? 'lg:hidden' : ''}`}>Log out</span>
+          <span className={`truncate ${isSidebarCollapsed ? 'lg:hidden' : ''}`}>Log Out</span>
         </button>
       </div>
     </div>
