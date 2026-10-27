@@ -1,59 +1,8 @@
+import { App as CapacitorApp } from "@capacitor/app";
+
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import {
-  ParentAccount,
-  ChildAccount,
-  ExamSubmission,
-  AppPersona,
-  LearningPathNode,
-  Badge,
-  LeaderboardEntry,
-  TeacherContact,
-  ParentTeacherMessage,
-  SharedDossier,
-  PTMSchedule,
-  Board,
-  ClassGrade,
-  Subject,
-  ExamDifficulty,
-  Exam,
-} from './types';
-import {
-  GraduationCap,
-  Users,
-  BookOpen,
-  CheckCircle,
-  FileText,
-  Bell,
-  Sparkles,
-  ShieldCheck,
-  Info,
-  AlertTriangle,
-  Lock,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ArrowRight,
-  Plus,
-  Play,
-  Award,
-  Layers,
-  BarChart3,
-  Menu,
-  X,
-  Clock,
-  Compass,
-  Trophy,
-  MessageSquare,
-  Flame,
-  Zap,
-  Share2,
-  Smile,
-  Gamepad2,
-  LogOut,
-  Loader2,
-  CalendarClock,
-  CheckCheck
-} from 'lucide-react';
+import { ParentAccount,  ChildAccount,  ExamSubmission,  AppPersona,  LearningPathNode,  Badge,  LeaderboardEntry,  Board,  ClassGrade,  Subject,  ExamDifficulty, Exam } from './types';
+import { GraduationCap,  CheckCircle,  Bell,  ShieldCheck,  AlertTriangle,  ChevronDown,  X,  LogOut,  Loader2,  CheckCheck } from 'lucide-react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar, PageAccess } from './components/Sidebar';
 import { MobileBottomNav } from './components/MobileBottomNav';
@@ -226,6 +175,128 @@ export default function App() {
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(true);
+
+  const routeHistoryRef = useRef<string[]>([location.pathname]);
+  const currentPathRef = useRef(location.pathname);
+
+const backStateRef = useRef({
+  showNotificationMenu,
+  showPersonaMenu,
+  showAddChildModal,
+  showQuickTestChildModal,
+  activeSubmissionReport,
+  activeTab,
+});
+
+useEffect(() => {
+  const routeHistory = routeHistoryRef.current;
+  if (location.pathname !== currentPathRef.current) {
+    routeHistory.push(location.pathname);
+    currentPathRef.current = location.pathname;
+  }
+}, [location.pathname]);
+
+useEffect(() => {
+  backStateRef.current = {
+    showNotificationMenu,
+    showPersonaMenu,
+    showAddChildModal,
+    showQuickTestChildModal,
+    activeSubmissionReport,
+    activeTab,
+  };
+}, [
+  showNotificationMenu,
+  showPersonaMenu,
+  showAddChildModal,
+  showQuickTestChildModal,
+  activeSubmissionReport,
+  activeTab,
+]);
+
+  // Handle Android system back button in Capacitor.
+useEffect(() => {
+  let isMounted = true;
+  let removeListener: (() => Promise<void>) | undefined;
+
+  const setupBackHandler = async () => {
+    const listener = await CapacitorApp.addListener(
+      'backButton',
+      () => {
+        const state = backStateRef.current;
+
+        // 1. Close open menus and modals first.
+        if (state.showNotificationMenu) {
+          setShowNotificationMenu(false);
+          return;
+        }
+
+        if (state.showPersonaMenu) {
+          setShowPersonaMenu(false);
+          return;
+        }
+
+        if (state.showAddChildModal) {
+          setShowAddChildModal(false);
+          return;
+        }
+
+        if (state.showQuickTestChildModal) {
+          setShowQuickTestChildModal(false);
+          return;
+        }
+
+        // 2. Close the diagnostic report.
+        if (state.activeSubmissionReport) {
+          setActiveSubmissionReport(null);
+          navigate('/dashboard', { replace: true });
+          return;
+        }
+
+        // 3. Return to the previous in-app route. Keep this stack in sync with
+        // route pushes.
+        const routeHistory = routeHistoryRef.current;
+        const currentPath = currentPathRef.current;
+        if (routeHistory.length > 1) {
+          routeHistory.pop();
+          const previousPath = routeHistory[routeHistory.length - 1];
+          currentPathRef.current = previousPath;
+          navigate(previousPath, { replace: true });
+          return;
+        }
+
+        // 4. If there is no previous route, go to this section's home.
+        const isAdminRoute = currentPath.startsWith('/admin') || currentPath.startsWith('/manage-') || currentPath.startsWith('/add-') || currentPath.startsWith('/edit-') || currentPath === '/category' || currentPath === '/mock-tests' || currentPath === '/seo';
+        const isPublicPage = isPublicRoute(currentPath) || currentPath === '/' || ['/about', '/contact', '/privacy', '/terms', '/disclaimer'].includes(currentPath);
+        const homePath = isAdminRoute ? '/admin/dashboard' : isPublicPage ? '/' : '/dashboard';
+        if (currentPath !== homePath) {
+          routeHistoryRef.current = [homePath];
+          currentPathRef.current = homePath;
+          navigate(homePath, { replace: true });
+          return;
+        }
+
+        // 5. Already on dashboard: do nothing.
+        // Do not call CapacitorApp.minimizeApp().
+      }
+    );
+
+    if (isMounted) {
+      removeListener = () => listener.remove();
+    } else {
+      await listener.remove();
+    }
+  };
+
+  void setupBackHandler();
+
+  return () => {
+    isMounted = false;
+    void removeListener?.();
+  };
+}, [navigate]);
+
+
 
   // Enforce collapsed sidebar by default on persona/role changes
   useEffect(() => {
