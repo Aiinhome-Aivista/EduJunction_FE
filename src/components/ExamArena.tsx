@@ -378,6 +378,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
 
   // Exam taking state
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isStartingAssignedExam, setIsStartingAssignedExam] = useState(false);
   const [activeExam, setActiveExam] = useState<Exam | null>(initialExam || null);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -481,6 +482,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
     const targetSub = isAssignedTest ? (assignedExam.subject as Subject) : (selectedSubject || presetSubject);
 
     setIsGenerating(true);
+    setIsStartingAssignedExam(isAssignedTest);
     setGenerationStep(targetTopic ? `Building Remedial Sprint for ${targetTopic}...` : 'Generating Exam...');
 
     try {
@@ -543,6 +545,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
       console.error('Error generating exam:', err);
     } finally {
       setIsGenerating(false);
+      setIsStartingAssignedExam(false);
       setGenerationStep('');
     }
   };
@@ -700,7 +703,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
     handleNextQuestion, handleSelectAnswer, toggleFlagQuestion, adaptiveDifficulty,
     formatOptionText, setActiveExam, currentQ: activeExam?.questions[currentQuestionIdx], formatTime,
     selectedBoard, setSelectedBoard, selectedGrade, setSelectedGrade, BOARDS, GRADES,
-    isStudentPersona, assignedExam, blueprint, isGenerating, handleStartExam, activeTopic,
+    isStudentPersona, assignedExam, blueprint, isGenerating, isStartingAssignedExam, handleStartExam, activeTopic,
     setActiveTopic, selectedSubject, setSelectedSubject, isLoadingSubjects, dbSubjects,
     selectedBranch, setSelectedBranch, getSubjectConfig, selectedDifficulty,
     setSelectedDifficulty, generationStep,
@@ -1333,7 +1336,7 @@ export const ExamArena: React.FC<ExamArenaProps> = ({
                   className="w-full md:w-auto px-5 py-3 rounded-xl bg-stone-900 hover:bg-black text-yellow-400 font-black text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer shrink-0 active:scale-[0.98] transition-all disabled:opacity-60"
                 >
                   <Play className="w-4 h-4 fill-current" />
-                  <span>Start Assigned Challenge ({assignedExam.questionCount} Qs)</span>
+                  <span>{isStartingAssignedExam ? 'Starting Assigned Challenge...' : `Start Assigned Challenge (${assignedExam.questionCount} Qs)`}</span>
                 </button>
               </div>
             )}
