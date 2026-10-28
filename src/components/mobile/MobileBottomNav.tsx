@@ -16,10 +16,12 @@ import {
   Flame,
   Award,
   FileText,
-  Sparkles
+  Sparkles,
+  CalendarClock,
+  MessageSquare
 } from 'lucide-react';
-import { ParentAccount, ChildAccount, AppPersona } from '../types';
-import { PageAccess } from './Sidebar';
+import type { ParentAccount, ChildAccount, AppPersona, PageAccess } from '../../types';
+import { getCleanAvatar } from '../../utils/avatarUtils';
 
 interface MobileBottomNavProps {
   pageAccess?: PageAccess[];
@@ -67,36 +69,83 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     return null;
   }
 
-  const navItems = [
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      route: '/dashboard',
-      icon: Home,
-      isActive: currentPath === 'dashboard' || currentPath === 'home' || currentPath === '',
-    },
-    {
-      id: 'arena',
-      label: 'Exam Arena',
-      route: '/arena',
-      icon: BookOpen,
-      isActive: currentPath === 'arena' || currentPath === 'quick-test' || currentPath === 'subscription',
-    },
-    {
-      id: 'fun-zone',
-      label: 'Brain Breaks',
-      route: '/fun-zone',
-      icon: Gamepad2,
-      isActive: currentPath === 'fun-zone' || currentPath === 'gamification',
-    },
-    {
-      id: 'reports',
-      label: 'Reports',
-      route: '/reports',
-      icon: BarChart3,
-      isActive: currentPath === 'reports' || currentPath === 'learning-path',
-    },
-  ];
+  // Helper to map icon names dynamically from backend / role_page_access
+  const resolveIcon = (iconName?: string, route?: string) => {
+    if (iconName && (Icons as any)[iconName]) {
+      return (Icons as any)[iconName];
+    }
+    const r = (route || '').toLowerCase();
+    if (r.includes('dashboard') || r === '' || r === '/') return Home;
+    if (r.includes('children')) return Users;
+    if (r.includes('schedule')) return CalendarClock;
+    if (r.includes('report')) return BarChart3;
+    if (r.includes('arena') || r.includes('exam')) return BookOpen;
+    if (r.includes('fun-zone') || r.includes('gamification')) return Gamepad2;
+    if (r.includes('subscription') || r.includes('paper') || r.includes('model')) return FileText;
+    if (r.includes('ptc')) return MessageSquare;
+    return Sparkles;
+  };
+
+  // Helper to format concise mobile dock labels (clean single/double words)
+  const formatDockLabel = (name: string, route: string) => {
+    const r = (route || '').toLowerCase();
+    if (r.includes('dashboard') || r === '' || r === '/') return 'Dashboard';
+    if (r.includes('children')) return 'Children';
+    if (r.includes('schedule')) return 'Schedule';
+    if (r.includes('report')) return 'Reports';
+    if (r.includes('arena')) return 'Exam Arena';
+    if (r.includes('fun-zone') || r.includes('gamification')) return 'Fun Zone';
+    if (r.includes('ptc')) return 'PTC Hub';
+    if (r.includes('subscription')) return 'Mocks';
+    return name.length > 10 ? name.split(' ')[0] : name;
+  };
+
+  // Active pages derived dynamically from role_page_access
+  const activePages = (Array.isArray(pageAccess) ? pageAccess : [])
+    .filter((p: any) => p.isActive === undefined || p.isActive === 1)
+    .sort((a: any, b: any) => (a.menuOrder ?? 0) - (b.menuOrder ?? 0));
+
+  const fallbackPages = isParentActive
+    ? [
+      { pageName: 'Dashboard', pageRoute: '/dashboard', icon: 'Home' },
+      { pageName: 'Children', pageRoute: '/children', icon: 'Users' },
+      { pageName: 'Schedule Exam', pageRoute: '/schedule-exam', icon: 'CalendarClock' },
+      { pageName: 'Reports', pageRoute: '/reports', icon: 'BarChart3' },
+    ]
+    : [
+      { pageName: 'Dashboard', pageRoute: '/dashboard', icon: 'Home' },
+      { pageName: 'Exam Arena', pageRoute: '/arena', icon: 'BookOpen' },
+      { pageName: 'Brain Breaks', pageRoute: '/fun-zone', icon: 'Gamepad2' },
+      { pageName: 'Reports', pageRoute: '/reports', icon: 'BarChart3' },
+    ];
+
+  const pagesToUse = activePages.length > 0 ? activePages.slice(0, 4) : fallbackPages;
+
+  const navItems = pagesToUse.map((page: any, idx: number) => {
+    const isModelPaper =
+      page.pageRoute === '/subscription' ||
+      page.pageName.toLowerCase().includes('model test') ||
+      page.pageName.toLowerCase().includes('model paper') ||
+      page.pageName.toLowerCase().includes('subscription');
+
+    const destination = isModelPaper ? '/subscription' : page.pageRoute;
+    const cleanRoute = (destination || '').replace(/^\//, '').split('/')[0];
+
+    const isActive = (() => {
+      if (cleanRoute === 'dashboard' || cleanRoute === 'home' || cleanRoute === '') {
+        return currentPath === 'dashboard' || currentPath === 'home' || currentPath === '';
+      }
+      return currentPath === cleanRoute;
+    })();
+
+    return {
+      id: page.id || `dock-${idx}-${cleanRoute}`,
+      label: formatDockLabel(page.pageName, destination),
+      route: destination,
+      icon: resolveIcon(page.icon, destination),
+      isActive,
+    };
+  });
 
   return (
     <>
@@ -204,15 +253,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                       <span>👨‍👩‍👧‍👦</span>
                     )
                   ) : (
-                    activeChild?.avatar && activeChild.avatar !== '?' ? (
-                      activeChild.avatar.startsWith('http') || activeChild.avatar.startsWith('/') ? (
-                        <img src={activeChild.avatar} alt="Student" className="w-full h-full object-cover rounded-full" />
-                      ) : (
-                        <span>{activeChild.avatar}</span>
-                      )
-                    ) : (
-                      <span>🧑‍🎓</span>
-                    )
+                    <span>{getCleanAvatar(activeChild?.avatar, activeChild?.name)}</span>
                   )}
                 </div>
                 <div>
@@ -220,7 +261,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                     {isParentActive ? parentAccount?.name || 'Parent Account' : activeChild?.name || 'Student Profile'}
                   </h3>
                   <p className="text-[11px] text-stone-500">
-                    {isParentActive ? 'Parent Administrator' : `${activeChild?.classGrade} • ${activeChild?.targetBoard}`}
+                    {isParentActive ? 'Parent' : `${activeChild?.classGrade} • ${activeChild?.targetBoard}`}
                   </p>
                 </div>
               </div>
@@ -235,7 +276,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             {/* Quick Profile Switcher (Parents can switch to children) */}
             {!isStudentSession && parentAccount && (
               <div className="py-3">
-                <p className="text-[10px] font-black uppercase tracking-wider text-stone-400 mb-2">Switch Profile</p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-stone-400 mb-2">Student Profiles</p>
                 <div className="space-y-1.5">
                   {/* Parent account button */}
                   <button
@@ -281,15 +322,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full ring-1 ring-amber-300 bg-amber-100 flex items-center justify-center text-lg shrink-0 overflow-hidden">
-                            {child.avatar && child.avatar !== '?' ? (
-                              child.avatar.startsWith('http') || child.avatar.startsWith('/') ? (
-                                <img src={child.avatar} alt={child.name} className="w-full h-full object-cover rounded-full" />
-                              ) : (
-                                <span>{child.avatar}</span>
-                              )
-                            ) : (
-                              <span>🧑‍🎓</span>
-                            )}
+                            <span>{getCleanAvatar(child.avatar, child.name)}</span>
                           </div>
                           <div>
                             <p className="text-xs font-bold text-stone-900">{child.name}</p>

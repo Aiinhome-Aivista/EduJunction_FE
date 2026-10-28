@@ -16,6 +16,7 @@ import {
   Award,
   TrendingUp,
   Calendar,
+  CalendarClock,
   CheckCircle2,
   Sparkles,
   Flame,
@@ -47,6 +48,8 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { calculateStudentMetrics, getExamDisplaySubject } from '../utils/metricsEngine';
+import { getCleanAvatar } from '../utils/avatarUtils';
+import { ParentDashboardMobile } from './mobile';
 import ApiServices from '../services/ApiServices';
 import { StudentActivityLogResponse } from '../types/api';
 
@@ -537,7 +540,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         return {
           childId: child.id,
           childName: child.name,
-          avatar: child.avatar || '👦',
+          avatar: getCleanAvatar(child.avatar, child.name),
           classGrade: child.classGrade,
           targetBoard: child.targetBoard,
           subject: resolvedSub,
@@ -569,7 +572,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         return {
           childId: child.id,
           childName: child.name,
-          avatar: child.avatar || '👦',
+          avatar: getCleanAvatar(child.avatar, child.name),
           classGrade: child.classGrade,
           targetBoard: child.targetBoard,
           subject: resolvedSub,
@@ -588,7 +591,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
       return {
         childId: child.id,
         childName: child.name,
-        avatar: child.avatar || '👦',
+        avatar: getCleanAvatar(child.avatar, child.name),
         classGrade: child.classGrade,
         targetBoard: child.targetBoard,
         subject: defaultSub,
@@ -644,44 +647,75 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   };
 
   return (
-    <div className="space-y-8 pb-10">
+    <>
+      {/* ── Native Mobile View (Compact, Fast, Clean Text Sizes) ── */}
+      <ParentDashboardMobile
+        parentAccount={parentAccount}
+        activeChildId={activeChildId}
+        onChildSelect={onChildSelect}
+        onOpenAddChildModal={onOpenAddChildModal}
+        onScheduleExam={onScheduleExam}
+        examHistory={examHistory}
+        childrenMetrics={childrenMetrics}
+        progressCardData={progressCardData}
+        readinessCardData={readinessCardData}
+        totalChildren={totalChildren}
+        totalFamilyExams={totalFamilyExams}
+        maxFamilyStreak={maxFamilyStreak}
+        activityLogData={activityLogData}
+        studentWiseRecommendations={studentWiseRecommendations}
+        graphBars={graphBars}
+        hasData={hasData}
+        timeframe={timeframe}
+        setTimeframe={setTimeframe}
+        onOpenMetricModal={setActiveModalMetric}
+        onStartEditChild={handleStartEdit}
+      />
 
-      {/* 1. TOP SUMMARY CARDS */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* ── Desktop View (Unchanged High-Density Grid) ── */}
+      <div className="hidden sm:block space-y-8 pb-10">
+
+        {/* 1. TOP SUMMARY CARDS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Card 1: My Children (Yellow/Orange) */}
-        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-4 rounded-2xl border border-yellow-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-3.5 sm:p-4 rounded-2xl border border-yellow-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-yellow-400 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-          <div className="flex items-center justify-between mb-2 relative z-10">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-white shadow-xs flex items-center justify-center">
-                <Users className="w-3.5 h-3.5 text-yellow-600" />
-              </div>
-              <span className="text-xs font-bold text-yellow-900 uppercase tracking-wider">My Children</span>
+          
+          <div className="flex items-center justify-between mb-1 relative z-10">
+            <div className="w-7 h-7 rounded-xl bg-white shadow-xs flex items-center justify-center shrink-0">
+              <Users className="w-3.5 h-3.5 text-yellow-600" />
             </div>
-            <span className="text-[10px] font-bold bg-yellow-200/70 text-yellow-900 px-2 py-0.5 rounded-full border border-yellow-300/60 shadow-2xs">
+            <span className="text-[10px] font-bold bg-yellow-200/70 text-yellow-900 px-2 py-0.5 rounded-full border border-yellow-300/60 shadow-2xs shrink-0 whitespace-nowrap">
               {totalChildren} Active
             </span>
           </div>
-          <div className="flex items-end justify-between relative z-10 mt-1">
+
+          <div className="relative z-10 mb-1">
+            <span className="text-[11px] font-extrabold text-yellow-950 uppercase tracking-wider block">
+              My Children
+            </span>
+          </div>
+
+          <div className="flex items-end justify-between relative z-10 mt-auto">
             <div>
-              <p className="text-2xl font-black text-stone-900">{totalChildren}</p>
-              <p className="text-[10px] text-yellow-800 font-semibold mt-0.5">
+              <p className="text-xl sm:text-2xl font-black text-stone-900 leading-none">{totalChildren}</p>
+              <p className="text-[10px] text-yellow-800 font-semibold mt-1">
                 {totalChildren === 1 ? 'Registered Student' : 'Registered Students'}
               </p>
             </div>
             {/* Child Avatar Stack */}
-            <div className="flex items-center -space-x-2 pb-0.5">
+            <div className="flex items-center -space-x-1.5 sm:-space-x-2 pb-0.5 shrink-0">
               {parentAccount.children.slice(0, 3).map((c, i) => (
                 <div
                   key={c.id || i}
                   title={c.name}
-                  className="w-7 h-7 rounded-full bg-white border-2 border-yellow-200 flex items-center justify-center text-xs shadow-xs"
+                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white border-2 border-yellow-200 flex items-center justify-center text-xs shadow-xs"
                 >
-                  {c.avatar || '👦'}
+                  {getCleanAvatar(c.avatar, c.name)}
                 </div>
               ))}
               {totalChildren > 3 && (
-                <div className="w-7 h-7 rounded-full bg-yellow-300 border-2 border-white flex items-center justify-center text-[10px] font-black text-yellow-950 shadow-xs">
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-yellow-300 border-2 border-white flex items-center justify-center text-[9px] sm:text-[10px] font-black text-yellow-950 shadow-xs">
                   +{totalChildren - 3}
                 </div>
               )}
@@ -692,42 +726,52 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         {/* Card 2: Overall Progress (Emerald/Teal - Clickable) */}
         <div
           onClick={() => setActiveModalMetric('progress')}
-          className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 rounded-2xl border border-emerald-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-emerald-400 hover:scale-[1.01] transition-all cursor-pointer"
+          className="bg-gradient-to-br from-emerald-50 to-teal-50 p-3.5 sm:p-4 rounded-2xl border border-emerald-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-emerald-400 hover:scale-[1.01] transition-all cursor-pointer"
         >
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-emerald-400 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-          <div className="flex items-center justify-between mb-2 relative z-10">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-white shadow-xs flex items-center justify-center">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-              </div>
-              <span className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Progress</span>
+          
+          <div className="flex items-center justify-between mb-1 relative z-10">
+            <div className="w-7 h-7 rounded-xl bg-white shadow-xs flex items-center justify-center shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
             </div>
-            <ChevronRight className="w-3.5 h-3.5 text-emerald-600/60 group-hover:translate-x-0.5 transition-transform" />
+            <ChevronRight className="w-3.5 h-3.5 text-emerald-600/60 group-hover:translate-x-0.5 transition-transform shrink-0" />
           </div>
-          <div className="relative z-10">
-            <p className="text-xl sm:text-2xl font-black text-stone-900">{progressCardData.mainText}</p>
-            <p className="text-[10px] text-emerald-700 font-semibold mt-0.5">{progressCardData.subText}</p>
+
+          <div className="relative z-10 mb-1">
+            <span className="text-[11px] font-extrabold text-emerald-950 uppercase tracking-wider block">
+              Progress
+            </span>
+          </div>
+
+          <div className="relative z-10 mt-auto">
+            <p className="text-xl sm:text-2xl font-black text-stone-900 leading-none">{progressCardData.mainText}</p>
+            <p className="text-[10px] text-emerald-700 font-semibold mt-1 truncate">{progressCardData.subText}</p>
           </div>
         </div>
 
         {/* Card 3: Exam Readiness (Blue/Indigo - Clickable) */}
         <div
           onClick={() => setActiveModalMetric('readiness')}
-          className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-2xl border border-blue-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-blue-400 hover:scale-[1.01] transition-all cursor-pointer"
+          className="bg-gradient-to-br from-blue-50 to-indigo-50 p-3.5 sm:p-4 rounded-2xl border border-blue-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-blue-400 hover:scale-[1.01] transition-all cursor-pointer"
         >
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-blue-400 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-          <div className="flex items-center justify-between mb-2 relative z-10">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-white shadow-xs flex items-center justify-center">
-                <Award className="w-3.5 h-3.5 text-blue-600" />
-              </div>
-              <span className="text-xs font-bold text-blue-900 uppercase tracking-wider">Readiness</span>
+          
+          <div className="flex items-center justify-between mb-1 relative z-10">
+            <div className="w-7 h-7 rounded-xl bg-white shadow-xs flex items-center justify-center shrink-0">
+              <Award className="w-3.5 h-3.5 text-blue-600" />
             </div>
-            <ChevronRight className="w-3.5 h-3.5 text-blue-600/60 group-hover:translate-x-0.5 transition-transform" />
+            <ChevronRight className="w-3.5 h-3.5 text-blue-600/60 group-hover:translate-x-0.5 transition-transform shrink-0" />
           </div>
-          <div className="relative z-10">
-            <p className="text-xl sm:text-2xl font-black text-stone-900">{readinessCardData.mainText}</p>
-            <p className="text-[10px] text-blue-700 font-semibold mt-0.5">{readinessCardData.subText}</p>
+
+          <div className="relative z-10 mb-1">
+            <span className="text-[11px] font-extrabold text-blue-950 uppercase tracking-wider block">
+              Readiness
+            </span>
+          </div>
+
+          <div className="relative z-10 mt-auto">
+            <p className="text-xl sm:text-2xl font-black text-stone-900 leading-none">{readinessCardData.mainText}</p>
+            <p className="text-[10px] text-blue-700 font-semibold mt-1 truncate">{readinessCardData.subText}</p>
           </div>
         </div>
 
@@ -749,31 +793,35 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 setActivitySelectedStudentId(targetId || null);
                 fetchActivityLog(targetId || undefined);
               }}
-              className="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-2xl border border-indigo-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-indigo-400 hover:scale-[1.01] transition-all cursor-pointer"
+              className="bg-gradient-to-br from-indigo-50 to-purple-50 p-3.5 sm:p-4 rounded-2xl border border-indigo-200/80 shadow-xs flex flex-col justify-between relative overflow-hidden group hover:shadow-md hover:border-indigo-400 hover:scale-[1.01] transition-all cursor-pointer"
             >
               <div className="absolute -right-4 -top-4 w-20 h-20 bg-indigo-400 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              
               <div className="flex items-center justify-between mb-1 relative z-10">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-xl bg-white shadow-xs flex items-center justify-center">
-                    <Activity className="w-3.5 h-3.5 text-indigo-600" />
-                  </div>
-                  <span className="text-xs font-bold text-indigo-900 uppercase tracking-wider">Activity Log</span>
+                <div className="w-7 h-7 rounded-xl bg-white shadow-xs flex items-center justify-center shrink-0">
+                  <Activity className="w-3.5 h-3.5 text-indigo-600" />
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold bg-rose-200/70 text-rose-900 px-2 py-0.5 rounded-full border border-rose-300/60 shadow-2xs flex items-center gap-1">
-                    🔥 {parentStreak}d Streak
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-[10px] font-bold bg-rose-200/70 text-rose-900 px-1.5 sm:px-2 py-0.5 rounded-full border border-rose-300/60 shadow-2xs whitespace-nowrap">
+                    🔥 {parentStreak}d
                   </span>
                   <ChevronRight className="w-3.5 h-3.5 text-indigo-600/60 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>
 
-              <div className="relative z-10 mt-1">
-                <p className="text-xl sm:text-2xl font-black text-stone-900">
-                  {parentTotalActivities} <span className="text-xs font-bold text-stone-500">Activities</span>
+              <div className="relative z-10 mb-1">
+                <span className="text-[11px] font-extrabold text-indigo-950 uppercase tracking-wider block">
+                  Activity Log
+                </span>
+              </div>
+
+              <div className="relative z-10 mt-auto">
+                <p className="text-xl sm:text-2xl font-black text-stone-900 leading-none">
+                  {parentTotalActivities} <span className="text-[10px] font-bold text-stone-500">Activities</span>
                 </p>
 
-                {/* Dual-Color Segmented Ratio Bar: Indigo (Study) vs Amber (Mind-Break) */}
-                <div className="mt-2 w-full h-2 bg-stone-200/70 rounded-full overflow-hidden flex shadow-2xs">
+                {/* Dual-Color Segmented Ratio Bar */}
+                <div className="mt-2 w-full h-1.5 sm:h-2 bg-stone-200/70 rounded-full overflow-hidden flex shadow-2xs">
                   {parentTotalActivities > 0 ? (
                     <>
                       <div
@@ -792,13 +840,13 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   )}
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] font-semibold text-stone-600 mt-1.5">
-                  <span className="text-indigo-800 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 inline-block"></span>
-                    {parentTotalExams} {parentTotalExams === 1 ? 'Test' : 'Tests'} (~{parentStudyMins}m)
+                <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-semibold text-stone-600 mt-1.5">
+                  <span className="text-indigo-800 flex items-center gap-1 truncate">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 inline-block shrink-0"></span>
+                    {parentTotalExams} {parentTotalExams === 1 ? 'Test' : 'Tests'}
                   </span>
-                  <span className="text-amber-800 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+                  <span className="text-amber-800 flex items-center gap-1 shrink-0 ml-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block shrink-0"></span>
                     {parentTotalBreaks} {parentTotalBreaks === 1 ? 'Break' : 'Breaks'}
                   </span>
                 </div>
@@ -859,8 +907,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 {/* Header */}
                 <div className="flex items-center justify-between relative z-10">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-stone-50 border border-stone-200 flex items-center justify-center text-3xl shadow-xs">
-                      {child.avatar}
+                    <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-3xl shadow-xs">
+                      {getCleanAvatar(child.avatar, child.name)}
                     </div>
                     <div>
                       <h4 className="font-bold text-lg text-stone-900">{child.name}</h4>
@@ -885,25 +933,25 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   const cm = childrenMetrics.find(m => m.child.id === child.id) || calculateStudentMetrics(child, examHistory);
                   const latestExam = cm.latestExam;
                   return (
-                    <div className="grid grid-cols-3 gap-4 border-y border-stone-100 py-4 relative z-10">
-                      <div className="col-span-1">
-                        <span className="text-[10px] text-stone-400 uppercase font-bold block mb-1">Overall Progress</span>
-                        <div className="flex items-center gap-2">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-4 border-y border-stone-100 py-3 sm:py-4 relative z-10">
+                      <div className="col-span-1 min-w-0">
+                        <span className="text-[9px] sm:text-[10px] text-stone-400 uppercase font-bold block mb-1 truncate">Overall Progress</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
                           <div className="flex-1 h-1.5 bg-stone-100 rounded-full overflow-hidden">
                             <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${cm.scorePct}%` }} />
                           </div>
-                          <span className="text-xs font-bold text-stone-800">{cm.scorePct}%</span>
+                          <span className="text-xs font-bold text-stone-800 shrink-0">{cm.scorePct}%</span>
                         </div>
                       </div>
-                      <div className="col-span-1 text-center border-l border-stone-100 pl-4">
-                        <span className="text-[10px] text-stone-400 uppercase font-bold block mb-1">Exam Readiness</span>
-                        <span className="text-sm font-bold text-stone-800">
+                      <div className="col-span-1 text-center border-l border-stone-100 pl-2 sm:pl-4 min-w-0">
+                        <span className="text-[9px] sm:text-[10px] text-stone-400 uppercase font-bold block mb-1 truncate">Exam Readiness</span>
+                        <span className="text-xs sm:text-sm font-bold text-stone-800">
                           {cm.totalExams > 0 ? `${cm.readinessScore}%` : '—'}
                         </span>
                       </div>
-                      <div className="col-span-1 text-right border-l border-stone-100">
-                        <span className="text-[10px] text-stone-400 uppercase font-bold block mb-1">Latest Result</span>
-                        <span className="text-sm font-bold text-stone-800">
+                      <div className="col-span-1 text-right border-l border-stone-100 pl-2 sm:pl-4 min-w-0">
+                        <span className="text-[9px] sm:text-[10px] text-stone-400 uppercase font-bold block mb-1 truncate">Latest Result</span>
+                        <span className="text-xs sm:text-sm font-bold text-stone-800">
                           {latestExam ? `${latestExam.marksObtained}/${latestExam.totalMarks}` : (cm.totalExams > 0 ? `${cm.scorePct}%` : '—')}
                         </span>
                       </div>
@@ -912,31 +960,48 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 })()}
 
                 {/* Strengths & Weaknesses */}
-                <div className="grid grid-cols-2 gap-4 text-xs relative z-10">
-                  <div>
-                    <span className="text-[10px] text-stone-400 uppercase font-bold block mb-0.5">Strongest</span>
-                    <span className="font-semibold text-stone-800 truncate block">{strongestTopic}</span>
+                <div className="grid grid-cols-2 gap-2 sm:gap-4 text-xs relative z-10 bg-stone-50/70 p-2.5 sm:p-3 rounded-xl border border-stone-100">
+                  <div className="min-w-0">
+                    <span className="text-[9px] sm:text-[10px] text-stone-400 uppercase font-bold block mb-0.5 truncate">Strongest</span>
+                    <span className="font-semibold text-stone-800 text-[11px] sm:text-xs truncate block" title={strongestTopic}>
+                      {strongestTopic}
+                    </span>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-stone-400 uppercase font-bold block mb-0.5">Needs Attention</span>
-                    <span className="font-semibold text-stone-800 truncate block">{weakestTopic}</span>
+                  <div className="min-w-0 border-l border-stone-200/60 pl-2 sm:pl-3">
+                    <span className="text-[9px] sm:text-[10px] text-amber-600 uppercase font-bold block mb-0.5 truncate">Needs Attention</span>
+                    <span className="font-semibold text-amber-950 text-[11px] sm:text-xs truncate block" title={weakestTopic}>
+                      {weakestTopic}
+                    </span>
                   </div>
                 </div>
 
                 {/* Footer Actions */}
-                <div className="flex items-center justify-between mt-1 pt-3 relative z-10">
+                <div className="flex flex-wrap items-center justify-between gap-2 mt-1 pt-3 border-t border-stone-100 relative z-10">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-500">
                     <Flame className="w-4 h-4" /> {child.streakDays || 0} Day Streak
                   </div>
-                  <button
-                    onClick={() => {
-                      onChildSelect(child.id);
-                      navigate('/children');
-                    }}
-                    className="text-xs font-bold text-yellow-600 hover:text-yellow-700 hover:underline flex items-center gap-1"
-                  >
-                    View Progress <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        onChildSelect(child.id);
+                        navigate('/schedule-exam');
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200/80 transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <CalendarClock className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Schedule</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        onChildSelect(child.id);
+                        navigate('/children');
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-stone-900 text-xs font-black shadow-2xs transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Progress</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -1129,6 +1194,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         </div>
 
       </div>
+      </div>
 
       {/* Edit Child Modal */}
       {selectedChildForEdit && (
@@ -1235,7 +1301,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
           onClick={() => setActiveModalMetric(null)}
         >
           <div
-            className={`bg-white rounded-3xl w-full shadow-2xl border border-stone-200 animate-in fade-in zoom-in-95 duration-150 flex flex-col ${activeModalMetric === 'activity' ? 'max-w-2xl max-h-[88vh] p-6' : 'max-w-lg p-6'
+            className={`bg-white rounded-3xl w-full shadow-2xl border border-stone-200 animate-in fade-in zoom-in-95 duration-150 flex flex-col ${activeModalMetric === 'activity' ? 'max-w-2xl max-h-[88vh] p-4 sm:p-6' : 'max-w-lg p-4 sm:p-6'
               }`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1317,7 +1383,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                               : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                             }`}
                         >
-                          <span>{child.avatar || '👦'}</span>
+                          <span>{getCleanAvatar(child.avatar, child.name)}</span>
                           <span>{child.name}</span>
                           <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-500'
                             }`}>
@@ -1528,8 +1594,8 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       >
                         <div className="flex items-center justify-between gap-3 mb-2.5">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-11 h-11 rounded-2xl bg-white border border-stone-200 flex items-center justify-center text-2xl shadow-xs shrink-0 group-hover:scale-105 transition-transform">
-                              {child.avatar || '👦'}
+                            <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-2xl shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+                              {getCleanAvatar(child.avatar, child.name)}
                             </div>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2">
@@ -1624,7 +1690,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

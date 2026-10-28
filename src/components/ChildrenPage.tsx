@@ -3,6 +3,7 @@ import { ParentAccount, ExamSubmission } from '../types';
 import { Trophy, TrendingUp, Target, Flame, BrainCircuit, Sparkles, CheckCircle2 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { calculateStudentMetrics } from '../utils/metricsEngine';
+import { getCleanAvatar } from '../utils/avatarUtils';
 
 interface ChildrenPageProps {
   parentAccount: ParentAccount;
@@ -105,95 +106,147 @@ export const ChildrenPage: React.FC<ChildrenPageProps> = ({
   }, [topicMasteryEntries]);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-20 fade-in">
+    <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 pb-32 sm:pb-20 fade-in px-1 sm:px-0">
       {/* Header & Child Selector */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-black text-stone-900 tracking-tight">Child Progress</h1>
-          <p className="text-sm font-medium text-stone-500 mt-1">Detailed performance and mastery analytics.</p>
+          <h1 className="text-lg sm:text-2xl font-black text-stone-900 tracking-tight">Child Progress</h1>
+          <p className="text-[11px] sm:text-sm font-medium text-stone-500 mt-0.5">Detailed performance and mastery analytics.</p>
         </div>
-        <div className="flex gap-2 bg-stone-100 p-1.5 rounded-2xl border border-stone-200 overflow-x-auto hide-scrollbar">
+        <div className="flex gap-1.5 sm:gap-2 bg-stone-100/90 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-stone-200 overflow-x-auto hide-scrollbar -mx-1 px-1">
           {parentAccount.children.map((child) => (
             <button
               key={child.id}
               onClick={() => onChildSelect(child.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 active:scale-95 ${
                 activeChild.id === child.id
-                  ? 'bg-white text-stone-900 shadow-sm border border-stone-200'
+                  ? 'bg-white text-stone-900 shadow-sm border border-stone-200 ring-2 ring-yellow-400/30'
                   : 'text-stone-500 hover:text-stone-700 hover:bg-stone-200/50'
               }`}
             >
-              <span className="text-lg">{!child.avatar || child.avatar === '?' ? '👦' : child.avatar}</span>
-              {child.name}
+              <span className="text-sm sm:text-lg">{getCleanAvatar(child.avatar, child.name)}</span>
+              <span>{child.name}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Stats Column */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Hero Stat Card */}
-          <div className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row items-center gap-6 sm:gap-8">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200 p-3.5 sm:p-8 shadow-xs relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
 
-            {/* Avatar Container with Sleek Corner Badge (No Overlap) */}
-            <div className="relative shrink-0">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 bg-gradient-to-br from-amber-50 to-stone-100 rounded-3xl border-2 border-stone-200/80 flex items-center justify-center text-5xl sm:text-6xl shadow-xs relative">
-                <span className="select-none">{!activeChild.avatar || activeChild.avatar === '?' ? '👦' : activeChild.avatar}</span>
-              </div>
-              <div className="absolute -bottom-2 -right-2 bg-stone-900 text-yellow-400 border-2 border-white px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black shadow-md flex items-center gap-1">
-                <span>LVL</span>
-                <span>{childLevel}</span>
-              </div>
-            </div>
+            {/* Mobile View: Sleek Horizontal Layout */}
+            <div className="flex flex-col gap-3 sm:hidden">
+              <div className="flex items-center gap-3">
+                <div className="relative shrink-0">
+                  <div className="w-14 h-14 bg-gradient-to-br from-amber-50 to-stone-100 rounded-2xl border border-stone-200/80 flex items-center justify-center text-3xl shadow-xs relative">
+                    <span className="select-none">{getCleanAvatar(activeChild.avatar, activeChild.name)}</span>
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 bg-stone-900 text-yellow-400 border border-white px-1.5 py-0.2 rounded-full text-[8px] font-black shadow-sm flex items-center gap-0.5">
+                    <span>LVL</span>
+                    <span>{childLevel}</span>
+                  </div>
+                </div>
 
-            <div className="flex-1 relative z-10 text-center md:text-left">
-              <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight mb-2">{activeChild.name}</h2>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 sm:gap-3 mb-6">
-                <span className="px-3 py-1 bg-stone-100 text-stone-700 text-xs font-bold rounded-lg border border-stone-200">
-                  {activeChild.classGrade}
-                </span>
-                <span className="px-3 py-1 bg-stone-100 text-stone-700 text-xs font-bold rounded-lg border border-stone-200">
-                  {activeChild.targetBoard || activeChild.curriculumBoard}
-                </span>
-                <span className="px-3 py-1 bg-rose-50 text-rose-600 text-xs font-bold rounded-lg border border-rose-100 flex items-center gap-1">
-                  <Flame className="w-3.5 h-3.5 fill-current" /> {streakDays} Day Streak
-                </span>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base font-black text-stone-900 tracking-tight truncate">{activeChild.name}</h2>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    <span className="px-2 py-0.5 bg-stone-100 text-stone-700 text-[10px] font-bold rounded-md border border-stone-200">
+                      {activeChild.classGrade}
+                    </span>
+                    <span className="px-2 py-0.5 bg-stone-100 text-stone-700 text-[10px] font-bold rounded-md border border-stone-200">
+                      {activeChild.targetBoard || activeChild.curriculumBoard}
+                    </span>
+                    <span className="px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-bold rounded-md border border-rose-100 flex items-center gap-1">
+                      <Flame className="w-3 h-3 fill-current" /> {streakDays}d
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <p className="text-[10px] uppercase font-bold text-stone-400 tracking-wider mb-1">Total XP</p>
-                  <p className="text-lg sm:text-xl font-black text-stone-900 flex items-center gap-1 justify-center md:justify-start">
-                    <Trophy className="w-4 h-4 text-yellow-500 shrink-0" />
+              {/* Mobile 3-stat strip */}
+              <div className="grid grid-cols-3 gap-2 bg-stone-50/80 p-2.5 rounded-xl border border-stone-100 w-full text-center">
+                <div className="min-w-0">
+                  <p className="text-[9px] uppercase font-bold text-stone-400 tracking-wider truncate">Total XP</p>
+                  <p className="text-sm font-black text-stone-900 flex items-center justify-center gap-1 truncate">
+                    <Trophy className="w-3 h-3 text-yellow-500 shrink-0" />
                     {(activeChild.xp || 0).toLocaleString()}
                   </p>
                 </div>
-                <div className="border-l border-stone-100 pl-4">
-                  <p className="text-[10px] uppercase font-bold text-stone-400 tracking-wider mb-1">Avg Score</p>
-                  <p className="text-lg sm:text-xl font-black text-stone-900">{avgScorePct}%</p>
+                <div className="border-l border-stone-200/70 pl-1 min-w-0">
+                  <p className="text-[9px] uppercase font-bold text-stone-400 tracking-wider truncate">Avg Score</p>
+                  <p className="text-sm font-black text-stone-900">{avgScorePct}%</p>
                 </div>
-                <div className="border-l border-stone-100 pl-4">
-                  <p className="text-[10px] uppercase font-bold text-stone-400 tracking-wider mb-1">Readiness</p>
-                  <p className="text-lg sm:text-xl font-black text-stone-900">{readinessPct}%</p>
+                <div className="border-l border-stone-200/70 pl-1 min-w-0">
+                  <p className="text-[9px] uppercase font-bold text-stone-400 tracking-wider truncate">Readiness</p>
+                  <p className="text-sm font-black text-stone-900">{readinessPct}%</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tablet & Desktop View: Original Spacious Layout */}
+            <div className="hidden sm:flex flex-row items-center gap-8">
+              {/* Avatar Container with Sleek Corner Badge (No Overlap) */}
+              <div className="relative shrink-0">
+                <div className="w-28 h-28 bg-gradient-to-br from-amber-50 to-stone-100 rounded-3xl border-2 border-stone-200/80 flex items-center justify-center text-6xl shadow-xs relative">
+                  <span className="select-none">{getCleanAvatar(activeChild.avatar, activeChild.name)}</span>
+                </div>
+                <div className="absolute -bottom-2 -right-2 bg-stone-900 text-yellow-400 border-2 border-white px-2.5 py-0.5 rounded-full text-[11px] font-black shadow-md flex items-center gap-1">
+                  <span>LVL</span>
+                  <span>{childLevel}</span>
+                </div>
+              </div>
+
+              <div className="flex-1 relative z-10 text-left min-w-0 w-full">
+                <h2 className="text-2xl font-black text-stone-900 tracking-tight mb-1.5 truncate">{activeChild.name}</h2>
+                <div className="flex flex-wrap items-center justify-start gap-3 mb-5">
+                  <span className="px-2.5 py-1 bg-stone-100 text-stone-700 text-xs font-bold rounded-lg border border-stone-200">
+                    {activeChild.classGrade}
+                  </span>
+                  <span className="px-2.5 py-1 bg-stone-100 text-stone-700 text-xs font-bold rounded-lg border border-stone-200">
+                    {activeChild.targetBoard || activeChild.curriculumBoard}
+                  </span>
+                  <span className="px-2.5 py-1 bg-rose-50 text-rose-600 text-xs font-bold rounded-lg border border-rose-100 flex items-center gap-1">
+                    <Flame className="w-3.5 h-3.5 fill-current" /> {streakDays} Day Streak
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 bg-stone-50/60 p-3 rounded-2xl border border-stone-100">
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase font-bold text-stone-400 tracking-wider mb-0.5 truncate">Total XP</p>
+                    <p className="text-xl font-black text-stone-900 flex items-center gap-1 justify-start truncate">
+                      <Trophy className="w-3.5 h-3.5 text-yellow-500 shrink-0" />
+                      {(activeChild.xp || 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="border-l border-stone-200/60 pl-4 min-w-0">
+                    <p className="text-[10px] uppercase font-bold text-stone-400 tracking-wider mb-0.5 truncate">Avg Score</p>
+                    <p className="text-xl font-black text-stone-900">{avgScorePct}%</p>
+                  </div>
+                  <div className="border-l border-stone-200/60 pl-4 min-w-0">
+                    <p className="text-[10px] uppercase font-bold text-stone-400 tracking-wider mb-0.5 truncate">Readiness</p>
+                    <p className="text-xl font-black text-stone-900">{readinessPct}%</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Performance Chart */}
-          <div className="bg-white rounded-3xl border border-stone-200 p-6 shadow-xs">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200 p-3.5 sm:p-6 shadow-xs">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div>
-                <h3 className="text-base sm:text-lg font-bold text-stone-900">Learning Progress Over Time</h3>
-                <p className="text-xs text-stone-500 font-medium mt-0.5">Diagnostic accuracy trend</p>
+                <h3 className="text-sm sm:text-lg font-bold text-stone-900">Learning Progress Over Time</h3>
+                <p className="text-[11px] sm:text-xs text-stone-500 font-medium mt-0.5">Diagnostic accuracy trend</p>
               </div>
-              <div className="h-8 w-8 rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-600">
-                <TrendingUp className="w-4 h-4" />
+              <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg sm:rounded-xl bg-yellow-50 flex items-center justify-center text-yellow-600">
+                <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="h-64 w-full">
+            <div className="h-44 sm:h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
@@ -227,31 +280,31 @@ export const ChildrenPage: React.FC<ChildrenPageProps> = ({
         </div>
 
         {/* Sidebar Column */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Topic Mastery */}
-          <div className="bg-white rounded-3xl border border-stone-200 p-6 shadow-xs">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <BrainCircuit className="w-5 h-5 text-indigo-500" />
-                <h3 className="text-lg font-bold text-stone-900">Topic Mastery</h3>
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200 p-3.5 sm:p-6 shadow-xs">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <BrainCircuit className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" />
+                <h3 className="text-sm sm:text-lg font-bold text-stone-900">Topic Mastery</h3>
               </div>
-              <span className="text-[11px] font-bold text-stone-400 bg-stone-50 border border-stone-100 px-2 py-0.5 rounded-lg">
+              <span className="text-[10px] sm:text-[11px] font-bold text-stone-400 bg-stone-50 border border-stone-100 px-2 py-0.5 rounded-md sm:rounded-lg">
                 Topic Breakdown
               </span>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Strongest Areas (Score >= 70%) */}
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[10px] uppercase font-black text-stone-400 tracking-wider">Strongest Areas</p>
+                <div className="flex items-center justify-between mb-2.5 sm:mb-3">
+                  <p className="text-[9px] sm:text-[10px] uppercase font-black text-stone-400 tracking-wider">Strongest Areas</p>
                   {strongestTopics.length > 0 && (
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                    <span className="text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
                       Top Strengths
                     </span>
                   )}
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2.5 sm:space-y-3">
                   {strongestTopics.length > 0 ? (
                     strongestTopics.map(({ topic, score }, idx) => (
                       <div key={idx} className="flex flex-col gap-1.5">

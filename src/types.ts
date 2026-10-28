@@ -252,6 +252,16 @@ export interface LeaderboardEntry {
   isCurrentStudent?: boolean;
 }
 
+export interface PageAccess {
+  id?: number | string;
+  roleId?: number;
+  pageName: string;
+  pageRoute: string;
+  icon: string;
+  menuOrder: number;
+  isActive: number;
+}
+
 // Adaptive Learning Path Models
 export type LearningPathStatus = 'locked' | 'available' | 'in_progress' | 'mastered' | 'remedial_needed';
 export type LearningLevel = 'foundational' | 'intermediate' | 'advanced_hots';

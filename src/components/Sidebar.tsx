@@ -2,15 +2,8 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { LogOut } from 'lucide-react';
-
-export interface PageAccess {
-  id: number;
-  icon: string;
-  isActive: number;
-  menuOrder: number;
-  pageName: string;
-  pageRoute: string;
-}
+import { PageAccess } from '../types';
+export type { PageAccess };
 
 interface SidebarProps {
   pageAccess: PageAccess[];

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ExamSubmission, ParentAccount } from '../types';
 import { FileText, Calendar, Filter, ChevronRight, ChevronLeft, CheckCircle2, Clock, BookOpen, AlertTriangle } from 'lucide-react';
+import { getCleanAvatar } from '../utils/avatarUtils';
 
 interface ReportsPageProps {
   examHistory: ExamSubmission[];
@@ -44,7 +45,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
   const paginatedHistory = filteredHistory.slice(startIndex, endIndex);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-3 sm:space-y-6 pb-20 fade-in">
+    <div className="max-w-6xl mx-auto space-y-3 sm:space-y-6 pb-32 sm:pb-20 fade-in">
       {/* ══════════════════════════════════════════════════════════════════════════════
           MOBILE VIEW (Native Mobile Card Feed - Unified with Home Design)
           ══════════════════════════════════════════════════════════════════════════════ */}
@@ -122,6 +123,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
                       : 'bg-stone-100 text-stone-600'
                   }`}
                 >
+                  <span className="mr-1">{getCleanAvatar(child.avatar, child.name)}</span>
                   {child.name.split(' ')[0]}
                 </button>
               ))}
@@ -321,8 +323,8 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
                       {!isStudent && (
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-sm border border-stone-200">
-                              {!child?.avatar || child.avatar === '?' ? '👦' : child.avatar}
+                            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-sm border border-amber-200/80">
+                              {getCleanAvatar(child?.avatar, child?.name || exam.studentName)}
                             </div>
                             <span className="text-sm font-bold text-stone-900">{child?.name || exam.studentName || 'Student'}</span>
                           </div>

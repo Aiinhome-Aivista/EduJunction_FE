@@ -23,6 +23,7 @@ import {
 import { ParentAccount, ChildAccount, ExamSubmission, CLASS_SUBJECTS_MAP } from '../types';
 import { ScheduledExam, ScheduleExamPayload } from '../types/api';
 import ApiServices from '../services/ApiServices';
+import { getCleanAvatar } from '../utils/avatarUtils';
 
 interface DbChapter {
   id: number;
@@ -322,23 +323,23 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in duration-300">
+    <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-2 sm:pt-8 pb-36 sm:pb-16 space-y-4 sm:space-y-8 animate-in fade-in duration-300">
 
       {/* Top Banner / Header (Clean, Light Theme) */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-3xl p-6 sm:p-8 border border-yellow-200/80 shadow-xs">
+      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50/90 via-yellow-50/70 to-orange-50/50 rounded-2xl sm:rounded-3xl p-3 sm:p-8 border border-yellow-200/80 shadow-xs">
         {/* Soft Ambient Glow Accents */}
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-yellow-200/50 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-amber-200/40 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-2xl space-y-2.5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100/80 text-amber-900 border border-yellow-300/60 text-xs font-bold shadow-2xs">
-            <CalendarClock className="w-3.5 h-3.5 text-amber-600" />
+        <div className="relative z-10 max-w-2xl space-y-1 sm:space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-yellow-100/80 text-amber-900 border border-yellow-300/60 text-[10px] sm:text-xs font-bold shadow-2xs">
+            <CalendarClock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600" />
             <span>Parent Diagnostic Scheduler</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900">
+          <h1 className="text-base sm:text-3xl font-black tracking-tight text-stone-900 leading-tight">
             Schedule & Assign Custom Exams
           </h1>
-          <p className="text-xs sm:text-sm text-stone-600 font-medium leading-relaxed">
+          <p className="text-[11px] sm:text-sm text-stone-600 font-medium leading-relaxed line-clamp-2 sm:line-clamp-none">
             Create tailored chapter tests and diagnostic assessments for your children.
             Students receive instant notifications on their account, and you get real-time score reports upon completion.
           </p>
@@ -373,28 +374,31 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
         {/* Left Column: Schedule Form (5 Cols) */}
-        <div className="lg:col-span-5 bg-white rounded-3xl border border-stone-200/80 shadow-sm p-5 sm:p-6 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                <Sparkles className="w-4 h-4" />
+        <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl border border-stone-200/80 shadow-sm p-3.5 sm:p-6 space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-between pb-2.5 sm:pb-3 border-b border-stone-100">
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <div>
-                <h2 className="text-sm sm:text-base font-bold text-stone-900">Create New Schedule</h2>
-                <p className="text-[11px] text-stone-500">Configure parameters & send assignment</p>
+                <h2 className="text-xs sm:text-base font-bold text-stone-900">Create New Schedule</h2>
+                <p className="text-[10px] sm:text-[11px] text-stone-500">Configure parameters & send assignment</p>
               </div>
             </div>
           </div>
 
-          <form onSubmit={handleScheduleSubmit} className="space-y-3.5">
+          <form onSubmit={handleScheduleSubmit} className="space-y-3">
 
             {/* Child Selector */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-stone-700 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-stone-400" />
-                Select Child
+            <div className="space-y-1">
+              <label className="text-[10.5px] sm:text-[11px] font-bold text-stone-700 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-stone-400" />
+                  Select Child
+                </span>
+                <span className="text-[9.5px] sm:text-[10px] text-amber-700 font-bold">{parentAccount.children.length} Children</span>
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 sm:grid sm:grid-cols-2">
                 {parentAccount.children.map((c) => {
                   const isSelected = selectedStudentId === c.id;
                   return (
@@ -402,15 +406,15 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
                       type="button"
                       key={c.id}
                       onClick={() => handleSelectChild(c)}
-                      className={`p-2 rounded-xl border text-left flex items-center gap-2 transition-all cursor-pointer ${isSelected
-                        ? 'border-yellow-400 bg-yellow-50/80 ring-2 ring-yellow-300/40 shadow-xs'
-                        : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50/60'
+                      className={`p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl border text-left flex items-center gap-2 sm:gap-2.5 transition-all cursor-pointer shrink-0 sm:shrink active:scale-95 ${isSelected
+                        ? 'border-yellow-400 bg-yellow-50/90 ring-2 ring-yellow-400/40 shadow-xs'
+                        : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50/60 bg-white'
                         }`}
                     >
-                      <span className="text-xl shrink-0">{c.avatar || '👦'}</span>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-stone-900 truncate">{c.name}</p>
-                        <p className="text-[10px] text-stone-500 font-medium truncate">{c.classGrade}</p>
+                      <span className="text-xl sm:text-2xl shrink-0">{getCleanAvatar(c.avatar, c.name)}</span>
+                      <div className="min-w-0 pr-1">
+                        <p className="text-xs font-bold text-stone-900 whitespace-nowrap">{c.name}</p>
+                        <p className="text-[9.5px] sm:text-[10px] text-stone-500 font-medium whitespace-nowrap">{c.classGrade} • {c.targetBoard}</p>
                       </div>
                     </button>
                   );
@@ -420,15 +424,15 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
 
             {/* Subject Dropdown */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-stone-700 flex items-center justify-between">
+              <label className="text-[10.5px] sm:text-[11px] font-bold text-stone-700 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <BookOpen className="w-3.5 h-3.5 text-stone-400" />
                   Subject
                 </span>
                 {isLoadingCurriculum ? (
-                  <span className="text-[10px] text-amber-600 font-medium animate-pulse">Loading subjects...</span>
+                  <span className="text-[9.5px] sm:text-[10px] text-amber-600 font-medium animate-pulse">Loading subjects...</span>
                 ) : (
-                  <span className="text-[10px] text-stone-400 font-medium">{activeChild?.targetBoard} • {activeChild?.classGrade}</span>
+                  <span className="text-[9.5px] sm:text-[10px] text-stone-400 font-medium">{activeChild?.targetBoard} • {activeChild?.classGrade}</span>
                 )}
               </label>
               <select
@@ -438,7 +442,7 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
                   setChapterTopic(''); // Reset chapter when subject changes
                 }}
                 disabled={isLoadingCurriculum}
-                className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-semibold text-stone-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all disabled:opacity-60 cursor-pointer"
+                className="w-full px-2.5 py-1.5 sm:py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-semibold text-stone-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all disabled:opacity-60 cursor-pointer"
               >
                 <option value="" disabled>
                   {isLoadingCurriculum ? 'Loading subjects...' : 'Select Subject'}
@@ -451,7 +455,7 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
 
             {/* Chapter / Topic Dropdown / Input */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-stone-700 flex items-center justify-between">
+              <label className="text-[10.5px] sm:text-[11px] font-bold text-stone-700 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5 text-stone-400" />
                   Chapter / Topic (Optional)
@@ -463,7 +467,7 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
                   <select
                     value={chapterTopic}
                     onChange={(e) => setChapterTopic(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-semibold text-stone-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all cursor-pointer"
+                    className="w-full px-2.5 py-1.5 sm:py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-semibold text-stone-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all cursor-pointer"
                   >
                     <option value="">Full Syllabus / Comprehensive (All Chapters)</option>
                     {availableChapters.map((ch) => (
@@ -479,18 +483,18 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
                   placeholder="e.g. Quadratic Equations, Optics, Cell Biology (or leave blank for full syllabus)"
                   value={chapterTopic}
                   onChange={(e) => setChapterTopic(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-medium text-stone-800 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
+                  className="w-full px-2.5 py-1.5 sm:py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-medium text-stone-800 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
                 />
               )}
             </div>
 
             {/* Difficulty Level */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-stone-700 flex items-center gap-1.5">
+              <label className="text-[10.5px] sm:text-[11px] font-bold text-stone-700 flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5 text-stone-400" />
                 Difficulty Calibration
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 {DIFFICULTY_OPTIONS.map((opt) => {
                   const isSelected = difficulty === opt.value;
                   return (
@@ -498,23 +502,22 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
                       type="button"
                       key={opt.value}
                       onClick={() => setDifficulty(opt.value)}
-                      className={`py-1.5 px-2 rounded-xl border text-center transition-all cursor-pointer ${isSelected
+                      className={`py-1.5 px-2 rounded-xl border text-center transition-all cursor-pointer active:scale-95 ${isSelected
                         ? `${opt.color} ring-2 ring-offset-1 font-bold shadow-xs`
                         : 'border-stone-200 hover:bg-stone-50 text-stone-600 font-medium'
                         }`}
                     >
-                      <p className="text-xs">{opt.label.split(' ')[0]}</p>
-                      <p className="text-[9px] opacity-75 mt-0.5">{opt.value.toUpperCase()}</p>
+                      <p className="text-xs font-bold">{opt.label.split(' ')[0]}</p>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Questions & Due Date in Side-by-Side Compact Row */}
-            <div className="grid grid-cols-2 gap-2.5">
+            {/* Questions & Due Date in Side-by-Side / Stacked Responsive Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-stone-700 flex items-center gap-1.5">
+                <label className="text-[10.5px] sm:text-[11px] font-bold text-stone-700 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-stone-400" />
                   Questions & Time
                 </label>
@@ -525,7 +528,7 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
                     setQuestionCount(count);
                     setTimeLimitMinutes(count); // Exactly 1 min per question/mark
                   }}
-                  className="w-full px-2.5 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-semibold text-stone-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all truncate"
+                  className="w-full px-2.5 py-1.5 sm:py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-semibold text-stone-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all truncate"
                 >
                   <option value={5}>5 Qs (5M) • 5 min{isKidGrade ? ' ★' : ''}</option>
                   <option value={10}>10 Qs (10M) • 10 min{!isKidGrade ? ' ★' : ''}</option>
@@ -535,7 +538,7 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-stone-700 flex items-center gap-1.5">
+                <label className="text-[10.5px] sm:text-[11px] font-bold text-stone-700 flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-stone-400" />
                   Due Date (Optional)
                 </label>
@@ -550,13 +553,13 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
 
             {/* Parent Instructions Note */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-stone-700">Note for Child (Optional)</label>
+              <label className="text-[10.5px] sm:text-[11px] font-bold text-stone-700">Note for Child (Optional)</label>
               <textarea
                 rows={1}
                 placeholder="e.g. Complete this before 8 PM for extra weekend playtime!"
                 value={parentInstructions}
                 onChange={(e) => setParentInstructions(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-medium text-stone-800 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all resize-none"
+                className="w-full px-2.5 py-1.5 rounded-xl border border-stone-200 bg-stone-50/50 text-xs font-medium text-stone-800 placeholder:text-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all resize-none"
               />
             </div>
 
@@ -564,7 +567,7 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
             <button
               type="submit"
               disabled={isSubmitting || !selectedStudentId}
-              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-stone-900 text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-stone-900 text-xs font-black transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-98"
             >
               {isSubmitting ? (
                 <>
@@ -574,7 +577,7 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
               ) : (
                 <>
                   <CalendarClock className="w-4 h-4 text-stone-900" />
-                  <span>Schedule & Assign Exam 🚀</span>
+                  <span>Schedule & Assign Exam</span>
                 </>
               )}
             </button>
@@ -582,10 +585,10 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
         </div>
 
         {/* Right Column: Scheduled Exams List & Live Tracker (7 Cols) */}
-        <div className="lg:col-span-7 bg-white rounded-3xl border border-stone-200/80 shadow-sm p-5 sm:p-6 flex flex-col space-y-4 lg:h-[603px]">
+        <div className="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl border border-stone-200/80 shadow-sm p-3.5 sm:p-6 flex flex-col space-y-3 sm:space-y-4 lg:h-[603px]">
 
           {/* Header & Filter Tabs */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100 shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-stone-100 shrink-0">
             <div>
               <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
                 <span>Assigned Exams Tracker</span>
@@ -661,8 +664,8 @@ export const ParentExamScheduler: React.FC<ParentExamSchedulerProps> = ({
                           {/* Top Row: Student & Status Badge */}
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <span className="text-xl shrink-0 p-1.5 bg-stone-100 rounded-xl border border-stone-200">
-                                {exam.studentAvatar || '🧑‍🎓'}
+                              <span className="text-xl shrink-0 p-1.5 bg-amber-50 rounded-xl border border-amber-200/80">
+                                {getCleanAvatar(exam.studentAvatar, exam.studentName)}
                               </span>
                               <div className="min-w-0">
                                 <span className="text-xs font-bold text-stone-900 truncate block">

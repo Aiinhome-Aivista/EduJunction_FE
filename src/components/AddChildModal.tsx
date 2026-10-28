@@ -25,7 +25,7 @@ interface AddChildModalProps {
   parentEmail?: string;
 }
 
-const AVATARS = ['👦', '👧', '🧑‍🎓', '🚀', '🌟', '📚', '⚡', '🎯'];
+const AVATARS = ['👦', '👧', '🧑‍🎓', '👱', '🧒', '👶', '👩‍🎓', '👨‍🎓'];
 
 interface SearchableSelectProps {
   options: { value: string; label: string }[];
