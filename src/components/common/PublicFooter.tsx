@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { GraduationCap, Mail } from "lucide-react";
+import { PublicFooterMobile } from "./PublicFooterMobile";
 
 export interface PublicFooterProps {
   isBackendOnline?: boolean;
@@ -31,7 +32,13 @@ export const PublicFooter: React.FC<PublicFooterProps> = ({ isBackendOnline, onQ
 
   return (
     <footer className="bg-stone-950 text-stone-500 border-t border-stone-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <PublicFooterMobile
+        facebookUrl={facebookUrl}
+        supportEmail={supportEmail}
+        supportMailto={supportMailto}
+        onQuickDemo={onQuickDemo}
+      />
+      <div className="hidden sm:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2.5">

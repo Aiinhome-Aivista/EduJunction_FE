@@ -226,10 +226,10 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({ activeChild, childre
         />
       )}
 
-      <div ref={widgetRef} className="fixed bottom-20 md:bottom-6 right-3 sm:right-6 z-50 flex flex-col items-end">
+      <div ref={widgetRef} className="fixed bottom-30 md:bottom-6 right-7 sm:right-6 z-50 flex flex-col items-end">
         {isOpen && (
-          <div className="bg-white border border-stone-200 shadow-2xl rounded-3xl w-[calc(100vw-1.5rem)] max-w-sm sm:w-96 h-[29rem] max-h-[calc(100vh-7.5rem)] mb-3 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
-            <div className="bg-gradient-to-r from-yellow-500 to-amber-500 p-4 text-white flex justify-between items-center shadow-xs">
+          <div className="fixed bottom-[8.25rem] left-1/2 -translate-x-1/2 sm:static sm:translate-x-0 bg-white border border-stone-200 shadow-2xl rounded-3xl w-[calc(100vw-1.5rem)] max-w-sm sm:w-96 h-[29rem] max-h-[calc(100vh-7.5rem)] mb-0 sm:mb-3 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <div className="bg-gradient-to-r from-yellow-500 via-amber-500 to-amber-500 p-4 text-white flex justify-between items-center border-b border-amber-600/30">
             <div className="flex items-center gap-2">
               <div className="bg-white/20 p-1.5 rounded-lg">
                 <Bot className="w-5 h-5 text-white" />
@@ -271,7 +271,7 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({ activeChild, childre
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${msg.isBot ? 'bg-amber-100 text-amber-600' : 'bg-stone-200 text-stone-600'}`}>
                   {msg.isBot ? <Bot className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
                 </div>
-                <div className={`px-3 py-2 rounded-2xl max-w-[80%] text-xs shadow-xs whitespace-pre-wrap ${msg.isBot ? 'bg-white border border-stone-200 text-stone-700 rounded-tl-none' : 'bg-yellow-500 text-white font-medium rounded-tr-none'}`}>
+                <div className={`px-3 py-2 rounded-2xl max-w-[80%] text-xs shadow-xs whitespace-pre-wrap ${msg.isBot ? 'bg-white border border-stone-200 text-stone-700 rounded-tl-none' : 'bg-gradient-to-br from-yellow-500 to-amber-500 border border-amber-600/40 text-white font-medium rounded-tr-none'}`}>
                   {msg.text}
                 </div>
               </div>
@@ -334,7 +334,7 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({ activeChild, childre
             <button
               type="submit"
               disabled={!inputText.trim() || isLoading}
-              className="bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-white w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-colors shadow-xs cursor-pointer active:scale-95"
+              className="bg-gradient-to-br from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 border border-amber-600/40 disabled:opacity-50 text-white w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all cursor-pointer active:scale-95"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 ml-0.5" />}
             </button>
@@ -345,7 +345,7 @@ export const AIChatWidget: React.FC<AIChatWidgetProps> = ({ activeChild, childre
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-transform hover:scale-105 active:scale-95 bg-gradient-to-tr from-yellow-500 to-amber-500 text-white hover:shadow-yellow-500/20 cursor-pointer"
+          className="w-14 h-14 rounded-full flex items-center justify-center border border-amber-600/40 transition-transform hover:scale-105 active:scale-95 bg-gradient-to-tr from-yellow-500 to-amber-500 text-white cursor-pointer"
         >
           <MessageSquare className="w-6 h-6" />
         </button>
