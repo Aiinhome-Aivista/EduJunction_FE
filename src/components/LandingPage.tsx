@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { PublicHeader } from "./common/PublicHeader";
 import { PublicFooter } from "./common/PublicFooter";
+import { BackToTopButton } from "./common/BackToTopButton";
 import {
   GraduationCap,
   Sparkles,
@@ -589,11 +590,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div> */}
 
         {/* HERO MAIN CONTENT GRID (Vertically Centered with min-h-0) */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 flex-1 min-h-0 flex items-center w-full">
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-6 items-center w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-3 flex-1 min-h-0 flex items-center w-full">
+          <div className="grid lg:grid-cols-12 gap-5 sm:gap-8 lg:gap-6 items-center w-full">
             <div className="lg:col-span-7 flex flex-col justify-center">
               {/* Top Badges (Quick Test & Study Buddy) - Positioned higher with generous bottom margin */}
-              <div className="mb-5 sm:mb-7 lg:mb-9">
+              <div className="mb-4 sm:mb-7 lg:mb-9">
                 {/* Floating Glowing Quick Test Badge (React Bits Style) */}
                 <div className="flex items-center justify-start">
                   <style>{`
@@ -636,7 +637,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               {/* Main Headline */}
               <h1
-                className="text-5xl sm:text-6xl lg:text-6xl xl:text-7xl font-black leading-[1.05] tracking-tight [word-spacing:0.2em] capitalize mb-3.5 sm:mb-4 lg:mb-5"
+                className="text-[2.55rem] sm:text-6xl lg:text-6xl xl:text-7xl font-black leading-[1.02] sm:leading-[1.05] tracking-tight [word-spacing:0.08em] sm:[word-spacing:0.2em] capitalize mb-3.5 sm:mb-4 lg:mb-5"
                 style={{ wordSpacing: '0.2em' }}
               >
                 LEARN SMARTER
@@ -646,7 +647,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </h1>
 
               {/* Subheading Description */}
-              <p className="text-sm sm:text-base lg:text-lg text-stone-600 leading-relaxed max-w-xl sm:max-w-2xl text-justify [text-align-last:left]">
+              <p className="text-[13px] sm:text-base lg:text-lg text-stone-600 leading-relaxed max-w-xl sm:max-w-2xl text-left sm:text-justify sm:[text-align-last:left]">
                 EduJunction is the leading Learning Platform for CBSE, ICSE &
                 ISC Success.
                 It empowers students to master every
@@ -657,17 +658,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </p>
 
               {/* CTA Action Buttons - Pushed lower down with generous top padding */}
-              <div className="pt-6 sm:pt-8 lg:pt-10 flex flex-col sm:flex-row gap-3.5 sm:gap-8">
+              <div className="pt-5 sm:pt-8 lg:pt-10 grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:gap-8">
                 <button
                   onClick={() => openAuth("register")}
-                  className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-extrabold shadow-yellow-200 flex items-center justify-center gap-2.5 cursor-pointer text-sm sm:text-base border border-amber-400/60"
+                  className="w-full min-w-0 px-1.5 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-yellow-400 hover:bg-yellow-500 text-stone-950 font-extrabold shadow-yellow-200 flex items-center justify-center gap-1 sm:gap-2.5 cursor-pointer text-[10px] sm:text-base whitespace-nowrap border border-amber-400/60"
                 >
                   Sign Up For FREE <ArrowRight className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => smoothScrollTo('actions-demo', 950)}
-                  className="px-6 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-white hover:text-yellow-300 font-bold flex items-center justify-center gap-2.5 transition-all duration-200 shadow-sm text-sm sm:text-base border border-stone-800 cursor-pointer"
+                  className="w-full min-w-0 px-1.5 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-white hover:text-yellow-300 font-bold flex items-center justify-center gap-1 sm:gap-2.5 transition-all duration-200 shadow-sm text-[10px] sm:text-base whitespace-nowrap border border-stone-800 cursor-pointer"
                 >
                   <Play className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   See How It Works
@@ -675,11 +676,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               {/* Process Steps (1. Assess -> 2. Analyze -> 3. Learn -> 4. Improve) - Squarish rounded-xl matching buttons */}
-              <div className="mt-6 sm:mt-7 flex flex-wrap items-center gap-2.5 text-xs sm:text-sm font-bold text-stone-700">
+              <div className="mt-5 sm:mt-7 grid grid-cols-4 items-center gap-1 sm:flex sm:flex-wrap sm:gap-2.5 pb-1 text-[9px] min-[390px]:text-[10px] sm:text-sm font-bold text-stone-700">
                 {['Assess', 'Analyze', 'Learn', 'Improve'].map((item, i) => (
                   <React.Fragment key={item}>
                     <span
-                      className="px-3.5 py-1.5 rounded-xl text-white shadow-2xs"
+                      className="w-full sm:w-auto px-0.5 min-[390px]:px-1 sm:px-3.5 py-1.5 rounded-xl text-center text-white shadow-2xs whitespace-nowrap"
                       style={{
                         backgroundColor: ['#fef3c7', '#f0f9ff', '#fff1f2', '#ecfdf5'][i],
                         borderColor: ['#fcd34d', '#7dd3fc', '#fda4af', '#6ee7b7'][i],
@@ -689,7 +690,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     >
                       {i + 1}. {item}
                     </span>
-                    {i < 3 && <ArrowRight className="w-3.5 h-3.5 text-yellow-500 shrink-0" />}
+                    {i < 3 && <ArrowRight className="hidden sm:block w-3.5 h-3.5 text-yellow-500 shrink-0" />}
                   </React.Fragment>
                 ))}
               </div>
@@ -724,7 +725,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <img
                 src="/hero-duo-students-cutout.png"
                 alt="EduJunction Study Buddies"
-                className="w-auto h-auto max-h-[380px] sm:max-h-[440px] lg:max-h-[min(34rem,calc(100vh-230px))] xl:max-h-[min(36rem,calc(100vh-230px))] max-w-full object-contain animate-float-hero select-none relative z-10"
+                className="w-auto h-auto max-h-[220px] sm:max-h-[440px] lg:max-h-[min(34rem,calc(100vh-230px))] xl:max-h-[min(36rem,calc(100vh-230px))] max-w-full object-contain animate-float-hero select-none relative z-10"
               />
 
               {/* Floating Glass Info Chip 1 (Top-Left) */}
@@ -983,10 +984,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
               </div>
 
-              <div className="pt-3 lg:pt-3 relative z-10 flex flex-col sm:flex-row items-center justify-center gap-2">
+              <div className="pt-3 lg:pt-3 relative z-10 grid grid-cols-[minmax(0,1fr)_auto] sm:flex sm:flex-row items-center justify-center gap-2">
                 <button
                   onClick={() => openAuth("register")}
-                  className="w-full sm:w-auto py-2.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-stone-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:scale-[1.02] active:scale-95 border border-amber-300/80"
+                  className="w-full sm:w-auto min-w-0 py-2.5 px-2 sm:px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-stone-950 font-black text-[10px] min-[390px]:text-[11px] sm:text-sm flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer hover:scale-[1.02] active:scale-95 border border-amber-300/80 whitespace-nowrap"
                 >
                   <Users className="w-3.5 h-3.5 shrink-0" />
                   Create Free Parent Account
@@ -995,7 +996,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                 <button
                   onClick={() => openAuth("login")}
-                  className="w-full sm:w-auto py-2.5 px-5 rounded-2xl bg-stone-900 hover:bg-black text-white font-extrabold text-xs sm:text-sm border border-stone-900 transition-all flex items-center justify-center cursor-pointer shadow-sm hover:scale-[1.02] active:scale-95"
+                  className="w-auto min-w-0 py-2.5 px-3 sm:px-5 rounded-2xl bg-stone-900 hover:bg-black text-white font-extrabold text-[10px] min-[390px]:text-xs sm:text-sm border border-stone-900 transition-all flex items-center justify-center cursor-pointer shadow-sm hover:scale-[1.02] active:scale-95 whitespace-nowrap"
                 >
                   Sign In
                 </button>
@@ -2854,6 +2855,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         isBackendOnline={isBackendOnline ?? undefined}
         onQuickDemo={onQuickDemo}
       />
+      <BackToTopButton mobileOnly />
     </div>
   );
 };
