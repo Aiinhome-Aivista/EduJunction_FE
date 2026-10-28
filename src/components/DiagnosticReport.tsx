@@ -25,6 +25,7 @@ import {
   Smile,
   Gamepad2
 } from 'lucide-react';
+import { DiagnosticReportMobileScore } from './mobile';
 
 interface DiagnosticReportProps {
   submission: ExamSubmission;
@@ -119,12 +120,12 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
   const timeTakenSeconds = submission?.timeTakenSeconds || 0;
 
   return (
-    <div className="space-y-6 pb-12 print:max-w-none print:w-full print:p-0 print:m-0">
+    <div className="space-y-6 pb-12 max-sm:space-y-4 max-sm:pb-[calc(3rem+env(safe-area-inset-bottom))] print:max-w-none print:w-full print:p-0 print:m-0">
       {/* Top Banner / Breadcrumb & Action bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 print:hidden">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 max-sm:gap-3 max-sm:mb-4 print:hidden">
         <button
           onClick={onBackToDashboard}
-          className="text-xs font-semibold text-stone-600 hover:text-stone-900 flex items-center gap-1.5"
+          className="text-xs font-semibold text-stone-600 hover:text-stone-900 flex items-center gap-1.5 max-sm:min-h-[44px] max-sm:pr-3 max-sm:touch-manipulation"
         >
           ← Back to Dashboard
         </button>
@@ -133,7 +134,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
           {onNavigateToLearningPath && (
             <button
               onClick={onNavigateToLearningPath}
-              className="px-3.5 py-1.5 rounded-xl border border-yellow-300 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors"
+              className="px-3.5 py-1.5 rounded-xl border border-yellow-300 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors max-sm:h-10 max-sm:py-0 max-sm:touch-manipulation max-sm:active:bg-yellow-100"
             >
               <Compass className="w-3.5 h-3.5 text-yellow-600" />
               <span>Adaptive Learning Path</span>
@@ -142,10 +143,11 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
 
           <button
             onClick={handlePrint}
-            className="px-3.5 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+            className="px-3.5 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs max-sm:h-10 max-sm:py-0 max-sm:touch-manipulation max-sm:active:bg-stone-50"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>Print / Save PDF</span>
+            <span className="sm:hidden">Print</span>
+            <span className="hidden sm:inline">Print / Save PDF</span>
           </button>
         </div>
       </div>
@@ -167,7 +169,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
       </div>
 
       {/* Gamification Points Banner */}
-      <div className="bg-gradient-to-r from-amber-500 to-yellow-500 rounded-2xl p-4 text-white shadow-xs mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
+      <div className="bg-gradient-to-r from-amber-500 to-yellow-500 rounded-2xl p-4 text-white shadow-xs mb-6 max-sm:mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-xl shrink-0">
             ⚡
@@ -182,20 +184,20 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-bold bg-white/15 px-3 py-1.5 rounded-xl self-start sm:self-auto">
+        <div className="flex items-center gap-2 text-xs font-bold bg-white/15 px-3 py-1.5 rounded-xl self-start sm:self-auto max-sm:grid max-sm:grid-cols-3 max-sm:self-stretch max-sm:gap-1 max-sm:py-2.5 max-sm:text-center max-sm:leading-tight">
           <span>+{earnedXP} XP Earned</span>
-          <span>•</span>
+          <span className="max-sm:hidden">•</span>
           <span>{accuracyPct}% Accuracy</span>
-          <span>•</span>
+          <span className="max-sm:hidden">•</span>
           <span>{marksObtained}/{totalMarks} Marks</span>
         </div>
       </div>
 
       {/* Main Diagnostic Scoreboard Card */}
-      <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-stone-100">
+      <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 mb-8 max-sm:p-4 max-sm:mb-6 max-sm:rounded-2xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-stone-100 max-sm:gap-4 max-sm:pb-4">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 max-sm:flex-wrap">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-50 text-yellow-700 border border-yellow-300">
                 {isKid ? `${totalMarks}-Mark Adventure Challenge Result 🌟` : `${totalMarks}-Mark Analytical Result 🎯`}
               </span>
@@ -203,18 +205,18 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                 {submission.board || 'Curriculum'} • {submission.classGrade || 'Grade'}
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-stone-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-stone-900 max-sm:leading-snug">
               {(submission.examTitle || `${submission.subject || 'Subject'} Assessment`).replace(/\bDiagnostic\s*/gi, '').replace(/\s{2,}/g, ' ').trim()}
             </h1>
-            <p className="text-xs text-stone-500 mt-1">
+            <p className="text-xs text-stone-500 mt-1 max-sm:leading-relaxed">
               Candidate: <strong className="text-stone-800">{submission.studentName || 'Student'}</strong> • Tested Subject: <strong className="text-stone-800">{getExamDisplaySubject(submission)}</strong> ({(submission.difficulty || 'medium').toUpperCase()})
             </p>
           </div>
 
           {/* Score Indicator */}
-          <div className="flex items-center gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-100 shrink-0">
+          <div className="flex items-center gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-100 shrink-0 max-sm:justify-between">
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-extrabold text-yellow-600">
+              <div className="text-3xl sm:text-4xl font-extrabold text-yellow-600 max-sm:text-4xl max-sm:tabular-nums">
                 {marksObtained}<span className="text-lg sm:text-xl text-stone-400 font-normal">/{totalMarks}</span>
               </div>
               <div className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider mt-0.5">
@@ -231,7 +233,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                   ? 'bg-amber-100 text-amber-800'
                   : 'bg-rose-100 text-rose-800'
                 }`}>
-                {accuracyPct >= 80 ? 'Master 🏆' : accuracyPct >= 50 ? 'Proficient ⭐' : 'Developing 🎈'}
+                {accuracyPct >= 80 ? 'Master 🏆' : accuracyPct >= 50 ? 'Proficient ⭐' : 'Developing 📈'}
               </span>
               <div className="text-[11px] text-stone-500 mt-1 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
@@ -242,16 +244,16 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
         </div>
 
         {/* AI Evolutionary Pedagogical Insights */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 max-sm:gap-3 max-sm:mt-4">
           {/* Strengths & Positive Traits */}
-          <div className="bg-yellow-50/60 border border-yellow-300/80 rounded-2xl p-5">
+          <div className="bg-yellow-50/60 border border-yellow-300/80 rounded-2xl p-5 max-sm:p-4">
             <h3 className="text-xs font-bold text-yellow-900 uppercase tracking-wider flex items-center gap-2 mb-3">
-              <CheckCircle2 className="w-4 h-4 text-yellow-600" />
+              <CheckCircle2 className="w-4 h-4 text-yellow-600 max-sm:shrink-0" />
               Verified Concept Strengths
             </h3>
             <ul className="space-y-2">
               {analysis.strengths.map((str, idx) => (
-                <li key={idx} className="text-xs text-yellow-950 flex items-start gap-2 leading-relaxed">
+                <li key={idx} className="text-xs text-yellow-950 flex items-start gap-2 leading-relaxed max-sm:text-[13px]">
                   <span className="text-yellow-500 font-bold mt-0.5">•</span>
                   <span>{str}</span>
                 </li>
@@ -260,14 +262,14 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
           </div>
 
           {/* Critical Gaps & Areas to Improve */}
-          <div className="bg-rose-50/60 border border-rose-200/80 rounded-2xl p-5">
+          <div className="bg-rose-50/60 border border-rose-200/80 rounded-2xl p-5 max-sm:p-4">
             <h3 className="text-xs font-bold text-rose-900 uppercase tracking-wider flex items-center gap-2 mb-3">
-              <AlertCircle className="w-4 h-4 text-rose-600" />
+              <AlertCircle className="w-4 h-4 text-rose-600 max-sm:shrink-0" />
               Identified Misconceptions & Growth Areas
             </h3>
             <ul className="space-y-2">
               {analysis.areasToImprove.map((gap, idx) => (
-                <li key={idx} className="text-xs text-rose-950 flex items-start gap-2 leading-relaxed">
+                <li key={idx} className="text-xs text-rose-950 flex items-start gap-2 leading-relaxed max-sm:text-[13px]">
                   <span className="text-rose-500 font-bold mt-0.5">•</span>
                   <span>{gap}</span>
                 </li>
@@ -323,13 +325,13 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
         )} */}
 
         {/* Evolutionary Learning Roadmap & Encouragement */}
-        <div className="mt-6 p-5 rounded-2xl bg-yellow-50/70 border border-yellow-200 space-y-3">
+        <div className="mt-6 p-5 rounded-2xl bg-yellow-50/70 border border-yellow-200 space-y-3 max-sm:mt-4 max-sm:p-4">
           <div>
             <span className="text-xs font-bold text-yellow-950 flex items-center gap-1.5 mb-1">
               <TrendingUp className="w-3.5 h-3.5 text-yellow-700" />
               Evolutionary Next-Step Roadmap
             </span>
-            <p className="text-xs text-yellow-900 leading-relaxed">{analysis.evolutionaryRoadmap}</p>
+            <p className="text-xs text-yellow-900 leading-relaxed max-sm:text-[13px]">{analysis.evolutionaryRoadmap}</p>
           </div>
 
           <div className="pt-3 border-t border-yellow-300/60">
@@ -337,21 +339,21 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
               <HeartHandshake className="w-3.5 h-3.5 text-yellow-700" />
               Note for {submission.studentName} & Parents
             </span>
-            <p className="text-xs text-yellow-900 leading-relaxed font-medium">{analysis.encouragementNote}</p>
+            <p className="text-xs text-yellow-900 leading-relaxed font-medium max-sm:text-[13px]">{analysis.encouragementNote}</p>
           </div>
         </div>
 
         {/* Encouraged Next Exam CTA */}
         {nextExam && (
-          <div className="mt-6 p-5 rounded-2xl bg-stone-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
+          <div className="mt-6 p-5 rounded-2xl bg-stone-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-sm:mt-4 max-sm:p-4 print:hidden">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-yellow-300 block mb-1">
                 {isKid ? 'Next Fun Adventure Challenge 🚀' : 'Recommended Next Level Exam'}
               </span>
-              <h4 className="text-base font-bold">
+              <h4 className="text-base font-bold max-sm:leading-snug">
                 {nextExam.classGrade} {nextExam.board} {nextExam.subject} ({nextExam.difficulty.toUpperCase()} Level)
               </h4>
-              <p className="text-xs text-stone-300 mt-1 max-w-xl">
+              <p className="text-xs text-stone-300 mt-1 max-w-xl max-sm:leading-relaxed">
                 {nextExam.reason}
               </p>
             </div>
@@ -359,7 +361,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
             <button
               id="take-next-level-exam-btn"
               onClick={() => onRetakeOrNextExam(nextExam.board, nextExam.classGrade, nextExam.subject, nextExam.difficulty)}
-              className="px-6 py-3 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-stone-900 text-xs sm:text-sm font-bold shadow-md flex items-center justify-center gap-2 shrink-0 transition-colors cursor-pointer"
+              className="px-6 py-3 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-stone-900 text-xs sm:text-sm font-bold shadow-md flex items-center justify-center gap-2 shrink-0 transition-colors cursor-pointer max-sm:w-full max-sm:min-h-[48px] max-sm:text-sm max-sm:touch-manipulation max-sm:active:bg-yellow-400 max-sm:active:scale-[0.98]"
             >
               <span>{isKid ? 'Play Next Adventure! 🚀' : 'Take Next Level Exam'}</span>
               <ArrowRight className="w-4 h-4" />
@@ -370,21 +372,21 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
 
       {/* Brain Break & Fun Zone Banner */}
       {onNavigateToFunZone && (
-        <div className="bg-gradient-to-r from-pink-500/10 via-amber-500/10 to-yellow-500/10 border border-pink-200/80 rounded-2xl p-4 sm:p-5 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden">
+        <div className="bg-gradient-to-r from-pink-500/10 via-amber-500/10 to-yellow-500/10 border border-pink-200/80 rounded-2xl p-4 sm:p-5 mb-8 max-sm:mb-6 flex flex-col sm:flex-row items-center max-sm:items-stretch justify-between gap-4 print:hidden">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-pink-100 border border-pink-200 flex items-center justify-center text-pink-600 shrink-0">
               <Smile className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-sm font-bold text-stone-900">Need a Quick Brain Break & Mental Recharge?</h4>
-              <p className="text-xs text-stone-600">
+              <p className="text-xs text-stone-600 max-sm:leading-relaxed">
                 Play 30-second speed math duels, memory concept matches, or read funny science anecdotes & jokes!
               </p>
             </div>
           </div>
           <button
             onClick={onNavigateToFunZone}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-yellow-500 hover:from-pink-700 hover:to-yellow-700 text-white text-xs font-bold shadow-xs flex items-center gap-2 shrink-0 transition-all cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-yellow-500 hover:from-pink-700 hover:to-yellow-700 text-white text-xs font-bold shadow-xs flex items-center gap-2 shrink-0 transition-all cursor-pointer max-sm:w-full max-sm:justify-center max-sm:min-h-[48px] max-sm:touch-manipulation max-sm:active:scale-[0.98]"
           >
             <Gamepad2 className="w-4 h-4" />
             <span>Open Brain Break Arcade</span>
@@ -393,33 +395,45 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
       )}
 
       {/* Section: Comprehensive Itemized Review */}
-      <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 mb-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-stone-100 mb-6">
+      <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 mb-8 max-sm:p-4 max-sm:mb-6 max-sm:rounded-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-stone-100 mb-6 max-sm:gap-3 max-sm:mb-4">
           <div>
-            <h2 className="text-lg font-bold text-stone-900">
+            <h2 className="text-lg font-bold text-stone-900 max-sm:text-base">
               {evaluations.length > 0 ? `${evaluations.length}-Question Review & Explanations` : 'Itemized Question Review & Explanations'}
             </h2>
-            <p className="text-xs text-stone-500">Compare student choices with correct answers, step-by-step logic, and reference links</p>
+            <p className="text-xs text-stone-500 max-sm:leading-relaxed">Compare student choices with correct answers, step-by-step logic, and reference links</p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-xs max-sm:grid max-sm:grid-cols-2 max-sm:w-full">
             <button
               onClick={() => expandAll(true)}
-              className="px-3 py-1 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 font-medium"
+              className="px-3 py-1 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 font-medium max-sm:py-2.5 max-sm:touch-manipulation max-sm:active:bg-stone-50"
             >
               Expand All
             </button>
             <button
               onClick={() => expandAll(false)}
-              className="px-3 py-1 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 font-medium"
+              className="px-3 py-1 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 font-medium max-sm:py-2.5 max-sm:touch-manipulation max-sm:active:bg-stone-50"
             >
               Collapse All
             </button>
           </div>
         </div>
 
+        {/* Mobile-only quick summary of results */}
+        {evaluations.length > 0 && (
+          <div className="sm:hidden print:hidden flex items-center gap-2 mb-3 text-[11px] font-bold">
+            <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800">
+              ✓ {evaluations.filter((e) => e.isCorrect).length} correct
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-800">
+              ✗ {evaluations.filter((e) => !e.isCorrect).length} to review
+            </span>
+          </div>
+        )}
+
         {/* Screen-Only 10 Question Accordion List */}
-        <div className="space-y-4 print:hidden">
+        <div className="space-y-4 max-sm:space-y-3 print:hidden">
           {evaluations.length > 0 ? (
             evaluations.map((eq) => {
               const isExpanded = !!expandedQuestions[eq.questionId];
@@ -434,28 +448,28 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                   {/* Accordion Bar */}
                   <div
                     onClick={() => toggleQuestionExpand(eq.questionId)}
-                    className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none"
+                    className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none max-sm:p-3.5 max-sm:rounded-2xl max-sm:touch-manipulation max-sm:active:bg-stone-50/60"
                   >
-                    <div className="flex items-center gap-3 pr-4">
+                    <div className="flex items-center gap-3 pr-4 max-sm:pr-3 max-sm:min-w-0">
                       {eq.isCorrect ? (
-                        <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0 max-sm:w-8 max-sm:h-8">
                           ✓
                         </div>
                       ) : (
-                        <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs shrink-0 max-sm:w-8 max-sm:h-8">
                           ✗
                         </div>
                       )}
-                      <div>
+                      <div className="max-sm:min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-xs sm:text-sm text-stone-900">
                             Q{eq.questionNumber}.
                           </span>
-                          <span className="text-xs sm:text-sm text-stone-800 line-clamp-1 font-medium">
+                          <span className="text-xs sm:text-sm text-stone-800 line-clamp-1 font-medium max-sm:text-[13px] max-sm:line-clamp-2">
                             {eq.questionText}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 mt-1 text-[11px] text-stone-500">
+                        <div className="flex items-center gap-2 mt-1 text-[11px] text-stone-500 max-sm:flex-wrap max-sm:gap-y-0.5">
                           <span className="uppercase font-semibold">{eq.type}</span>
                           <span>•</span>
                           <span>{eq.topic}</span>
@@ -468,15 +482,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                      {/* Mobile compact score pill */}
-                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black sm:hidden border ${eq.marksAwarded >= ((eq as any).questionMarks || 1)
-                        ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
-                        : eq.marksAwarded > 0
-                          ? 'bg-amber-100 text-amber-900 border-amber-200'
-                          : 'bg-rose-100 text-rose-900 border-rose-200'
-                        }`}>
-                        {eq.marksAwarded >= ((eq as any).questionMarks || 1) ? `+${eq.marksAwarded}` : '0'}
-                      </span>
+                      <DiagnosticReportMobileScore evaluation={eq} />
 
                       {/* Desktop full score pill */}
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold hidden sm:inline-block ${eq.marksAwarded >= ((eq as any).questionMarks || 1)
@@ -491,15 +497,15 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                             ? `Partial Credit (+${eq.marksAwarded})`
                             : 'Incorrect (0.0)'}
                       </span>
-                      {isExpanded ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+                      {isExpanded ? <ChevronUp className="w-4 h-4 text-stone-400 max-sm:w-5 max-sm:h-5" /> : <ChevronDown className="w-4 h-4 text-stone-400 max-sm:w-5 max-sm:h-5" />}
                     </div>
                   </div>
 
                   {/* Expanded Details */}
                   {isExpanded && (
-                    <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-stone-100/80 bg-white/70 rounded-b-2xl space-y-4">
+                    <div className="px-4 sm:px-6 pb-6 pt-2 border-t border-stone-100/80 bg-white/70 rounded-b-2xl space-y-4 max-sm:px-3.5 max-sm:pb-5 max-sm:pt-3 max-sm:space-y-3">
                       {/* Full Question Text */}
-                      <div className="text-xs sm:text-sm text-stone-900 whitespace-pre-line leading-relaxed font-medium bg-stone-50 p-3 rounded-xl">
+                      <div className="text-xs sm:text-sm text-stone-900 whitespace-pre-line leading-relaxed font-medium bg-stone-50 p-3 rounded-xl max-sm:text-[13px] max-sm:break-words">
                         {eq.questionText}
                       </div>
 
@@ -539,7 +545,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                             return (
                               <div
                                 key={oIdx}
-                                className={`p-2.5 rounded-xl border text-xs leading-snug transition-all ${isCorrectOpt
+                                className={`p-2.5 rounded-xl border text-xs leading-snug transition-all max-sm:p-3 max-sm:text-[13px] max-sm:break-words ${isCorrectOpt
                                   ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold shadow-2xs ring-1 ring-emerald-300/40'
                                   : isStudentOpt
                                     ? 'bg-rose-50 border-rose-300 text-rose-950 font-medium'
@@ -548,6 +554,8 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                               >
                                 <span className="font-bold mr-1.5">{String.fromCharCode(65 + oIdx)}.</span>
                                 {cleanOptText || opt}
+                                {isCorrectOpt && <span className="sm:hidden ml-1.5 text-[10px] uppercase font-black text-emerald-700">✓ Correct</span>}
+                                {!isCorrectOpt && isStudentOpt && <span className="sm:hidden ml-1.5 text-[10px] uppercase font-black text-rose-600">Your pick</span>}
                               </div>
                             );
                           })}
@@ -565,7 +573,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                           <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">
                             Candidate Submitted Answer:
                           </span>
-                          <span className={`text-xs sm:text-sm font-bold ${eq.marksAwarded >= ((eq as any).questionMarks || 1)
+                          <span className={`text-xs sm:text-sm font-bold max-sm:text-[13px] max-sm:break-words ${eq.marksAwarded >= ((eq as any).questionMarks || 1)
                             ? 'text-emerald-700'
                             : eq.marksAwarded > 0
                               ? 'text-amber-800'
@@ -579,7 +587,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                           <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
                             Verified Model Answer / Solution:
                           </span>
-                          <span className="text-xs sm:text-sm font-black text-emerald-950">
+                          <span className="text-xs sm:text-sm font-black text-emerald-950 max-sm:text-[13px] max-sm:break-words">
                             {eq.correctAnswer}
                           </span>
                         </div>
@@ -587,7 +595,7 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
 
                       {/* Teacher Constructive Feedback */}
                       {eq.feedback && (
-                        <div className="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-950 flex items-start gap-2.5">
+                        <div className="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-950 flex items-start gap-2.5 max-sm:text-[13px]">
                           <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                           <div>
                             <strong className="font-bold text-blue-900 block mb-0.5">Teacher Evaluation & Rubric Feedback:</strong>
@@ -624,19 +632,19 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
 
                       {/* Misconception Identified */}
                       {eq.misconceptionIdentified && (
-                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950">
+                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 max-sm:text-[13px] max-sm:leading-relaxed">
                           <strong className="font-bold text-amber-900">Misconception Identified: </strong>
                           {eq.misconceptionIdentified}
                         </div>
                       )}
 
                       {/* Step-by-Step Explanation */}
-                      <div className="p-4 rounded-xl bg-yellow-50/50 border border-yellow-200 text-xs text-yellow-950 space-y-1">
+                      <div className="p-4 rounded-xl bg-yellow-50/50 border border-yellow-200 text-xs text-yellow-950 space-y-1 max-sm:p-3.5">
                         <div className="font-bold text-yellow-900 flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-yellow-600" />
+                          <Sparkles className="w-3.5 h-3.5 text-yellow-600 max-sm:shrink-0" />
                           Step-by-Step Model Derivation & Concept Explanation:
                         </div>
-                        <p className="leading-relaxed whitespace-pre-line text-stone-800">{eq.explanation}</p>
+                        <p className="leading-relaxed whitespace-pre-line text-stone-800 max-sm:text-[13px]">{eq.explanation}</p>
                       </div>
 
                       {/* Question Reference Links */}
@@ -652,14 +660,14 @@ export const DiagnosticReport: React.FC<DiagnosticReportProps> = ({
                                 href={ref.url}
                                 target="_blank"
                                 rel="noreferrer noopener"
-                                className="flex items-center justify-between p-2.5 rounded-xl border border-stone-200 bg-white hover:border-yellow-300 hover:bg-yellow-50/30 transition-all text-xs group"
+                                className="flex items-center justify-between p-2.5 rounded-xl border border-stone-200 bg-white hover:border-yellow-300 hover:bg-yellow-50/30 transition-all text-xs group max-sm:p-3 max-sm:min-h-[48px] max-sm:gap-2 max-sm:touch-manipulation max-sm:active:bg-yellow-50/30"
                               >
-                                <div className="flex items-center gap-2">
-                                  <BookOpen className="w-3.5 h-3.5 text-yellow-600" />
-                                  <span className="font-semibold text-stone-900 group-hover:text-yellow-600">{ref.title}</span>
-                                  <span className="text-[10px] text-stone-400">({ref.source})</span>
+                                <div className="flex items-center gap-2 max-sm:min-w-0">
+                                  <BookOpen className="w-3.5 h-3.5 text-yellow-600 max-sm:shrink-0" />
+                                  <span className="font-semibold text-stone-900 group-hover:text-yellow-600 max-sm:break-words">{ref.title}</span>
+                                  <span className="text-[10px] text-stone-400 max-sm:shrink-0">({ref.source})</span>
                                 </div>
-                                <ExternalLink className="w-3.5 h-3.5 text-stone-400 group-hover:text-yellow-600" />
+                                <ExternalLink className="w-3.5 h-3.5 text-stone-400 group-hover:text-yellow-600 max-sm:shrink-0" />
                               </a>
                             ))}
                           </div>
