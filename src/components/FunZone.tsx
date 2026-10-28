@@ -454,42 +454,47 @@ export const FunZone: React.FC<FunZoneProps> = ({
   });
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-150">
+    <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 pb-6 sm:pb-0 animate-in fade-in duration-150">
       {/* Toast Notification */}
       {showXPToast.show && (
-        <div className="fixed top-20 right-6 z-50 bg-amber-500 text-white font-bold px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 border border-amber-300 animate-in slide-in-from-top duration-200">
-          <Sparkles className="w-5 h-5 text-amber-100" />
-          <span className="text-sm">{showXPToast.msg}</span>
+        <div className="fixed top-3 left-3 right-3 sm:left-auto sm:top-20 sm:right-6 z-50 bg-amber-500 text-white font-bold px-4 py-3 sm:py-2.5 rounded-2xl shadow-xl flex items-center justify-center sm:justify-start gap-2 border border-amber-300 animate-in slide-in-from-top duration-200">
+          <Sparkles className="w-5 h-5 text-amber-100 shrink-0" />
+          <span className="text-xs sm:text-sm leading-snug">{showXPToast.msg}</span>
         </div>
       )}
 
       {/* Mobile-Only Sleek Compact Header */}
       <div className="flex sm:hidden items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-amber-500 to-pink-500 text-white shadow-xs">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0">
             <Gamepad2 className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-xs font-bold truncate">
+            <h2 className="text-sm font-bold truncate">
               FunZone Arcade
             </h2>
-            <p className="text-[10px] text-yellow-100 font-medium truncate">
-              {activeChild?.streakDays || 1}d Streak &bull; {activeChild?.xp || 1420} XP
+            <p className="text-[11px] text-yellow-100 font-medium truncate flex items-center gap-1.5">
+              <Flame className="w-3 h-3 text-amber-200 shrink-0" />
+              <span>{activeChild?.streakDays || 1}d</span>
+              <span className="opacity-60">&bull;</span>
+              <Zap className="w-3 h-3 text-yellow-200 shrink-0" />
+              <span>{activeChild?.xp || 1420} XP</span>
             </p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="p-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs cursor-pointer"
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/20 active:bg-white/30 text-white text-xs cursor-pointer touch-manipulation"
             title={soundEnabled ? 'Mute' : 'Unmute'}
+            aria-label={soundEnabled ? 'Mute game sounds' : 'Enable game sounds'}
           >
-            {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </button>
           {onLaunchExam && (
             <button
               onClick={onLaunchExam}
-              className="px-2.5 py-1.5 rounded-xl bg-white text-stone-900 font-bold text-[10px] active:scale-95 transition-all shadow-xs cursor-pointer"
+              className="h-10 px-3 rounded-xl bg-white text-stone-900 font-bold text-xs active:scale-95 transition-all shadow-xs cursor-pointer touch-manipulation"
             >
               Exams →
             </button>
@@ -563,65 +568,70 @@ export const FunZone: React.FC<FunZoneProps> = ({
       </div>
 
       {/* Main Game & Anecdote Navigation Bar */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-2 shadow-2xs flex items-center gap-1.5 overflow-x-auto hide-scrollbar">
+      <div className="bg-white rounded-2xl border border-stone-200 p-1.5 sm:p-2 shadow-2xs flex items-center gap-1 sm:gap-1.5 overflow-x-auto hide-scrollbar snap-x snap-mandatory sm:snap-none">
         <button
           id="btn-tab-anecdotes"
           onClick={() => { triggerSound('click'); setActiveTab('anecdote-vault'); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'anecdote-vault'
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 min-h-[44px] sm:min-h-0 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all snap-start shrink-0 touch-manipulation active:scale-95 sm:active:scale-100 ${activeTab === 'anecdote-vault'
             ? 'bg-amber-400 text-stone-900 shadow-xs'
             : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
         >
           <Smile className="w-4 h-4 text-stone-900" />
-          <span>The Chuckle Lab & Stories</span>
+          <span className="sm:hidden">Chuckles</span>
+          <span className="hidden sm:inline">The Chuckle Lab & Stories</span>
         </button>
 
         <button
           id="btn-tab-speed-math"
           onClick={() => { triggerSound('click'); setActiveTab('speed-math'); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'speed-math'
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 min-h-[44px] sm:min-h-0 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all snap-start shrink-0 touch-manipulation active:scale-95 sm:active:scale-100 ${activeTab === 'speed-math'
             ? 'bg-amber-400 text-stone-900 shadow-xs'
             : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
         >
           <Zap className="w-4 h-4 text-stone-900" />
-          <span>Speed Math Duel</span>
+          <span className="sm:hidden">Math</span>
+          <span className="hidden sm:inline">Speed Math Duel</span>
         </button>
 
         <button
           id="btn-tab-memory"
           onClick={() => { triggerSound('click'); setActiveTab('memory-match'); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'memory-match'
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 min-h-[44px] sm:min-h-0 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all snap-start shrink-0 touch-manipulation active:scale-95 sm:active:scale-100 ${activeTab === 'memory-match'
             ? 'bg-amber-400 text-stone-900 shadow-xs'
             : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
         >
           <Layers className="w-4 h-4 text-stone-900" />
-          <span>Concept Memory Flip</span>
+          <span className="sm:hidden">Memory</span>
+          <span className="hidden sm:inline">Concept Memory Flip</span>
         </button>
 
         <button
           id="btn-tab-scramble"
           onClick={() => { triggerSound('click'); setActiveTab('word-scramble'); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'word-scramble'
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 min-h-[44px] sm:min-h-0 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all snap-start shrink-0 touch-manipulation active:scale-95 sm:active:scale-100 ${activeTab === 'word-scramble'
             ? 'bg-amber-400 text-stone-900 shadow-xs'
             : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
         >
           <Puzzle className="w-4 h-4 text-stone-900" />
-          <span>Science Mystery Scramble</span>
+          <span className="sm:hidden">Scramble</span>
+          <span className="hidden sm:inline">Science Mystery Scramble</span>
         </button>
 
         <button
           id="btn-tab-breathing"
           onClick={() => { triggerSound('click'); setActiveTab('particle-pop'); }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all ${activeTab === 'particle-pop'
+          className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 min-h-[44px] sm:min-h-0 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all snap-start shrink-0 touch-manipulation active:scale-95 sm:active:scale-100 ${activeTab === 'particle-pop'
             ? 'bg-amber-400 text-stone-900 shadow-xs'
             : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
             }`}
         >
           <Wind className="w-4 h-4 text-stone-900" />
-          <span>2-Min Mind Reset</span>
+          <span className="sm:hidden">Reset</span>
+          <span className="hidden sm:inline">2-Min Mind Reset</span>
         </button>
       </div>
 
@@ -629,19 +639,19 @@ export const FunZone: React.FC<FunZoneProps> = ({
       {/* VIEW 1: THE CHUCKLE LAB & SCIENTIST ANECDOTES */}
       {/* ============================================================ */}
       {activeTab === 'anecdote-vault' && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Featured Anecdote Generator Card */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-3xl p-6 sm:p-8 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-amber-200/70">
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-amber-200/70">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
                   {FUN_ANECDOTES_AND_JOKES[randomFeatureIndex].funReactionEmoji}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="text-[10px] uppercase font-extrabold tracking-wider bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-md">
                     🎲 Featured Curiosity Spotlight
                   </span>
-                  <h3 className="text-lg font-bold text-stone-900 mt-1">
+                  <h3 className="text-base sm:text-lg font-bold text-stone-900 mt-1 leading-snug">
                     {FUN_ANECDOTES_AND_JOKES[randomFeatureIndex].title}
                   </h3>
                 </div>
@@ -649,14 +659,14 @@ export const FunZone: React.FC<FunZoneProps> = ({
 
               <button
                 onClick={handleSpinRandomAnecdote}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-xs transition-colors self-start sm:self-auto"
+                className="w-full sm:w-auto justify-center px-4 py-3 sm:py-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-700 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-xs transition-colors self-start sm:self-auto touch-manipulation"
               >
                 <Shuffle className="w-3.5 h-3.5" />
                 <span>Spin Random Story / Joke</span>
               </button>
             </div>
 
-            <div className="mt-4 space-y-3">
+            <div className="mt-3 sm:mt-4 space-y-3">
               {FUN_ANECDOTES_AND_JOKES[randomFeatureIndex].characterOrOrigin && (
                 <p className="text-xs font-semibold text-amber-800 italic">
                   Origin: {FUN_ANECDOTES_AND_JOKES[randomFeatureIndex].characterOrOrigin}
@@ -667,7 +677,7 @@ export const FunZone: React.FC<FunZoneProps> = ({
               </p>
 
               {FUN_ANECDOTES_AND_JOKES[randomFeatureIndex].punchlineOrTakeaway && (
-                <div className="mt-4 p-4 rounded-2xl bg-white border border-amber-200/80 shadow-2xs">
+                <div className="mt-3 sm:mt-4 p-3.5 sm:p-4 rounded-2xl bg-white border border-amber-200/80 shadow-2xs">
                   <div className="text-xs font-bold text-amber-900 uppercase tracking-wide mb-1 flex items-center gap-1.5">
                     <span>💡 The Hilarious Truth & Lesson:</span>
                   </div>
@@ -681,13 +691,13 @@ export const FunZone: React.FC<FunZoneProps> = ({
 
           {/* Filter Pills */}
           <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Browse:</span>
+            <div className="flex items-center gap-2 sm:flex-wrap overflow-x-auto sm:overflow-visible max-w-full hide-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0">
+              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider shrink-0">Browse:</span>
               {(['all', 'anecdote', 'joke', 'fact', 'riddle'] as const).map(cat => (
                 <button
                   key={cat}
                   onClick={() => { triggerSound('click'); setAnecdoteCategory(cat); }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-colors ${anecdoteCategory === cat
+                  className={`px-3.5 sm:px-3 py-2 sm:py-1.5 rounded-xl text-xs font-bold capitalize whitespace-nowrap shrink-0 transition-colors touch-manipulation ${anecdoteCategory === cat
                     ? 'bg-stone-900 text-white'
                     : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-100'
                     }`}
@@ -696,13 +706,13 @@ export const FunZone: React.FC<FunZoneProps> = ({
                 </button>
               ))}
             </div>
-            <span className="text-xs text-stone-400 font-medium">
+            <span className="hidden sm:inline text-xs text-stone-400 font-medium">
               Showing {filteredAnecdotes.length} entertaining insights
             </span>
           </div>
 
           {/* Grid of Anecdote and Joke Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
             {filteredAnecdotes.map(item => {
               const isRevealed = revealedPunchlines[item.id] || false;
               const likes = likesMap[item.id] !== undefined ? likesMap[item.id] : item.likesCount;
@@ -710,21 +720,21 @@ export const FunZone: React.FC<FunZoneProps> = ({
               return (
                 <div
                   key={item.id}
-                  className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between"
+                  className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-5 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">{item.funReactionEmoji}</span>
-                        <div>
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${item.category === 'anecdote' ? 'bg-amber-100 text-amber-800' :
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-2xl shrink-0">{item.funReactionEmoji}</span>
+                        <div className="min-w-0">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md inline-block max-w-full ${item.category === 'anecdote' ? 'bg-amber-100 text-amber-800' :
                             item.category === 'joke' ? 'bg-pink-100 text-pink-800' :
                               item.category === 'fact' ? 'bg-yellow-100 text-yellow-800' :
                                 'bg-teal-100 text-teal-800'
                             }`}>
                             {item.subject} • {item.category}
                           </span>
-                          <h4 className="font-bold text-sm text-stone-900 mt-1">{item.title}</h4>
+                          <h4 className="font-bold text-sm text-stone-900 mt-1 leading-snug">{item.title}</h4>
                         </div>
                       </div>
                     </div>
@@ -735,14 +745,14 @@ export const FunZone: React.FC<FunZoneProps> = ({
                       </p>
                     )}
 
-                    <p className="text-xs text-stone-700 leading-relaxed mb-4">
+                    <p className="text-[13px] sm:text-xs text-stone-700 leading-relaxed mb-4">
                       {item.setupOrStory}
                     </p>
 
                     {item.punchlineOrTakeaway && (
                       <div className="mb-4">
                         {isRevealed ? (
-                          <div className="p-3 bg-yellow-50/80 rounded-xl border border-yellow-200 text-xs text-yellow-950 font-medium leading-relaxed animate-in fade-in duration-200">
+                          <div className="p-3 bg-yellow-50/80 rounded-xl border border-yellow-200 text-[13px] sm:text-xs text-yellow-950 font-medium leading-relaxed animate-in fade-in duration-200">
                             <span className="font-bold text-yellow-700 block mb-1">
                               {item.category === 'joke' ? 'Punchline:' : item.category === 'riddle' ? 'Answer:' : 'The Takeaway:'}
                             </span>
@@ -751,7 +761,7 @@ export const FunZone: React.FC<FunZoneProps> = ({
                         ) : (
                           <button
                             onClick={() => handleTogglePunchline(item.id)}
-                            className="w-full py-2 px-3 rounded-xl border border-dashed border-yellow-300 bg-yellow-50/50 hover:bg-yellow-100 text-yellow-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                            className="w-full py-3 sm:py-2 px-3 rounded-xl border border-dashed border-yellow-300 bg-yellow-50/50 hover:bg-yellow-100 active:bg-yellow-100 text-yellow-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors touch-manipulation"
                           >
                             <Sparkles className="w-3.5 h-3.5 text-yellow-600" />
                             <span>
@@ -763,10 +773,10 @@ export const FunZone: React.FC<FunZoneProps> = ({
                     )}
                   </div>
 
-                  <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-400">
+                  <div className="pt-2 sm:pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-400">
                     <button
                       onClick={() => handleLikeAnecdote(item.id, item.likesCount)}
-                      className="flex items-center gap-1.5 text-stone-500 hover:text-red-500 transition-colors font-medium"
+                      className="flex items-center gap-1.5 text-stone-500 hover:text-red-500 active:text-red-500 transition-colors font-medium min-h-[40px] sm:min-h-0 pr-3 touch-manipulation"
                     >
                       <Heart className="w-3.5 h-3.5 fill-red-100 text-red-500" />
                       <span>{likes} Laughs</span>
@@ -774,7 +784,7 @@ export const FunZone: React.FC<FunZoneProps> = ({
 
                     <button
                       onClick={() => handleTogglePunchline(item.id)}
-                      className="text-yellow-600 hover:text-yellow-800 font-semibold"
+                      className="text-yellow-600 hover:text-yellow-800 font-semibold min-h-[40px] sm:min-h-0 pl-3 touch-manipulation"
                     >
                       {isRevealed ? 'Hide' : 'Expand'}
                     </button>
@@ -790,26 +800,26 @@ export const FunZone: React.FC<FunZoneProps> = ({
       {/* VIEW 2: SPEED MATH LIGHTNING DUEL */}
       {/* ============================================================ */}
       {activeTab === 'speed-math' && (
-        <div className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200 p-4 sm:p-8 shadow-xs space-y-4 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-stone-100">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-2xl">⚡</span>
-                <h2 className="text-xl font-bold text-stone-900">Speed Math Lightning Sprint</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-stone-900">Speed Math Lightning Sprint</h2>
               </div>
               <p className="text-xs text-stone-500 mt-0.5">
                 Solve as many rapid-fire mental arithmetic questions as you can in 30 seconds!
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-stone-400 uppercase">Tier:</span>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <span className="text-xs font-bold text-stone-400 uppercase shrink-0">Tier:</span>
               {(['junior', 'standard', 'genius'] as const).map(tier => (
                 <button
                   key={tier}
                   disabled={mathGameActive}
                   onClick={() => { triggerSound('click'); setMathLevel(tier); }}
-                  className={`px-3 py-1 rounded-xl text-xs font-bold capitalize transition-colors ${mathLevel === tier
+                  className={`flex-1 sm:flex-none px-3 py-2.5 sm:py-1 rounded-xl text-xs font-bold capitalize transition-colors touch-manipulation ${mathLevel === tier
                     ? 'bg-yellow-400 text-stone-900'
                     : 'bg-stone-100 text-stone-600 hover:bg-stone-200 disabled:opacity-50'
                     }`}
@@ -821,8 +831,8 @@ export const FunZone: React.FC<FunZoneProps> = ({
           </div>
 
           {!mathGameActive && mathTimeLeft === 30 && (
-            <div className="text-center py-12 space-y-6 max-w-md mx-auto">
-              <div className="w-20 h-20 rounded-3xl bg-yellow-50 border-2 border-yellow-300 text-yellow-600 flex items-center justify-center text-4xl mx-auto shadow-xs animate-bounce">
+            <div className="text-center py-6 sm:py-12 space-y-5 sm:space-y-6 max-w-md mx-auto">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-yellow-50 border-2 border-yellow-300 text-yellow-600 flex items-center justify-center text-3xl sm:text-4xl mx-auto shadow-xs animate-bounce">
                 ⏱️
               </div>
               <div className="space-y-2">
@@ -832,7 +842,7 @@ export const FunZone: React.FC<FunZoneProps> = ({
                 </p>
               </div>
 
-              <div className="flex items-center justify-center gap-6 py-2 text-xs font-semibold text-stone-600 bg-stone-50 rounded-2xl border border-stone-100">
+              <div className="flex items-center justify-center gap-6 py-3 sm:py-2 text-xs font-semibold text-stone-600 bg-stone-50 rounded-2xl border border-stone-100">
                 <div>
                   <span className="block text-base font-bold text-yellow-600">30s</span>
                   <span>Timer Sprint</span>
@@ -847,7 +857,7 @@ export const FunZone: React.FC<FunZoneProps> = ({
               <button
                 id="btn-start-math-sprint"
                 onClick={startMathGame}
-                className="w-full py-3.5 bg-yellow-400 hover:bg-yellow-500 text-stone-900 font-bold rounded-2xl text-sm shadow-md transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 sm:py-3.5 bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-500 text-stone-900 font-bold rounded-2xl text-sm shadow-md transition-all flex items-center justify-center gap-2 touch-manipulation active:scale-[0.98] sm:active:scale-100"
               >
                 <Play className="w-4 h-4 fill-white" />
                 <span>Start 30-Second Math Blitz</span>
@@ -856,14 +866,14 @@ export const FunZone: React.FC<FunZoneProps> = ({
           )}
 
           {mathGameActive && currentMathProblem && (
-            <div className="space-y-6 max-w-lg mx-auto py-4">
+            <div className="space-y-4 sm:space-y-6 max-w-lg mx-auto py-1 sm:py-4">
               {/* Header Bar during game */}
-              <div className="flex items-center justify-between bg-stone-900 text-white px-5 py-3 rounded-2xl">
+              <div className="flex items-center justify-between bg-stone-900 text-white px-4 sm:px-5 py-3 rounded-2xl">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-amber-400" />
                   <span className="text-lg font-mono font-bold">{mathTimeLeft}s</span>
                 </div>
-                <div className="flex items-center gap-4 text-xs font-bold">
+                <div className="flex items-center gap-3 sm:gap-4 text-xs font-bold">
                   <span className="text-yellow-400">Score: {mathScore}</span>
                   <span className="text-amber-300 flex items-center gap-1">
                     <Flame className="w-3.5 h-3.5" /> Streak: {mathStreak}
@@ -872,20 +882,22 @@ export const FunZone: React.FC<FunZoneProps> = ({
               </div>
 
               {/* Problem Card */}
-              <div className={`p-8 rounded-3xl text-center border-2 transition-all ${mathFeedback === 'correct' ? 'bg-yellow-50 border-yellow-400' :
+              <div className={`p-5 sm:p-8 rounded-2xl sm:rounded-3xl text-center border-2 transition-all ${mathFeedback === 'correct' ? 'bg-yellow-50 border-yellow-400' :
                 mathFeedback === 'wrong' ? 'bg-red-50 border-red-400' :
                   'bg-stone-50 border-stone-200'
                 }`}>
                 <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">Calculate Rapidly:</span>
-                <div className="text-4xl sm:text-5xl font-mono font-extrabold text-stone-900 my-4 tracking-tight">
+                <div className="text-4xl sm:text-5xl font-mono font-extrabold text-stone-900 my-3 sm:my-4 tracking-tight break-words">
                   {currentMathProblem.num1} {currentMathProblem.operation} {currentMathProblem.num2} = ?
                 </div>
-                {mathFeedback === 'correct' && (
-                  <span className="text-xs font-bold text-yellow-600 animate-in zoom-in-50">✨ Brilliant! +1 Point</span>
-                )}
-                {mathFeedback === 'wrong' && (
-                  <span className="text-xs font-bold text-red-600 animate-in zoom-in-50">❌ Oops, try again!</span>
-                )}
+                <div className="min-h-[1rem]">
+                  {mathFeedback === 'correct' && (
+                    <span className="text-xs font-bold text-yellow-600 animate-in zoom-in-50">✨ Brilliant! +1 Point</span>
+                  )}
+                  {mathFeedback === 'wrong' && (
+                    <span className="text-xs font-bold text-red-600 animate-in zoom-in-50">❌ Oops, try again!</span>
+                  )}
+                </div>
               </div>
 
               {/* 4 Option Buttons */}
@@ -894,7 +906,7 @@ export const FunZone: React.FC<FunZoneProps> = ({
                   <button
                     key={i}
                     onClick={() => handleMathAnswer(opt)}
-                    className="py-4 px-6 rounded-2xl bg-white border-2 border-stone-200 hover:border-yellow-500 hover:bg-yellow-50/50 text-stone-900 font-mono font-bold text-xl sm:text-2xl shadow-xs transition-all active:scale-95"
+                    className="py-5 sm:py-4 px-4 sm:px-6 rounded-2xl bg-white border-2 border-stone-200 hover:border-yellow-500 hover:bg-yellow-50/50 active:border-yellow-500 active:bg-yellow-50 text-stone-900 font-mono font-bold text-2xl shadow-xs transition-all active:scale-95 touch-manipulation select-none"
                   >
                     {opt}
                   </button>
@@ -904,8 +916,8 @@ export const FunZone: React.FC<FunZoneProps> = ({
           )}
 
           {!mathGameActive && mathTimeLeft === 0 && (
-            <div className="text-center py-10 space-y-6 max-w-md mx-auto animate-in zoom-in-95">
-              <div className="w-20 h-20 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center text-4xl mx-auto shadow-xs">
+            <div className="text-center py-6 sm:py-10 space-y-5 sm:space-y-6 max-w-md mx-auto animate-in zoom-in-95">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center text-3xl sm:text-4xl mx-auto shadow-xs">
                 🏆
               </div>
               <div className="space-y-1">
@@ -922,14 +934,14 @@ export const FunZone: React.FC<FunZoneProps> = ({
               <div className="flex gap-3">
                 <button
                   onClick={startMathGame}
-                  className="flex-1 py-3 bg-yellow-400 hover:bg-yellow-500 text-stone-900 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 shadow-xs"
+                  className="flex-1 py-3.5 sm:py-3 bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-500 text-stone-900 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 shadow-xs touch-manipulation"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>Play Again</span>
                 </button>
                 <button
                   onClick={() => { triggerSound('click'); setActiveTab('anecdote-vault'); }}
-                  className="px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-2xl text-xs"
+                  className="px-4 py-3.5 sm:py-3 bg-stone-100 hover:bg-stone-200 active:bg-stone-200 text-stone-700 font-bold rounded-2xl text-xs touch-manipulation"
                 >
                   Read Jokes
                 </button>
@@ -943,30 +955,31 @@ export const FunZone: React.FC<FunZoneProps> = ({
       {/* VIEW 3: CONCEPT MEMORY LAB FLIP */}
       {/* ============================================================ */}
       {activeTab === 'memory-match' && (
-        <div className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200 p-4 sm:p-8 shadow-xs space-y-4 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-stone-100">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🃏</span>
-                <h2 className="text-xl font-bold text-stone-900">Science & Formula Memory Match</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-stone-900">Science & Formula Memory Match</h2>
               </div>
               <p className="text-xs text-stone-500 mt-0.5">
                 Flip and pair scientific laws, chemical formulas, and core physics concepts together.
               </p>
             </div>
 
-            <div className="flex items-center gap-4 text-xs font-bold text-stone-600">
-              <div className="flex items-center gap-1.5 bg-stone-100 px-3 py-1.5 rounded-xl">
+            <div className="flex items-center gap-2 sm:gap-4 text-xs font-bold text-stone-600">
+              <div className="flex items-center justify-center gap-1.5 bg-stone-100 px-3 py-2 sm:py-1.5 rounded-xl flex-1 sm:flex-none">
                 <Clock className="w-3.5 h-3.5 text-yellow-600" />
                 <span>Time: {memoryElapsedSecs}s</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-stone-100 px-3 py-1.5 rounded-xl">
+              <div className="flex items-center justify-center gap-1.5 bg-stone-100 px-3 py-2 sm:py-1.5 rounded-xl flex-1 sm:flex-none">
                 <span>Moves: {memoryMoves}</span>
               </div>
               <button
                 onClick={startMemoryGame}
-                className="p-1.5 rounded-lg border border-stone-200 hover:bg-stone-100 text-stone-500"
+                className="w-10 h-10 sm:w-auto sm:h-auto flex items-center justify-center p-1.5 rounded-xl sm:rounded-lg border border-stone-200 hover:bg-stone-100 active:bg-stone-100 text-stone-500 shrink-0 touch-manipulation"
                 title="Restart Game"
+                aria-label="Restart game"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
@@ -974,8 +987,8 @@ export const FunZone: React.FC<FunZoneProps> = ({
           </div>
 
           {memoryGameWon ? (
-            <div className="text-center py-12 space-y-6 max-w-md mx-auto animate-in zoom-in-95">
-              <div className="w-20 h-20 rounded-3xl bg-yellow-100 text-yellow-600 flex items-center justify-center text-4xl mx-auto shadow-xs">
+            <div className="text-center py-6 sm:py-12 space-y-5 sm:space-y-6 max-w-md mx-auto animate-in zoom-in-95">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-yellow-100 text-yellow-600 flex items-center justify-center text-3xl sm:text-4xl mx-auto shadow-xs">
                 🌟
               </div>
               <div className="space-y-1">
@@ -991,14 +1004,14 @@ export const FunZone: React.FC<FunZoneProps> = ({
 
               <button
                 onClick={startMemoryGame}
-                className="w-full py-3.5 bg-yellow-400 hover:bg-yellow-500 text-stone-900 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 shadow-xs"
+                className="w-full py-4 sm:py-3.5 bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-500 text-stone-900 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 shadow-xs touch-manipulation"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>Play Another Round</span>
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 sm:gap-4 max-w-2xl mx-auto">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 sm:gap-4 max-w-2xl mx-auto">
               {memoryCards.map((card, idx) => {
                 const isFlipped = flippedIndices.includes(idx) || matchedKeys.includes(card.pairKey);
                 const isMatched = matchedKeys.includes(card.pairKey);
@@ -1007,17 +1020,17 @@ export const FunZone: React.FC<FunZoneProps> = ({
                   <div
                     key={card.id}
                     onClick={() => handleCardClick(idx)}
-                    className={`h-28 sm:h-32 rounded-2xl border-2 flex flex-col items-center justify-center p-2 text-center cursor-pointer transition-all duration-300 transform select-none ${isMatched
+                    className={`h-24 sm:h-32 rounded-2xl border-2 flex flex-col items-center justify-center p-1.5 sm:p-2 text-center cursor-pointer transition-all duration-300 transform select-none touch-manipulation overflow-hidden ${isMatched
                       ? 'bg-yellow-50 border-yellow-400 text-yellow-950 opacity-90 scale-95'
                       : isFlipped
                         ? `${card.color} shadow-sm scale-100`
-                        : 'bg-yellow-400 border-yellow-700 hover:bg-yellow-700 text-white shadow-2xs hover:scale-102'
+                        : 'bg-yellow-400 border-yellow-700 hover:bg-yellow-700 text-white shadow-2xs hover:scale-102 active:scale-95'
                       }`}
                   >
                     {isFlipped ? (
-                      <div className="space-y-1 animate-in zoom-in-75 duration-150">
+                      <div className="space-y-0.5 sm:space-y-1 animate-in zoom-in-75 duration-150 max-w-full">
                         <span className="text-xl">{card.icon}</span>
-                        <div className="text-xs sm:text-sm font-bold font-mono leading-tight">
+                        <div className="text-xs sm:text-sm font-bold font-mono leading-tight break-words">
                           {card.display}
                         </div>
                         <span className="text-[9px] uppercase font-semibold opacity-70 block">
@@ -1044,19 +1057,19 @@ export const FunZone: React.FC<FunZoneProps> = ({
       {/* VIEW 4: SCIENCE MYSTERY WORD SCRAMBLE */}
       {/* ============================================================ */}
       {activeTab === 'word-scramble' && currentScramble && (
-        <div className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200 p-4 sm:p-8 shadow-xs space-y-4 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-stone-100">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🧩</span>
-                <h2 className="text-xl font-bold text-stone-900">Science Mystery Word Scramble</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-stone-900">Science Mystery Word Scramble</h2>
               </div>
               <p className="text-xs text-stone-500 mt-0.5">
                 Tap the scrambled letter tiles in the correct order to decode the scientific keyword!
               </p>
             </div>
 
-            <div className="flex items-center gap-3 text-xs font-bold">
+            <div className="flex items-center gap-2 sm:gap-3 text-xs font-bold">
               <span className="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-xl border border-amber-200">
                 Word {scrambleIndex + 1} of {SCRAMBLE_WORDS.length}
               </span>
@@ -1066,35 +1079,35 @@ export const FunZone: React.FC<FunZoneProps> = ({
             </div>
           </div>
 
-          <div className="max-w-xl mx-auto space-y-6 py-4 text-center">
+          <div className="max-w-xl mx-auto space-y-5 sm:space-y-6 py-1 sm:py-4 text-center">
             {/* Clue and category */}
-            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 text-left space-y-2">
+            <div className="p-3.5 sm:p-4 bg-stone-50 rounded-2xl border border-stone-200 text-left space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] uppercase font-bold text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">
                   {currentScramble.category} Clue
                 </span>
                 <button
                   onClick={() => { triggerSound('click'); setScrambleHintVisible(!scrambleHintVisible); }}
-                  className="text-xs text-yellow-600 font-semibold hover:underline flex items-center gap-1"
+                  className="text-xs text-yellow-600 font-semibold hover:underline flex items-center gap-1 min-h-[36px] sm:min-h-0 touch-manipulation"
                 >
                   <HelpCircle className="w-3.5 h-3.5" />
                   <span>{scrambleHintVisible ? 'Hide Clue' : 'Show Clue'}</span>
                 </button>
               </div>
 
-              <p className="text-xs sm:text-sm text-stone-800 font-medium leading-relaxed">
+              <p className="text-[13px] sm:text-sm text-stone-800 font-medium leading-relaxed">
                 💡 "{currentScramble.hint}"
               </p>
             </div>
 
             {/* Answer Slots */}
-            <div className="flex items-center justify-center gap-2 flex-wrap min-h-[56px]">
+            <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap min-h-[48px] sm:min-h-[56px]">
               {Array.from({ length: currentScramble.solution.length }).map((_, idx) => {
                 const letter = scrambleAnswerLetters[idx];
                 return (
                   <div
                     key={idx}
-                    className={`w-12 h-14 rounded-2xl border-2 flex items-center justify-center font-mono font-extrabold text-2xl transition-all ${scrambleSolved
+                    className={`w-9 h-11 sm:w-12 sm:h-14 rounded-xl sm:rounded-2xl border-2 flex items-center justify-center font-mono font-extrabold text-xl sm:text-2xl transition-all ${scrambleSolved
                       ? 'bg-yellow-100 border-yellow-400 text-yellow-900'
                       : letter
                         ? 'bg-yellow-50 border-yellow-400 text-yellow-900 shadow-xs'
@@ -1111,13 +1124,13 @@ export const FunZone: React.FC<FunZoneProps> = ({
             {!scrambleSolved && (
               <div className="space-y-4">
                 <p className="text-xs text-stone-400 font-medium">Tap letters to place in order:</p>
-                <div className="flex items-center justify-center gap-2.5 flex-wrap">
+                <div className="flex items-center justify-center gap-2 sm:gap-2.5 flex-wrap">
                   {scrambleAvailableTiles.map((tile, i) => (
                     <button
                       key={i}
                       disabled={tile.used}
                       onClick={() => handleTileClick(i)}
-                      className={`w-12 h-12 rounded-2xl font-mono font-bold text-xl border-2 shadow-2xs transition-all active:scale-90 ${tile.used
+                      className={`w-12 h-12 rounded-2xl font-mono font-bold text-xl border-2 shadow-2xs transition-all active:scale-90 touch-manipulation select-none ${tile.used
                         ? 'opacity-25 bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed'
                         : 'bg-white border-stone-300 hover:border-yellow-400 hover:bg-yellow-50 text-stone-900'
                         }`}
@@ -1130,7 +1143,7 @@ export const FunZone: React.FC<FunZoneProps> = ({
                 <div className="flex justify-center gap-3 pt-2">
                   <button
                     onClick={handleResetScrambleAnswer}
-                    className="px-4 py-2 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-600 text-xs font-bold transition-colors"
+                    className="w-full sm:w-auto px-4 py-3 sm:py-2 rounded-xl border border-stone-200 hover:bg-stone-100 active:bg-stone-100 text-stone-600 text-xs font-bold transition-colors touch-manipulation"
                   >
                     Clear & Retry
                   </button>
@@ -1140,7 +1153,7 @@ export const FunZone: React.FC<FunZoneProps> = ({
 
             {/* Solved Celebration Box */}
             {scrambleSolved && (
-              <div className="p-6 bg-yellow-50 border border-yellow-300 rounded-3xl text-center space-y-4 animate-in zoom-in-95">
+              <div className="p-5 sm:p-6 bg-yellow-50 border border-yellow-300 rounded-2xl sm:rounded-3xl text-center space-y-4 animate-in zoom-in-95">
                 <div className="text-3xl">🎉</div>
                 <div>
                   <h4 className="text-base font-extrabold text-yellow-950">
@@ -1153,7 +1166,7 @@ export const FunZone: React.FC<FunZoneProps> = ({
 
                 <button
                   onClick={handleNextScramble}
-                  className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-stone-900 font-bold rounded-2xl text-xs shadow-xs flex items-center justify-center gap-2 mx-auto transition-colors"
+                  className="w-full sm:w-auto px-6 py-3.5 sm:py-3 bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-500 text-stone-900 font-bold rounded-2xl text-xs shadow-xs flex items-center justify-center gap-2 mx-auto transition-colors touch-manipulation"
                 >
                   <span>Next Mystery Word (+25 XP)</span>
                   <ChevronRight className="w-4 h-4" />
@@ -1168,26 +1181,26 @@ export const FunZone: React.FC<FunZoneProps> = ({
       {/* VIEW 5: 2-MINUTE MIND RESET & GUIDED BREATHING */}
       {/* ============================================================ */}
       {activeTab === 'particle-pop' && (
-        <div className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-xs space-y-6 text-center">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200 p-4 sm:p-8 shadow-xs space-y-4 sm:space-y-6 text-center">
           <div className="max-w-md mx-auto space-y-2">
             <div className="w-12 h-12 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center text-2xl mx-auto shadow-xs">
               🧘
             </div>
-            <h2 className="text-xl font-bold text-stone-900">2-Minute Mind Reset & Box Breathing</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-stone-900">2-Minute Mind Reset & Box Breathing</h2>
             <p className="text-xs text-stone-500 leading-relaxed">
               Feeling test anxiety or tired from long problem solving? Follow this calming 4-4-4-4 rhythm to oxygenate your brain and enter a high-focus flow state.
             </p>
           </div>
 
-          <div className="py-8 flex flex-col items-center justify-center space-y-6">
+          <div className="py-2 sm:py-8 flex flex-col items-center justify-center space-y-4 sm:space-y-6">
             {/* Animated Pulsing Breathing Circle */}
-            <div className="relative flex items-center justify-center w-64 h-64">
+            <div className="relative flex items-center justify-center w-60 h-60 sm:w-64 sm:h-64">
               <div
                 className={`absolute rounded-full transition-all duration-1000 ease-in-out ${breathActive
                   ? breathPhase === 'Inhale'
-                    ? 'w-56 h-56 bg-teal-200/60 scale-110'
+                    ? 'w-52 h-52 sm:w-56 sm:h-56 bg-teal-200/60 scale-110'
                     : breathPhase === 'Hold'
-                      ? 'w-56 h-56 bg-yellow-200/60 scale-105'
+                      ? 'w-52 h-52 sm:w-56 sm:h-56 bg-yellow-200/60 scale-105'
                       : breathPhase === 'Exhale'
                         ? 'w-40 h-40 bg-amber-200/60 scale-90'
                         : 'w-40 h-40 bg-teal-100/60 scale-95'
@@ -1211,10 +1224,10 @@ export const FunZone: React.FC<FunZoneProps> = ({
               </div>
             </div>
 
-            <div className="max-w-sm mx-auto space-y-3">
+            <div className="w-full max-w-sm mx-auto space-y-3">
               <button
                 onClick={toggleBreathing}
-                className={`px-8 py-3.5 rounded-2xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 mx-auto ${breathActive
+                className={`w-full sm:w-auto px-8 py-4 sm:py-3.5 rounded-2xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 mx-auto touch-manipulation active:scale-[0.98] sm:active:scale-100 ${breathActive
                   ? 'bg-stone-900 text-white hover:bg-stone-800'
                   : 'bg-teal-600 hover:bg-teal-700 text-white'
                   }`}
