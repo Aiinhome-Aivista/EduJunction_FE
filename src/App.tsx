@@ -5,7 +5,6 @@ import { ParentAccount,  ChildAccount,  ExamSubmission,  AppPersona,  LearningPa
 import { GraduationCap,  CheckCircle,  Bell,  ShieldCheck,  AlertTriangle,  ChevronDown,  X,  LogOut,  Loader2,  CheckCheck } from 'lucide-react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar, PageAccess } from './components/Sidebar';
-import { MobileBottomNav } from './components/MobileBottomNav';
 import { AIChatWidget } from './components/AIChatWidget2';
 import { ExamArena } from './components/ExamArena';
 import { KidsExamArena } from './components/KidsExamArena';
@@ -35,6 +34,7 @@ import ApiServices, {
   clearTokens,
   decodeTokenPayload,
 } from './services/ApiServices';
+import { MobileBottomNav } from "./components/mobile/MobileBottomNav";
 
 const getInitialPublicDossierToken = (): string | null => {
   if (typeof window === 'undefined') return null;
@@ -1463,6 +1463,10 @@ useEffect(() => {
                       onNavigateToFunZone={() => {
                         setActiveSubmissionReport(null);
                         setActiveTab('fun-zone');
+                      }}
+                      onNavigateToModelTestPapers={() => {
+                        setActiveSubmissionReport(null);
+                        setActiveTab('subscription');
                       }}
                       onViewSubmissionReport={handleOpenSubmissionReport}
                       onRefresh={loadStudentData}
