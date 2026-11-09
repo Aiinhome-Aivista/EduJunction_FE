@@ -85,6 +85,9 @@ export const GET_APIS = {
   downloadSubjectModelPaper: (subId: number | string, format: string = 'pdf') => `${API_V1}/subscriptions/subject/${subId}/download-paper?format=${format}`,
   seoMetadata: `${API_V1}/seo/metadata`,
   quickDemoQuestions: (params: string) => `${API_V1}/mock-tests/quick-demo?${params}`,
+  telemetryStats: (timeoutMinutes: number = 10) => `${API_V1}/admin/telemetry/stats?timeout_minutes=${timeoutMinutes}`,
+  telemetrySessions: (params: string = '') => `${API_V1}/admin/telemetry/sessions${params ? `?${params}` : ''}`,
+  telemetryTimeline: (sessionId: string) => `${API_V1}/admin/telemetry/sessions/${sessionId}/timeline`,
 };
 
 export const POST_APIS = {
@@ -164,6 +167,7 @@ export const POST_APIS = {
   evaluateSubjectModelPaper: (subId: number | string) => `${API_V1}/subscriptions/subject/${subId}/evaluate-paper`,
   saveSeoMetadata: `${API_V1}/admin/seo`,
   evaluateQuickDemo: `${API_V1}/mock-tests/quick-demo/evaluate`,
+  trackEvent: `${API_V1}/track/event`,
 };
 
 export const PUT_APIS = {

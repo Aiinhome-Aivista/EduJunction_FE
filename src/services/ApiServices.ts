@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { GET_APIS, POST_APIS, PUT_APIS, DELETE_APIS } from '../connection';
 import { AuthTokens, ApiError } from '../types/api';
+import { getOrCreateSessionId } from '../utils/sessionTracker';
 
 // ─────────────────────────────────────────────
 // Token Storage Utilities
@@ -79,11 +80,23 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Attach Bearer token to every request
+// Attach Bearer token and Telemetry Session ID to every request
 apiClient.interceptors.request.use((config) => {
   const tokens = getStoredTokens();
   if (tokens && config.headers && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${tokens.accessToken}`;
+  }
+  if (config.headers) {
+    try {
+      const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+      const role = tokens ? decodeTokenPayload(tokens.accessToken)?.role : null;
+      const isAdmin = role && ['ADMIN', 'SUPER_ADMIN'].includes(String(role).toUpperCase());
+      if (!isAdminRoute && !isAdmin) {
+        config.headers['x-session-id'] = getOrCreateSessionId();
+      }
+    } catch {
+      // Ignore if in environments without sessionStorage
+    }
   }
   return config;
 });
@@ -731,6 +744,27 @@ class ApiServices {
   }
   syncKnowledgeGraph() {
     return this.post(POST_APIS.syncKnowledgeGraph, {});
+  }
+
+  // ── User Session Telemetry & Audit ─────────
+  getTelemetryStats(timeoutMinutes: number = 10) {
+    return this.get(GET_APIS.telemetryStats(timeoutMinutes));
+  }
+  getTelemetrySessions(filters?: { page?: number; pageSize?: number; search?: string; status?: string; timeoutMinutes?: number }) {
+    const q = new URLSearchParams();
+    if (filters?.page) q.append('page', String(filters.page));
+    if (filters?.pageSize) q.append('page_size', String(filters.pageSize));
+    if (filters?.search) q.append('search', filters.search);
+    if (filters?.status && filters.status !== 'all') q.append('status_filter', filters.status);
+    if (filters?.timeoutMinutes) q.append('timeout_minutes', String(filters.timeoutMinutes));
+    return this.get(GET_APIS.telemetrySessions(q.toString()));
+  }
+  getTelemetryTimeline(sessionId: string, timeoutMinutes?: number) {
+    const url = GET_APIS.telemetryTimeline(sessionId);
+    return this.get(timeoutMinutes ? `${url}?timeout_minutes=${timeoutMinutes}` : url);
+  }
+  trackEvent(payload: any) {
+    return apiClient.post(POST_APIS.trackEvent, payload);
   }
 
   // ── Health ────────────────────────────────

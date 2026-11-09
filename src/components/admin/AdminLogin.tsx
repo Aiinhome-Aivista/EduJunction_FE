@@ -82,6 +82,7 @@ import { LlmConfigManager } from './LlmConfigManager';
 import { SubscriptionAdminManager } from './SubscriptionAdminManager';
 import { SeoAdminManager } from './SeoAdminManager';
 import { TestSubmissionsAdminManager } from './TestSubmissionsAdminManager';
+import { SessionsHub } from './SessionsHub';
 
 const JoditEditor = lazy(() => import('jodit-react'));
 
@@ -4597,6 +4598,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, user }) => {
       case 'ClipboardCheck': return <ClipboardCheck className="w-5 h-5" />;
       case 'Tag': case 'TagIcon': case 'Tags': return <TagIcon className="w-5 h-5" />;
       case 'BookMarked': return <BookMarked className="w-5 h-5" />;
+      case 'Activity': return <Activity className="w-5 h-5" />;
       default: return <LayoutDashboard className="w-5 h-5" />;
     }
   };
@@ -4865,6 +4867,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, user }) => {
               seo: <SeoAdminManager />,
               'seo-management': <SeoAdminManager />,
               'seo-metadata': <SeoAdminManager />,
+              sessions: <SessionsHub />,
+              'user-sessions': <SessionsHub />,
+              telemetry: <SessionsHub />,
             };
 
             return VIEW_MAP[activeView] ?? (
@@ -4941,8 +4946,34 @@ const AdminLogin: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; captcha?: string }>({});
   const [loginSuccess, setLoginSuccess] = useState(false);
+
+  // ── Captcha state ────────────────────────────
+  const [captchaData, setCaptchaData] = useState<{ captchaId: string; question: string } | null>(null);
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+  const [isCaptchaLoading, setIsCaptchaLoading] = useState(false);
+
+  const fetchCaptcha = async () => {
+    try {
+      setIsCaptchaLoading(true);
+      const res = await ApiServices.getCaptcha();
+      if (res && res.captchaId && res.question) {
+        setCaptchaData(res);
+        setCaptchaAnswer('');
+      }
+    } catch (err) {
+      console.error('Failed to load admin captcha', err);
+    } finally {
+      setIsCaptchaLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (view === 'login') {
+      fetchCaptcha();
+    }
+  }, [view]);
 
   // ── Forgot / Reset Password state (OTP-Enabled) ───────────
   const [resetStep, setResetStep] = useState<'REQUEST_OTP' | 'VERIFY_OTP'>('REQUEST_OTP');
@@ -4974,7 +5005,7 @@ const AdminLogin: React.FC = () => {
     return () => clearInterval(timer);
   }, [resendCountdown]);
 
-  const clearFieldError = (field: 'email' | 'password') => {
+  const clearFieldError = (field: 'email' | 'password' | 'captcha') => {
     setFieldErrors((prev) => {
       const next = { ...prev };
       delete next[field];
@@ -4988,13 +5019,16 @@ const AdminLogin: React.FC = () => {
     setErrorMessage(null);
     setFieldErrors({});
 
-    const errs: { email?: string; password?: string } = {};
+    const errs: { email?: string; password?: string; captcha?: string } = {};
     if (!email.trim()) {
       errs.email = 'Please enter your admin email.';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       errs.email = 'Please enter a valid email address.';
     }
     if (!password) errs.password = 'Please enter your password.';
+    if (!captchaAnswer.trim()) {
+      errs.captcha = 'Please enter the answer to the security captcha.';
+    }
     if (Object.keys(errs).length) {
       setFieldErrors(errs);
       return;
@@ -5002,7 +5036,12 @@ const AdminLogin: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await ApiServices.adminLogin({ email: email.trim(), password });
+      const response = await ApiServices.adminLogin({
+        email: email.trim(),
+        password,
+        captchaId: captchaData?.captchaId,
+        captchaAnswer: captchaAnswer.trim(),
+      });
       const result = response.data?.data || response.data;
 
       const accessToken = result.accessToken || result.tokens?.accessToken;
@@ -5040,6 +5079,7 @@ const AdminLogin: React.FC = () => {
         navigate('/admin/dashboard');
       }, 500);
     } catch (error: any) {
+      fetchCaptcha();
       const msg =
         error?.response?.data?.error?.message ||
         error?.response?.data?.message ||
@@ -5271,6 +5311,59 @@ const AdminLogin: React.FC = () => {
               </div>
               {fieldErrors.password && (
                 <p className="text-red-500 text-xs font-bold mt-1.5 ml-1">{fieldErrors.password}</p>
+              )}
+            </div>
+
+            {/* Security Math Captcha */}
+            <div>
+              <label htmlFor="admin-captcha" className="block text-xs font-bold text-stone-700 mb-2 uppercase tracking-wider">
+                Security Captcha <span className="text-red-500">*</span>
+              </label>
+              <div className="flex items-center gap-2">
+                {/* Math Question Box */}
+                <div className="h-12 px-4 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-yellow-200/80 rounded-2xl flex items-center justify-center gap-2 text-sm sm:text-base font-black text-stone-900 tracking-wider select-none shadow-xs min-w-[120px]">
+                  {isCaptchaLoading ? (
+                    <Loader2 size={16} className="animate-spin text-yellow-600" />
+                  ) : (
+                    <span>{captchaData?.question || '...'}</span>
+                  )}
+                </div>
+
+                {/* Refresh Captcha Button */}
+                <button
+                  type="button"
+                  id="admin-refresh-captcha"
+                  onClick={fetchCaptcha}
+                  disabled={isCaptchaLoading}
+                  title="Generate new question"
+                  className="w-12 h-12 flex items-center justify-center rounded-2xl bg-stone-100 hover:bg-yellow-100 text-stone-600 hover:text-yellow-800 transition-colors border border-stone-200 active:scale-95 disabled:opacity-50 cursor-pointer shrink-0"
+                >
+                  <RefreshCw size={16} className={isCaptchaLoading ? 'animate-spin' : ''} />
+                </button>
+
+                {/* Answer Input */}
+                <div className="flex-1 relative">
+                  <input
+                    id="admin-captcha"
+                    type="text"
+                    inputMode="numeric"
+                    value={captchaAnswer}
+                    onChange={(e) => {
+                      setCaptchaAnswer(e.target.value);
+                      clearFieldError('captcha');
+                    }}
+                    placeholder="Enter result"
+                    className={`w-full h-12 px-4 bg-stone-50/60 border-2 rounded-2xl text-sm font-semibold text-stone-900 outline-none transition-all
+                      placeholder:text-stone-300 placeholder:font-normal
+                      ${fieldErrors.captcha
+                        ? 'border-red-300 focus:border-red-400 focus:ring-4 focus:ring-red-400/15'
+                        : 'border-stone-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-400/15 focus:bg-white'
+                      }`}
+                  />
+                </div>
+              </div>
+              {fieldErrors.captcha && (
+                <p className="text-red-500 text-xs font-bold mt-1.5 ml-1">{fieldErrors.captcha}</p>
               )}
             </div>
 

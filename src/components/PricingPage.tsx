@@ -113,23 +113,23 @@ export const PricingPage: React.FC = () => {
       <main className="flex-1">
         {/* ============================================================== */}
         {/* ============================================================== */}
-        {/* HERO & PRICING PLANS SECTION (FITS 100VH)                      */}
+        {/* HERO & PRICING PLANS SECTION (AUTO-FIT 100VH ON ALL DEVICES)   */}
         {/* ============================================================== */}
-        <section className="min-h-[calc(100vh-72px)] lg:h-[calc(100vh-72px)] flex flex-col justify-center relative overflow-hidden bg-gradient-to-br from-amber-50/70 via-white to-stone-50 py-3 sm:py-5 border-b border-amber-200/40">
+        <section className="min-h-[calc(100vh-72px)] flex flex-col justify-center relative bg-gradient-to-br from-amber-50/70 via-white to-stone-50 py-4 sm:py-6 lg:py-6 border-b border-amber-200/40">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-yellow-200/40 blur-3xl pointer-events-none" />
           <div className="absolute top-48 -left-32 w-80 h-80 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center w-full">
             {/* Pill Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-100/90 border border-amber-300/80 text-amber-950 text-[11px] font-black mb-4 sm:mb-5 shadow-2xs">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/90 border border-amber-300/80 text-amber-950 text-[10px] sm:text-[11px] font-black mb-2.5 sm:mb-3 shadow-2xs">
               <Sparkles className="w-3.5 h-3.5 text-amber-600 fill-amber-500 animate-pulse" />
               <span>Transparent &amp; Accessible Board Prep Pricing</span>
             </div>
 
             {/* Main Headline with Word Spacing */}
             <h1
-              className="text-3xl sm:text-5xl lg:text-6xl font-black text-stone-900 tracking-normal [word-spacing:0.2em] leading-[1.12] max-w-4xl mx-auto uppercase"
-              style={{ wordSpacing: '0.2em' }}
+              className="text-2xl sm:text-4xl lg:text-4xl xl:text-5xl font-black text-stone-900 tracking-tight leading-[1.15] max-w-4xl mx-auto uppercase"
+              style={{ wordSpacing: '0.15em' }}
             >
               INVEST IN TOP RANKS,{' '}
               <span className="bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 bg-clip-text text-transparent">
@@ -137,32 +137,32 @@ export const PricingPage: React.FC = () => {
               </span>
             </h1>
 
-            <p className="mt-3.5 sm:mt-4 text-stone-700 text-xs sm:text-sm font-medium max-w-xl mx-auto leading-relaxed">
+            <p className="mt-2 sm:mt-2.5 text-stone-600 text-xs sm:text-sm font-medium max-w-xl mx-auto leading-normal">
               Transparent, student-friendly pricing for CBSE, ICSE &amp; ISC candidates. Start free with instant result — zero credit card required.
             </p>
 
             {/* Side-by-side Pricing Cards */}
-            <div className="grid md:grid-cols-2 gap-4 lg:gap-6 items-stretch max-w-3xl lg:max-w-4xl mx-auto mt-5 sm:mt-6 text-left">
+            <div className="grid md:grid-cols-2 gap-3.5 sm:gap-4 lg:gap-5 items-stretch max-w-3xl lg:max-w-4xl mx-auto mt-4 sm:mt-5 text-left">
               {/* TIER 1: FREE STARTER TIER */}
-              <div className="rounded-2xl bg-white border border-stone-200 p-4 sm:p-5 shadow-sm hover:shadow-xl hover:border-stone-300 transition-all flex flex-col justify-between">
+              <div className="rounded-2xl bg-white border border-stone-200 p-4 sm:p-5 shadow-xs hover:shadow-md hover:border-stone-300 transition-all flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-stone-100 text-stone-700">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-stone-100 text-stone-700">
                       Free Starter
                     </span>
                     <span className="text-[10px] text-emerald-700 font-bold">No card or login needed</span>
                   </div>
-                  <h3 className="mt-2 text-base sm:text-lg font-black text-stone-900">Zero-Risk</h3>
+                  <h3 className="mt-1.5 text-base sm:text-lg font-black text-stone-900">Zero-Risk</h3>
                   <p className="mt-0.5 text-[11px] text-stone-500 leading-snug font-normal">
                     Experience verified curriculum questions and instant 0.05s evaluation.
                   </p>
 
-                  <div className="mt-2 pb-2 border-b border-stone-100 flex items-baseline gap-1">
+                  <div className="mt-1.5 pb-1.5 border-b border-stone-100 flex items-baseline gap-1">
                     <span className="text-2xl sm:text-3xl font-black text-stone-950">₹0</span>
                     <span className="text-xs text-stone-500 font-bold">/ forever</span>
                   </div>
 
-                  <ul className="mt-2 space-y-1.5 text-[11px] sm:text-xs text-stone-700">
+                  <ul className="mt-2 space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs text-stone-700">
                     <li className="flex items-start gap-1.5">
                       <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                       <span><strong>2 Free Practice Tests</strong> (Full 5-Min Assessment)</span>
@@ -178,7 +178,7 @@ export const PricingPage: React.FC = () => {
                   </ul>
                 </div>
 
-                <div className="mt-3.5 pt-2 border-t border-stone-100">
+                <div className="mt-3 pt-2 border-t border-stone-100">
                   <button
                     type="button"
                     onClick={() => handleTierAction('free')}
@@ -191,24 +191,24 @@ export const PricingPage: React.FC = () => {
               </div>
 
               {/* ACTIVE MODEL PAPER PLAN */}
-              <div className="rounded-2xl bg-gradient-to-b from-amber-500/10 via-white to-amber-100/20 border-2 border-amber-400 p-4 sm:p-5 hover:shadow-xl shadow-amber-400/15 relative flex flex-col justify-between">
+              <div className="rounded-2xl bg-gradient-to-b from-amber-500/10 via-white to-amber-100/20 border-2 border-amber-400 p-4 sm:p-5 hover:shadow-md shadow-amber-400/15 relative flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
                       Model Paper Plan
                     </span>
                   </div>
-                  <h3 className="mt-2 text-base sm:text-lg font-black text-stone-900">{activePlan.planName}</h3>
+                  <h3 className="mt-1.5 text-base sm:text-lg font-black text-stone-900">{activePlan.planName}</h3>
                   <p className="mt-0.5 text-[11px] text-stone-600 leading-snug font-normal">
                     {activePlan.description || `A ${activePlan.durationMinutes || 180}-minute model paper with ${activePlan.totalMarks || 80} marks, aligned to your curriculum.`}
                   </p>
 
-                  <div className="mt-2 pb-2 border-b border-amber-200/80 flex items-baseline gap-1.5">
+                  <div className="mt-1.5 pb-1.5 border-b border-amber-200/80 flex items-baseline gap-1.5">
                     <span className="text-2xl sm:text-3xl font-black text-stone-950">₹{activePlan.priceInr ?? 300}</span>
                     <span className="text-xs text-stone-500 font-bold">/ paper</span>
                   </div>
 
-                  <ul className="mt-2 space-y-1.5 text-[11px] sm:text-xs text-stone-800 font-medium">
+                  <ul className="mt-2 space-y-1 sm:space-y-1.5 text-[11px] sm:text-xs text-stone-800 font-medium">
                     {(activePlan.features?.length ? activePlan.features : [
                       'Board-aligned 3-hour model question paper',
                       'Step-by-step AI grading & rubric marks',
@@ -222,7 +222,7 @@ export const PricingPage: React.FC = () => {
                   </ul>
                 </div>
 
-                <div className="mt-3.5 pt-2 border-t border-amber-200/80">
+                <div className="mt-3 pt-2 border-t border-amber-200/80">
                   <button
                     type="button"
                     onClick={() => handleTierAction('paid')}

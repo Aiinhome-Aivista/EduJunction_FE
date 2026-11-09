@@ -85,6 +85,7 @@ import ApiServices, {
   clearTokens,
   decodeTokenPayload,
 } from './services/ApiServices';
+import { trackEvent } from './utils/sessionTracker';
 
 const getInitialPublicDossierToken = (): string | null => {
   if (typeof window === 'undefined') return null;
@@ -129,6 +130,10 @@ export default function App() {
     const tokens = getStoredTokens();
     if (!tokens) return null;
     const payload = decodeTokenPayload(tokens.accessToken);
+    if (!payload || (payload.exp && Date.now() >= payload.exp * 1000)) {
+      clearTokens();
+      return null;
+    }
     return payload?.role ?? null;
   });
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | null>(null);
@@ -159,6 +164,68 @@ export default function App() {
       if (!authRole && location.pathname === '/subscription') {
         setAuthModalMode('login');
       }
+    }, [authRole, location.pathname]);
+
+    // Automatic Telemetry Pageview Tracking
+    useEffect(() => {
+      const rawPath = location.pathname || '/';
+      if (rawPath.startsWith('/admin')) return;
+
+      let pageTitle = 'Home / Landing Page';
+      let cleanRoute = rawPath;
+
+      if (rawPath === '/' || rawPath === '/landing' || rawPath === '/home') {
+        pageTitle = authRole ? (authRole === 'parent' ? 'Parent Dashboard' : 'Student Study Dashboard') : 'Home / Landing Page';
+        cleanRoute = '/';
+      } else if (rawPath.includes('pricing') || rawPath.includes('subscription')) {
+        pageTitle = 'Pricing & Subscription Plans';
+        cleanRoute = '/pricing';
+      } else if (rawPath.includes('features')) {
+        pageTitle = 'Platform Features';
+        cleanRoute = '/features';
+      } else if (rawPath.includes('blog')) {
+        pageTitle = 'EduJunction Journal';
+        cleanRoute = '/blog';
+      } else if (rawPath.includes('arena') || rawPath.includes('mock-test')) {
+        pageTitle = 'Diagnostic Mock Test Arena';
+        cleanRoute = '/arena';
+      } else if (rawPath.includes('free-mock-papers')) {
+        pageTitle = 'Free Mock Papers 2027';
+        cleanRoute = '/free-mock-papers-2027';
+      } else if (rawPath.includes('model-papers')) {
+        pageTitle = 'Model Test Papers 2027';
+        cleanRoute = '/model-papers-2027';
+      } else if (rawPath.includes('for-everyone')) {
+        pageTitle = 'EduJunction for Everyone';
+        cleanRoute = '/for-everyone';
+      } else if (rawPath.includes('dashboard')) {
+        pageTitle = authRole === 'parent' ? 'Parent Dashboard' : 'Student Study Dashboard';
+        cleanRoute = '/dashboard';
+      } else if (rawPath.includes('reports')) {
+        pageTitle = 'Diagnostic Score Reports';
+        cleanRoute = '/reports';
+      } else if (rawPath.includes('schedule')) {
+        pageTitle = 'Exam Scheduler';
+        cleanRoute = '/schedule';
+      } else if (rawPath.includes('fun-zone')) {
+        pageTitle = 'Fun Zone & Gamification';
+        cleanRoute = '/fun-zone';
+      } else if (rawPath.includes('learning-path')) {
+        pageTitle = 'Adaptive Learning Path';
+        cleanRoute = '/learning-path';
+      } else if (rawPath.includes('children')) {
+        pageTitle = 'Children Management';
+        cleanRoute = '/children';
+      } else {
+        const cleanName = rawPath.replace(/^\//, '').replace(/-/g, ' ');
+        pageTitle = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+      }
+
+      trackEvent({
+        eventName: `PAGE_VIEW: ${pageTitle}`,
+        category: 'NAVIGATION',
+        inputPayload: { path: cleanRoute, title: pageTitle },
+      });
     }, [authRole, location.pathname]);
   const setActiveTab = (tab: string) => {
     setActiveSubmissionReport(null);
